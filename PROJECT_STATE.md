@@ -87,25 +87,26 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 3 — structured application shell, routing plan and runtime localization foundation.
+Milestone 4 — production data model and backend/API boundary definition.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - Initial premium responsive homepage prototype remains committed as the visual reference.
+- Structured application shell is in `app/` with localized navigation and language selection.
+- Runtime localization foundation supports English, Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese.
 - Added `docs/ARCHITECTURE.md` with domains, page map, architecture rules and build sequence.
-- Added `app/index.html`, a separate application entry point.
-- Added `app/main.js`, a first application shell with localized navigation and language selection.
-- Added `app/i18n.js`, a runtime localization foundation with supported locales and browser/localStorage selection.
-- Added `app/styles.css` and connected it to the application shell.
-- Supported locale foundation: English, Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese.
-- The current shell is intentionally small and is not yet the production framework/backend. It is the first structured step away from the single-file prototype.
+- Added `docs/DATA_MODEL.md` defining the initial users, sellers, products, media, orders, payments, payouts, moderation, reports, regions and audit entities.
+- Added `docs/API_BOUNDARIES.md` defining authentication, catalog, buyer, seller, admin, commerce and media service boundaries.
+- Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
-- The current shell has hash-style placeholder routes and does not yet implement real page routing.
-- The locale loader currently uses a lightweight browser-side implementation and needs to be replaced/strengthened when the production build system is introduced.
-- Authentication, database, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
+- The current shell has placeholder hash routes and is not yet a real routed application.
+- The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
+- No production database/backend exists yet.
+- Authentication, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
+- Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Define the production data model and backend boundaries for users, seller profiles, products, media assets, orders, order items, payments, payouts, moderation cases, reports, categories, locales, currencies and regions. Then build the first real browse/catalog flow on top of that structure. Commit each logical piece separately and update this file after each meaningful milestone.
+Choose and establish the production application stack and repository structure, then implement the first real catalog data flow: database schema/migrations, server-side product query boundary, localized product fields, category structure, and a browse/search UI backed by that data. Keep the implementation provider-agnostic and commit each logical piece separately.
