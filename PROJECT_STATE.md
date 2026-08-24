@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 7 — backend application foundation established.
+Milestone 8 — first relational database schema and development seed established.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -108,17 +108,21 @@ Milestone 7 — backend application foundation established.
 - Added `backend/package.json` with the initial Node.js API runtime dependencies.
 - Added `backend/src/server.js` with a hardened HTTP entry point, security headers and initial health/catalog API endpoints.
 - Added `backend/.env.example` and `backend/.gitignore` so real secrets are kept out of source control.
-- The catalog remains deliberately backed by demo data in the frontend; the backend catalog endpoint is currently an explicit placeholder until the database is connected.
+- Added `backend/db/schema.sql` with the first PostgreSQL-oriented users, sellers, categories, products and product translation tables plus core catalog indexes.
+- Added `backend/db/seed.sql` with isolated development-only demo records.
+- Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
+- The catalog remains deliberately backed by demo data in the frontend; the backend catalog endpoint is currently an explicit placeholder until the database driver/query layer is connected.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
 - The current frontend shell uses placeholder hash routes and is not yet a production router.
 - The catalog uses demo data and must be replaced by a real server/database boundary.
-- The backend currently has no database connection, authentication, persistent catalog or production deployment configuration.
+- The backend has the database schema but does not yet connect to PostgreSQL.
+- The current SQL is the first catalog migration foundation, not the complete production schema.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
 - Authentication, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Add the first database layer and migrations using a production-suitable relational schema. Implement product/category tables and server-side catalog queries with validation and pagination, then connect the frontend catalog to the API. After that, implement product detail and seller attribution against the same database. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Add the PostgreSQL driver/query layer and a versioned migration mechanism. Implement validated server-side catalog queries with pagination, locale fallback and category filtering, then connect the frontend catalog to the API. After that, implement product detail and seller attribution against the same database. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
