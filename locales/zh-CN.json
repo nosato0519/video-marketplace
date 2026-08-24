@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "发现", "categories": "分类", "popular": "热门", "creators": "创作者", "login": "登录", "signup": "注册"},
+  "search": {"placeholder": "搜索视频..."},
+  "hero": {"eyebrow": "全球视频市场", "title": "发现值得观看的视频。", "description": "面向全球用户和创作者打造的高级视频市场，支持发现、购买、在线播放和下载数字视频内容。", "explore": "探索视频", "creator": "成为创作者"},
+  "sections": {"featured": "精选视频", "popular": "当前热门", "categories": "探索分类"},
+  "product": {"buy": "立即购买", "preview": "预览", "favorite": "加入收藏", "download": "下载", "stream": "立即观看"},
+  "account": {"library": "我的视频库", "orders": "订单记录", "settings": "账户设置"}
+}
