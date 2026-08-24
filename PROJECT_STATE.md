@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 9 — PostgreSQL catalog query boundary connected to the API.
+Milestone 10 — commerce and seller settlement foundation added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -106,25 +106,28 @@ Milestone 9 — PostgreSQL catalog query boundary connected to the API.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
 - Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
 - Added `backend/package.json` with Node.js API runtime dependencies including PostgreSQL client support.
-- Added `backend/src/server.js` with a hardened HTTP entry point, security headers, health endpoint and database-backed catalog route.
+- Added `backend/src/server.js` with a hardened HTTP entry point, security headers, health endpoint and modular catalog API route registration.
+- Added `backend/src/catalog-routes.js` to isolate catalog route registration.
 - Added `backend/src/db.js` as the PostgreSQL connection/query boundary using a pooled connection and `DATABASE_URL`.
 - Added `backend/src/catalog.js` with parameterized, paginated catalog queries, category filtering and locale fallback.
 - Added `docs/API_CATALOG.md` defining the catalog API contract and security requirements.
 - Added `backend/db/schema.sql` with the first PostgreSQL-oriented users, sellers, categories, products and product translation tables plus core catalog indexes.
 - Added `backend/db/seed.sql` with isolated development-only demo records.
+- Added `backend/db/002_commerce.sql` with orders, order items, payments, idempotent payment-event tracking and seller settlement tables.
 - Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
-- The frontend still uses its demo adapter and has not yet been switched to fetch the backend API; that is the next integration step.
+- Added `docs/COMMERCE_FLOW.md` defining checkout through seller settlement, immutable order pricing, provider abstraction and adult-content provider compatibility requirements.
+- The frontend still uses its demo adapter and has not yet been switched to fetch the backend API.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
 - The current frontend shell uses placeholder hash routes and is not yet a production router.
 - The frontend catalog still uses demo data and must be switched to the API.
 - PostgreSQL connection code is present but a real database environment has not been provisioned or tested in this session.
-- The current SQL is the first catalog migration foundation, not the complete production schema.
-- The backend currently has no authentication, storage, moderation, payments, video delivery or seller payout implementation.
+- The current SQL is the initial production schema foundation; media, authentication, moderation, region controls and complete payout lifecycle still need migrations.
+- The backend currently has no authentication, storage, moderation, live payments, video delivery or seller payout provider implementation.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add the remaining commerce/media schema and begin authentication. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and media/storage schema before implementing checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
