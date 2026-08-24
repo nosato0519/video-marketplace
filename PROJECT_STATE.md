@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 10 — commerce and seller settlement foundation added.
+Milestone 11 — media delivery and moderation foundations added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -114,8 +114,11 @@ Milestone 10 — commerce and seller settlement foundation added.
 - Added `backend/db/schema.sql` with the first PostgreSQL-oriented users, sellers, categories, products and product translation tables plus core catalog indexes.
 - Added `backend/db/seed.sql` with isolated development-only demo records.
 - Added `backend/db/002_commerce.sql` with orders, order items, payments, idempotent payment-event tracking and seller settlement tables.
+- Added `backend/db/003_media.sql` with private media assets, delivery variants and media access events.
+- Added `backend/db/004_moderation.sql` with content reviews, reports and seller rights declarations.
 - Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
 - Added `docs/COMMERCE_FLOW.md` defining checkout through seller settlement, immutable order pricing, provider abstraction and adult-content provider compatibility requirements.
+- Added `docs/MEDIA_DELIVERY.md` defining private storage, signed delivery, upload processing and entitlement checks.
 - The frontend still uses its demo adapter and has not yet been switched to fetch the backend API.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
@@ -123,11 +126,11 @@ Milestone 10 — commerce and seller settlement foundation added.
 - The current frontend shell uses placeholder hash routes and is not yet a production router.
 - The frontend catalog still uses demo data and must be switched to the API.
 - PostgreSQL connection code is present but a real database environment has not been provisioned or tested in this session.
-- The current SQL is the initial production schema foundation; media, authentication, moderation, region controls and complete payout lifecycle still need migrations.
-- The backend currently has no authentication, storage, moderation, live payments, video delivery or seller payout provider implementation.
+- The current SQL is the initial production schema foundation; authentication, region controls and complete payout lifecycle still need migrations.
+- The backend currently has no authentication, storage-provider integration, moderation API, live payments, video processing, delivery-token implementation or seller payout provider implementation.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and media/storage schema before implementing checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
