@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 8 — first relational database schema and development seed established.
+Milestone 9 — PostgreSQL catalog query boundary connected to the API.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -105,24 +105,26 @@ Milestone 8 — first relational database schema and development seed establishe
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
 - Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
-- Added `backend/package.json` with the initial Node.js API runtime dependencies.
-- Added `backend/src/server.js` with a hardened HTTP entry point, security headers and initial health/catalog API endpoints.
-- Added `backend/.env.example` and `backend/.gitignore` so real secrets are kept out of source control.
+- Added `backend/package.json` with Node.js API runtime dependencies including PostgreSQL client support.
+- Added `backend/src/server.js` with a hardened HTTP entry point, security headers, health endpoint and database-backed catalog route.
+- Added `backend/src/db.js` as the PostgreSQL connection/query boundary using a pooled connection and `DATABASE_URL`.
+- Added `backend/src/catalog.js` with parameterized, paginated catalog queries, category filtering and locale fallback.
+- Added `docs/API_CATALOG.md` defining the catalog API contract and security requirements.
 - Added `backend/db/schema.sql` with the first PostgreSQL-oriented users, sellers, categories, products and product translation tables plus core catalog indexes.
 - Added `backend/db/seed.sql` with isolated development-only demo records.
 - Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
-- The catalog remains deliberately backed by demo data in the frontend; the backend catalog endpoint is currently an explicit placeholder until the database driver/query layer is connected.
+- The frontend still uses its demo adapter and has not yet been switched to fetch the backend API; that is the next integration step.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
 - The current frontend shell uses placeholder hash routes and is not yet a production router.
-- The catalog uses demo data and must be replaced by a real server/database boundary.
-- The backend has the database schema but does not yet connect to PostgreSQL.
+- The frontend catalog still uses demo data and must be switched to the API.
+- PostgreSQL connection code is present but a real database environment has not been provisioned or tested in this session.
 - The current SQL is the first catalog migration foundation, not the complete production schema.
+- The backend currently has no authentication, storage, moderation, payments, video delivery or seller payout implementation.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
-- Authentication, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Add the PostgreSQL driver/query layer and a versioned migration mechanism. Implement validated server-side catalog queries with pagination, locale fallback and category filtering, then connect the frontend catalog to the API. After that, implement product detail and seller attribution against the same database. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add the remaining commerce/media schema and begin authentication. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
