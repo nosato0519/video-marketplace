@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "探索", "categories": "分類", "popular": "熱門", "creators": "創作者", "login": "登入", "signup": "註冊"},
+  "search": {"placeholder": "搜尋影片..."},
+  "hero": {"eyebrow": "全球影片市集", "title": "探索值得觀看的影片。", "description": "為全球使用者與創作者打造的高質感影片市集，支援探索、購買、串流觀看與下載數位影片內容。", "explore": "探索影片", "creator": "成為創作者"},
+  "sections": {"featured": "精選影片", "popular": "目前熱門", "categories": "探索分類"},
+  "product": {"buy": "立即購買", "preview": "預覽", "favorite": "加入最愛", "download": "下載", "stream": "立即觀看"},
+  "account": {"library": "我的影片庫", "orders": "訂單紀錄", "settings": "帳戶設定"}
+}
