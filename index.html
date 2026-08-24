@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="description" content="動画を売る・買うためのマーケットプレイス"><title>Video Marketplace</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保存テスト</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f6f7fb;color:#171923}.nav{height:64px;background:#111827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 28px}.logo{font-weight:800;font-size:20px}.nav-links{display:flex;gap:12px;align-items:center}.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}.btn-primary{background:#4f46e5;color:#fff}.btn-light{background:#fff;color:#111827}.hero{background:linear-gradient(135deg,#111827,#312e81);color:#fff;padding:72px 20px}.hero-inner,.container{max-width:1100px;margin:auto}.hero h1{font-size:clamp(36px,6vw,58px);line-height:1.1;margin:0 0 18px}.hero p{max-width:650px;color:#dbeafe;font-size:18px;line-height:1.8}.container{padding:36px 20px}.toolbar{display:flex;gap:20px;justify-content:space-between;align-items:end;flex-wrap:wrap;margin-bottom:24px}.search{width:330px;max-width:100%;padding:13px;border:1px solid #d1d5db;border-radius:10px;background:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 5px 18px rgba(0,0,0,.05)}.thumb{height:145px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:42px}.card-body{padding:18px}.card h3{margin:6px 0}.muted{color:#6b7280;font-size:14px}.price{font-size:20px;font-weight:800;margin:14px 0}.notice{margin-top:28px;padding:16px;background:#eef2ff;border-radius:12px;color:#3730a3}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modal-box{background:#fff;width:min(460px,100%);border-radius:18px;padding:26px}.close{float:right;border:0;background:none;font-size:25px;cursor:pointer}.field{margin:14px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:9px}.footer{text-align:center;padding:35px;color:#6b7280;font-size:13px}
-</style></head>
+body{font-family:system-ui,sans-serif;background:#f4f4f5;margin:0;display:grid;place-items:center;min-height:100vh}
+.box{background:white;padding:40px;border-radius:20px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.1)}
+h1{margin-top:0}button{padding:12px 20px;border:0;border-radius:10px;background:#4f46e5;color:white;font-weight:bold;cursor:pointer}
+#message{margin-top:20px;font-weight:bold}
+</style>
+</head>
 <body>
-<header class="nav"><div class="logo">Video Marketplace</div><div class="nav-links"><span id="accountStatus" class="muted" style="color:#d1d5db">ログインしていません</span><button class="btn btn-light" id="loginBtn">ログイン</button></div></header>
-<section class="hero"><div class="hero-inner"><h1>動画を、売る。<br>動画を、買う。</h1><p>クリエイターが動画を販売し、購入者がコンテンツを探せるマーケットプレイス。</p><button class="btn btn-primary" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">動画を探す</button></div></section>
-<main class="container" id="products"><div class="toolbar"><div><h2 style="margin:0 0 5px">おすすめ動画</h2><span class="muted">販売中のコンテンツ</span></div><input class="search" id="search" placeholder="動画を検索…"></div><div class="grid" id="grid"></div><div class="notice"><strong>現在はフロントエンドの試作段階です。</strong><br>商品表示・検索・ログインUIを先に実装しています。決済、実ユーザー認証、購入後の動画配信は次の工程でバックエンドに接続します。</div></main>
-<footer class="footer">© 2026 Video Marketplace</footer>
-<div class="modal" id="modal"><div class="modal-box"><button class="close" id="close">×</button><h2>ログイン</h2><p class="muted">現在は動作確認用の仮ログインです。</p><div class="field"><label>メールアドレス</label><input id="email" type="email" placeholder="you@example.com"></div><div class="field"><label>パスワード</label><input id="password" type="password" placeholder="パスワード"></div><button class="btn btn-primary" style="width:100%" id="submitLogin">ログインする</button></div></div>
-<script>
-const products=[{title:'サンプル動画 01',category:'動画コンテンツ',price:980},{title:'サンプル動画 02',category:'クリエイター作品',price:1480},{title:'サンプル動画 03',category:'プレミアム動画',price:1980},{title:'サンプル動画 04',category:'限定コンテンツ',price:2980}];
-const grid=document.getElementById('grid'),search=document.getElementById('search');
-function render(){const q=search.value.trim().toLowerCase();const list=products.filter(p=>(p.title+p.category).toLowerCase().includes(q));grid.innerHTML=list.length?list.map(p=>`<article class="card"><div class="thumb">▶</div><div class="card-body"><div class="muted">${p.category}</div><h3>${p.title}</h3><div class="price">¥${p.price.toLocaleString()}</div><button class="btn btn-primary" style="width:100%" onclick="buy('${p.title}')">詳細を見る</button></div></article>`).join(''):'<div class="notice">該当する動画がありません。</div>'}function buy(title){alert(title+'\n\n購入処理はバックエンド接続後に有効化します。')}search.addEventListener('input',render);render();
-const modal=document.getElementById('modal');document.getElementById('loginBtn').onclick=()=>modal.classList.add('open');document.getElementById('close').onclick=()=>modal.classList.remove('open');modal.onclick=e=>{if(e.target===modal)modal.classList.remove('open')};document.getElementById('submitLogin').onclick=()=>{const email=document.getElementById('email').value.trim();if(!email){alert('メールアドレスを入力してください。');return}localStorage.setItem('vm_demo_user',email);document.getElementById('accountStatus').textContent=email;document.getElementById('loginBtn').textContent='ログイン済み';modal.classList.remove('open')};const saved=localStorage.getItem('vm_demo_user');if(saved){document.getElementById('accountStatus').textContent=saved;document.getElementById('loginBtn').textContent='ログイン済み'}
-</script></body></html>
+<div class="box">
+<h1>Video Marketplace</h1>
+<p>これは保存テスト用のページです。</p>
+<button onclick="document.getElementById('message').textContent='ボタンも動いた！'">テストする</button>
+<div id="message"></div>
+</div>
+</body>
+</html>
