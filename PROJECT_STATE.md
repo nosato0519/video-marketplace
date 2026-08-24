@@ -25,7 +25,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Admin must be genuinely usable from smartphone and desktop.
 - Routine admin operation must require no programming, SQL, server shell or config-file editing.
 - Every major architecture decision must consider the eventual self-hosted ZIP buyer.
-- Commercial messaging must be designed alongside the product. `docs/SALES_COPY.md` is the source of truth for accurate product positioning and must be updated when actual release capabilities change. Marketing claims must never exceed tested functionality.
+- Commercial messaging must be designed alongside the product. `docs/SALES_COPY.md`, `docs/SALES_MESSAGE_FRAMEWORK.md` and `docs/PRODUCT_DIFFERENTIATION.md` are the source documents for accurate positioning and must be updated when actual release capabilities change. Marketing claims must never exceed tested functionality.
 
 ## Product roles
 ### Buyer
@@ -73,8 +73,6 @@ A reusable, international video marketplace inspired by the usability of Japanes
 
 `docs/RELEASE_ACCEPTANCE.md` defines the commercial release gate. The ZIP is not considered sellable merely because it extracts successfully; it must pass clean installation, setup, admin, seller, buyer, media, commerce sandbox, localization, security and backup/restore tests.
 
-`docs/SALES_COPY.md` defines accurate positioning, product-page copy, ZIP listing copy, trust wording and prohibited overclaims. Final sales copy must be generated from tested release capabilities.
-
 ## Safety and compliance principles
 - Never store raw card details; use compliant payment providers.
 - Video assets must use private storage/access control and authorized delivery rather than public permanent URLs.
@@ -93,7 +91,7 @@ At the start of every future development session, read this file first, inspect 
 **The latest repository state and this project-state file are the authoritative continuation source and the project must be carried through completion subject to capabilities, required external services and applicable laws/policies.**
 
 ## Current milestone
-Milestone 21 — commercial positioning and sales-copy source added.
+Milestone 22 — clearer product-value messaging and differentiation strategy added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -110,7 +108,7 @@ Milestone 21 — commercial positioning and sales-copy source added.
 - Seller workflow database foundation added for workflow states, resumable drafts and payout requests.
 - Mobile-first admin UX and no-code admin requirements added; plain-language admin navigation foundation added.
 - Self-hosted ZIP distribution requirements and commercial release acceptance checklist added.
-- Commercial positioning/sales-copy source added in `docs/SALES_COPY.md`.
+- Commercial positioning, sales copy, product-value messaging and differentiation/demo strategy added.
 - Monetization, security, revenue testing, database migration, commerce flow, private media delivery and regional commerce documentation added.
 - Backend Node/PostgreSQL foundation added with security headers, health endpoint, catalog routes/query boundary, schema and seed data.
 
@@ -129,4 +127,4 @@ Milestone 21 — commercial positioning and sales-copy source added.
 - Commercial ZIP is not yet ready; installation/upgrade automation, clean-environment testing and final licensing remain.
 
 ## Next step
-Switch the catalog renderer to the API adapter and implement loading/error/empty states, pagination and accessible announcements/focus. Then connect the product detail page to a real product API and build the checkout flow in a payment-provider-neutral sandbox architecture. In parallel, build authenticated seller onboarding/upload workflows and authenticated no-code admin actions. Keep commercial copy synchronized with tested capabilities. Test revenue-critical flows in sandbox/staging before live credentials.
+Switch the catalog renderer to the API adapter and implement loading/error/empty states, pagination and accessible announcements/focus. Then connect the product detail page to a real product API and build the checkout flow in a payment-provider-neutral sandbox architecture. In parallel, build authenticated seller onboarding/upload workflows and authenticated no-code admin actions. Keep sales messaging synchronized with tested capabilities and demonstrate the complete buyer→seller→operator lifecycle. Test revenue-critical flows in sandbox/staging before live credentials.
