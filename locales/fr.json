@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "Découvrir", "categories": "Catégories", "popular": "Populaire", "creators": "Créateurs", "login": "Connexion", "signup": "Créer un compte"},
+  "search": {"placeholder": "Rechercher des vidéos..."},
+  "hero": {"eyebrow": "Marché mondial de la vidéo", "title": "Découvrez des vidéos qui valent le détour.", "description": "Une marketplace vidéo premium pensée pour les créateurs et conçue pour découvrir, acheter, regarder en streaming et télécharger des contenus numériques.", "explore": "Explorer les vidéos", "creator": "Devenir créateur"},
+  "sections": {"featured": "Vidéos à la une", "popular": "Populaire maintenant", "categories": "Explorer les catégories"},
+  "product": {"buy": "Acheter", "preview": "Aperçu", "favorite": "Ajouter aux favoris", "download": "Télécharger", "stream": "Regarder"},
+  "account": {"library": "Ma bibliothèque", "orders": "Historique des commandes", "settings": "Paramètres du compte"}
+}
