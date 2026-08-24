@@ -23,6 +23,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Documentation localization: documentation architecture supports multilingual releases. English is the source language; planned translations include Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese, with human review required for legal/security text.
 - Distribution: after the operator personally tests the completed application, create a clean, installable ZIP release with documentation, configuration examples, licensing/attribution information and release checklist.
 - Business objective: this is intended to become a revenue-generating product for the operator. Revenue-critical flows must therefore be designed, tested and documented as first-class product functionality rather than added as an afterthought.
+- Conversion priority: every buyer-facing flow must optimize for clarity, trust and completed legitimate purchases without deceptive patterns, fake scarcity, fake reviews or fabricated sales claims.
 
 ## Product roles
 ### Buyer
@@ -88,7 +89,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 12 — frontend catalog API adapter and regional commerce foundation added.
+Milestone 13 — buyer conversion/accessibility requirements added and catalog state foundation created.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -103,7 +104,11 @@ Milestone 12 — frontend catalog API adapter and regional commerce foundation a
 - Added `app/catalog/catalog.css` for the responsive catalog UI.
 - Added `app/catalog/catalog-api.js` as the browser API adapter for the database-backed catalog endpoint.
 - Added `app/catalog/catalog-ui.js` with cancellable request handling so rapid filter/page changes do not leave stale results rendered.
+- Added `app/catalog/catalog-state.js` for predictable catalog filter/request state.
+- Added `app/catalog/catalog-accessibility.js` for screen-reader status announcements and focus management.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
+- Added `docs/BUYER_UX.md` defining international buyer usability, checkout, library, accessibility and trust requirements.
+- Added `docs/CONVERSION_UX.md` defining the legitimate purchase funnel, trust, checkout, post-purchase and performance requirements.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
 - Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
@@ -122,7 +127,6 @@ Milestone 12 — frontend catalog API adapter and regional commerce foundation a
 - Added `docs/COMMERCE_FLOW.md` defining checkout through seller settlement, immutable order pricing, provider abstraction and adult-content provider compatibility requirements.
 - Added `docs/MEDIA_DELIVERY.md` defining private storage, signed delivery, upload processing and entitlement checks.
 - Added `docs/REGIONAL_COMMERCE.md` defining Japan/JPY and international commerce requirements and the separation between locale, display currency and actual charge currency.
-- The frontend still needs its main catalog renderer switched from the demo adapter to the new API adapter.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
@@ -137,4 +141,4 @@ Milestone 12 — frontend catalog API adapter and regional commerce foundation a
 - Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
 
 ## Next step
-Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
