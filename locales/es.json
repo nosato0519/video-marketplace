@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "Descubrir", "categories": "Categorías", "popular": "Popular", "creators": "Creadores", "login": "Iniciar sesión", "signup": "Registrarse"},
+  "search": {"placeholder": "Buscar vídeos..."},
+  "hero": {"eyebrow": "Mercado global de vídeos", "title": "Descubre vídeos que vale la pena ver.", "description": "Un mercado premium y pensado para creadores, diseñado para descubrir, comprar, reproducir y descargar vídeos digitales.", "explore": "Explorar vídeos", "creator": "Convertirse en creador"},
+  "sections": {"featured": "Vídeos destacados", "popular": "Popular ahora", "categories": "Explorar categorías"},
+  "product": {"buy": "Comprar ahora", "preview": "Vista previa", "favorite": "Añadir a favoritos", "download": "Descargar", "stream": "Ver ahora"},
+  "account": {"library": "Mi biblioteca", "orders": "Historial de pedidos", "settings": "Configuración de la cuenta"}
+}
