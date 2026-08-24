@@ -26,6 +26,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Conversion priority: every buyer-facing flow must optimize for clarity, trust and completed legitimate purchases without deceptive patterns, fake scarcity, fake reviews or fabricated sales claims.
 - Seller usability priority: creator/seller workflows are equally first-class. A seller should be able to register, create a draft, upload, recover from interruptions, understand fees and expected proceeds, pass review, publish, monitor sales and request payouts without needing technical knowledge.
 - Admin usability priority: the operator/admin must be able to manage the marketplace from a smartphone as well as desktop. The mobile admin experience must be genuinely usable, not merely visually responsive.
+- No-code admin priority: routine marketplace operation must not require programming, SQL, server-shell access or editing configuration files. The normal administrator interface must provide guided forms, selectors, previews, validation, help and safe confirmations.
 
 ## Product roles
 ### Buyer
@@ -70,6 +71,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Legal/policy content management
 - Smartphone-friendly access to all routine management functions
 - Step-up/re-authentication for sensitive actions
+- No-code guided setup and administration for routine operations
+- Human-readable health checks and troubleshooting guidance
 
 ## Safety and compliance principles
 - Do not store raw card details; use compliant external payment providers.
@@ -96,7 +99,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 16 — mobile-first operator/admin management requirements added.
+Milestone 17 — no-code administration requirements and plain-language admin navigation foundation added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -113,12 +116,15 @@ Milestone 16 — mobile-first operator/admin management requirements added.
 - Added `app/catalog/catalog-ui.js` with cancellable request handling so rapid filter/page changes do not leave stale results rendered.
 - Added `app/catalog/catalog-state.js` for predictable catalog filter/request state.
 - Added `app/catalog/catalog-accessibility.js` for screen-reader status announcements and focus management.
+- Added `app/catalog/product-card.js` as a reusable localized product card renderer with clear delivery information and product navigation.
 - Added `docs/BUYER_UX.md` defining international buyer usability, checkout, library, accessibility and trust requirements.
 - Added `docs/CONVERSION_UX.md` defining the legitimate purchase funnel, trust, checkout, post-purchase and performance requirements.
 - Added `docs/SELLER_UX.md` defining creator onboarding, guided product creation, resumable uploads, pricing transparency, moderation states, earnings and payout UX.
 - Added `docs/BUYER_SELLER_PARITY.md` making buyer and seller usability equal first-class product requirements.
 - Added `backend/db/005_seller_workflow.sql` with seller product workflow states, resumable seller drafts and payout-request foundation.
 - Added `docs/ADMIN_MOBILE_UX.md` defining smartphone-first operator/admin management, security, interaction, poor-connection and role-separation requirements.
+- Added `docs/NO_CODE_ADMIN.md` defining no-code administration, guided setup, visual management, guardrails, health checks and advanced-mode separation.
+- Added `app/admin/admin-navigation.js` defining plain-language admin sections for routine no-code management.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
@@ -152,4 +158,4 @@ Milestone 16 — mobile-first operator/admin management requirements added.
 - Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
 
 ## Next step
-Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and the operator/admin mobile dashboard shell. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and the operator/admin no-code mobile dashboard shell. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
