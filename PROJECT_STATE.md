@@ -22,6 +22,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Documentation: installation, buyer, seller, admin, configuration, security, moderation, payments, video delivery, localization, backup/recovery, updates, troubleshooting, legal/compliance and release/distribution documentation are product deliverables, not optional extras.
 - Documentation localization: documentation architecture supports multilingual releases. English is the source language; planned translations include Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese, with human review required for legal/security text.
 - Distribution: after the operator personally tests the completed application, create a clean, installable ZIP release with documentation, configuration examples, licensing/attribution information and release checklist.
+- Business objective: this is intended to become a revenue-generating product for the operator. Revenue-critical flows must therefore be designed, tested and documented as first-class product functionality rather than added as an afterthought.
 
 ## Product roles
 ### Buyer
@@ -87,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 5 — first catalog browsing/search UI wired to a replaceable catalog domain interface.
+Milestone 6 — revenue, settlement and security baseline defined.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -101,6 +102,9 @@ Milestone 5 — first catalog browsing/search UI wired to a replaceable catalog 
 - Added `app/catalog/catalog.js` as a replaceable catalog-domain interface with temporary demo data.
 - Added `app/catalog/catalog.css` for the responsive catalog UI.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
+- Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
+- Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
+- Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
 - This catalog is deliberately backed by demo data for now; it is not pretending to be a production database.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
@@ -114,4 +118,4 @@ Milestone 5 — first catalog browsing/search UI wired to a replaceable catalog 
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Establish the production application stack and backend foundation, then replace the demo catalog adapter with a real database-backed catalog query. Add migrations/schema, product/category seed data, server-side validation and API responses. After that, connect product detail pages and seller attribution to the same real catalog boundary.
+Establish the production application stack and backend foundation, then replace the demo catalog adapter with a real database-backed catalog query. Add migrations/schema, product/category seed data, server-side validation and API responses. After that, connect product detail pages and seller attribution to the same real catalog boundary. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
