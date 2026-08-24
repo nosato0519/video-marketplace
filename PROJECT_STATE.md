@@ -27,6 +27,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Seller usability priority: creator/seller workflows are equally first-class. A seller should be able to register, create a draft, upload, recover from interruptions, understand fees and expected proceeds, pass review, publish, monitor sales and request payouts without needing technical knowledge.
 - Admin usability priority: the operator/admin must be able to manage the marketplace from a smartphone as well as desktop. The mobile admin experience must be genuinely usable, not merely visually responsive.
 - No-code admin priority: routine marketplace operation must not require programming, SQL, server-shell access or editing configuration files. The normal administrator interface must provide guided forms, selectors, previews, validation, help and safe confirmations.
+- Distribution product priority: every major architecture decision must consider the eventual self-hosted ZIP buyer. Installation, setup, upgrades, documentation, third-party licensing and portability must be treated as product requirements from the beginning.
 
 ## Product roles
 ### Buyer
@@ -82,6 +83,9 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - The platform must support country/category availability controls.
 - Compliance requirements must be verified for the actual launch jurisdictions and providers before production launch.
 
+## Distribution requirements
+See `docs/DISTRIBUTION_PRODUCT.md`. The eventual ZIP release must be installable and understandable by a non-programmer as far as technically practical. It must contain all required manuals, configuration templates, migrations, licenses/attributions, security hardening, sandbox testing and production checklists. Never ship secrets or private project data.
+
 ## Development rule
 Do not treat the current simple `index.html` test page as the finished product. Build the real application incrementally from an explicit architecture and keep this file updated whenever a major project decision, schema, integration, or unfinished task changes.
 
@@ -99,7 +103,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 17 — no-code administration requirements and plain-language admin navigation foundation added.
+Milestone 18 — self-hosted ZIP distribution and commercial-release requirements added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -125,6 +129,7 @@ Milestone 17 — no-code administration requirements and plain-language admin na
 - Added `docs/ADMIN_MOBILE_UX.md` defining smartphone-first operator/admin management, security, interaction, poor-connection and role-separation requirements.
 - Added `docs/NO_CODE_ADMIN.md` defining no-code administration, guided setup, visual management, guardrails, health checks and advanced-mode separation.
 - Added `app/admin/admin-navigation.js` defining plain-language admin sections for routine no-code management.
+- Added `docs/DISTRIBUTION_PRODUCT.md` defining the sellable self-hosted ZIP package, installer philosophy, portability, environment separation, upgrade safety, licensing and release quality gates.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
@@ -156,6 +161,7 @@ Milestone 17 — no-code administration requirements and plain-language admin na
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 - Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
+- A commercial ZIP release is not yet ready; installation/upgrade automation, clean-environment testing and final licensing still remain.
 
 ## Next step
 Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and the operator/admin no-code mobile dashboard shell. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
