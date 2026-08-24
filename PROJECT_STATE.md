@@ -24,6 +24,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Distribution: after the operator personally tests the completed application, create a clean, installable ZIP release with documentation, configuration examples, licensing/attribution information and release checklist.
 - Business objective: this is intended to become a revenue-generating product for the operator. Revenue-critical flows must therefore be designed, tested and documented as first-class product functionality rather than added as an afterthought.
 - Conversion priority: every buyer-facing flow must optimize for clarity, trust and completed legitimate purchases without deceptive patterns, fake scarcity, fake reviews or fabricated sales claims.
+- Seller usability priority: creator/seller workflows are equally first-class. A seller should be able to register, create a draft, upload, recover from interruptions, understand fees and expected proceeds, pass review, publish, monitor sales and request payouts without needing technical knowledge.
 
 ## Product roles
 ### Buyer
@@ -44,9 +45,12 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Upload/manage videos and thumbnails
 - Set title, description, category, tags, price, currency/display settings
 - Choose streaming/download policy where allowed
+- Save/resume drafts at each major step
+- See upload/processing/review status
 - Submit content for moderation
-- View sales and earnings
+- View sales and earnings with gross/fees/net/pending/available distinctions
 - Request/receive payouts according to platform rules
+- Receive clear recovery instructions when an upload, review or payout operation fails
 
 ### Operator/Admin
 - Dashboard
@@ -89,7 +93,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 13 — buyer conversion/accessibility requirements added and catalog state foundation created.
+Milestone 14 — seller/creator workflow and payout-request foundation added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -106,9 +110,11 @@ Milestone 13 — buyer conversion/accessibility requirements added and catalog s
 - Added `app/catalog/catalog-ui.js` with cancellable request handling so rapid filter/page changes do not leave stale results rendered.
 - Added `app/catalog/catalog-state.js` for predictable catalog filter/request state.
 - Added `app/catalog/catalog-accessibility.js` for screen-reader status announcements and focus management.
-- Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/BUYER_UX.md` defining international buyer usability, checkout, library, accessibility and trust requirements.
 - Added `docs/CONVERSION_UX.md` defining the legitimate purchase funnel, trust, checkout, post-purchase and performance requirements.
+- Added `docs/SELLER_UX.md` defining creator onboarding, guided product creation, resumable uploads, pricing transparency, moderation states, earnings and payout UX.
+- Added `backend/db/005_seller_workflow.sql` with seller product workflow states, resumable seller drafts and payout-request foundation.
+- Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
 - Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
@@ -141,4 +147,4 @@ Milestone 13 — buyer conversion/accessibility requirements added and catalog s
 - Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
 
 ## Next step
-Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and guided draft workflow from the seller UX requirements. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
