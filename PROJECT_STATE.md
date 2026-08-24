@@ -84,13 +84,20 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 0 — repository reset and project specification capture.
+Milestone 1 — initial premium international marketplace homepage.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Test `index.html` exists as the current minimal placeholder.
-- This project-state file is the persistent source of truth for the project's product requirements and continuation context.
+- Replaced the minimal test page with the first visual homepage prototype.
+- Added premium dark visual direction, responsive layout, global navigation, search field, language control, login/signup actions, hero section, featured videos, popular videos, category cards and creator-oriented CTA.
+- The current UI is a frontend prototype only; buttons, search, authentication, payments and product data are not wired to backend services yet.
+- This project-state file remains the persistent source of truth for product requirements and continuation context.
+
+## Known issues / risks
+- The current homepage uses placeholder content and inline CSS for rapid prototyping.
+- Localization, currency selection, real routing, authentication, database, storage, moderation, payments, video delivery and seller payouts are not implemented yet.
+- Production launch requires legal/compliance review for the countries, content categories and payment providers actually selected.
 
 ## Next step
-Create the initial application architecture and design system before implementing full marketplace functionality. First establish the frontend structure, routing/page map, localization foundation, currency abstraction, reusable UI components, and a clear path toward authentication, database, storage, moderation and payment integrations.
+Build the real initial application architecture and design system. Establish a maintainable frontend structure, routing/page map, localization foundation, currency abstraction, reusable UI components and a clear path toward authentication, database, private video storage, moderation and payment integrations. Preserve the current visual direction while moving from the single-file prototype toward a structured application.
