@@ -25,6 +25,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Business objective: this is intended to become a revenue-generating product for the operator. Revenue-critical flows must therefore be designed, tested and documented as first-class product functionality rather than added as an afterthought.
 - Conversion priority: every buyer-facing flow must optimize for clarity, trust and completed legitimate purchases without deceptive patterns, fake scarcity, fake reviews or fabricated sales claims.
 - Seller usability priority: creator/seller workflows are equally first-class. A seller should be able to register, create a draft, upload, recover from interruptions, understand fees and expected proceeds, pass review, publish, monitor sales and request payouts without needing technical knowledge.
+- Admin usability priority: the operator/admin must be able to manage the marketplace from a smartphone as well as desktop. The mobile admin experience must be genuinely usable, not merely visually responsive.
 
 ## Product roles
 ### Buyer
@@ -67,6 +68,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Site settings
 - Audit logs/security events
 - Legal/policy content management
+- Smartphone-friendly access to all routine management functions
+- Step-up/re-authentication for sensitive actions
 
 ## Safety and compliance principles
 - Do not store raw card details; use compliant external payment providers.
@@ -93,7 +96,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 14 — seller/creator workflow and payout-request foundation added.
+Milestone 16 — mobile-first operator/admin management requirements added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -113,7 +116,9 @@ Milestone 14 — seller/creator workflow and payout-request foundation added.
 - Added `docs/BUYER_UX.md` defining international buyer usability, checkout, library, accessibility and trust requirements.
 - Added `docs/CONVERSION_UX.md` defining the legitimate purchase funnel, trust, checkout, post-purchase and performance requirements.
 - Added `docs/SELLER_UX.md` defining creator onboarding, guided product creation, resumable uploads, pricing transparency, moderation states, earnings and payout UX.
+- Added `docs/BUYER_SELLER_PARITY.md` making buyer and seller usability equal first-class product requirements.
 - Added `backend/db/005_seller_workflow.sql` with seller product workflow states, resumable seller drafts and payout-request foundation.
+- Added `docs/ADMIN_MOBILE_UX.md` defining smartphone-first operator/admin management, security, interaction, poor-connection and role-separation requirements.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
@@ -147,4 +152,4 @@ Milestone 14 — seller/creator workflow and payout-request foundation added.
 - Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
 
 ## Next step
-Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and guided draft workflow from the seller UX requirements. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination and accessible announcements/focus. Then implement a real product detail API/page with a strong purchase CTA, seller attribution, preview and clear price/access information. In parallel, build the seller onboarding/dashboard shell and the operator/admin mobile dashboard shell. After that, add authentication, upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
