@@ -25,7 +25,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Admin must be genuinely usable from smartphone and desktop.
 - Routine admin operation must require no programming, SQL, server shell or config-file editing.
 - Every major architecture decision must consider the eventual self-hosted ZIP buyer.
-- Commercial messaging must be designed alongside the product. `docs/SALES_COPY.md`, `docs/SALES_MESSAGE_FRAMEWORK.md` and `docs/PRODUCT_DIFFERENTIATION.md` are the source documents for accurate positioning and must be updated when actual release capabilities change. Marketing claims must never exceed tested functionality.
+- Commercial messaging must be designed alongside the product. `docs/SALES_COPY.md`, `docs/SALES_MESSAGE_FRAMEWORK.md` and `docs/PRODUCT_DIFFERENTIATION.md` are source documents for accurate positioning and must be updated when actual release capabilities change. Marketing claims must never exceed tested functionality.
+- The first marketplace is the foundation for a future product family. Reusable modules, tests, documentation and lessons learned should make subsequent sites materially better and faster to build; the next site starts only after the first release has a stable tested baseline.
 
 ## Product roles
 ### Buyer
@@ -73,6 +74,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 
 `docs/RELEASE_ACCEPTANCE.md` defines the commercial release gate. The ZIP is not considered sellable merely because it extracts successfully; it must pass clean installation, setup, admin, seller, buyer, media, commerce sandbox, localization, security and backup/restore tests.
 
+`docs/NEXT_PRODUCT_ROADMAP.md` defines how lessons and reusable components from this site feed the next site after the first release is stable.
+
 ## Safety and compliance principles
 - Never store raw card details; use compliant payment providers.
 - Video assets must use private storage/access control and authorized delivery rather than public permanent URLs.
@@ -91,7 +94,7 @@ At the start of every future development session, read this file first, inspect 
 **The latest repository state and this project-state file are the authoritative continuation source and the project must be carried through completion subject to capabilities, required external services and applicable laws/policies.**
 
 ## Current milestone
-Milestone 22 — clearer product-value messaging and differentiation strategy added.
+Milestone 24 — future product-family roadmap added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -109,6 +112,8 @@ Milestone 22 — clearer product-value messaging and differentiation strategy ad
 - Mobile-first admin UX and no-code admin requirements added; plain-language admin navigation foundation added.
 - Self-hosted ZIP distribution requirements and commercial release acceptance checklist added.
 - Commercial positioning, sales copy, product-value messaging and differentiation/demo strategy added.
+- Broad content-vertical strategy and adult deployment requirements added.
+- Future product-family roadmap added.
 - Monetization, security, revenue testing, database migration, commerce flow, private media delivery and regional commerce documentation added.
 - Backend Node/PostgreSQL foundation added with security headers, health endpoint, catalog routes/query boundary, schema and seed data.
 
@@ -127,4 +132,4 @@ Milestone 22 — clearer product-value messaging and differentiation strategy ad
 - Commercial ZIP is not yet ready; installation/upgrade automation, clean-environment testing and final licensing remain.
 
 ## Next step
-Switch the catalog renderer to the API adapter and implement loading/error/empty states, pagination and accessible announcements/focus. Then connect the product detail page to a real product API and build the checkout flow in a payment-provider-neutral sandbox architecture. In parallel, build authenticated seller onboarding/upload workflows and authenticated no-code admin actions. Keep sales messaging synchronized with tested capabilities and demonstrate the complete buyer→seller→operator lifecycle. Test revenue-critical flows in sandbox/staging before live credentials.
+Switch the catalog renderer to the API adapter and implement loading/error/empty states, pagination and accessible announcements/focus. Then connect the product detail page to a real product API and build the checkout flow in a payment-provider-neutral sandbox architecture. In parallel, build authenticated seller onboarding/upload workflows and authenticated no-code admin actions. Keep sales messaging synchronized with tested capabilities and demonstrate the complete buyer→seller→operator lifecycle. Test revenue-critical flows in sandbox/staging before live credentials. After v1 is stable, use `docs/NEXT_PRODUCT_ROADMAP.md` to select and build the next site from the reusable foundation.
