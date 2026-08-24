@@ -71,6 +71,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 Do not treat the current simple `index.html` test page as the finished product. Build the real application incrementally from an explicit architecture and keep this file updated whenever a major project decision, milestone, schema, integration, or unfinished task changes.
 
 ## Continuation rule
+**This repository must remain sufficient to continue the project even if the assistant forgets the conversation, loses the previous session context, or a future session starts from the beginning. The project must be designed so development can resume from any saved milestone and continue all the way to completion without relying on the chat history.**
+
 At the start of every future development session, read this file first, inspect the latest commits, inspect the current repository tree/code, and continue from the latest saved state instead of recreating the project from memory. After every meaningful milestone, commit the work with a clear commit message and update this file with:
 1. current milestone/status,
 2. what was completed,
@@ -78,6 +80,8 @@ At the start of every future development session, read this file first, inspect 
 4. important technical decisions,
 5. known issues/risks,
 6. exact next step.
+
+**The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
 Milestone 0 — repository reset and project specification capture.
