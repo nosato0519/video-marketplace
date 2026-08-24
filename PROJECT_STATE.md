@@ -94,7 +94,7 @@ At the start of every future development session, read this file first, inspect 
 **The latest repository state and this project-state file are the authoritative continuation source and the project must be carried through completion subject to capabilities, required external services and applicable laws/policies.**
 
 ## Current milestone
-Milestone 24 — future product-family roadmap added.
+Milestone 28 — API-first catalog renderer, resilient fallback, product detail route and responsive storefront polish added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -103,9 +103,10 @@ Milestone 24 — future product-family roadmap added.
 - Structured application shell in `app/` with localized navigation/language selection.
 - Runtime localization foundation supports English, Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese.
 - Architecture, data model and API boundary documentation added.
-- Catalog domain, API adapter, UI state, accessibility helpers and reusable product card added.
+- Catalog API adapter is now consumed by an API-first catalog renderer with a controlled demo-data fallback.
+- Catalog loading/error/empty states and accessible live status messaging added.
+- Product cards now navigate to a product detail route; responsive product detail UI and sandbox purchase placeholder are present.
 - Buyer UX, conversion UX, seller UX and buyer/seller parity requirements added.
-- Product-detail renderer added with localized price, delivery information, seller attribution and purchase CTA foundation.
 - Seller dashboard shell added with product/upload/sales/payout/profile/help sections.
 - No-code admin dashboard shell added with routine operator sections and mobile-oriented structure.
 - Seller workflow database foundation added for workflow states, resumable drafts and payout requests.
@@ -113,14 +114,13 @@ Milestone 24 — future product-family roadmap added.
 - Self-hosted ZIP distribution requirements and commercial release acceptance checklist added.
 - Commercial positioning, sales copy, product-value messaging and differentiation/demo strategy added.
 - Broad content-vertical strategy and adult deployment requirements added.
-- Future product-family roadmap added.
+- Future product-family roadmap and second-product plan added.
 - Monetization, security, revenue testing, database migration, commerce flow, private media delivery and regional commerce documentation added.
 - Backend Node/PostgreSQL foundation added with security headers, health endpoint, catalog routes/query boundary, schema and seed data.
 
 ## Known issues / risks
-- Frontend shell still uses placeholder hash routes and is not yet a production router.
-- Catalog API adapter exists but renderer has not yet been switched fully to it.
-- Product detail currently uses placeholder preview/checkout route and is not connected to live product data or payment.
+- Frontend shell still uses hash routes and is not yet a production router.
+- Product detail currently uses demo data and a placeholder sandbox checkout; it is not connected to a live product-detail API or payment provider.
 - Seller/admin dashboards are UI foundations and are not yet connected to authenticated backend operations.
 - PostgreSQL environment has not yet been provisioned/tested in this session.
 - Authentication, region controls and complete payout lifecycle still need migrations.
@@ -132,4 +132,4 @@ Milestone 24 — future product-family roadmap added.
 - Commercial ZIP is not yet ready; installation/upgrade automation, clean-environment testing and final licensing remain.
 
 ## Next step
-Switch the catalog renderer to the API adapter and implement loading/error/empty states, pagination and accessible announcements/focus. Then connect the product detail page to a real product API and build the checkout flow in a payment-provider-neutral sandbox architecture. In parallel, build authenticated seller onboarding/upload workflows and authenticated no-code admin actions. Keep sales messaging synchronized with tested capabilities and demonstrate the complete buyer→seller→operator lifecycle. Test revenue-critical flows in sandbox/staging before live credentials. After v1 is stable, use `docs/NEXT_PRODUCT_ROADMAP.md` to select and build the next site from the reusable foundation.
+Implement the product-detail API and provider-neutral sandbox checkout boundary. Then connect authenticated buyer purchase/library state and seller onboarding/upload workflow to the backend. In parallel, build authenticated no-code admin actions for moderation and seller approval. Add real private-media delivery tokens after authorization is in place. Keep the UI polished while testing the complete buyer→seller→operator lifecycle. Test revenue-critical flows in sandbox/staging before live credentials. After v1 is stable, use `docs/NEXT_PRODUCT_ROADMAP.md` to select and build the next site from the reusable foundation.
