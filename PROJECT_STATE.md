@@ -72,7 +72,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Compliance requirements must be verified for the actual launch jurisdictions and providers before production launch.
 
 ## Development rule
-Do not treat the current simple `index.html` test page as the finished product. Build the real application incrementally from an explicit architecture and keep this file updated whenever a major project decision, milestone, schema, integration, or unfinished task changes.
+Do not treat the current simple `index.html` test page as the finished product. Build the real application incrementally from an explicit architecture and keep this file updated whenever a major project decision, schema, integration, or unfinished task changes.
 
 ## Continuation rule
 **This repository must remain sufficient to continue the project even if the assistant forgets the conversation, loses the previous session context, or a future session starts from the beginning. The project must be designed so development can resume from any saved milestone and continue all the way to completion without relying on the chat history.**
@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 11 — media delivery and moderation foundations added.
+Milestone 12 — frontend catalog API adapter and resilient loading foundation added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -101,6 +101,8 @@ Milestone 11 — media delivery and moderation foundations added.
 - Added `docs/API_BOUNDARIES.md` defining authentication, catalog, buyer, seller, admin, commerce and media service boundaries.
 - Added `app/catalog/catalog.js` as a replaceable catalog-domain interface with temporary demo data.
 - Added `app/catalog/catalog.css` for the responsive catalog UI.
+- Added `app/catalog/catalog-api.js` as the browser API adapter for the database-backed catalog endpoint.
+- Added `app/catalog/catalog-ui.js` with cancellable request handling so rapid filter/page changes do not leave stale results rendered.
 - Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
@@ -119,12 +121,12 @@ Milestone 11 — media delivery and moderation foundations added.
 - Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
 - Added `docs/COMMERCE_FLOW.md` defining checkout through seller settlement, immutable order pricing, provider abstraction and adult-content provider compatibility requirements.
 - Added `docs/MEDIA_DELIVERY.md` defining private storage, signed delivery, upload processing and entitlement checks.
-- The frontend still uses its demo adapter and has not yet been switched to fetch the backend API.
+- The frontend still needs its main catalog renderer switched from the demo adapter to the new API adapter.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
 - The current frontend shell uses placeholder hash routes and is not yet a production router.
-- The frontend catalog still uses demo data and must be switched to the API.
+- The catalog API adapter is present but the existing catalog renderer has not yet been switched over.
 - PostgreSQL connection code is present but a real database environment has not been provisioned or tested in this session.
 - The current SQL is the initial production schema foundation; authentication, region controls and complete payout lifecycle still need migrations.
 - The backend currently has no authentication, storage-provider integration, moderation API, live payments, video processing, delivery-token implementation or seller payout provider implementation.
@@ -133,4 +135,4 @@ Milestone 11 — media delivery and moderation foundations added.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Connect the frontend catalog page to `GET /api/catalog/products`, including loading/error/empty states and pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
