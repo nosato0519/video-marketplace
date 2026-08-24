@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "탐색", "categories": "카테고리", "popular": "인기", "creators": "크리에이터", "login": "로그인", "signup": "회원가입"},
+  "search": {"placeholder": "동영상 검색..."},
+  "hero": {"eyebrow": "글로벌 동영상 마켓플레이스", "title": "볼 가치가 있는 동영상을 찾아보세요.", "description": "전 세계 사용자가 디지털 동영상을 발견하고 구매하고 스트리밍하거나 다운로드할 수 있는 프리미엄 크리에이터 친화형 마켓플레이스입니다.", "explore": "동영상 탐색", "creator": "크리에이터로 참여"},
+  "sections": {"featured": "추천 동영상", "popular": "지금 인기 있는 동영상", "categories": "카테고리 탐색"},
+  "product": {"buy": "지금 구매", "preview": "미리보기", "favorite": "즐겨찾기 추가", "download": "다운로드", "stream": "지금 시청"},
+  "account": {"library": "내 라이브러리", "orders": "주문 내역", "settings": "계정 설정"}
+}
