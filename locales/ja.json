@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "動画を探す", "categories": "カテゴリー", "popular": "人気", "creators": "クリエイター", "login": "ログイン", "signup": "新規登録"},
+  "search": {"placeholder": "動画を検索..."},
+  "hero": {"eyebrow": "グローバル動画マーケットプレイス", "title": "見たい動画を見つけよう。", "description": "世界中のユーザーが動画を探し、購入し、ストリーミングやダウンロードを利用できる、クリエイター向けの動画マーケットプレイスです。", "explore": "動画を探す", "creator": "クリエイターとして参加"},
+  "sections": {"featured": "おすすめ動画", "popular": "今人気の動画", "categories": "カテゴリーから探す"},
+  "product": {"buy": "購入する", "preview": "プレビュー", "favorite": "お気に入りに追加", "download": "ダウンロード", "stream": "今すぐ見る"},
+  "account": {"library": "購入済み動画", "orders": "注文履歴", "settings": "アカウント設定"}
+}
