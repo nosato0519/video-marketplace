@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "Discover", "categories": "Categories", "popular": "Popular", "creators": "Creators", "login": "Log in", "signup": "Sign up"},
+  "search": {"placeholder": "Search videos..."},
+  "hero": {"eyebrow": "Global video marketplace", "title": "Discover videos worth watching.", "description": "A premium, creator-friendly marketplace designed for people around the world to discover, buy, stream and download digital video content.", "explore": "Explore videos", "creator": "Become a creator"},
+  "sections": {"featured": "Featured videos", "popular": "Popular now", "categories": "Explore categories"},
+  "product": {"buy": "Buy now", "preview": "Preview", "favorite": "Add to favorites", "download": "Download", "stream": "Watch now"},
+  "account": {"library": "My library", "orders": "Order history", "settings": "Account settings"}
+}
