@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 6 — revenue, settlement and security baseline defined.
+Milestone 7 — backend application foundation established.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -105,17 +105,20 @@ Milestone 6 — revenue, settlement and security baseline defined.
 - Added `docs/MONETIZATION.md` covering operator revenue, platform commission, seller settlement, refunds, payouts and currency rules.
 - Added `docs/SECURITY_BASELINE.md` covering identity, authorization, private media, commerce security, application security, privacy and adult-content safeguards.
 - Added `docs/REVENUE_TEST_PLAN.md` covering purchase, seller accounting, payout, currency and abuse/security release tests.
-- This catalog is deliberately backed by demo data for now; it is not pretending to be a production database.
+- Added `backend/package.json` with the initial Node.js API runtime dependencies.
+- Added `backend/src/server.js` with a hardened HTTP entry point, security headers and initial health/catalog API endpoints.
+- Added `backend/.env.example` and `backend/.gitignore` so real secrets are kept out of source control.
+- The catalog remains deliberately backed by demo data in the frontend; the backend catalog endpoint is currently an explicit placeholder until the database is connected.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
-- The current shell uses placeholder hash routes and is not yet a production router.
+- The current frontend shell uses placeholder hash routes and is not yet a production router.
 - The catalog uses demo data and must be replaced by a real server/database boundary.
+- The backend currently has no database connection, authentication, persistent catalog or production deployment configuration.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
-- No production database/backend exists yet.
 - Authentication, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Establish the production application stack and backend foundation, then replace the demo catalog adapter with a real database-backed catalog query. Add migrations/schema, product/category seed data, server-side validation and API responses. After that, connect product detail pages and seller attribution to the same real catalog boundary. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
+Add the first database layer and migrations using a production-suitable relational schema. Implement product/category tables and server-side catalog queries with validation and pagination, then connect the frontend catalog to the API. After that, implement product detail and seller attribution against the same database. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
