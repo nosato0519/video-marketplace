@@ -19,6 +19,9 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Seller verification: support both lighter verification and stronger identity verification; requirements can vary by seller/content/category/region.
 - Download policy: configurable per product, supporting streaming-only, download enabled, expiry, download-count limits, or other policy variants.
 - Geographic scope: as broad as legally, commercially, payment-provider and operationally possible; region/country availability must be configurable.
+- Documentation: installation, buyer, seller, admin, configuration, security, moderation, payments, video delivery, localization, backup/recovery, updates, troubleshooting, legal/compliance and release/distribution documentation are product deliverables, not optional extras.
+- Documentation localization: documentation architecture supports multilingual releases. English is the source language; planned translations include Japanese, Spanish, Brazilian Portuguese, French, German, Italian, Korean, Simplified Chinese and Traditional Chinese, with human review required for legal/security text.
+- Distribution: after the operator personally tests the completed application, create a clean, installable ZIP release with documentation, configuration examples, licensing/attribution information and release checklist.
 
 ## Product roles
 ### Buyer
@@ -84,20 +87,23 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 1 — initial premium international marketplace homepage.
+Milestone 2 — internationalization foundation and product documentation foundation.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Replaced the minimal test page with the first visual homepage prototype.
-- Added premium dark visual direction, responsive layout, global navigation, search field, language control, login/signup actions, hero section, featured videos, popular videos, category cards and creator-oriented CTA.
-- The current UI is a frontend prototype only; buttons, search, authentication, payments and product data are not wired to backend services yet.
-- This project-state file remains the persistent source of truth for product requirements and continuation context.
+- Initial premium responsive homepage prototype is committed.
+- Added a `docs/` documentation suite covering installation, user, seller, admin, configuration, security, moderation, payments, video delivery, localization, backup/recovery, updates, troubleshooting, legal/compliance and release packaging.
+- Added `docs/LOCALIZATION.md` describing multilingual documentation policy and translation review rules.
+- Added localization source files under `locales/` for English, Japanese, Spanish, French, German, Italian, Korean, Brazilian Portuguese, Simplified Chinese and Traditional Chinese.
+- The locale files are the initial string foundation; the current homepage still needs to be wired to a runtime localization system.
+- The current UI remains a frontend prototype; authentication, real routing, database, storage, moderation, payments, video delivery and seller payouts are not implemented yet.
 
 ## Known issues / risks
 - The current homepage uses placeholder content and inline CSS for rapid prototyping.
-- Localization, currency selection, real routing, authentication, database, storage, moderation, payments, video delivery and seller payouts are not implemented yet.
+- Localization files need runtime integration and completeness checks as the application grows.
+- Translations of legal/security documentation must be human-reviewed before being represented as authoritative.
 - Production launch requires legal/compliance review for the countries, content categories and payment providers actually selected.
 
 ## Next step
-Build the real initial application architecture and design system. Establish a maintainable frontend structure, routing/page map, localization foundation, currency abstraction, reusable UI components and a clear path toward authentication, database, private video storage, moderation and payment integrations. Preserve the current visual direction while moving from the single-file prototype toward a structured application.
+Move from the single-file homepage prototype to a maintainable application architecture and design system. Establish frontend routing/page structure, runtime localization, currency abstraction, reusable UI components, authentication boundaries and a backend/data model plan that can support buyers, sellers, admins, products, orders, moderation, private video storage, payments and payouts. Keep documentation synchronized with implementation.
