@@ -8,8 +8,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Sellers: multiple independent sellers can register and sell videos.
 - Sales: one-time video sales, bundles/sets, free videos, paid videos, and sales/discounts. No monthly membership at this stage.
 - Delivery: both streaming and download must be supported.
-- Currency: multi-currency.
-- Languages: multilingual from the beginning; English-first for the initial overseas market, with architecture ready for additional languages.
+- Currency: multi-currency, including Japan/JPY and international currencies.
+- Languages: multilingual from the beginning; English-first for the initial overseas market, with Japanese and additional locales supported from the same product architecture.
 - Seller system: implemented from the beginning, including seller registration, verification, upload, review, sales and payout management.
 - Safety/moderation: implemented from the beginning, including content review, reporting, takedown/removal, account controls, auditability and region restrictions.
 - Design: simple, premium, modern UI that feels familiar to international users; inspired by the clarity of major video services and the straightforward marketplace flow of Pancolle Movie without copying its design, code, branding or content.
@@ -88,7 +88,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 12 — frontend catalog API adapter and resilient loading foundation added.
+Milestone 12 — frontend catalog API adapter and regional commerce foundation added.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -121,6 +121,7 @@ Milestone 12 — frontend catalog API adapter and resilient loading foundation a
 - Added `docs/DATABASE_MIGRATION.md` with database setup, production migration, backup and least-privilege rules.
 - Added `docs/COMMERCE_FLOW.md` defining checkout through seller settlement, immutable order pricing, provider abstraction and adult-content provider compatibility requirements.
 - Added `docs/MEDIA_DELIVERY.md` defining private storage, signed delivery, upload processing and entitlement checks.
+- Added `docs/REGIONAL_COMMERCE.md` defining Japan/JPY and international commerce requirements and the separation between locale, display currency and actual charge currency.
 - The frontend still needs its main catalog renderer switched from the demo adapter to the new API adapter.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
@@ -133,6 +134,7 @@ Milestone 12 — frontend catalog API adapter and resilient loading foundation a
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
 - Documentation translations beyond the localization policy and UI locale strings still need to be produced and human-reviewed as the product stabilizes.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
+- Japan-specific tax, invoicing, consumer-protection, privacy and other launch requirements must be reviewed for the actual operating entity before production.
 
 ## Next step
 Switch the catalog renderer to the new API adapter and implement clear loading/error/empty states plus pagination. Then implement a real product detail API/page and seller attribution from the database. After that, add authentication and seller onboarding before implementing upload processing and checkout. Revenue-critical implementation must be tested in sandbox/staging before any live payment credentials are used.
