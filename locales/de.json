@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "Entdecken", "categories": "Kategorien", "popular": "Beliebt", "creators": "Creator", "login": "Anmelden", "signup": "Registrieren"},
+  "search": {"placeholder": "Videos suchen..."},
+  "hero": {"eyebrow": "Globaler Video-Marktplatz", "title": "Entdecke Videos, die sich zu sehen lohnen.", "description": "Ein hochwertiger, creatorfreundlicher Marktplatz zum Entdecken, Kaufen, Streamen und Herunterladen digitaler Videoinhalte.", "explore": "Videos entdecken", "creator": "Creator werden"},
+  "sections": {"featured": "Empfohlene Videos", "popular": "Jetzt beliebt", "categories": "Kategorien entdecken"},
+  "product": {"buy": "Jetzt kaufen", "preview": "Vorschau", "favorite": "Zu Favoriten hinzufügen", "download": "Herunterladen", "stream": "Jetzt ansehen"},
+  "account": {"library": "Meine Bibliothek", "orders": "Bestellverlauf", "settings": "Kontoeinstellungen"}
+}
