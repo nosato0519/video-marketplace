@@ -87,7 +87,7 @@ At the start of every future development session, read this file first, inspect 
 **The assistant must treat the latest repository state and this project-state file as the authoritative continuation source and must be able to continue from the saved state through the remaining milestones until the application is completed, subject to the capabilities, required external services, and applicable laws/policies.**
 
 ## Current milestone
-Milestone 4 — production data model and backend/API boundary definition.
+Milestone 5 — first catalog browsing/search UI wired to a replaceable catalog domain interface.
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -98,10 +98,15 @@ Milestone 4 — production data model and backend/API boundary definition.
 - Added `docs/ARCHITECTURE.md` with domains, page map, architecture rules and build sequence.
 - Added `docs/DATA_MODEL.md` defining the initial users, sellers, products, media, orders, payments, payouts, moderation, reports, regions and audit entities.
 - Added `docs/API_BOUNDARIES.md` defining authentication, catalog, buyer, seller, admin, commerce and media service boundaries.
+- Added `app/catalog/catalog.js` as a replaceable catalog-domain interface with temporary demo data.
+- Added `app/catalog/catalog.css` for the responsive catalog UI.
+- Updated `app/main.js` so `/browse`, `/categories` and `/popular` render a catalog page with search, category filtering and locale-aware currency formatting.
+- This catalog is deliberately backed by demo data for now; it is not pretending to be a production database.
 - Documentation suite and multilingual documentation policy remain part of the product deliverables.
 
 ## Known issues / risks
-- The current shell has placeholder hash routes and is not yet a real routed application.
+- The current shell uses placeholder hash routes and is not yet a production router.
+- The catalog uses demo data and must be replaced by a real server/database boundary.
 - The locale loader is intentionally lightweight and needs strengthening when the production build system is introduced.
 - No production database/backend exists yet.
 - Authentication, storage, moderation, payments, video delivery and seller payouts remain unimplemented.
@@ -109,4 +114,4 @@ Milestone 4 — production data model and backend/API boundary definition.
 - Payment-provider/content-policy compatibility must be verified before choosing live providers, especially for adult-content support.
 
 ## Next step
-Choose and establish the production application stack and repository structure, then implement the first real catalog data flow: database schema/migrations, server-side product query boundary, localized product fields, category structure, and a browse/search UI backed by that data. Keep the implementation provider-agnostic and commit each logical piece separately.
+Establish the production application stack and backend foundation, then replace the demo catalog adapter with a real database-backed catalog query. Add migrations/schema, product/category seed data, server-side validation and API responses. After that, connect product detail pages and seller attribution to the same real catalog boundary.
