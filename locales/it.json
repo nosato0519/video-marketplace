@@ -1,0 +1,8 @@
+{
+  "nav": {"discover": "Scopri", "categories": "Categorie", "popular": "Popolari", "creators": "Creator", "login": "Accedi", "signup": "Registrati"},
+  "search": {"placeholder": "Cerca video..."},
+  "hero": {"eyebrow": "Marketplace video globale", "title": "Scopri video che vale la pena guardare.", "description": "Un marketplace premium pensato per i creator, per scoprire, acquistare, guardare in streaming e scaricare contenuti video digitali.", "explore": "Esplora video", "creator": "Diventa creator"},
+  "sections": {"featured": "Video in evidenza", "popular": "Popolari ora", "categories": "Esplora categorie"},
+  "product": {"buy": "Acquista ora", "preview": "Anteprima", "favorite": "Aggiungi ai preferiti", "download": "Scarica", "stream": "Guarda ora"},
+  "account": {"library": "La mia libreria", "orders": "Cronologia ordini", "settings": "Impostazioni account"}
+}
