@@ -120,8 +120,7 @@ test('rejects a same-event-id webhook whose payload has been changed', async () 
       firstHash = payloadHash;
       return { duplicate: false };
     }
-    const error = new Error('payment_event_payload_mismatch');
-    throw error;
+    throw new Error('payment_event_payload_mismatch');
   };
   const completePayment = async () => {
     completeCalls += 1;
@@ -151,4 +150,41 @@ test('rejects a same-event-id webhook whose payload has been changed', async () 
   }, { recordPaymentEvent, completePayment });
 
   assert.equal(completeCalls, 1);
+});
+
+test('routes payment_refunded to refund processing and does not call payment completion', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  const calls = [];
+  const recordPaymentEvent = async (input) => { calls.push(['record', input]); return { duplicate: false }; };
+  const completePayment = async () => { calls.push(['complete']); };
+  const refundPayment = async (input) => {
+    calls.push(['refund', input]);
+    return { duplicate: false, order: { id: input.orderId, status: 'refunded' }, entitlement: { status: 'revoked' } };
+  };
+  const body = JSON.stringify(payload({
+    eventId: 'evt_refund_1',
+    eventType: 'payment_refunded',
+    paymentId: 'pay_refund_1',
+  }));
+
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-payment-signature': sign(body) },
+      body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      received: true,
+      result: {
+        duplicate: false,
+        order: { id: 'order_123', status: 'refunded' },
+        entitlement: { status: 'revoked' },
+      },
+    });
+  }, { recordPaymentEvent, completePayment, refundPayment });
+
+  assert.equal(calls[0][0], 'record');
+  assert.equal(calls[1][0], 'refund');
+  assert.equal(calls.filter(([name]) => name === 'complete').length, 0);
 });
