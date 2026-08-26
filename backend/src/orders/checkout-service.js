@@ -3,6 +3,7 @@ import { ORDER_STATES } from './order-state.js';
 import { buildCheckoutReference } from './create-order-policy.js';
 import { buildCheckoutIdempotencyKey } from './checkout-session-idempotency.js';
 import { createPaymentProvider } from '../payments/payment-provider.js';
+import { createPendingPayment } from '../payments/payment-ledger.js';
 
 export async function getPendingOrderForCheckout({ orderId, userId }) {
   if (!orderId) throw new Error('order_required');
@@ -30,12 +31,17 @@ export async function createCheckoutSession({ orderId, userId }) {
   const provider = createPaymentProvider();
   const reference = buildCheckoutReference({ order });
   const idempotencyKey = buildCheckoutIdempotencyKey({ orderId: order.id });
+  const payment = await createPendingPayment({
+    order,
+    provider: provider.name,
+    idempotencyKey,
+  });
 
   return provider.createCheckout({
     orderId: order.id,
-    amount: order.amount,
-    currency: order.currency,
-    idempotencyKey,
-    metadata: { orderId: order.id, reference },
+    amount: payment.amount,
+    currency: payment.currency,
+    idempotencyKey: payment.idempotency_key,
+    metadata: { orderId: order.id, reference, paymentId: payment.id },
   });
 }
