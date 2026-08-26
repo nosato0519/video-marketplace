@@ -1,4 +1,9 @@
+import Stripe from 'stripe';
+
 const SUPPORTED_PROVIDERS = new Set(['pending', 'stripe']);
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
+]);
 
 export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
   const selected = provider || 'pending';
@@ -36,6 +41,12 @@ function createStripeProvider() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) throw new Error('payment_provider_not_configured');
 
+  const successUrl = process.env.STRIPE_SUCCESS_URL;
+  const cancelUrl = process.env.STRIPE_CANCEL_URL;
+  if (!successUrl || !cancelUrl) throw new Error('stripe_redirect_urls_not_configured');
+
+  const stripe = new Stripe(secretKey);
+
   return {
     name: 'stripe',
     configured: true,
@@ -43,21 +54,65 @@ function createStripeProvider() {
       if (!orderId) throw new Error('order_required');
       if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
       if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
-      if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('checkout_amount_invalid');
-      if (!/^[A-Z]{3}$/i.test(String(currency))) throw new Error('checkout_currency_invalid');
       if (!metadata?.paymentId) throw new Error('checkout_payment_id_required');
 
-      // Adapter boundary: the Stripe SDK/API call will be implemented behind this
-      // interface. No card/payment data is accepted or persisted here.
+      const normalizedCurrency = String(currency).toUpperCase();
+      if (!/^[A-Z]{3}$/.test(normalizedCurrency)) throw new Error('checkout_currency_invalid');
+      const unitAmount = toMinorUnits(amount, normalizedCurrency);
+
+      const session = await stripe.checkout.sessions.create(
+        {
+          mode: 'payment',
+          client_reference_id: orderId,
+          line_items: [
+            {
+              price_data: {
+                currency: normalizedCurrency.toLowerCase(),
+                product_data: { name: 'Video Marketplace purchase' },
+                unit_amount: unitAmount,
+              },
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            orderId,
+            paymentId: String(metadata.paymentId),
+            ...(metadata.reference ? { reference: String(metadata.reference) } : {}),
+          },
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        },
+        { idempotencyKey }
+      );
+
+      if (!session.id || !session.url) throw new Error('stripe_checkout_response_invalid');
+
       return {
         provider: 'stripe',
         orderId,
         amount,
-        currency: String(currency).toUpperCase(),
+        currency: normalizedCurrency,
         idempotencyKey,
-        metadata: { ...metadata },
-        status: 'adapter_pending',
+        paymentId: metadata.paymentId,
+        sessionId: session.id,
+        url: session.url,
+        status: session.status,
       };
     },
   };
+}
+
+function toMinorUnits(amount, currency) {
+  const value = String(amount).trim();
+  const exponent = ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
+  const pattern = exponent === 0 ? /^(\d+)$/ : /^(\d+)(?:\.(\d{1,2}))?$/;
+  const match = value.match(pattern);
+  if (!match) throw new Error('checkout_amount_invalid');
+
+  const whole = BigInt(match[1]);
+  const fraction = exponent === 0 ? 0n : BigInt((match[2] ?? '').padEnd(2, '0'));
+  const minor = whole * (10n ** BigInt(exponent)) + fraction;
+  if (minor <= 0n) throw new Error('checkout_amount_invalid');
+  if (minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('checkout_amount_invalid');
+  return Number(minor);
 }
