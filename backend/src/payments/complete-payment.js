@@ -52,6 +52,27 @@ export async function completePayment({
       payment: { ...payment, provider_payment_id: providerPaymentId },
     });
 
+    const paymentRecord = await client.query(
+      `SELECT id, order_id, user_id, provider, provider_payment_id, amount, currency, status
+         FROM payments
+        WHERE order_id = $1 AND provider = $2
+        FOR UPDATE`,
+      [current.id, provider]
+    );
+
+    if (paymentRecord.rowCount === 0) throw new Error('payment_record_not_found');
+    const currentPayment = paymentRecord.rows[0];
+
+    if (currentPayment.provider_payment_id && currentPayment.provider_payment_id !== providerPaymentId) {
+      throw new Error('provider_payment_id_mismatch');
+    }
+    if (Number(currentPayment.amount) !== Number(current.amount)) {
+      throw new Error('payment_amount_mismatch');
+    }
+    if (String(currentPayment.currency).toUpperCase() !== String(current.currency).toUpperCase()) {
+      throw new Error('payment_currency_mismatch');
+    }
+
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
         `UPDATE payment_events
@@ -66,6 +87,16 @@ export async function completePayment({
     if (!canTransitionOrder(current.status, ORDER_STATES.PAID)) {
       throw new Error('order_not_payable');
     }
+
+    const updatedPayment = await client.query(
+      `UPDATE payments
+          SET provider_payment_id = $1,
+              status = 'succeeded',
+              succeeded_at = NOW()
+        WHERE id = $2
+        RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, succeeded_at`,
+      [providerPaymentId, currentPayment.id]
+    );
 
     const updated = await client.query(
       `UPDATE orders
@@ -97,6 +128,7 @@ export async function completePayment({
 
     return {
       duplicate: false,
+      payment: updatedPayment.rows[0],
       order: updated.rows[0],
       entitlement: entitlement.rows[0] ?? null,
     };
