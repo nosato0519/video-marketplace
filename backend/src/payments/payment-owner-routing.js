@@ -26,3 +26,15 @@ export function resolveOwnerPaymentProvider({ ownerId, providerId, region, curre
     currency: selected.currency,
   };
 }
+
+export function resolveProviderForOrder({ order, product, providerId } = {}) {
+  if (!order) throw new Error('order_required');
+  if (!product) throw new Error('product_required');
+  if (String(order.product_id) !== String(product.id)) throw new Error('order_product_mismatch');
+
+  return resolveOwnerPaymentProvider({
+    ownerId: product.seller_id,
+    providerId,
+    currency: order.currency,
+  });
+}
