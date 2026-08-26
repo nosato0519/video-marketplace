@@ -6,290 +6,48 @@
   <meta name="description" content="A premium international video marketplace for discovering, buying and watching digital video content.">
   <title>Video Marketplace — Discover. Buy. Watch.</title>
   <style>
-    :root {
-      --bg: #0b0d10;
-      --surface: #12161b;
-      --surface-2: #181d23;
-      --text: #f5f7fa;
-      --muted: #9aa4af;
-      --line: rgba(255,255,255,.08);
-      --accent: #ffffff;
-      --max: 1240px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    button, input { font: inherit; }
-    a { color: inherit; text-decoration: none; }
-
-    .container {
-      width: min(calc(100% - 40px), var(--max));
-      margin: 0 auto;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(18px);
-      background: rgba(11,13,16,.84);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .nav {
-      min-height: 72px;
-      display: flex;
-      align-items: center;
-      gap: 26px;
-    }
-
-    .brand {
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: -.03em;
-      white-space: nowrap;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 22px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .nav-links a:hover { color: var(--text); }
-
-    .search {
-      margin-left: auto;
-      width: min(280px, 28vw);
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 11px 14px;
-      color: var(--text);
-      outline: none;
-    }
-
-    .search::placeholder { color: #6f7985; }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .ghost, .primary {
-      border-radius: 9px;
-      padding: 10px 15px;
-      cursor: pointer;
-      border: 1px solid var(--line);
-      transition: .2s ease;
-    }
-
-    .ghost { background: transparent; color: var(--text); }
-    .ghost:hover { background: var(--surface); }
-    .primary { background: var(--accent); color: #090b0e; border-color: var(--accent); font-weight: 700; }
-    .primary:hover { opacity: .9; }
-
-    .hero {
-      padding: 92px 0 70px;
-      border-bottom: 1px solid var(--line);
-      background:
-        radial-gradient(circle at 75% 30%, rgba(255,255,255,.08), transparent 32%),
-        linear-gradient(180deg, #10141a 0%, var(--bg) 100%);
-    }
-
-    .eyebrow {
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      font-size: 11px;
-      font-weight: 700;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      max-width: 760px;
-      margin: 0;
-      font-size: clamp(42px, 7vw, 76px);
-      line-height: .98;
-      letter-spacing: -.055em;
-    }
-
-    .hero p {
-      max-width: 650px;
-      color: var(--muted);
-      font-size: 17px;
-      line-height: 1.7;
-      margin: 24px 0 30px;
-    }
-
-    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-
-    section { padding: 58px 0; }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 22px;
-    }
-
-    h2 { margin: 0; font-size: 25px; letter-spacing: -.03em; }
-    .section-head span { color: var(--muted); font-size: 13px; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      overflow: hidden;
-      transition: transform .2s ease, border-color .2s ease;
-    }
-
-    .card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.18); }
-
-    .thumb {
-      aspect-ratio: 16 / 9;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.015)),
-        #1b2027;
-      display: grid;
-      place-items: center;
-      color: #77818d;
-      font-size: 12px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .card-body { padding: 15px; }
-    .card-title { font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
-    .seller { color: var(--muted); font-size: 12px; }
-    .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
-    .price { font-weight: 800; }
-    .tag { color: var(--muted); font-size: 11px; border: 1px solid var(--line); padding: 5px 7px; border-radius: 6px; }
-
-    footer {
-      border-top: 1px solid var(--line);
-      padding: 32px 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .footer-inner { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-
-    @media (max-width: 980px) {
-      .nav-links { display: none; }
-      .search { width: 100%; margin-left: 0; }
-      .nav { flex-wrap: wrap; padding: 12px 0; }
-      .actions { margin-left: auto; }
-      .grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 560px) {
-      .container { width: min(calc(100% - 24px), var(--max)); }
-      .grid { grid-template-columns: 1fr; }
-      .hero { padding: 64px 0 52px; }
-      .search { order: 3; flex-basis: 100%; }
-      .actions .ghost { display: none; }
-    }
+    :root{--bg:#0b0d10;--surface:#12161b;--text:#f5f7fa;--muted:#9aa4af;--line:rgba(255,255,255,.08);--max:1240px}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}a{color:inherit;text-decoration:none}
+    .container{width:min(calc(100% - 40px),var(--max));margin:0 auto} header{position:sticky;top:0;z-index:10;backdrop-filter:blur(18px);background:rgba(11,13,16,.9);border-bottom:1px solid var(--line)}
+    .nav{min-height:72px;display:flex;align-items:center;gap:22px}.brand{font-size:19px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}.nav-links{display:flex;gap:20px;color:var(--muted);font-size:14px}.nav-links a:hover{color:var(--text)}
+    .search{margin-left:auto;width:min(280px,28vw);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);outline:none}.search::placeholder{color:#6f7985}.actions{display:flex;align-items:center;gap:8px}
+    .ghost,.primary{border-radius:9px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);transition:.2s ease}.ghost{background:transparent;color:var(--text)}.ghost:hover{background:var(--surface)}.primary{background:#fff;color:#090b0e;border-color:#fff;font-weight:700}.primary:hover{opacity:.9}
+    .hero{padding:92px 0 70px;border-bottom:1px solid var(--line);background:radial-gradient(circle at 75% 30%,rgba(255,255,255,.08),transparent 32%),linear-gradient(180deg,#10141a 0%,var(--bg) 100%)}.eyebrow{color:var(--muted);text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:700;margin-bottom:18px}h1{max-width:760px;margin:0;font-size:clamp(42px,7vw,76px);line-height:.98;letter-spacing:-.055em}.hero p{max-width:650px;color:var(--muted);font-size:17px;line-height:1.7;margin:24px 0 30px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+    section{padding:58px 0}.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}h2{margin:0;font-size:25px;letter-spacing:-.03em}.section-head span{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;transition:transform .2s ease,border-color .2s ease}.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.18)}.thumb{aspect-ratio:16/9;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.015)),#1b2027;display:grid;place-items:center;color:#77818d;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.card-body{padding:15px}.card-title{font-weight:700;line-height:1.35;margin-bottom:8px}.seller{color:var(--muted);font-size:12px}.meta{display:flex;justify-content:space-between;align-items:center;margin-top:14px}.price{font-weight:800}.tag{color:var(--muted);font-size:11px;border:1px solid var(--line);padding:5px 7px;border-radius:6px}
+    .locale-bar{display:flex;justify-content:flex-end;margin-bottom:18px}.locale-select{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.locale-note{color:var(--muted);font-size:12px;margin-left:10px;align-self:center}
+    footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:12px}.footer-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    @media(max-width:980px){.nav-links{display:none}.search{width:100%;margin-left:0}.nav{flex-wrap:wrap;padding:12px 0}.actions{margin-left:auto}.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.container{width:min(calc(100% - 24px),var(--max))}.grid{grid-template-columns:1fr}.hero{padding:64px 0 52px}.search{order:3;flex-basis:100%}.actions .ghost.auth{display:none}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="container nav">
-      <a class="brand" href="#">VIDEO MARKET</a>
-      <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#discover">Discover</a>
-        <a href="#categories">Categories</a>
-        <a href="#popular">Popular</a>
-        <a href="#sellers">Creators</a>
-      </nav>
-      <input class="search" type="search" placeholder="Search videos..." aria-label="Search videos">
-      <div class="actions">
-        <button class="ghost">EN ▾</button>
-        <button class="ghost">Log in</button>
-        <button class="primary">Sign up</button>
-      </div>
-    </div>
-  </header>
-
+  <header><div class="container nav">
+    <a class="brand" href="#">VIDEO MARKET</a>
+    <nav class="nav-links" aria-label="Primary navigation"><a href="#discover" data-i18n="discover">Discover</a><a href="#categories" data-i18n="categories">Categories</a><a href="#popular" data-i18n="popular">Popular</a><a href="#sellers" data-i18n="creators">Creators</a></nav>
+    <input class="search" type="search" placeholder="Search videos..." data-i18n-placeholder="search" aria-label="Search videos">
+    <div class="actions"><select id="locale" class="locale-select" aria-label="Language"><option value="en">English</option><option value="ja">日本語</option><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option><option value="ko">한국어</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt-BR">Português</option></select><button class="ghost auth" data-i18n="login">Log in</button><button class="primary" data-i18n="signup">Sign up</button></div>
+  </div></header>
   <main>
-    <section class="hero">
-      <div class="container">
-        <div class="eyebrow">Global video marketplace</div>
-        <h1>Discover videos worth watching.</h1>
-        <p>A premium, creator-friendly marketplace designed for people around the world to discover, buy, stream and download digital video content.</p>
-        <div class="hero-actions">
-          <button class="primary">Explore videos</button>
-          <button class="ghost">Become a creator</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="discover">
-      <div class="container">
-        <div class="section-head">
-          <h2>Featured videos</h2>
-          <span>Curated for you</span>
-        </div>
-        <div class="grid">
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video One</div><div class="seller">Creator Studio</div><div class="meta"><span class="price">$9.99</span><span class="tag">HD</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Two</div><div class="seller">Independent Creator</div><div class="meta"><span class="price">$14.99</span><span class="tag">4K</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Three</div><div class="seller">Media House</div><div class="meta"><span class="price">$7.99</span><span class="tag">HD</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Four</div><div class="seller">Creator Studio</div><div class="meta"><span class="price">$19.99</span><span class="tag">4K</span></div></div></article>
-        </div>
-      </div>
-    </section>
-
-    <section id="popular">
-      <div class="container">
-        <div class="section-head">
-          <h2>Popular now</h2>
-          <span>What viewers are buying</span>
-        </div>
-        <div class="grid">
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video One</div><div class="seller">Global Creator</div><div class="meta"><span class="price">$11.99</span><span class="tag">HD</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Two</div><div class="seller">Independent Creator</div><div class="meta"><span class="price">$12.99</span><span class="tag">4K</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Three</div><div class="seller">Media House</div><div class="meta"><span class="price">$8.99</span><span class="tag">HD</span></div></div></article>
-          <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Four</div><div class="seller">Global Creator</div><div class="meta"><span class="price">$16.99</span><span class="tag">4K</span></div></div></article>
-        </div>
-      </div>
-    </section>
-
-    <section id="categories">
-      <div class="container">
-        <div class="section-head">
-          <h2>Explore categories</h2>
-          <span>Built to grow with the marketplace</span>
-        </div>
-        <div class="grid">
-          <article class="card"><div class="card-body"><div class="card-title">Education & Skills</div><div class="seller">Courses, tutorials and knowledge</div></div></article>
-          <article class="card"><div class="card-body"><div class="card-title">Entertainment</div><div class="seller">Shows, films and original content</div></div></article>
-          <article class="card"><div class="card-body"><div class="card-title">Lifestyle & Hobbies</div><div class="seller">Interests, crafts and experiences</div></div></article>
-          <article class="card"><div class="card-body"><div class="card-title">More categories</div><div class="seller">Configurable by the site operator</div></div></article>
-        </div>
-      </div>
-    </section>
+    <section class="hero"><div class="container"><div class="eyebrow" data-i18n="eyebrow">Global video marketplace</div><h1 data-i18n="heroTitle">Discover videos worth watching.</h1><p data-i18n="heroText">A premium, creator-friendly marketplace designed for people around the world to discover, buy, stream and download digital video content.</p><div class="hero-actions"><button class="primary" data-i18n="explore">Explore videos</button><button class="ghost" data-i18n="creatorCta">Become a creator</button></div></div></section>
+    <section id="discover"><div class="container"><div class="locale-bar"><span class="locale-note" data-i18n="localeNote">More languages can be enabled by the operator.</span></div><div class="section-head"><h2 data-i18n="featured">Featured videos</h2><span data-i18n="curated">Curated for you</span></div><div class="grid">
+      <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video One</div><div class="seller">Creator Studio</div><div class="meta"><span class="price">$9.99</span><span class="tag">HD</span></div></div></article>
+      <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Two</div><div class="seller">Independent Creator</div><div class="meta"><span class="price">$14.99</span><span class="tag">4K</span></div></div></article>
+      <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Three</div><div class="seller">Media House</div><div class="meta"><span class="price">$7.99</span><span class="tag">HD</span></div></div></article>
+      <article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Featured Video Four</div><div class="seller">Creator Studio</div><div class="meta"><span class="price">$19.99</span><span class="tag">4K</span></div></div></article>
+    </div></div></section>
+    <section id="popular"><div class="container"><div class="section-head"><h2 data-i18n="popularTitle">Popular now</h2><span data-i18n="buying">What viewers are buying</span></div><div class="grid"><article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video One</div><div class="seller">Global Creator</div><div class="meta"><span class="price">$11.99</span><span class="tag">HD</span></div></div></article><article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Two</div><div class="seller">Independent Creator</div><div class="meta"><span class="price">$12.99</span><span class="tag">4K</span></div></div></article><article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Three</div><div class="seller">Media House</div><div class="meta"><span class="price">$8.99</span><span class="tag">HD</span></div></div></article><article class="card"><div class="thumb">Preview</div><div class="card-body"><div class="card-title">Popular Video Four</div><div class="seller">Global Creator</div><div class="meta"><span class="price">$16.99</span><span class="tag">4K</span></div></div></article></div></div></section>
+    <section id="categories"><div class="container"><div class="section-head"><h2 data-i18n="categoryTitle">Explore categories</h2><span data-i18n="categorySub">Built to grow with the marketplace</span></div><div class="grid"><article class="card"><div class="card-body"><div class="card-title" data-i18n="education">Education & Skills</div><div class="seller" data-i18n="educationSub">Courses, tutorials and knowledge</div></div></article><article class="card"><div class="card-body"><div class="card-title" data-i18n="entertainment">Entertainment</div><div class="seller" data-i18n="entertainmentSub">Shows, films and original content</div></div></article><article class="card"><div class="card-body"><div class="card-title" data-i18n="lifestyle">Lifestyle & Hobbies</div><div class="seller" data-i18n="lifestyleSub">Interests, crafts and experiences</div></div></article><article class="card"><div class="card-body"><div class="card-title" data-i18n="moreCategories">More categories</div><div class="seller" data-i18n="moreCategoriesSub">Configurable by the site operator</div></div></article></div></div></section>
   </main>
-
-  <footer>
-    <div class="container footer-inner">
-      <span>© 2026 Video Market</span>
-      <span>Designed as a multilingual, multi-currency marketplace foundation.</span>
-    </div>
-  </footer>
+  <footer><div class="container footer-inner"><span>© 2026 Video Market</span><span data-i18n="footer">Multilingual, multi-currency marketplace foundation.</span></div></footer>
+  <script>
+    const messages={
+      en:{discover:'Discover',categories:'Categories',popular:'Popular',creators:'Creators',search:'Search videos...',login:'Log in',signup:'Sign up',eyebrow:'Global video marketplace',heroTitle:'Discover videos worth watching.',heroText:'A premium, creator-friendly marketplace designed for people around the world to discover, buy, stream and download digital video content.',explore:'Explore videos',creatorCta:'Become a creator',localeNote:'More languages can be enabled by the operator.',featured:'Featured videos',curated:'Curated for you',popularTitle:'Popular now',buying:'What viewers are buying',categoryTitle:'Explore categories',categorySub:'Built to grow with the marketplace',education:'Education & Skills',educationSub:'Courses, tutorials and knowledge',entertainment:'Entertainment',entertainmentSub:'Shows, films and original content',lifestyle:'Lifestyle & Hobbies',lifestyleSub:'Interests, crafts and experiences',moreCategories:'More categories',moreCategoriesSub:'Configurable by the site operator',footer:'Multilingual, multi-currency marketplace foundation.'},
+      ja:{discover:'探す',categories:'カテゴリー',popular:'人気',creators:'クリエイター',search:'動画を検索...',login:'ログイン',signup:'登録',eyebrow:'グローバル動画マーケットプレイス',heroTitle:'見つけたい動画を、ここで。',heroText:'世界中の人が動画を探し、購入し、視聴し、ダウンロードできるマーケットプレイス。',explore:'動画を探す',creatorCta:'クリエイターになる',localeNote:'運営者は対応言語を追加できます。',featured:'おすすめ動画',curated:'あなたへのおすすめ',popularTitle:'今人気の動画',buying:'購入されている動画',categoryTitle:'カテゴリーから探す',categorySub:'成長に合わせて追加できます',education:'教育・スキル',educationSub:'講座・チュートリアル・知識',entertainment:'エンターテインメント',entertainmentSub:'番組・映像・オリジナル作品',lifestyle:'ライフスタイル・趣味',lifestyleSub:'趣味・体験・創作',moreCategories:'その他のカテゴリー',moreCategoriesSub:'運営者が設定できます',footer:'多言語・多通貨に対応できるマーケットプレイス基盤。'},
+      'zh-CN':{discover:'发现',categories:'分类',popular:'热门',creators:'创作者',search:'搜索视频...',login:'登录',signup:'注册',eyebrow:'全球视频市场',heroTitle:'发现值得观看的视频。',heroText:'面向全球用户，探索、购买、观看和下载数字视频内容。',explore:'探索视频',creatorCta:'成为创作者',localeNote:'运营者可以启用更多语言。',featured:'精选视频',curated:'为你精选',popularTitle:'当前热门',buying:'观众正在购买',categoryTitle:'浏览分类',categorySub:'可随平台发展扩展',education:'教育与技能',educationSub:'课程、教程与知识',entertainment:'娱乐',entertainmentSub:'节目、影片与原创内容',lifestyle:'生活方式与兴趣',lifestyleSub:'兴趣、手工与体验',moreCategories:'更多分类',moreCategoriesSub:'由运营者配置',footer:'多语言、多货币的视频市场平台。'},
+      ko:{discover:'둘러보기',categories:'카테고리',popular:'인기',creators:'크리에이터',search:'동영상 검색...',login:'로그인',signup:'가입',eyebrow:'글로벌 동영상 마켓플레이스',heroTitle:'볼 만한 영상을 발견하세요.',heroText:'전 세계 사용자가 디지털 동영상을 찾고 구매하고 시청하고 다운로드할 수 있는 마켓플레이스입니다.',explore:'영상 둘러보기',creatorCta:'크리에이터 되기',localeNote:'운영자는 더 많은 언어를 활성화할 수 있습니다.',featured:'추천 영상',curated:'맞춤 추천',popularTitle:'지금 인기',buying:'시청자가 구매하는 콘텐츠',categoryTitle:'카테고리 탐색',categorySub:'서비스 성장에 따라 확장 가능',education:'교육 및 기술',educationSub:'강좌, 튜토리얼, 지식',entertainment:'엔터테인먼트',entertainmentSub:'쇼, 영화 및 오리지널 콘텐츠',lifestyle:'라이프스타일 및 취미',lifestyleSub:'관심사, 공예 및 경험',moreCategories:'더 많은 카테고리',moreCategoriesSub:'운영자가 설정',footer:'다국어·다중 통화를 지원하는 마켓플레이스 기반.'}
+    };
+    function applyLocale(locale){const m=messages[locale]||messages.en;document.documentElement.lang=locale;document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(m[key])el.textContent=m[key]});document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const key=el.dataset.i18nPlaceholder;if(m[key])el.placeholder=m[key]});localStorage.setItem('preferredLocale',locale)}
+    const select=document.getElementById('locale');const saved=localStorage.getItem('preferredLocale')||'en';select.value=saved;applyLocale(saved);select.addEventListener('change',e=>applyLocale(e.target.value));
+  </script>
 </body>
 </html>
