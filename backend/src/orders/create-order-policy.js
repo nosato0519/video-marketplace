@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { assertValidOrderState } from './order-state-validation.js';
+import { findReusablePendingOrder } from './pending-order-reuse.js';
 
 export function validatePendingOrder({ user, product, existingActiveEntitlement = false }) {
   if (!user) throw new Error('authentication_required');
@@ -26,6 +27,15 @@ export function validatePendingOrder({ user, product, existingActiveEntitlement 
 
 export async function createPendingOrder({ user, product, existingActiveEntitlement = false }) {
   const input = validatePendingOrder({ user, product, existingActiveEntitlement });
+
+  const reusableOrder = await findReusablePendingOrder({
+    buyerId: input.buyerId,
+    productId: input.productId,
+  });
+
+  if (reusableOrder) {
+    return reusableOrder;
+  }
 
   const result = await query(
     `INSERT INTO orders (buyer_id, product_id, amount, currency, status)
