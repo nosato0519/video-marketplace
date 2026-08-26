@@ -1,5 +1,5 @@
-import { getPublicProductDetail } from './product-detail-policy.js';
+import { getPublicProductDetail as queryPublicProductDetail } from './product-detail-policy.js';
 
 export async function getPublicProductDetail({ productId, locale = 'en' }) {
-  return getPublicProductDetail({ productId, locale });
+  return queryPublicProductDetail({ productId, locale });
 }
