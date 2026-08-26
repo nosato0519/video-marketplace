@@ -42,5 +42,8 @@ CREATE TABLE IF NOT EXISTS payment_events (
   received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ;
+ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS failed_at TIMESTAMPTZ;
+
 CREATE UNIQUE INDEX IF NOT EXISTS payment_events_provider_event_unique
   ON payment_events (provider, event_id);
