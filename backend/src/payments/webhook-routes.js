@@ -1,6 +1,7 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { verifyWebhookSignature } from './webhook-signature.js';
+import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment } from './complete-payment.js';
 
@@ -20,7 +21,7 @@ export function registerPaymentWebhookRoutes(app) {
           });
         }
 
-        const payload = JSON.parse(rawBody.toString('utf8'));
+        const payload = validateWebhookPayload(JSON.parse(rawBody.toString('utf8')));
         const eventId = payload.eventId;
         const provider = payload.provider;
         const eventType = payload.eventType;
@@ -48,6 +49,7 @@ export function registerPaymentWebhookRoutes(app) {
           providerPaymentId,
           orderId,
           payloadHash,
+          payment: payload,
         });
 
         return res.status(200).json({ received: true, result });
