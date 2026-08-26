@@ -9,6 +9,7 @@ import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js
 import { registerMediaDownloadRoutes } from './media/media-download-route.js';
 import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
+import { registerAdminLocaleRoutes } from './i18n/admin-locale-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -16,11 +17,7 @@ const port = Number(process.env.PORT || 3000);
 app.disable('x-powered-by');
 app.use(helmet());
 
-// Refuse to start the server when protected-media configuration is incomplete.
 validateMediaSecurityConfig();
-
-// Webhooks must receive the raw body before the JSON parser runs so signature verification
-// is performed against the exact bytes received from the payment provider.
 registerPaymentWebhookRoutes(app);
 
 app.use(express.json({ limit: '1mb' }));
@@ -34,6 +31,7 @@ registerCatalogRoutes(app);
 registerProductDetailRoutes(app);
 registerOrderRoutes(app);
 registerCheckoutRoutes(app);
+registerAdminLocaleRoutes(app);
 const mediaStorage = registerConfiguredMediaStreamRoutes(app);
 registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
