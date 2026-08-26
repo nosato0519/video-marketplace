@@ -21,6 +21,14 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
 ]);
 
 export function toWebhookErrorResponse(error) {
+  // Malformed JSON is a client-side webhook error, not an internal failure.
+  if (error instanceof SyntaxError) {
+    return {
+      status: 400,
+      body: { error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' } },
+    };
+  }
+
   if (!PUBLIC_WEBHOOK_ERRORS.has(error?.message)) {
     return {
       status: 500,
