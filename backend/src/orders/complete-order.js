@@ -1,5 +1,6 @@
 import { query } from '../db.js';
 import { ORDER_STATES, canTransitionOrder } from './order-state.js';
+import { grantPurchasedVideoAccess } from './grant-entitlement.js';
 
 export async function completePaidOrder({ orderId, paymentReference }) {
   if (!orderId || !paymentReference) throw new Error('payment_confirmation_required');
@@ -12,7 +13,7 @@ export async function completePaidOrder({ orderId, paymentReference }) {
             updated_at = NOW()
       WHERE id = $1
         AND status = $4
-      RETURNING id, buyer_id, product_id, status, payment_reference, paid_at`,
+      RETURNING id, buyer_id, product_id, amount, currency, status, payment_reference, paid_at`,
     [orderId, ORDER_STATES.PAID, paymentReference, ORDER_STATES.PENDING]
   );
 
@@ -23,5 +24,6 @@ export async function completePaidOrder({ orderId, paymentReference }) {
     throw new Error('invalid_order_transition');
   }
 
-  return order;
+  const entitlement = await grantPurchasedVideoAccess({ orderId: order.id });
+  return { order, entitlement };
 }
