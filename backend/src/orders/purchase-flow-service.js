@@ -3,6 +3,7 @@ import { hasActiveEntitlement } from './active-entitlement.js';
 import { createPendingOrder } from './create-order-policy.js';
 import { createCheckoutSession } from './checkout-service.js';
 import { validatePurchaseFlowResult } from './purchase-flow-validation.js';
+import { validateProviderCheckout } from '../payments/provider-checkout-policy.js';
 
 export async function startPurchaseFlow({ user, productId }) {
   if (!user) throw new Error('authentication_required');
@@ -16,6 +17,7 @@ export async function startPurchaseFlow({ user, productId }) {
   const checkout = await createCheckoutSession({ orderId: order.id, userId: user.id });
 
   validatePurchaseFlowResult({ order, checkout });
+  validateProviderCheckout({ order, checkout });
 
   return { order, checkout };
 }
