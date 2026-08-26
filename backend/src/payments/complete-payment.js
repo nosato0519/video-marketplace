@@ -45,15 +45,7 @@ export async function completePayment({
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
 
-    verifyPaymentAgainstOrder({
-      payment: {
-        ...payment,
-        orderId: payment?.orderId ?? current.id,
-        amount: payment?.amount ?? current.amount,
-        currency: payment?.currency ?? current.currency,
-      },
-      order: current,
-    });
+    verifyPaymentAgainstOrder({ payment, order: current });
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
