@@ -5,6 +5,7 @@ import { registerProductDetailRoutes } from './catalog/product-detail-routes.js'
 import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
+import { registerProtectedMediaRoutes } from './media/protected-media-route.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 
 const app = express();
@@ -28,6 +29,7 @@ registerCatalogRoutes(app);
 registerProductDetailRoutes(app);
 registerOrderRoutes(app);
 registerCheckoutRoutes(app);
+registerProtectedMediaRoutes(app);
 
 app.use((error, _req, res, _next) => {
   console.error(error);
