@@ -46,6 +46,25 @@ test('rejects a webhook with an invalid signature at the HTTP boundary', async (
   });
 });
 
+test('rejects malformed JSON with a public validation error', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  const body = '{"eventId":"evt_bad"';
+  const signature = crypto.createHmac('sha256', 'test-secret').update(body).digest('hex');
+
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-payment-signature': signature },
+      body,
+    });
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+});
+
 test('processes a valid payment_succeeded webhook through the completion boundary', async () => {
   process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
   const calls = [];
