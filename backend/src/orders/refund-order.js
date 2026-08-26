@@ -1,9 +1,12 @@
 import { query } from '../db.js';
-import { ORDER_STATES, canTransitionOrder } from './order-state.js';
+import { ORDER_STATES } from './order-state.js';
+import { assertValidOrderTransition } from './order-transition-contract.js';
 import { revokeVideoAccessForRefund } from './entitlement-revocation.js';
 
 export async function refundPaidOrder({ orderId, refundReference }) {
   if (!orderId || !refundReference) throw new Error('refund_confirmation_required');
+
+  assertValidOrderTransition(ORDER_STATES.PAID, ORDER_STATES.REFUNDED);
 
   const result = await query(
     `UPDATE orders
@@ -21,10 +24,6 @@ export async function refundPaidOrder({ orderId, refundReference }) {
   if (result.rows.length === 0) throw new Error('order_not_refundable');
 
   const order = result.rows[0];
-  if (!canTransitionOrder(ORDER_STATES.PAID, order.status)) {
-    throw new Error('invalid_order_transition');
-  }
-
   await revokeVideoAccessForRefund({ orderId });
   return order;
 }
