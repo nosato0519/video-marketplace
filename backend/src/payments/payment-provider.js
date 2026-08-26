@@ -76,7 +76,7 @@ function createStripeProvider() {
             paymentId: String(metadata.paymentId),
             ...(metadata.reference ? { reference: String(metadata.reference) } : {}),
           },
-          success_url: successUrl,
+          success_url: withStripeSessionId(successUrl),
           cancel_url: cancelUrl,
         },
         { idempotencyKey }
@@ -89,6 +89,13 @@ function createStripeProvider() {
       };
     },
   };
+}
+
+function withStripeSessionId(url) {
+  const value = String(url);
+  if (value.includes('{CHECKOUT_SESSION_ID}')) return value;
+  const separator = value.includes('?') ? '&' : '?';
+  return `${value}${separator}session_id={CHECKOUT_SESSION_ID}`;
 }
 
 function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
