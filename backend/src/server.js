@@ -11,6 +11,7 @@ import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 import { registerAdminLocaleRoutes } from './i18n/admin-locale-routes.js';
 import { registerProductTranslationRoutes } from './i18n/product-translation-routes.js';
+import { registerLibraryRoutes } from './library-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -34,6 +35,7 @@ registerOrderRoutes(app);
 registerCheckoutRoutes(app);
 registerAdminLocaleRoutes(app);
 registerProductTranslationRoutes(app);
+registerLibraryRoutes(app);
 const mediaStorage = registerConfiguredMediaStreamRoutes(app);
 registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
