@@ -18,6 +18,7 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
   'payment_event_not_found',
   'order_not_found',
   'order_not_payable',
+  'order_not_refundable',
 ]);
 
 export function toWebhookErrorResponse(error) {
