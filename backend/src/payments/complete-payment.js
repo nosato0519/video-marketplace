@@ -1,6 +1,7 @@
 import { getPool } from '../db.js';
 import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
 import { verifyPaymentAgainstOrder } from './payment-verification.js';
+import { validateSuccessfulPaymentSettlement } from './payment-success-guard.js';
 
 export async function completePayment({
   eventId,
@@ -46,6 +47,10 @@ export async function completePayment({
     const current = order.rows[0];
 
     verifyPaymentAgainstOrder({ payment, order: current });
+    validateSuccessfulPaymentSettlement({
+      order: current,
+      payment: { ...payment, provider_payment_id: providerPaymentId },
+    });
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
