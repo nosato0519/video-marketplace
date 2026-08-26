@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { assertValidOrderTransition } from './order-transition-contract.js';
+import { assertValidOrderRecord } from './order-state-validation.js';
 import { revokeVideoAccessForRefund } from './entitlement-revocation.js';
 
 export async function refundPaidOrder({ orderId, refundReference }) {
@@ -24,6 +25,8 @@ export async function refundPaidOrder({ orderId, refundReference }) {
   if (result.rows.length === 0) throw new Error('order_not_refundable');
 
   const order = result.rows[0];
+  assertValidOrderRecord(order);
+
   await revokeVideoAccessForRefund({ orderId });
   return order;
 }
