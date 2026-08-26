@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS orders (
   paid_at TIMESTAMPTZ,
   refunded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (amount > 0),
+  CHECK (currency ~ '^[A-Z]{3}$')
 );
 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS amount NUMERIC(18, 2);
