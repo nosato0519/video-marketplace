@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import { registerCatalogRoutes } from './catalog-routes.js';
+import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -14,6 +15,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 registerCatalogRoutes(app);
+registerProductDetailRoutes(app);
 
 app.use((error, _req, res, _next) => {
   console.error(error);
