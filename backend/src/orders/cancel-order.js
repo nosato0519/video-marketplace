@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { assertValidOrderTransition } from './order-transition-contract.js';
+import { assertValidOrderRecord } from './order-state-validation.js';
 
 export async function cancelPendingOrder({ orderId }) {
   if (!orderId) throw new Error('order_required');
@@ -19,5 +20,8 @@ export async function cancelPendingOrder({ orderId }) {
   );
 
   if (result.rows.length === 0) throw new Error('order_not_cancellable');
-  return result.rows[0];
+
+  const order = result.rows[0];
+  assertValidOrderRecord(order);
+  return order;
 }
