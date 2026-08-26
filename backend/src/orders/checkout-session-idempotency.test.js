@@ -1,12 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shouldReuseCheckout } from './checkout-session-idempotency.js';
+import { buildCheckoutIdempotencyKey, shouldReuseCheckout } from './checkout-session-idempotency.js';
 
-test('reuses created checkout sessions', () => {
-  assert.equal(shouldReuseCheckout({ status: 'created' }), true);
+test('builds a stable checkout idempotency key from the order', () => {
+  assert.equal(buildCheckoutIdempotencyKey({ orderId: 'order-1' }), 'order:order-1');
 });
 
-test('reuses pending checkout sessions', () => {
+test('rejects a missing order id', () => {
+  assert.throws(() => buildCheckoutIdempotencyKey({ orderId: null }), /order_required/);
+});
+
+test('reuses created or pending checkout sessions when a provider returns one', () => {
+  assert.equal(shouldReuseCheckout({ status: 'created' }), true);
   assert.equal(shouldReuseCheckout({ status: 'pending' }), true);
 });
 
