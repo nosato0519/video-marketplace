@@ -39,8 +39,25 @@ function createStripeProvider() {
   return {
     name: 'stripe',
     configured: true,
-    async createCheckout() {
-      throw new Error('stripe_provider_adapter_not_implemented');
+    async createCheckout({ orderId, amount, currency, metadata, idempotencyKey }) {
+      if (!orderId) throw new Error('order_required');
+      if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
+      if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
+      if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('checkout_amount_invalid');
+      if (!/^[A-Z]{3}$/i.test(String(currency))) throw new Error('checkout_currency_invalid');
+      if (!metadata?.paymentId) throw new Error('checkout_payment_id_required');
+
+      // Adapter boundary: the Stripe SDK/API call will be implemented behind this
+      // interface. No card/payment data is accepted or persisted here.
+      return {
+        provider: 'stripe',
+        orderId,
+        amount,
+        currency: String(currency).toUpperCase(),
+        idempotencyKey,
+        metadata: { ...metadata },
+        status: 'adapter_pending',
+      };
     },
   };
 }
