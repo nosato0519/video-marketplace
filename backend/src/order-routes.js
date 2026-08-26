@@ -1,6 +1,7 @@
 import { createPendingOrder } from './orders/create-order-policy.js';
 import { assertValidOrderRecord } from './orders/order-state-validation.js';
 import { getProductForOrder } from './orders/product-for-order.js';
+import { hasActiveEntitlement } from './orders/active-entitlement.js';
 import { requireAuth } from './auth/require-auth.js';
 
 export function registerOrderRoutes(app) {
@@ -17,10 +18,15 @@ export function registerOrderRoutes(app) {
         });
       }
 
+      const existingActiveEntitlement = await hasActiveEntitlement(
+        req.user.id,
+        product.id
+      );
+
       const order = await createPendingOrder({
         user: req.user,
         product,
-        existingActiveEntitlement: Boolean(req.existingActiveEntitlement),
+        existingActiveEntitlement,
       });
 
       assertValidOrderRecord(order);
