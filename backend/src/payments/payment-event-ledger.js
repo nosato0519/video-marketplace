@@ -21,9 +21,32 @@ export async function recordPaymentEvent({
     [provider, eventId, eventType, providerPaymentId, payloadHash, orderId]
   );
 
-  if (result.rows.length === 0) {
-    return { duplicate: true };
+  if (result.rows.length > 0) {
+    return { duplicate: false, event: result.rows[0] };
   }
 
-  return { duplicate: false, event: result.rows[0] };
+  const existing = await query(
+    `SELECT id, provider, event_id, event_type, provider_payment_id, payload_hash, status, order_id
+       FROM payment_events
+      WHERE provider = $1 AND event_id = $2
+      LIMIT 1`,
+    [provider, eventId]
+  );
+
+  const event = existing.rows[0];
+  if (!event) {
+    throw new Error('payment_event_not_found');
+  }
+
+  const samePayload =
+    event.event_type === eventType &&
+    event.provider_payment_id === providerPaymentId &&
+    event.payload_hash === payloadHash &&
+    (event.order_id ?? null) === (orderId ?? null);
+
+  if (!samePayload) {
+    throw new Error('payment_event_payload_mismatch');
+  }
+
+  return { duplicate: true, event };
 }
