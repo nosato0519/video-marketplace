@@ -1,6 +1,7 @@
 import { requireAuth } from '../auth/require-auth.js';
 import { getProtectedMediaContext } from './protected-media-repository.js';
 import { authorizeProtectedMedia } from './protected-access.js';
+import { parseRangeHeader } from './range-request.js';
 
 export function registerMediaStreamRoutes(app, { storage }) {
   if (!storage || typeof storage.getStream !== 'function') {
@@ -23,13 +24,28 @@ export function registerMediaStreamRoutes(app, { storage }) {
         return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found' } });
       }
 
-      const object = await storage.getStream({ storageKey: context.asset.storage_key });
+      const size = Number(context.asset.byte_size);
+      const range = parseRangeHeader(req.headers.range, size);
+      const object = await storage.getStream({
+        storageKey: context.asset.storage_key,
+        range: range ? { start: range.start, end: range.end } : undefined,
+      });
+
       if (!object || !object.stream) {
         return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found' } });
       }
 
+      res.setHeader('Accept-Ranges', 'bytes');
       res.setHeader('Content-Type', context.asset.mime_type || 'application/octet-stream');
-      if (context.asset.byte_size >= 0) res.setHeader('Content-Length', String(context.asset.byte_size));
+
+      if (range) {
+        res.status(206);
+        res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${size}`);
+        res.setHeader('Content-Length', String(range.length));
+      } else if (Number.isInteger(size) && size >= 0) {
+        res.setHeader('Content-Length', String(size));
+      }
+
       return object.stream.pipe(res);
     } catch (error) {
       return next(error);
