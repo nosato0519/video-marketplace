@@ -1,7 +1,11 @@
 import { query } from '../db.js';
+import { resolveLocale } from '../i18n/locale-policy.js';
 
 export async function getPublicProductDetail({ productId, locale = 'en' }) {
   if (!productId) throw new Error('product_required');
+
+  const requestedLocale = resolveLocale(locale);
+  const language = requestedLocale.split('-')[0];
 
   const result = await query(
     `SELECT
@@ -16,15 +20,18 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        p.published_at,
        c.slug AS category,
        sp.display_name AS seller,
-       COALESCE(pt.title, fallback.title) AS title,
-       COALESCE(pt.description, fallback.description) AS description
+       COALESCE(requested.title, language.title, fallback.title) AS title,
+       COALESCE(requested.description, language.description, fallback.description) AS description,
+       COALESCE(requested.locale, language.locale, fallback.locale) AS content_locale
      FROM products p
      JOIN seller_profiles sp ON sp.id = p.seller_id
      LEFT JOIN categories c ON c.id = p.category_id
-     LEFT JOIN product_translations pt
-       ON pt.product_id = p.id AND pt.locale = $2
+     LEFT JOIN product_translations requested
+       ON requested.product_id = p.id AND requested.locale = $2
+     LEFT JOIN product_translations language
+       ON language.product_id = p.id AND language.locale = $3
      JOIN LATERAL (
-       SELECT title, description
+       SELECT title, description, locale
        FROM product_translations
        WHERE product_id = p.id
        ORDER BY CASE WHEN locale = 'en' THEN 0 ELSE 1 END
@@ -34,7 +41,7 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        AND p.status = 'published'
        AND sp.status = 'active'
      LIMIT 1`,
-    [productId, locale]
+    [productId, requestedLocale, language]
   );
 
   return result.rows[0] ?? null;
@@ -47,6 +54,7 @@ export function buildProductDetail({ product, seller, viewer }) {
     id: product.id,
     title: product.title,
     description: product.description,
+    contentLocale: product.content_locale,
     priceAmount: product.price_amount,
     priceCurrency: product.price_currency,
     category: product.category,
