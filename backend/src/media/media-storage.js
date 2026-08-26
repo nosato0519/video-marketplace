@@ -3,11 +3,14 @@ export function createMediaStorage({ getObjectStream, getObjectMetadata } = {}) 
   if (typeof getObjectMetadata !== 'function') throw new Error('media_storage_metadata_reader_missing');
 
   return {
-    async getStream({ storageKey }) {
+    async getStream({ storageKey, range } = {}) {
       if (!storageKey) throw new Error('media_storage_key_missing');
-      return getObjectStream({ storageKey });
+      if (range !== undefined && (!Number.isInteger(range.start) || !Number.isInteger(range.end) || range.start < 0 || range.end < range.start)) {
+        throw new Error('media_storage_range_invalid');
+      }
+      return getObjectStream({ storageKey, range });
     },
-    async getMetadata({ storageKey }) {
+    async getMetadata({ storageKey } = {}) {
       if (!storageKey) throw new Error('media_storage_key_missing');
       return getObjectMetadata({ storageKey });
     },
