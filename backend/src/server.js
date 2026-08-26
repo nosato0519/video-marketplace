@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
 import { registerOrderRoutes } from './order-routes.js';
+import { registerCheckoutRoutes } from './checkout-routes.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 
 const app = express();
@@ -20,6 +21,7 @@ app.get('/api/health', (_req, res) => {
 registerCatalogRoutes(app);
 registerProductDetailRoutes(app);
 registerOrderRoutes(app);
+registerCheckoutRoutes(app);
 
 app.use((error, _req, res, _next) => {
   console.error(error);
