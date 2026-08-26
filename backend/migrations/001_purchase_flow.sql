@@ -2,6 +2,8 @@ CREATE TABLE IF NOT EXISTS orders (
   id BIGSERIAL PRIMARY KEY,
   buyer_id BIGINT NOT NULL,
   product_id BIGINT NOT NULL,
+  amount NUMERIC(18, 2) NOT NULL,
+  currency VARCHAR(3) NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   payment_reference TEXT,
   refund_reference TEXT,
@@ -10,6 +12,9 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS amount NUMERIC(18, 2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency VARCHAR(3);
 
 CREATE UNIQUE INDEX IF NOT EXISTS orders_buyer_product_unique
   ON orders (buyer_id, product_id)
