@@ -3,9 +3,17 @@ import { getProtectedMediaContext } from './protected-media-repository.js';
 import { authorizeProtectedMedia } from './protected-access.js';
 import { parseRangeHeader } from './range-request.js';
 
-function contentDisposition(productId) {
+const MIME_EXTENSIONS = new Map([
+  ['video/mp4', 'mp4'],
+  ['video/webm', 'webm'],
+  ['video/quicktime', 'mov'],
+  ['video/x-matroska', 'mkv'],
+]);
+
+function contentDisposition(productId, mimeType) {
   const safeId = String(productId).replace(/[^a-zA-Z0-9_-]/g, '_');
-  return `attachment; filename="video-${safeId}.bin"`;
+  const extension = MIME_EXTENSIONS.get(String(mimeType).toLowerCase()) || 'bin';
+  return `attachment; filename="video-${safeId}.${extension}"`;
 }
 
 export function registerMediaDownloadRoutes(app, {
@@ -57,7 +65,7 @@ export function registerMediaDownloadRoutes(app, {
       }
 
       res.setHeader('Content-Type', context.asset.mime_type || 'application/octet-stream');
-      res.setHeader('Content-Disposition', contentDisposition(req.params.productId));
+      res.setHeader('Content-Disposition', contentDisposition(req.params.productId, context.asset.mime_type));
       res.setHeader('Cache-Control', 'private, no-store');
       res.setHeader('Accept-Ranges', 'bytes');
 
