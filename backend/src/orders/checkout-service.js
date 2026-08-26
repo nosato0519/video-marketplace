@@ -37,11 +37,22 @@ export async function createCheckoutSession({ orderId, userId }) {
     idempotencyKey,
   });
 
-  return provider.createCheckout({
-    orderId: order.id,
-    amount: payment.amount,
-    currency: payment.currency,
-    idempotencyKey: payment.idempotency_key,
-    metadata: { orderId: order.id, reference, paymentId: payment.id },
-  });
+  try {
+    return await provider.createCheckout({
+      orderId: order.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      idempotencyKey: payment.idempotency_key,
+      metadata: { orderId: order.id, reference, paymentId: payment.id },
+    });
+  } catch (error) {
+    await query(
+      `UPDATE payments
+          SET status = 'failed'
+        WHERE id = $1
+          AND status = 'pending'`,
+      [payment.id]
+    );
+    throw error;
+  }
 }
