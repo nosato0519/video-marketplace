@@ -13,6 +13,7 @@ import { registerAdminLocaleRoutes } from './i18n/admin-locale-routes.js';
 import { registerProductTranslationRoutes } from './i18n/product-translation-routes.js';
 import { registerLibraryRoutes } from './library-routes.js';
 import sellerProductRoutes from './seller/product-routes.js';
+import sellerMediaUploadRoutes from './media/media-upload-route.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -38,12 +39,14 @@ registerAdminLocaleRoutes(app);
 registerProductTranslationRoutes(app);
 registerLibraryRoutes(app);
 app.use('/api/seller', sellerProductRoutes);
+app.use('/api/seller/media', sellerMediaUploadRoutes);
 const mediaStorage = registerConfiguredMediaStreamRoutes(app);
 registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
 app.use((error, _req, res, _next) => {
   console.error(error);
-  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
+  const status = Number(error?.statusCode) || 500;
+  res.status(status).json({ error: status === 500 ? { code: 'INTERNAL_ERROR', message: 'Internal server error' } : (error.message || 'Request failed') });
 });
 
 app.use((_req, res) => {
