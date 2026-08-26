@@ -5,18 +5,17 @@ export async function grantPurchasedVideoAccess({ orderId }) {
   if (!orderId) throw new Error('order_required');
 
   const result = await query(
-    `INSERT INTO video_entitlements (buyer_id, product_id, order_id, status, granted_at)
+    `INSERT INTO entitlements (user_id, product_id, order_id, status, created_at)
      SELECT o.buyer_id, o.product_id, o.id, 'active', NOW()
        FROM orders o
       WHERE o.id = $1
         AND o.status = $2
-     ON CONFLICT (buyer_id, product_id)
+     ON CONFLICT (user_id, product_id) WHERE status = 'active'
      DO UPDATE SET
-       status = 'active',
        order_id = EXCLUDED.order_id,
-       granted_at = COALESCE(video_entitlements.granted_at, EXCLUDED.granted_at),
+       status = 'active',
        revoked_at = NULL
-     RETURNING id, buyer_id, product_id, order_id, status, granted_at`,
+     RETURNING id, user_id, product_id, order_id, status, created_at, revoked_at`,
     [orderId, ORDER_STATES.PAID]
   );
 
