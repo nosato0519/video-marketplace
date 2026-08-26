@@ -27,6 +27,20 @@ function sign(body) {
   return crypto.createHmac('sha256', 'test-secret').update(body).digest('hex');
 }
 
+function payload(overrides = {}) {
+  return {
+    eventId: 'evt_123',
+    provider: 'test',
+    eventType: 'payment_succeeded',
+    paymentId: 'pay_123',
+    orderId: 'order_123',
+    amount: 1000,
+    currency: 'JPY',
+    status: 'succeeded',
+    ...overrides,
+  };
+}
+
 test('rejects a webhook with an invalid signature at the HTTP boundary', async () => {
   process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
 
@@ -34,7 +48,7 @@ test('rejects a webhook with an invalid signature at the HTTP boundary', async (
     const response = await fetch(`${baseUrl}/api/payments/webhook`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-payment-signature': 'invalid' },
-      body: JSON.stringify({ eventId: 'evt_123', provider: 'test', eventType: 'payment_succeeded', paymentId: 'pay_123', orderId: 'order_123', amount: 1000, currency: 'JPY', status: 'succeeded' }),
+      body: JSON.stringify(payload()),
     });
     assert.equal(response.status, 401);
   });
@@ -59,8 +73,7 @@ test('processes a valid payment_succeeded webhook through the completion boundar
   const calls = [];
   const recordPaymentEvent = async (input) => { calls.push(['record', input]); return { duplicate: false }; };
   const completePayment = async (input) => { calls.push(['complete', input]); return { duplicate: false, order: { id: input.orderId, status: 'paid' } }; };
-  const payload = { eventId: 'evt_success_1', provider: 'test', eventType: 'payment_succeeded', paymentId: 'pay_success_1', orderId: 'order_123', amount: 1000, currency: 'JPY', status: 'succeeded' };
-  const body = JSON.stringify(payload);
+  const body = JSON.stringify(payload({ eventId: 'evt_success_1', paymentId: 'pay_success_1' }));
 
   await withServer(async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/payments/webhook`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-payment-signature': sign(body) }, body });
@@ -83,8 +96,7 @@ test('does not complete a duplicate webhook event', async () => {
     completeCalls += 1;
     return { duplicate: false };
   };
-  const payload = { eventId: 'evt_duplicate_http_1', provider: 'test', eventType: 'payment_succeeded', paymentId: 'pay_duplicate_1', orderId: 'order_123', amount: 1000, currency: 'JPY', status: 'succeeded' };
-  const body = JSON.stringify(payload);
+  const body = JSON.stringify(payload({ eventId: 'evt_duplicate_http_1', paymentId: 'pay_duplicate_1' }));
   const headers = { 'content-type': 'application/json', 'x-payment-signature': sign(body) };
 
   await withServer(async (baseUrl) => {
@@ -96,5 +108,47 @@ test('does not complete a duplicate webhook event', async () => {
   }, { recordPaymentEvent, completePayment });
 
   assert.equal(recordCalls, 2);
+  assert.equal(completeCalls, 1);
+});
+
+test('rejects a same-event-id webhook whose payload has been changed', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  let firstHash = null;
+  let completeCalls = 0;
+  const recordPaymentEvent = async ({ payloadHash }) => {
+    if (firstHash === null) {
+      firstHash = payloadHash;
+      return { duplicate: false };
+    }
+    const error = new Error('payment_event_payload_mismatch');
+    throw error;
+  };
+  const completePayment = async () => {
+    completeCalls += 1;
+    return { duplicate: false };
+  };
+
+  const firstBody = JSON.stringify(payload({ eventId: 'evt_tamper_1', paymentId: 'pay_tamper_1', amount: 1000 }));
+  const secondBody = JSON.stringify(payload({ eventId: 'evt_tamper_1', paymentId: 'pay_tamper_1', amount: 999 }));
+
+  await withServer(async (baseUrl) => {
+    const first = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-payment-signature': sign(firstBody) },
+      body: firstBody,
+    });
+    assert.equal(first.status, 200);
+
+    const second = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-payment-signature': sign(secondBody) },
+      body: secondBody,
+    });
+    assert.equal(second.status, 400);
+    assert.deepEqual(await second.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  }, { recordPaymentEvent, completePayment });
+
   assert.equal(completeCalls, 1);
 });
