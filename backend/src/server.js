@@ -6,6 +6,7 @@ import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
 import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js';
+import { registerMediaDownloadRoutes } from './media/media-download-route.js';
 import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 
@@ -33,7 +34,8 @@ registerCatalogRoutes(app);
 registerProductDetailRoutes(app);
 registerOrderRoutes(app);
 registerCheckoutRoutes(app);
-registerConfiguredMediaStreamRoutes(app);
+const mediaStorage = registerConfiguredMediaStreamRoutes(app);
+registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
 app.use((error, _req, res, _next) => {
   console.error(error);
