@@ -50,3 +50,32 @@ test('requires Stripe credentials before exposing Stripe checkout', () => {
     else process.env.STRIPE_SECRET_KEY = previous;
   }
 });
+
+test('Stripe checkout validates its payment metadata and currency before the API call', async () => {
+  const previous = process.env.STRIPE_SECRET_KEY;
+  const previousSuccess = process.env.STRIPE_SUCCESS_URL;
+  const previousCancel = process.env.STRIPE_CANCEL_URL;
+  process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+  process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
+  process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
+  try {
+    const provider = createPaymentProvider({ provider: 'stripe' });
+    await assert.rejects(
+      () => provider.createCheckout({
+        orderId: 'o1',
+        amount: '1000.00',
+        currency: 'INVALID',
+        idempotencyKey: 'order:o1',
+        metadata: { orderId: 'o1', paymentId: 'p1' },
+      }),
+      /checkout_currency_invalid/
+    );
+  } finally {
+    if (previous === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previous;
+    if (previousSuccess === undefined) delete process.env.STRIPE_SUCCESS_URL;
+    else process.env.STRIPE_SUCCESS_URL = previousSuccess;
+    if (previousCancel === undefined) delete process.env.STRIPE_CANCEL_URL;
+    else process.env.STRIPE_CANCEL_URL = previousCancel;
+  }
+});
