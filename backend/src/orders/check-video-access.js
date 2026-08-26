@@ -5,8 +5,8 @@ export async function hasActiveVideoAccess({ buyerId, productId }) {
 
   const result = await query(
     `SELECT 1
-       FROM video_entitlements
-      WHERE buyer_id = $1
+       FROM entitlements
+      WHERE user_id = $1
         AND product_id = $2
         AND status = 'active'
         AND revoked_at IS NULL
