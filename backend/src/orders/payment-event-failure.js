@@ -5,11 +5,13 @@ export async function markPaymentEventFailed({ provider, eventId }) {
 
   const result = await query(
     `UPDATE payment_events
-        SET status = 'failed'
+        SET status = 'failed',
+            failed_at = NOW(),
+            processed_at = NULL
       WHERE provider = $1
         AND event_id = $2
         AND status = 'received'
-      RETURNING id, provider, event_id, order_id, status, received_at`,
+      RETURNING id, provider, event_id, order_id, status, received_at, processed_at, failed_at`,
     [provider, eventId]
   );
 
