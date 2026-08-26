@@ -57,7 +57,7 @@ test('download route authorizes the purchaser and returns attachment headers', a
 
   assert.equal(response.status, 200);
   assert.equal(response.headers['content-type'], 'video/mp4');
-  assert.match(response.headers['content-disposition'], /^attachment; filename="video-product_1\.bin"$/);
+  assert.match(response.headers['content-disposition'], /^attachment; filename="video-product_1\.mp4"$/);
   assert.equal(response.headers['cache-control'], 'private, no-store');
   assert.equal(response.body.toString(), 'secret');
 });
