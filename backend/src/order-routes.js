@@ -1,24 +1,32 @@
 import { createPendingOrder } from './orders/create-order-policy.js';
 import { assertValidOrderRecord } from './orders/order-state-validation.js';
+import { getProductForOrder } from './orders/product-for-order.js';
 import { requireAuth } from './auth/require-auth.js';
 
 export function registerOrderRoutes(app) {
   app.post('/api/orders', requireAuth, async (req, res, next) => {
     try {
-      const user = req.user;
-      const product = req.product;
+      const product = await getProductForOrder(req.body?.productId);
+
+      if (!product) {
+        return res.status(404).json({
+          error: {
+            code: 'PRODUCT_NOT_FOUND',
+            message: 'Product is not available for purchase',
+          },
+        });
+      }
 
       const order = await createPendingOrder({
-        user,
+        user: req.user,
         product,
         existingActiveEntitlement: Boolean(req.existingActiveEntitlement),
       });
 
       assertValidOrderRecord(order);
-
-      res.status(201).json({ order });
+      return res.status(201).json({ order });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   });
 }
