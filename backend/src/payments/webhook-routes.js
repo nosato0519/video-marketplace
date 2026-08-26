@@ -4,11 +4,16 @@ import { verifyWebhookSignature } from './webhook-signature.js';
 import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment as defaultCompletePayment } from './complete-payment.js';
+import { refundPayment as defaultRefundPayment } from './refund-payment.js';
 import { toWebhookErrorResponse } from './webhook-error.js';
 
 export function registerPaymentWebhookRoutes(
   app,
-  { recordPaymentEvent = defaultRecordPaymentEvent, completePayment = defaultCompletePayment } = {}
+  {
+    recordPaymentEvent = defaultRecordPaymentEvent,
+    completePayment = defaultCompletePayment,
+    refundPayment = defaultRefundPayment,
+  } = {}
 ) {
   app.post(
     '/api/payments/webhook',
@@ -38,8 +43,19 @@ export function registerPaymentWebhookRoutes(
         });
 
         if (recorded.duplicate) return res.status(200).json({ received: true, duplicate: true });
-        if (payload.eventType !== 'payment_succeeded') {
+        if (payload.eventType === 'payment_failed') {
           return res.status(200).json({ received: true, processed: false });
+        }
+
+        if (payload.eventType === 'payment_refunded') {
+          const result = await refundPayment({
+            eventId: payload.eventId,
+            provider: payload.provider,
+            providerPaymentId: payload.paymentId,
+            orderId: payload.orderId,
+            payloadHash,
+          });
+          return res.status(200).json({ received: true, result });
         }
 
         const result = await completePayment({
