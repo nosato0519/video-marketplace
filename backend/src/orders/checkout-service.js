@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { buildCheckoutReference } from './create-order-policy.js';
+import { buildCheckoutIdempotencyKey } from './checkout-session-idempotency.js';
 import { createPaymentProvider } from '../payments/payment-provider.js';
 
 export async function getPendingOrderForCheckout({ orderId, userId }) {
@@ -28,11 +29,13 @@ export async function createCheckoutSession({ orderId, userId }) {
 
   const provider = createPaymentProvider();
   const reference = buildCheckoutReference({ order });
+  const idempotencyKey = buildCheckoutIdempotencyKey({ orderId: order.id });
 
   return provider.createCheckout({
     orderId: order.id,
     amount: order.amount,
     currency: order.currency,
+    idempotencyKey,
     metadata: { orderId: order.id, reference },
   });
 }
