@@ -8,8 +8,8 @@ export function validatePendingOrder({ user, product, existingActiveEntitlement 
   if (existingActiveEntitlement) throw new Error('already_purchased');
 
   const amount = Number(product.price_amount);
-  if (!Number.isFinite(amount) || amount < 0) throw new Error('invalid_product_price');
-  if (!product.price_currency) throw new Error('invalid_product_currency');
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error('invalid_product_price');
+  if (!/^[A-Z]{3}$/.test(product.price_currency)) throw new Error('invalid_product_currency');
 
   return {
     buyerId: user.id,
