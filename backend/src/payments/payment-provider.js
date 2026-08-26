@@ -1,18 +1,19 @@
 import Stripe from 'stripe';
+import { getPaymentProviderConfig } from './payment-provider-catalog.js';
 
-const SUPPORTED_PROVIDERS = new Set(['pending', 'stripe']);
 const ZERO_DECIMAL_CURRENCIES = new Set([
   'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
 ]);
 
 export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
   const selected = provider || 'pending';
-  if (!SUPPORTED_PROVIDERS.has(selected)) {
-    throw new Error(`unsupported_payment_provider:${selected}`);
-  }
+  if (selected === 'pending') return createPendingPaymentProvider();
 
+  const config = getPaymentProviderConfig(selected);
+  if (!config) throw new Error(`unsupported_payment_provider:${selected}`);
   if (selected === 'stripe') return createStripeProvider();
-  return createPendingPaymentProvider();
+
+  return createUnavailableProvider(config);
 }
 
 function createPendingPaymentProvider() {
@@ -20,19 +21,22 @@ function createPendingPaymentProvider() {
     name: 'pending',
     configured: false,
     async createCheckout({ orderId, amount, currency, metadata, idempotencyKey }) {
-      if (!orderId) throw new Error('order_required');
-      if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
-      if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
-
+      validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey });
       return {
-        provider: 'pending',
-        reference: metadata?.orderId ?? orderId,
-        orderId,
-        amount,
-        currency,
-        idempotencyKey,
+        provider: 'pending', reference: metadata?.orderId ?? orderId, orderId, amount, currency, idempotencyKey,
         status: 'not_configured',
       };
+    },
+  };
+}
+
+function createUnavailableProvider(config) {
+  return {
+    name: config.id,
+    configured: false,
+    regions: config.regions,
+    async createCheckout() {
+      throw new Error(`payment_provider_adapter_not_implemented:${config.id}`);
     },
   };
 }
@@ -51,29 +55,22 @@ function createStripeProvider() {
     name: 'stripe',
     configured: true,
     async createCheckout({ orderId, amount, currency, metadata, idempotencyKey }) {
-      if (!orderId) throw new Error('order_required');
-      if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
-      if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
-      if (!metadata?.paymentId) throw new Error('checkout_payment_id_required');
-
+      validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey });
       const normalizedCurrency = String(currency).toUpperCase();
-      if (!/^[A-Z]{3}$/.test(normalizedCurrency)) throw new Error('checkout_currency_invalid');
       const unitAmount = toMinorUnits(amount, normalizedCurrency);
 
       const session = await stripe.checkout.sessions.create(
         {
           mode: 'payment',
           client_reference_id: orderId,
-          line_items: [
-            {
-              price_data: {
-                currency: normalizedCurrency.toLowerCase(),
-                product_data: { name: 'Video Marketplace purchase' },
-                unit_amount: unitAmount,
-              },
-              quantity: 1,
+          line_items: [{
+            price_data: {
+              currency: normalizedCurrency.toLowerCase(),
+              product_data: { name: 'Video Marketplace purchase' },
+              unit_amount: unitAmount,
             },
-          ],
+            quantity: 1,
+          }],
           metadata: {
             orderId,
             paymentId: String(metadata.paymentId),
@@ -86,20 +83,21 @@ function createStripeProvider() {
       );
 
       if (!session.id || !session.url) throw new Error('stripe_checkout_response_invalid');
-
       return {
-        provider: 'stripe',
-        orderId,
-        amount,
-        currency: normalizedCurrency,
-        idempotencyKey,
-        paymentId: metadata.paymentId,
-        sessionId: session.id,
-        url: session.url,
-        status: session.status,
+        provider: 'stripe', orderId, amount, currency: normalizedCurrency, idempotencyKey,
+        paymentId: metadata.paymentId, sessionId: session.id, url: session.url, status: session.status,
       };
     },
   };
+}
+
+function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
+  if (!orderId) throw new Error('order_required');
+  if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
+  if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
+  if (!metadata?.paymentId) throw new Error('checkout_payment_id_required');
+  if (!/^[A-Z]{3}$/i.test(String(currency))) throw new Error('checkout_currency_invalid');
+  toMinorUnits(amount, String(currency).toUpperCase());
 }
 
 function toMinorUnits(amount, currency) {
@@ -112,7 +110,6 @@ function toMinorUnits(amount, currency) {
   const whole = BigInt(match[1]);
   const fraction = exponent === 0 ? 0n : BigInt((match[2] ?? '').padEnd(2, '0'));
   const minor = whole * (10n ** BigInt(exponent)) + fraction;
-  if (minor <= 0n) throw new Error('checkout_amount_invalid');
-  if (minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('checkout_amount_invalid');
+  if (minor <= 0n || minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('checkout_amount_invalid');
   return Number(minor);
 }
