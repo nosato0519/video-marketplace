@@ -1,9 +1,12 @@
 import { query } from '../db.js';
-import { ORDER_STATES, canTransitionOrder } from './order-state.js';
+import { ORDER_STATES } from './order-state.js';
+import { assertValidOrderTransition } from './order-transition-contract.js';
 import { grantPurchasedVideoAccess } from './grant-entitlement.js';
 
 export async function completePaidOrder({ orderId, paymentReference }) {
   if (!orderId || !paymentReference) throw new Error('payment_confirmation_required');
+
+  assertValidOrderTransition(ORDER_STATES.PENDING, ORDER_STATES.PAID);
 
   const result = await query(
     `UPDATE orders
@@ -20,10 +23,6 @@ export async function completePaidOrder({ orderId, paymentReference }) {
   if (result.rows.length === 0) throw new Error('order_not_payable');
 
   const order = result.rows[0];
-  if (!canTransitionOrder(ORDER_STATES.PENDING, order.status)) {
-    throw new Error('invalid_order_transition');
-  }
-
   const entitlement = await grantPurchasedVideoAccess({ orderId: order.id });
   return { order, entitlement };
 }
