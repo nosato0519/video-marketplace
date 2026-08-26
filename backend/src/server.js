@@ -5,7 +5,6 @@ import { registerProductDetailRoutes } from './catalog/product-detail-routes.js'
 import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
-import { registerProtectedMediaRoutes } from './media/protected-media-routes.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 
 const app = express();
