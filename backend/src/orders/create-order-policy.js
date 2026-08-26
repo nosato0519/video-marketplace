@@ -1,5 +1,6 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
+import { assertValidOrderState } from './order-state-validation.js';
 
 export function validatePendingOrder({ user, product, existingActiveEntitlement = false }) {
   if (!user) throw new Error('authentication_required');
@@ -11,12 +12,15 @@ export function validatePendingOrder({ user, product, existingActiveEntitlement 
   if (!Number.isFinite(amount) || amount <= 0) throw new Error('invalid_product_price');
   if (!/^[A-Z]{3}$/.test(product.price_currency)) throw new Error('invalid_product_currency');
 
+  const status = ORDER_STATES.PENDING;
+  assertValidOrderState(status);
+
   return {
     buyerId: user.id,
     productId: product.id,
     amount,
     currency: product.price_currency,
-    status: ORDER_STATES.PENDING,
+    status,
   };
 }
 
