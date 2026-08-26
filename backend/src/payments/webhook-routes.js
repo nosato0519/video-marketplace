@@ -2,11 +2,14 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { verifyWebhookSignature } from './webhook-signature.js';
 import { validateWebhookPayload } from './webhook-payload.js';
-import { recordPaymentEvent } from './payment-event-ledger.js';
-import { completePayment } from './complete-payment.js';
+import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
+import { completePayment as defaultCompletePayment } from './complete-payment.js';
 import { toWebhookErrorResponse } from './webhook-error.js';
 
-export function registerPaymentWebhookRoutes(app) {
+export function registerPaymentWebhookRoutes(
+  app,
+  { recordPaymentEvent = defaultRecordPaymentEvent, completePayment = defaultCompletePayment } = {}
+) {
   app.post(
     '/api/payments/webhook',
     express.raw({ type: 'application/json', limit: '1mb' }),
@@ -23,32 +26,27 @@ export function registerPaymentWebhookRoutes(app) {
         }
 
         const payload = validateWebhookPayload(JSON.parse(rawBody.toString('utf8')));
-        const eventId = payload.eventId;
-        const provider = payload.provider;
-        const eventType = payload.eventType;
-        const providerPaymentId = payload.paymentId;
-        const orderId = payload.orderId;
         const payloadHash = crypto.createHash('sha256').update(rawBody).digest('hex');
 
         const recorded = await recordPaymentEvent({
-          provider,
-          eventId,
-          eventType,
-          providerPaymentId,
+          provider: payload.provider,
+          eventId: payload.eventId,
+          eventType: payload.eventType,
+          providerPaymentId: payload.paymentId,
           payloadHash,
-          orderId,
+          orderId: payload.orderId,
         });
 
         if (recorded.duplicate) return res.status(200).json({ received: true, duplicate: true });
-        if (eventType !== 'payment_succeeded') {
+        if (payload.eventType !== 'payment_succeeded') {
           return res.status(200).json({ received: true, processed: false });
         }
 
         const result = await completePayment({
-          eventId,
-          provider,
-          providerPaymentId,
-          orderId,
+          eventId: payload.eventId,
+          provider: payload.provider,
+          providerPaymentId: payload.paymentId,
+          orderId: payload.orderId,
           payloadHash,
           payment: payload,
         });
