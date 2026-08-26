@@ -13,7 +13,8 @@ export async function refundPaidOrder({ orderId, refundReference }) {
             updated_at = NOW()
       WHERE id = $1
         AND status = $4
-      RETURNING id, buyer_id, product_id, status, refund_reference, refunded_at`,
+      RETURNING id, buyer_id, product_id, amount, currency, status, payment_reference,
+                refund_reference, paid_at, refunded_at, created_at, updated_at`,
     [orderId, ORDER_STATES.REFUNDED, refundReference, ORDER_STATES.PAID]
   );
 
