@@ -4,6 +4,7 @@ import { verifyWebhookSignature } from './webhook-signature.js';
 import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment } from './complete-payment.js';
+import { toWebhookErrorResponse } from './webhook-error.js';
 
 export function registerPaymentWebhookRoutes(app) {
   app.post(
@@ -54,7 +55,9 @@ export function registerPaymentWebhookRoutes(app) {
 
         return res.status(200).json({ received: true, result });
       } catch (error) {
-        return next(error);
+        const response = toWebhookErrorResponse(error);
+        if (response.status === 500) return next(error);
+        return res.status(response.status).json(response.body);
       }
     }
   );
