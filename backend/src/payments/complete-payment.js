@@ -1,5 +1,6 @@
 import { getPool } from '../db.js';
 import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
+import { verifyPaymentAgainstOrder } from './payment-verification.js';
 
 export async function completePayment({
   eventId,
@@ -7,6 +8,7 @@ export async function completePayment({
   providerPaymentId,
   orderId,
   payloadHash,
+  payment,
 }) {
   const pool = getPool();
   const client = await pool.connect();
@@ -15,7 +17,7 @@ export async function completePayment({
     await client.query('BEGIN');
 
     const event = await client.query(
-      `SELECT id, status
+      `SELECT id, status, payload_hash
          FROM payment_events
         WHERE provider = $1 AND event_id = $2
         FOR UPDATE`,
@@ -28,6 +30,10 @@ export async function completePayment({
       return { duplicate: true };
     }
 
+    if (event.rows[0].payload_hash && event.rows[0].payload_hash !== payloadHash) {
+      throw new Error('payment_event_payload_mismatch');
+    }
+
     const order = await client.query(
       `SELECT id, buyer_id, product_id, amount, currency, status, provider, provider_payment_id
          FROM orders
@@ -38,6 +44,16 @@ export async function completePayment({
 
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
+
+    verifyPaymentAgainstOrder({
+      payment: {
+        ...payment,
+        orderId: payment?.orderId ?? current.id,
+        amount: payment?.amount ?? current.amount,
+        currency: payment?.currency ?? current.currency,
+      },
+      order: current,
+    });
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
