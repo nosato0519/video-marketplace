@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Payment settings</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:960px;margin:40px auto;padding:0 20px;background:#f7f7f8;color:#171717}
+    .card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:20px;margin:14px 0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    label{display:block;font-weight:600;margin:12px 0 6px} select,input,button{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:9px;font:inherit}
+    button{cursor:pointer;background:#171717;color:#fff;margin-top:16px}.muted{color:#666;font-size:.9rem}.status{margin-top:12px;padding:10px;border-radius:8px;background:#f0f0f0}
+  </style>
+</head>
+<body>
+  <h1>Payment settings</h1>
+  <p class="muted">Connect your own payment provider. Secret credentials are sent to the server and are never displayed back in this page.</p>
+
+  <section class="card">
+    <h2>Choose provider</h2>
+    <div class="grid">
+      <div><label for="region">Region</label><select id="region"><option value="global">Global / Overseas</option><option value="japan">Japan</option></select></div>
+      <div><label for="currency">Currency</label><input id="currency" value="USD" maxlength="3" autocomplete="off"></div>
+      <div><label for="provider">Payment provider</label><select id="provider"></select></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Connect your account</h2>
+    <label for="secret">Provider secret / API credential</label>
+    <input id="secret" type="password" autocomplete="new-password" placeholder="Enter your provider credential">
+    <button id="configure">Validate and save provider</button>
+    <div id="status" class="status" hidden></div>
+  </section>
+
+  <script>
+    const region = document.querySelector('#region');
+    const currency = document.querySelector('#currency');
+    const provider = document.querySelector('#provider');
+    const secret = document.querySelector('#secret');
+    const status = document.querySelector('#status');
+
+    async function loadProviders(){
+      const params = new URLSearchParams({region: region.value, currency: currency.value.trim().toUpperCase()});
+      const response = await fetch('/api/admin/payment-providers?' + params);
+      if(!response.ok) throw new Error('Unable to load payment providers');
+      const data = await response.json();
+      provider.replaceChildren(...data.providers.map((item)=>{
+        const option=document.createElement('option'); option.value=item.id; option.textContent=item.name; return option;
+      }));
+    }
+
+    async function configure(){
+      status.hidden=false; status.textContent='Validating…';
+      const response = await fetch('/api/admin/payment-providers/configure', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({providerId:provider.value, region:region.value, currency:currency.value.trim().toUpperCase(), credentials:{secret:secret.value}})
+      });
+      const data = await response.json().catch(()=>({}));
+      if(!response.ok) { status.textContent=data.error || 'Configuration failed'; return; }
+      secret.value='';
+      status.textContent='Provider configured successfully.';
+    }
+
+    region.addEventListener('change', loadProviders);
+    currency.addEventListener('change', loadProviders);
+    document.querySelector('#configure').addEventListener('click', configure);
+    loadProviders().catch((error)=>{status.hidden=false;status.textContent=error.message});
+  </script>
+</body>
+</html>
