@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { buildCheckoutReference } from './create-order-policy.js';
+import { createPaymentProvider } from '../payments/payment-provider.js';
 
 export async function getPendingOrderForCheckout({ orderId, userId }) {
   if (!orderId) throw new Error('order_required');
@@ -25,8 +26,13 @@ export async function createCheckoutSession({ orderId, userId }) {
   const order = await getPendingOrderForCheckout({ orderId, userId });
   if (!order) throw new Error('order_not_found');
 
-  return {
-    provider: 'pending',
-    reference: buildCheckoutReference({ order }),
-  };
+  const provider = createPaymentProvider();
+  const reference = buildCheckoutReference({ order });
+
+  return provider.createCheckout({
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    metadata: { orderId: order.id, reference },
+  });
 }
