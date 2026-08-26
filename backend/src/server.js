@@ -4,6 +4,7 @@ import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
 import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
+import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 
 const app = express();
@@ -11,6 +12,11 @@ const port = Number(process.env.PORT || 3000);
 
 app.disable('x-powered-by');
 app.use(helmet());
+
+// Webhooks must receive the raw body before the JSON parser runs so signature verification
+// is performed against the exact bytes received from the payment provider.
+registerPaymentWebhookRoutes(app);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(loadSessionUser);
 
