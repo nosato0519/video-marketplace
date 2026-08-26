@@ -1,19 +1,23 @@
-export function createCheckoutSession({ order, provider }) {
-  if (!order || order.status !== 'pending') throw new Error('order_not_pending');
-  if (!provider || typeof provider.createCheckout !== 'function') throw new Error('payment_provider_unavailable');
+export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
+  if (!provider || provider === 'pending') {
+    return createPendingPaymentProvider();
+  }
 
-  return provider.createCheckout({
-    orderId: order.id,
-    amount: order.amount,
-    currency: order.currency,
-    metadata: { orderId: order.id },
-  });
+  throw new Error(`unsupported_payment_provider:${provider}`);
 }
 
-export function normalizeProviderPayment({ providerPaymentId, checkoutUrl }) {
-  if (!providerPaymentId || !checkoutUrl) throw new Error('invalid_provider_checkout');
+function createPendingPaymentProvider() {
   return {
-    providerPaymentId: String(providerPaymentId),
-    checkoutUrl: String(checkoutUrl),
+    name: 'pending',
+    async createCheckout({ orderId, amount, currency, metadata }) {
+      return {
+        provider: 'pending',
+        reference: metadata?.orderId ?? orderId,
+        orderId,
+        amount,
+        currency,
+        status: 'not_configured',
+      };
+    },
   };
 }
