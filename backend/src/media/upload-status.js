@@ -1,9 +1,10 @@
+// Canonical media states mirror backend/migrations/002_product_media.sql.
 export const MEDIA_UPLOAD_STATES = Object.freeze({
-  PENDING: 'pending',
-  UPLOADING: 'uploading',
+  PRIVATE: 'private',
   PROCESSING: 'processing',
   READY: 'ready',
-  FAILED: 'failed',
+  QUARANTINED: 'quarantined',
+  DELETED: 'deleted',
 });
 
 export function canPublishMedia(status) {
@@ -11,5 +12,5 @@ export function canPublishMedia(status) {
 }
 
 export function isDownloadableMedia(status, downloadEnabled) {
-  return status === MEDIA_UPLOAD_STATES.READY && downloadEnabled === true;
+  return canPublishMedia(status) && downloadEnabled === true;
 }
