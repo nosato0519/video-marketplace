@@ -1,54 +1,38 @@
 # Development Log
 
-This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the authoritative project state.
+`PROJECT_STATE.md` is the authoritative project state.
 
 ## 2026-08-27 — Current session
 
-### This session's implementation
-- Added `storefront/seller.html` Seller Dashboard foundation.
-- Connected seller product listing to the authenticated `/api/seller/products` endpoint.
-- Connected product draft creation to the existing Seller product API using the API's actual camelCase request fields (`priceAmount`, `priceCurrency`, `mediaAssetId`).
-- Connected the Seller video uploader to the authenticated `/api/seller/media/upload` endpoint.
-- Upload sends the actual video MIME type and original filename headers required by the backend.
-- Added Publish action from the Seller product list using `/api/seller/products/:productId/publish`.
-- Added English/Japanese Seller UI strings.
-- Preserved backend authorization and publish validation as the source of truth; the UI does not bypass Seller ownership or media validation.
-- Commit: `734ecde48b3324b841a7e2fcffc94193d6de2c1d`.
+### Seller implementation progress
+- Seller Dashboard foundation exists at `storefront/seller.html`.
+- Seller product listing uses authenticated `/api/seller/products`.
+- Seller video upload uses authenticated `/api/seller/media/upload` with actual video MIME type and original filename.
+- Uploaded media asset ID is now carried into the next draft creation request, so the draft is created with `mediaAssetId` instead of leaving the video unattached.
+- Seller product list now exposes Publish for non-published products and Unpublish for published products.
+- Publish validation bug fixed in `backend/src/seller/product-routes.js`: `validateProductForPublishing` expects a singular `mediaAsset`, not the earlier incorrect `mediaAssets` array. The route now passes the actual media asset ID, owner and status, allowing the existing guard to verify ownership and `ready` state.
+- The publish guard requires title, positive price, valid 3-letter currency, attached media, matching media ID, matching seller ownership and a publishable media state.
+- Commits: `3d5332d726475132dab0262eca347a7bf2669c9e` (publish validation fix), `08f8cde044d3f9f62fcafe7efdf74a08a4bc7509` (Seller UI attach/unpublish).
 
 ### Existing work already completed
 - Core Node/Express/PostgreSQL backend foundation.
 - Catalog/product/order/checkout boundaries.
-- Stripe webhook settlement and idempotent entitlement grant foundations.
-- Entitlement-gated video streaming.
-- Entitlement-gated buyer download with attachment semantics and byte-range/resumable support.
-- Secure local private-media storage adapter and provider factory.
-- Startup media-security validation.
-- Regression coverage for media/download security behavior.
-- Responsive storefront/UI foundations.
-- Multilingual architecture and locale policy.
-- Catalog language-switching work.
+- Payment webhook settlement and idempotent entitlement grant foundations.
+- Entitlement-gated streaming and buyer download with range support.
+- Private media storage boundary and startup security validation.
 - Buyer Library and Order History localization foundations.
-- `PRODUCT_VISION.md`, `SELLER_HANDOFF_GUIDE.md`, and `OPERATIONS_MANUAL.md` documentation foundations.
+- Seller Dashboard foundation and authenticated Seller API integration.
+- Product vision, seller handoff guide and operations manual foundations.
 
 ### Current work target
-1. Finish Seller Dashboard: attach uploaded media to drafts, edit product, publish/unpublish controls, and validation/error UX.
-2. Add seller onboarding/verification screens.
-3. Add seller sales/earnings and payout screens.
-4. Then move to no-code Admin moderation/approval operations.
-5. Continue production media delivery, object storage/CDN, end-to-end payment/database testing and final acceptance.
+1. Add Seller product editing UI using the existing PATCH endpoint.
+2. Add Seller onboarding/verification screens.
+3. Add sales/earnings and payout screens.
+4. Then build no-code Admin moderation/approval operations.
+5. Continue production object storage/CDN, end-to-end payment/database testing and final acceptance.
 
-### Important correction
-- The Seller product API expects camelCase fields (`priceAmount`, `priceCurrency`, `mediaAssetId`). The dashboard now uses those actual field names instead of the earlier snake_case guesses.
-- The Seller products endpoint returns `{ products: [...] }`; the dashboard now handles that response directly.
-- Do not claim the Seller workflow is complete until upload -> attach -> edit -> publish has been tested end-to-end.
-
-### Localization note
-- `shared/i18n.js` lists en, ja, de, fr, es, pt-BR, it, ko, zh-CN and zh-TW.
-- Message catalogs are currently populated for en/ja; additional locales need their message catalogs and human translation review before being called production-ready.
-
-### Do not forget
-- Do not rely on chat memory for project state.
-- At the start of every session, read `PROJECT_STATE.md` and this log, then inspect the latest repository state.
-- Do not claim a feature is complete until its implementation and relevant test/acceptance path are verified.
-- Do not change architecture or jump to an unrelated feature without checking the current next step.
-- After each meaningful milestone, update both the project state and this log, then commit.
+### Important rules
+- Do not claim Seller E2E complete until upload -> attach -> edit -> publish -> catalog visibility has been tested against a real configured backend/database.
+- Do not bypass backend ownership or publish validation in the UI.
+- Do not call the ten supported locales production-ready until translation catalogs and UI acceptance are complete.
+- Start future sessions by reading `PROJECT_STATE.md` and this log.
