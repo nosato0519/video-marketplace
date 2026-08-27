@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 397 — Migration policy boundary recorded; legacy purchase history remains immutable pending real-DB acceptance.**
+**Milestone 398 — HTTP moderation acceptance now verifies public catalog/detail takedown behavior.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -26,6 +26,11 @@ A reusable, international video marketplace independently designed and implement
 - `npm run migrate` is exposed in the backend package scripts.
 - `npm run migrate:preflight` validates the migration set without incorrectly rejecting legitimate repeated version numbers.
 - `017_migration_legacy_policy.sql` records the canonical purchase migration and the rule that the historical purchase migration requires review before replay against populated databases.
+- HTTP moderation acceptance uses the real Express app, real session-cookie lookup, buyer/admin authorization, report processing and takedown flow.
+- HTTP moderation acceptance now creates the required seller profile and product translation fixtures using the canonical schemas.
+- Public catalog/detail queries now use `users.status = 'active'` rather than a nonexistent `seller_profiles.status` column.
+- HTTP moderation acceptance verifies a published product is visible before takedown and returns 404 / disappears from the public catalog after a blocked review is created.
+- PostgreSQL acceptance workflow runs both DB-level and HTTP-level moderation acceptance tests.
 
 ## Latest verified CI baseline
 Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
@@ -37,13 +42,13 @@ Backend Regression run **#332** completed with **success** after migration prefl
 - Build an actual PostgreSQL acceptance environment and verify the complete migration set on a fresh database.
 - Verify migration idempotency and concurrent execution against PostgreSQL.
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
-- Add DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
+- Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Create the real PostgreSQL acceptance path and use it to reproduce the fresh-install migration sequence. Do not declare the migration system production-ready until the BIGINT/UUID purchase-schema boundary is proven safe.**
+**Run and inspect the PostgreSQL acceptance workflow against the updated moderation HTTP test; fix any real schema/runtime failures before adding more coverage.**
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
