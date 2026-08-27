@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 398 — HTTP moderation acceptance now verifies public catalog/detail takedown behavior.**
+**Milestone 399 — PostgreSQL acceptance workflow is wired for DB + HTTP moderation acceptance; CI execution remains to be verified through an accessible workflow-run result.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -27,19 +27,23 @@ A reusable, international video marketplace independently designed and implement
 - `npm run migrate:preflight` validates the migration set without incorrectly rejecting legitimate repeated version numbers.
 - `017_migration_legacy_policy.sql` records the canonical purchase migration and the rule that the historical purchase migration requires review before replay against populated databases.
 - HTTP moderation acceptance uses the real Express app, real session-cookie lookup, buyer/admin authorization, report processing and takedown flow.
-- HTTP moderation acceptance now creates the required seller profile and product translation fixtures using the canonical schemas.
-- Public catalog/detail queries now use `users.status = 'active'` rather than a nonexistent `seller_profiles.status` column.
+- HTTP moderation acceptance creates canonical seller/profile/product/translation/session fixtures.
+- Duplicate-report acceptance uses a PostgreSQL SAVEPOINT so the expected unique-constraint failure does not abort the surrounding transaction.
+- Public catalog/detail queries use `users.status = 'active'` rather than a nonexistent `seller_profiles.status` column.
 - HTTP moderation acceptance verifies a published product is visible before takedown and returns 404 / disappears from the public catalog after a blocked review is created.
-- PostgreSQL acceptance workflow runs both DB-level and HTTP-level moderation acceptance tests.
+- PostgreSQL acceptance workflow runs migration preflight, migration plan, migrations twice, DB moderation acceptance and HTTP moderation acceptance.
 
 ## Latest verified CI baseline
 Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
+
+## CI verification note
+The PostgreSQL Acceptance workflow is present on `main`, but the available GitHub workflow-run lookup does not currently expose a verifiable run result for the latest push. Therefore the PostgreSQL acceptance suite is **not marked Green** until an accessible run/job result confirms it.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Because `CREATE TABLE IF NOT EXISTS` cannot convert an already-created incompatible table, this is not treated as solved by documentation alone. No destructive conversion or DROP has been performed.
 
 ## Remaining work
-- Build an actual PostgreSQL acceptance environment and verify the complete migration set on a fresh database.
+- Verify the PostgreSQL acceptance workflow end-to-end on a fresh PostgreSQL database and inspect actual job logs/results.
 - Verify migration idempotency and concurrent execution against PostgreSQL.
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
@@ -48,7 +52,10 @@ Backend Regression run **#332** completed with **success** after migration prefl
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Run and inspect the PostgreSQL acceptance workflow against the updated moderation HTTP test; fix any real schema/runtime failures before adding more coverage.**
+**Obtain a directly verifiable PostgreSQL Acceptance workflow run/job result. If it fails, inspect the exact job log and fix the first real runtime/schema failure before expanding the suite.**
+
+## Progress memo rule
+After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
