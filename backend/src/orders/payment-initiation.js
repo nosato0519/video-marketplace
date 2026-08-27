@@ -6,6 +6,20 @@ export async function ensurePaymentForPendingOrder({ order, provider = 'pending'
   if (order.status !== 'pending') throw new Error('order_not_pending');
   if (!provider) throw new Error('payment_provider_required');
 
+  // The explicit pending adapter is a provider-neutral development/test boundary.
+  // It must not require PostgreSQL merely to build the canonical payment payload.
+  if (provider === 'pending') {
+    return {
+      orderId: order.id,
+      buyerId: order.buyer_id,
+      amount: order.amount,
+      currency: order.currency,
+      provider,
+      idempotencyKey: `order:${order.id}`,
+      reference: buildCheckoutReference({ order }),
+    };
+  }
+
   const existing = await query(
     `SELECT id, buyer_id, product_id, amount, currency, status, provider, provider_payment_id
        FROM orders
