@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 403 — Canonical commerce columns and DB-backed buyer commerce acceptance flow added.**
+**Milestone 406 — PostgreSQL acceptance failures isolated and hardened for the next CI run.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -39,29 +39,34 @@ A reusable, international video marketplace independently designed and implement
 - Order History SQL now uses canonical order ownership (`buyer_id`) and amount (`amount`) fields.
 - `018_canonical_commerce_columns.sql` adds the missing canonical `payment_reference`, `refund_reference`, `updated_at`, `streaming_enabled` and `download_enabled` columns on fresh or existing installations without touching legacy purchase tables.
 - `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
-- `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow now runs it on fresh PostgreSQL after migrations.
+- `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow runs it on fresh PostgreSQL after migrations.
+- The latest PostgreSQL Acceptance run (#22) proved migration preflight, migration plan, both migration passes, commerce DB acceptance and moderation DB acceptance all succeed.
+- That run failed only at HTTP moderation acceptance because the workflow did not provide the required media security environment configuration; the logs also exposed a duplicate-report unique-index race at the database boundary.
+- `content-report-routes.js` is now hardened with `ON CONFLICT ... DO NOTHING` plus an explicit 409 response so the duplicate-report API remains deterministic even under a concurrent request race.
+- PostgreSQL Acceptance workflow now supplies a test-only `MEDIA_URL_SECRET` and `/tmp/video-marketplace-media` to the HTTP acceptance step. No production secret is stored in the repository.
 
 ## Latest verified CI baseline
-Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
+Backend Regression run **#369** completed with **success** after the commerce DB acceptance script was registered. PostgreSQL Acceptance run **#22** completed with failure, but the failure was isolated after the migration and commerce portions passed.
 
 ## CI verification note
-The PostgreSQL Acceptance workflow now includes the commerce acceptance suite, but the newly pushed workflow result has **not yet been independently verified** through an accessible workflow-run/job result. Therefore this milestone is **not marked Green** until an accessible run/job result confirms migration and commerce acceptance success.
+The next PostgreSQL Acceptance run must be inspected after the latest fixes. Do not mark the milestone Green until an accessible run/job result confirms HTTP moderation acceptance and the complete workflow succeed.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree also preserves this legacy history. No destructive conversion or DROP has been performed.
 
 ## Remaining work
-- Verify the PostgreSQL acceptance workflow end-to-end on a fresh PostgreSQL database and inspect actual job logs/results.
+- Verify the next PostgreSQL acceptance workflow end-to-end on a fresh PostgreSQL database and inspect actual job logs/results.
 - Verify migration idempotency and concurrent execution against PostgreSQL.
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
-- Re-run HTTP moderation acceptance after the catalog/report schema corrections.
+- Re-run and complete HTTP moderation acceptance after the media security and duplicate-report fixes.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
+- After backend acceptance is Green, continue the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path and then the buyer/seller UI integration.
 
 ## Next step
-**Verify the new PostgreSQL Acceptance workflow on a fresh PostgreSQL database, inspect the commerce acceptance job logs, and fix any schema or flow failures before extending the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path.**
+**Verify the new PostgreSQL Acceptance run after the two fixes, inspect the complete job result, and repair any remaining HTTP moderation or media-access failure before moving deeper into production payment and buyer/seller UI integration.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
