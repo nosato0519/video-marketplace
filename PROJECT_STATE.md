@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 374 — Seller onboarding/profile/verification connected to Seller Dashboard.**
+**Milestone 375 — Seller earnings ledger and authenticated earnings API added.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -15,10 +15,10 @@ A reusable, international video marketplace independently designed and implement
 - Protected media: authenticated entitlement-gated streaming route exists at `/api/media/:productId/stream`.
 - Buyer downloads: authenticated entitlement-gated download route exists at `/api/media/:productId/download`, with attachment semantics, private/no-store caching and validated byte ranges.
 - Media storage: provider-neutral storage boundary plus secure local filesystem adapter exists for development/testing.
-- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, persistent media library selection, editing, publish/unpublish, and now Seller profile/verification controls.
-- Seller media: authenticated `GET /api/seller/media/assets` provides the logged-in seller's own media asset library.
+- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, persistent media library selection, editing, publish/unpublish, and Seller profile/verification controls.
 - Seller onboarding: `seller_profiles` migration and authenticated Seller profile read/update and verification submission API exist.
-- Seller Dashboard onboarding: profile fields and verification status are loaded from the API; profile can be saved; verification submission saves the current profile and then submits it for review.
+- Seller earnings: `seller_earnings` ledger migration now exists with seller/order/product ownership, gross/platform-fee/net amounts, currency, lifecycle status, timestamps and uniqueness protection per order/product.
+- Seller earnings API: authenticated `GET /api/seller/earnings` now returns seller-only earnings summary plus recent earning records. No cross-seller access is exposed.
 - Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
 - Continuation: this file is the authoritative project state and must be updated after every meaningful milestone.
@@ -40,6 +40,7 @@ A reusable, international video marketplace independently designed and implement
 - Added persistent Seller media asset library API and Dashboard integration.
 - Added Seller profile/verification database foundation and API.
 - Connected Seller profile/verification to the Seller Dashboard.
+- Added Seller earnings ledger and authenticated Seller earnings API.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -47,6 +48,7 @@ A reusable, international video marketplace independently designed and implement
 - Streaming and download support subject to product/operator download policy.
 - Multi-currency and multilingual architecture.
 - Seller registration, verification, upload, review, sales and payout management are first-class functionality.
+- Seller earnings are represented as a separate ledger rather than calculating arbitrary totals from client-side UI data.
 - Safety/moderation, reporting, takedown/removal, account controls, auditability and region restrictions are architectural requirements.
 - Admin must be usable from smartphone and desktop and routine operation must require no programming, SQL, shell or config-file editing.
 - Video assets remain in private storage; authorization occurs before media access.
@@ -59,7 +61,8 @@ A reusable, international video marketplace independently designed and implement
 - Product detail and checkout still require full end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
 - Seller onboarding/verification UI is now connected but needs real database/API acceptance testing.
-- Seller sales/earnings and payouts still need API/UI integration and acceptance testing.
+- Seller earnings API is implemented but still needs Dashboard UI integration and end-to-end validation against real successful payment/settlement records.
+- Payout request API/UI and complete payout lifecycle still need implementation/integration testing.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -70,7 +73,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Implement Seller sales/earnings API and connect the existing Seller Sales & Earnings dashboard section to real settlement/payment data.** Then implement payout request API/UI using the existing payout lifecycle. After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
+**Connect Seller Sales & Earnings UI to `/api/seller/earnings`, then implement the payout request API/UI using the existing `payouts` lifecycle.** After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
