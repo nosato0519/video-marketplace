@@ -12,7 +12,11 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
        m.storage_key,
        m.mime_type,
        m.byte_size,
-       m.status AS asset_status
+       m.status AS asset_status,
+       EXISTS (
+         SELECT 1 FROM content_reviews cr
+          WHERE cr.product_id = p.id AND cr.status = 'blocked'
+       ) AS content_blocked
        FROM entitlements e
        JOIN products p ON p.id = e.product_id
        JOIN media_assets m ON m.id = p.media_asset_id
@@ -33,7 +37,7 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
       product_id: row.product_id,
       status: row.entitlement_status,
     },
-    product: { id: row.product_id, status: row.product_status },
+    product: { id: row.product_id, status: row.product_status, content_blocked: row.content_blocked },
     asset: {
       id: row.asset_id,
       storage_key: row.storage_key,
