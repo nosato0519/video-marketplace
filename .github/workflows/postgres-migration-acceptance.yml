@@ -1,0 +1,51 @@
+name: PostgreSQL Migration Acceptance
+
+on:
+  push:
+    paths:
+      - 'backend/migrations/**'
+      - 'backend/scripts/migrate.js'
+      - 'backend/scripts/migration-plan.js'
+      - '.github/workflows/postgres-migration-acceptance.yml'
+  pull_request:
+    paths:
+      - 'backend/migrations/**'
+      - 'backend/scripts/migrate.js'
+      - 'backend/scripts/migration-plan.js'
+      - '.github/workflows/postgres-migration-acceptance.yml'
+  workflow_dispatch:
+
+jobs:
+  migration-acceptance:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: marketplace
+          POSTGRES_PASSWORD: marketplace
+          POSTGRES_DB: marketplace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U marketplace -d marketplace_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run migrate:preflight
+      - run: npm run migration:plan > migration-plan.json
+      - run: npm run migrate
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+      - run: npm run migrate
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
