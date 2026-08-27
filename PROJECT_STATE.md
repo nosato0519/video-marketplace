@@ -1,91 +1,78 @@
 # Video Marketplace Project State
 
 ## Purpose
-A reusable, international video marketplace inspired by the usability of Japanese video marketplaces such as Pancolle Movie, but independently designed and implemented. The platform must work for general video sales and be capable of supporting adult content where legally and operationally permitted.
+A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 373 — Seller profile onboarding and verification-state API added.**
+**Milestone 374 — Seller onboarding/profile/verification connected to Seller Dashboard.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - Frontend: responsive storefront prototype, localized application shell, buyer/seller/admin UI foundations.
 - Backend: Node/Express/PostgreSQL foundation with security headers, health endpoint, catalog/product/order/checkout boundaries and payment webhook handling.
-- Commerce: hosted checkout boundary, verified payment webhook settlement, idempotent entitlement grant and seller settlement records are implemented at the service/boundary level.
+- Commerce: hosted checkout boundary, verified payment webhook settlement, idempotent entitlement grant and seller settlement records implemented at service/boundary level.
 - Protected media: authenticated entitlement-gated streaming route exists at `/api/media/:productId/stream`.
-- Buyer downloads: authenticated entitlement-gated download route exists at `/api/media/:productId/download`; responses use attachment semantics, private/no-store caching and support validated byte ranges for resumable downloads.
-- Media streaming: HTTP byte-range parsing and `206 Partial Content` response handling are implemented.
-- Storage: provider-neutral storage boundary plus secure local filesystem adapter exists for development/testing.
-- Startup: protected-media security configuration is validated before the server starts; `MEDIA_URL_SECRET` must be at least 32 characters and a private media directory must be configured.
-- Regression tests: backend/security workflow and media/security unit tests have been added; download authorization/attachment/range behavior now has dedicated regression coverage.
-- Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
-- Buyer UI: Library and Order History localization foundations exist; final end-to-end acceptance still remains.
-- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, persistent media library selection, editing, and publish/unpublish controls.
+- Buyer downloads: authenticated entitlement-gated download route exists at `/api/media/:productId/download`, with attachment semantics, private/no-store caching and validated byte ranges.
+- Media storage: provider-neutral storage boundary plus secure local filesystem adapter exists for development/testing.
+- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, persistent media library selection, editing, publish/unpublish, and now Seller profile/verification controls.
 - Seller media: authenticated `GET /api/seller/media/assets` provides the logged-in seller's own media asset library.
-- Seller onboarding: `seller_profiles` migration and authenticated Seller profile/verification endpoints now exist.
-- Seller verification flow: Seller can save display/legal name and country code, read current verification state, and submit the completed profile for review. Verification is intentionally a state transition; no fake automatic approval is implemented.
+- Seller onboarding: `seller_profiles` migration and authenticated Seller profile read/update and verification submission API exist.
+- Seller Dashboard onboarding: profile fields and verification status are loaded from the API; profile can be saved; verification submission saves the current profile and then submits it for review.
+- Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
+- Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
 - Continuation: this file is the authoritative project state and must be updated after every meaningful milestone.
 
 ## Completed technical milestones in the current media-security/commerce phase
 - Connected protected media route to the main API server.
 - Added startup integration contracts for route registration and webhook/parser ordering.
 - Added entitlement-gated media streaming boundary.
-- Added safe byte-range parser for full, bounded, open-ended and suffix ranges.
-- Connected byte ranges to the media stream route.
+- Added safe byte-range parser and `206 Partial Content` handling.
 - Added validated range forwarding at the storage boundary.
 - Added secure local media storage adapter with path traversal protection.
-- Added explicit media storage provider factory.
-- Wired configured media storage into server startup.
-- Added startup security configuration validation.
-- Added repository safeguards for `.env` and private media.
-- Added payment webhook signature verification and settlement boundary.
-- Added idempotent payment settlement and entitlement grant.
-- Enforced purchased video access.
-- Added short-lived secure media delivery tokens and signed URL verification/delivery foundations.
+- Added explicit media storage provider factory and startup wiring.
+- Added startup security configuration validation and repository safeguards for `.env`/private media.
+- Added payment webhook signature verification, settlement boundary, idempotent entitlement grant and purchased-video access control.
+- Added short-lived secure media delivery token foundation.
 - Added authenticated buyer download route with range support and regression tests.
 - Strengthened installation and production acceptance documentation.
-- Added Seller Dashboard UI foundation and connected product listing/product draft creation to the existing authenticated Seller API.
-- Added Seller video upload UI and publish/unpublish controls.
-- Added automatic attachment of the uploaded media asset to the next seller draft.
-- Added Seller product editing UI.
-- Added persistent Seller media asset library API.
-- Integrated persistent Seller media asset selection into the Seller Dashboard.
-- Added Seller profile/verification database foundation.
-- Added authenticated Seller profile read/update and verification submission API.
+- Added Seller Dashboard product listing/draft/upload/edit/publish integration.
+- Added persistent Seller media asset library API and Dashboard integration.
+- Added Seller profile/verification database foundation and API.
+- Connected Seller profile/verification to the Seller Dashboard.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
 - One-time sales, bundles/sets, free/paid videos and discounts; no monthly membership at this stage.
-- Streaming and download support. A purchaser must be able to view and download purchased videos subject to the product/operator download policy.
+- Streaming and download support subject to product/operator download policy.
 - Multi-currency and multilingual architecture.
 - Seller registration, verification, upload, review, sales and payout management are first-class functionality.
 - Safety/moderation, reporting, takedown/removal, account controls, auditability and region restrictions are architectural requirements.
-- Buyer conversion prioritizes clarity and trust without deceptive patterns.
 - Admin must be usable from smartphone and desktop and routine operation must require no programming, SQL, shell or config-file editing.
-- Video assets must remain in private storage; authorization must happen before media access.
-- Payment integrations must remain replaceable/configurable and raw card details must never be stored.
+- Video assets remain in private storage; authorization occurs before media access.
+- Payment integrations remain replaceable/configurable and raw card details are never stored.
 - Adult content is not assumed universally legal or supported by every provider; actual launch jurisdictions and provider policies must be verified before production.
 - Eventual self-hosted ZIP distribution is a product deliverable; never ship secrets or private project data.
 
 ## Known issues / risks
 - Frontend shell still uses hash routes and is not yet a production router.
-- Product detail currently uses demo data and checkout/product flows still require end-to-end database-backed integration and production UI wiring.
-- Buyer library/account UI is not yet fully connected to authenticated backend purchase state and download controls.
-- Seller onboarding/verification now has Backend API support but still needs Dashboard UI integration and acceptance testing.
-- Seller sales/earnings and payouts still need UI/API integration and acceptance testing.
+- Product detail and checkout still require full end-to-end database-backed integration and production UI wiring.
+- Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
+- Seller onboarding/verification UI is now connected but needs real database/API acceptance testing.
+- Seller sales/earnings and payouts still need API/UI integration and acceptance testing.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
-- Signed delivery exists as a security foundation, but production-grade download-token lifecycle/revocation/audit controls still need completion if signed-download delivery is selected for production.
+- Production-grade signed-download token lifecycle/revocation/audit controls remain if signed delivery is selected for production.
 - Locale production build tooling and human translation review remain.
 - Payment-provider/content-policy compatibility must be verified before live credentials, especially for adult content.
 - Japan-specific tax, invoicing, consumer-protection and privacy requirements must be reviewed for actual launch.
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Integrate Seller onboarding/profile/verification into the Seller Dashboard.** Then implement the Seller sales/earnings API and dashboard using the existing settlement/payment data, followed by payout request UI/API. After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
+**Implement Seller sales/earnings API and connect the existing Seller Sales & Earnings dashboard section to real settlement/payment data.** Then implement payout request API/UI using the existing payout lifecycle. After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
 
 ## Continuation rule
-At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions, known issues/risks and exact next step.
+At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
 
 **The latest repository state and this project-state file are the authoritative continuation source.**
