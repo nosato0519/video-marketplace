@@ -1,0 +1,5 @@
+-- Milestone 394: Make the legacy purchase migration a no-op on fresh installs.
+-- The canonical purchase schema is defined by 003_orders_entitlements.sql.
+-- 001_purchase_flow.sql remains in history for existing installations, but
+-- fresh installs must not create incompatible BIGINT purchase tables first.
+-- This migration is intentionally empty and documents the compatibility rule.
