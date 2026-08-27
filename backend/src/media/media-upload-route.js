@@ -25,6 +25,13 @@ function safeExtension(filename, mime) {
 
 router.use(requireAuth, requireRole('seller'));
 
+router.get('/assets', async (req, res, next) => {
+  try {
+    const result = await query(`SELECT id, original_filename, mime_type, byte_size, status, created_at FROM media_assets WHERE owner_user_id = $1 ORDER BY created_at DESC`, [req.user.id]);
+    return res.json({ mediaAssets: result.rows });
+  } catch (error) { return next(error); }
+});
+
 router.post('/upload', async (req, res, next) => {
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
   const filename = String(req.headers['x-original-filename'] || 'video');
