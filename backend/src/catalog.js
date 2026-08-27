@@ -35,6 +35,10 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
      ) fallback ON TRUE
      WHERE p.status = 'published'
        AND sp.status = 'active'
+       AND NOT EXISTS (
+         SELECT 1 FROM content_reviews cr
+          WHERE cr.product_id = p.id AND cr.status = 'blocked'
+       )
        AND ($2 = '' OR c.slug = $2)
        AND ($3 = '' OR COALESCE(pt.title, fallback.title) ILIKE '%' || $3 || '%'
             OR sp.display_name ILIKE '%' || $3 || '%')
