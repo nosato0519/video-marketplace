@@ -4,12 +4,12 @@ import { query } from './db.js';
 import { requireAuth } from './auth/require-auth.js';
 
 const router = express.Router();
+const allowedReasons = new Set(['copyright', 'privacy', 'prohibited_content', 'illegal_content', 'abuse', 'other']);
 
-router.post('/products/:productId/reports', requireAuth, async (req, res, next) => {
+async function createReport(req, res, next, productId, body = {}) {
   try {
-    const reasonCode = String(req.body?.reason_code || '').trim().slice(0, 100);
-    const description = String(req.body?.description || '').trim().slice(0, 2000);
-    const allowedReasons = new Set(['copyright', 'privacy', 'prohibited_content', 'illegal_content', 'abuse', 'other']);
+    const reasonCode = String(body.reason_code ?? body.reasonCode ?? '').trim().slice(0, 100);
+    const description = String(body.description || '').trim().slice(0, 2000);
     if (!allowedReasons.has(reasonCode)) return res.status(400).json({ error: 'invalid_reason_code' });
     if (description.length < 10) return res.status(400).json({ error: 'description_too_short' });
 
@@ -25,7 +25,7 @@ router.post('/products/:productId/reports', requireAuth, async (req, res, next) 
              WHERE cr.product_id = p.id AND cr.status = 'blocked'
           )
         LIMIT 1`,
-      [req.params.productId]
+      [productId]
     );
     if (!product.rowCount) return res.status(404).json({ error: 'not_found' });
 
@@ -33,7 +33,7 @@ router.post('/products/:productId/reports', requireAuth, async (req, res, next) 
       `SELECT id FROM content_reports
         WHERE product_id = $1 AND reporter_id = $2 AND status IN ('open','reviewing')
         LIMIT 1`,
-      [req.params.productId, req.user.id]
+      [productId, req.user.id]
     );
     if (duplicate.rowCount) return res.status(409).json({ error: 'report_already_open' });
 
@@ -41,10 +41,13 @@ router.post('/products/:productId/reports', requireAuth, async (req, res, next) 
       `INSERT INTO content_reports (id, product_id, reporter_id, reason_code, description, status, created_at)
        VALUES ($1, $2, $3, $4, $5, 'open', NOW())
        RETURNING id, product_id, reason_code, description, status, created_at`,
-      [crypto.randomUUID(), req.params.productId, req.user.id, reasonCode, description]
+      [crypto.randomUUID(), productId, req.user.id, reasonCode, description]
     );
     res.status(201).json({ report: result.rows[0] });
   } catch (error) { next(error); }
-});
+}
+
+router.post('/products/:productId/reports', requireAuth, (req, res, next) => createReport(req, res, next, req.params.productId, req.body));
+router.post('/content-reports', requireAuth, (req, res, next) => createReport(req, res, next, req.body?.productId, req.body));
 
 export default router;
