@@ -17,16 +17,25 @@ async function main() {
     await lockClient.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         version TEXT PRIMARY KEY,
-        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        status TEXT NOT NULL DEFAULT 'applied',
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CHECK (status IN ('applied', 'skipped-legacy'))
       )
+    `);
+
+    // Backward-compatible upgrade for installations created before status existed.
+    await lockClient.query(`
+      ALTER TABLE schema_migrations
+      ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'applied'
     `);
 
     const files = (await fs.readdir(migrationsDir))
       .filter(name => /^\d+_.+\.sql$/.test(name))
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-    const applied = new Set(
-      (await lockClient.query('SELECT version FROM schema_migrations')).rows.map(row => row.version)
+    const applied = new Map(
+      (await lockClient.query('SELECT version, status FROM schema_migrations'))
+        .rows.map(row => [row.version, row.status])
     );
 
     for (const file of files) {
@@ -34,7 +43,9 @@ async function main() {
 
       if (LEGACY_MIGRATIONS.has(file) && !ALLOW_LEGACY) {
         await lockClient.query(
-          'INSERT INTO schema_migrations(version) VALUES ($1) ON CONFLICT (version) DO NOTHING',
+          `INSERT INTO schema_migrations(version, status)
+           VALUES ($1, 'skipped-legacy')
+           ON CONFLICT (version) DO NOTHING`,
           [file]
         );
         console.log(`skipped legacy ${file} (set ALLOW_LEGACY_PURCHASE_MIGRATION=true only for an explicitly reviewed legacy install)`);
@@ -45,7 +56,11 @@ async function main() {
       try {
         await lockClient.query('BEGIN');
         await lockClient.query(sql);
-        await lockClient.query('INSERT INTO schema_migrations(version) VALUES ($1)', [file]);
+        await lockClient.query(
+          `INSERT INTO schema_migrations(version, status)
+           VALUES ($1, 'applied')`,
+          [file]
+        );
         await lockClient.query('COMMIT');
         console.log(`applied ${file}`);
       } catch (error) {
