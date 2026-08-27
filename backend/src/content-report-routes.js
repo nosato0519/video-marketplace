@@ -41,9 +41,11 @@ async function createReport(req, res, next, productId, body = {}) {
     const result = await query(
       `INSERT INTO content_reports (id, product_id, reporter_id, reason_code, description, status, created_at)
        VALUES ($1, $2, $3, $4, $5, 'open', NOW())
+       ON CONFLICT (product_id, reporter_id) WHERE status IN ('open','reviewing') DO NOTHING
        RETURNING id, product_id, reason_code, description, status, created_at`,
       [crypto.randomUUID(), productId, req.user.id, reasonCode, description]
     );
+    if (!result.rowCount) return res.status(409).json({ error: 'report_already_open' });
     res.status(201).json({ report: result.rows[0] });
   } catch (error) { next(error); }
 }
