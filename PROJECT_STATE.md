@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 412 — Dedicated legacy purchase-schema safety acceptance added; awaiting CI verification.**
+**Milestone 413 — HTTP payment webhook acceptance added and wired into PostgreSQL Acceptance; awaiting CI verification.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -40,35 +40,36 @@ A reusable, international video marketplace independently designed and implement
 - `018_canonical_commerce_columns.sql` adds the missing canonical `payment_reference`, `refund_reference`, `updated_at`, `streaming_enabled` and `download_enabled` columns on fresh or existing installations without touching legacy purchase tables.
 - `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
 - `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow runs it on fresh PostgreSQL after migrations.
-- Run #24 proved migration preflight, migration plan, both migration passes, Commerce DB acceptance and Moderation DB acceptance; HTTP moderation exposed the missing canonical `categories` table.
 - `019_canonical_categories.sql` adds the canonical categories table and product foreign key.
-- Run #25 exposed missing product delivery-policy columns; `020_canonical_product_download_policy.sql` added `download_limit` and `download_expiry_seconds` safely and additively.
-- The workflow supplies a test-only `MEDIA_URL_SECRET` and `/tmp/video-marketplace-media` to the HTTP acceptance step. No production secret is stored in the repository.
-- Run #27 exposed a mismatch between the content-report partial unique index predicate and the `ON CONFLICT` target; `content-report-routes.js` was corrected to match the canonical predicate exactly.
-- Backend Regression previously completed successfully with 165 passed and 0 failed.
-- PostgreSQL Acceptance Run #32 completed successfully, including migrations, Commerce DB, Moderation DB, HTTP Moderation and four concurrent migration runners, with no duplicate `schema_migrations` rows.
+- `020_canonical_product_download_policy.sql` adds `download_limit` and `download_expiry_seconds` safely and additively.
+- The workflow supplies test-only media and webhook secrets; no production secret is stored in the repository.
+- Run #32 completed successfully, including migrations, Commerce DB, Moderation DB, HTTP Moderation and four concurrent migration runners, with no duplicate `schema_migrations` rows.
 - `backend/scripts/migration-concurrency-acceptance.js` starts four concurrent migration processes and verifies all exit successfully, no duplicate migration records exist and the legacy purchase migration remains explicitly skipped on fresh installs.
 - `backend/scripts/migrate.js` detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion.
-- A dedicated `legacy-purchase-migration-acceptance.js` test now creates an isolated PostgreSQL database with a representative BIGINT `orders` table and row, runs the real migration command expecting a fail-closed legacy-schema error, verifies the legacy row is unchanged and verifies no `schema_migrations` records were written.
-- `npm run test:legacy-purchase-migration` is registered and PostgreSQL Acceptance now runs the dedicated legacy safety test after the fresh-install/concurrency checks.
+- `legacy-purchase-migration-acceptance.js` verifies the legacy BIGINT schema is left unchanged and no migration records are written when the guard triggers.
+- `webhook-routes.js` already provides provider webhook routing, signature verification, payment event idempotency and payment completion/refund handling.
+- `backend/scripts/http-payment-webhook-acceptance.js` now exercises the real Express HTTP webhook boundary against PostgreSQL: successful payment, paid order, succeeded payment, single entitlement, duplicate delivery, invalid signature and tampered payload rejection.
+- `npm run test:http-payment-webhook` is registered in `backend/package.json`.
+- PostgreSQL Acceptance workflow now runs the HTTP payment webhook acceptance after the legacy migration safety acceptance.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance Run **#32** completed successfully with all fresh-install acceptance stages green, including four concurrent migration runners and no duplicate migration records. The latest commits `960f72d...`, `3d7dcec...`, and `911fba6...` add the dedicated legacy safety test, package script, and workflow integration; the combined latest state has not yet received a fresh Acceptance result.
+PostgreSQL Acceptance Run #38 completed successfully with fresh-install migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and the dedicated legacy safety acceptance. The newly added HTTP payment webhook acceptance has not yet received a fresh CI result. Backend Regression remains the prior verified baseline.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Verify the new dedicated legacy-schema acceptance test and the full fresh PostgreSQL acceptance on the latest main.
-- Design and implement a reviewed BIGINT→UUID legacy purchase data migration, including orders, entitlements and payment-event reconciliation, only after backup/restore and rollback strategy is defined.
+- Run and inspect fresh PostgreSQL Acceptance with HTTP payment webhook acceptance enabled.
+- Fix any real HTTP/provider integration issues exposed by that acceptance; do not claim payment flow Green without logs.
+- Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
-- After backend acceptance is Green, continue the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path and then the buyer/seller UI integration.
+- After payment acceptance is Green, continue the end-to-end buyer purchase → Library → protected media path and then buyer/seller UI integration.
 
 ## Next step
-**Run and inspect fresh PostgreSQL Acceptance on the latest main. If the dedicated legacy test passes, preserve that guard as the safety boundary and move to the reviewed BIGINT→UUID migration design plus end-to-end purchase-flow integration. If the test exposes an issue, fix it additively and re-run before touching production purchase data.**
+**Verify a fresh PostgreSQL Acceptance run on the latest main with HTTP payment webhook acceptance. If it passes, move to end-to-end buyer purchase-flow integration and the reviewed legacy migration design; if it fails, fix the concrete integration issue and re-run.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
