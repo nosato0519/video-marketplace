@@ -8,11 +8,14 @@
 - Seller Dashboard foundation exists at `storefront/seller.html`.
 - Seller product listing uses authenticated `/api/seller/products`.
 - Seller video upload uses authenticated `/api/seller/media/upload` with actual video MIME type and original filename.
-- Uploaded media asset ID is now carried into the next draft creation request, so the draft is created with `mediaAssetId` instead of leaving the video unattached.
-- Seller product list now exposes Publish for non-published products and Unpublish for published products.
-- Publish validation bug fixed in `backend/src/seller/product-routes.js`: `validateProductForPublishing` expects a singular `mediaAsset`, not the earlier incorrect `mediaAssets` array. The route now passes the actual media asset ID, owner and status, allowing the existing guard to verify ownership and `ready` state.
-- The publish guard requires title, positive price, valid 3-letter currency, attached media, matching media ID, matching seller ownership and a publishable media state.
-- Commits: `3d5332d726475132dab0262eca347a7bf2669c9e` (publish validation fix), `08f8cde044d3f9f62fcafe7efdf74a08a4bc7509` (Seller UI attach/unpublish).
+- Uploaded media asset ID is carried into draft creation, so a new draft can be created with `mediaAssetId`.
+- Seller product list exposes Publish for non-published products and Unpublish for published products.
+- Publish validation bug fixed in `backend/src/seller/product-routes.js`: `validateProductForPublishing` expects a singular `mediaAsset`, not an earlier incorrect `mediaAssets` array. The route now passes the actual media asset ID, owner and status.
+- Added Seller product editing UI using the existing authenticated `PATCH /api/seller/products/:productId` endpoint.
+- Draft editing currently allows title, description, price, currency and Media Asset ID changes. Published products remain locked by the backend.
+- Seller product rows now expose Edit for non-published products and Publish/Unpublish according to status.
+- Seller edit form loads the current product from `GET /api/seller/products/:productId` before editing, preserving the backend as the source of truth.
+- Seller UI commit: `9362237974ab135a91692e51f215fd03e571e3db`.
 
 ### Existing work already completed
 - Core Node/Express/PostgreSQL backend foundation.
@@ -21,11 +24,11 @@
 - Entitlement-gated streaming and buyer download with range support.
 - Private media storage boundary and startup security validation.
 - Buyer Library and Order History localization foundations.
-- Seller Dashboard foundation and authenticated Seller API integration.
+- Seller Dashboard authenticated product/upload/publish integration.
 - Product vision, seller handoff guide and operations manual foundations.
 
 ### Current work target
-1. Add Seller product editing UI using the existing PATCH endpoint.
+1. Improve Seller media-asset selection/recovery and complete upload -> attach -> edit -> publish flow UX.
 2. Add Seller onboarding/verification screens.
 3. Add sales/earnings and payout screens.
 4. Then build no-code Admin moderation/approval operations.
