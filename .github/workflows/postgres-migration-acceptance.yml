@@ -6,12 +6,16 @@ on:
       - 'backend/migrations/**'
       - 'backend/scripts/migrate.js'
       - 'backend/scripts/migration-plan.js'
+      - 'backend/scripts/moderation-db-acceptance.js'
+      - 'backend/package.json'
       - '.github/workflows/postgres-migration-acceptance.yml'
   pull_request:
     paths:
       - 'backend/migrations/**'
       - 'backend/scripts/migrate.js'
       - 'backend/scripts/migration-plan.js'
+      - 'backend/scripts/moderation-db-acceptance.js'
+      - 'backend/package.json'
       - '.github/workflows/postgres-migration-acceptance.yml'
   workflow_dispatch:
 
@@ -47,5 +51,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
       - run: npm run migrate
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+      - run: npm run test:moderation-db
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
