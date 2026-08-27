@@ -16,6 +16,9 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 - Responsive storefront/UI foundations.
 - Multilingual architecture and locale policy.
 - Catalog language-switching work.
+- `PRODUCT_VISION.md` describing the finished product and definition of done.
+- `SELLER_HANDOFF_GUIDE.md` covering installation, services/accounts, language/currency setup, operation, production launch and delivery requirements.
+- `OPERATIONS_MANUAL.md` outlining routine marketplace administration and support.
 
 ### Current work target
 1. Finish authenticated buyer library/purchase state end-to-end.
@@ -23,6 +26,18 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 3. Verify purchase history/library behavior and error states.
 4. Then move to seller onboarding/upload workflow.
 5. Then no-code admin moderation/approval operations.
+
+### This session's implementation
+- Updated `storefront/library.html` to use the shared localization module.
+- Added locale-aware page text for English/Japanese.
+- Added the shared language switcher to Library.
+- Passed the selected locale to `/api/library`.
+- Kept Watch and Download controls tied to backend-provided `streaming_enabled` and `download_enabled` flags; the backend remains the authorization source.
+- Commit: `20210fe9958972ced2ff5bc0973dc32c9b1e4281`.
+
+### Localization note
+- `shared/i18n.js` lists en, ja, de, fr, es, pt-BR, it, ko, zh-CN and zh-TW.
+- Message catalogs are currently populated for en/ja; additional locales need their message catalogs and human translation review before being called production-ready.
 
 ### Do not forget
 - Do not rely on chat memory for project state.
