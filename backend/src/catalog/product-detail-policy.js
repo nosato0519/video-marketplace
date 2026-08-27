@@ -40,6 +40,10 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
      WHERE p.id = $1
        AND p.status = 'published'
        AND sp.status = 'active'
+       AND NOT EXISTS (
+         SELECT 1 FROM content_reviews cr
+          WHERE cr.product_id = p.id AND cr.status = 'blocked'
+       )
      LIMIT 1`,
     [productId, requestedLocale, language]
   );
