@@ -34,6 +34,9 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 - Passed the selected locale to `/api/library`.
 - Kept Watch and Download controls tied to backend-provided `streaming_enabled` and `download_enabled` flags; the backend remains the authorization source.
 - Commit: `20210fe9958972ced2ff5bc0973dc32c9b1e4281`.
+- Expanded `shared/i18n.js` with English/Japanese order-history strings.
+- Updated `storefront/orders.html` to use the shared localization module, language switcher, localized labels/messages, and `Accept-Language` on the authenticated orders request.
+- Order-history localization commit: `2dfadc1d5f9ed9c732646423bb22ba5cdd51231a`.
 
 ### Localization note
 - `shared/i18n.js` lists en, ja, de, fr, es, pt-BR, it, ko, zh-CN and zh-TW.
