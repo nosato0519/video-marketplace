@@ -11,6 +11,7 @@ on:
       - 'backend/scripts/commerce-db-acceptance.js'
       - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/scripts/legacy-purchase-migration-acceptance.js'
+      - 'backend/scripts/http-payment-webhook-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -25,8 +26,10 @@ on:
       - 'backend/scripts/commerce-db-acceptance.js'
       - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/scripts/legacy-purchase-migration-acceptance.js'
+      - 'backend/scripts/http-payment-webhook-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
+      - 'PROJECT_STATE.md'
       - '.github/workflows/postgres-migration-acceptance.yml'
   workflow_dispatch:
 
@@ -82,3 +85,7 @@ jobs:
       - run: npm run test:legacy-purchase-migration
         env:
           LEGACY_DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_legacy_test
+      - run: npm run test:http-payment-webhook
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
