@@ -7,6 +7,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(here, '../migrations');
 const pool = getPool();
 const MIGRATION_LOCK_ID = 7139421;
+const LEGACY_MIGRATIONS = new Set(['001_purchase_flow.sql']);
+const ALLOW_LEGACY = process.env.ALLOW_LEGACY_PURCHASE_MIGRATION === 'true';
 
 async function main() {
   const lockClient = await pool.connect();
@@ -29,6 +31,16 @@ async function main() {
 
     for (const file of files) {
       if (applied.has(file)) continue;
+
+      if (LEGACY_MIGRATIONS.has(file) && !ALLOW_LEGACY) {
+        await lockClient.query(
+          'INSERT INTO schema_migrations(version) VALUES ($1) ON CONFLICT (version) DO NOTHING',
+          [file]
+        );
+        console.log(`skipped legacy ${file} (set ALLOW_LEGACY_PURCHASE_MIGRATION=true only for an explicitly reviewed legacy install)`);
+        continue;
+      }
+
       const sql = await fs.readFile(path.join(migrationsDir, file), 'utf8');
       try {
         await lockClient.query('BEGIN');
