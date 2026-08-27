@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 389 — Fixed concrete Backend Regression failures in routing/media/payment boundaries.**
+**Milestone 390 — Fixed concrete media-route and payment-contract regression issues; awaiting fresh CI result.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -15,27 +15,26 @@ A reusable, international video marketplace independently designed and implement
 - Buyer product detail exposes a Report this content form and authenticated report API.
 - Moderation actions are audited through `audit_events`.
 - Backend Regression runs `npm install` and `npm test`.
-- Fixed Express 5 test assumptions that referenced the removed `app._router` property; tests now assert `app.router`.
-- Registered the existing purchase-intent route in the main API server.
-- Restored protected-media repository compatibility by exporting `getProtectedMediaForUser` as the canonical context lookup and returning moderation/media-asset fields needed by downstream authorization.
-- Purchased-media policy now treats both `content_blocked` and `moderation_status=blocked` as deny conditions.
-- Pending payment initiation is provider-neutral and no longer requires PostgreSQL merely to construct the development/test payload.
-- Stripe configuration errors now identify the provider (`payment_provider_not_configured:stripe`) while payment validation helpers remain intact.
+- Protected media route now injects its context reader, so route tests can exercise the HTTP boundary without touching PostgreSQL.
+- Media download/protected-media fixtures now include the required product-to-asset and entitlement ownership fields instead of weakening authorization rules.
+- Payment checkout validation restores the established `checkout_*` error contract and explicitly rejects mismatched order metadata.
+- Payment-provider settings tests now use the owner-scoped API and correct list/object return shapes.
+- Owner payment-routing test uses isolated test-only Stripe configuration; it does not persist or expose credentials.
 
-## Verified CI findings from the latest Backend Regression run
-The latest completed run had 168 tests: 152 passed, 5 skipped and 11 failed. The failures were concrete compatibility/configuration issues, not moderation-policy test failures. Key failures included Express 5 `app._router` assumptions, missing protected-media repository export, missing provider-specific Stripe error detail, a DB-dependent pending-payment test, and payment-provider settings/routing tests whose expectations no longer matched the owner-scoped configuration model.
+## Latest CI baseline before Milestone 390
+The latest completed Backend Regression run checked commit `1be195d166f1685e526c39db044ad781f545d4b0` and reported 169 tests: 153 passed, 5 skipped and 11 failed. The concrete failures included two protected-media route tests caused by the route ignoring its injectable context reader, two download tests caused by incomplete fixtures, one protected-media service fixture mismatch, one owner-routing configuration mismatch, two owner-scoped provider-settings test mismatches, and three payment validation contract mismatches. These have now been addressed in Milestone 390.
 
 ## Remaining work
-- Re-run Backend Regression after Milestone 389 and inspect the new result; do not claim green until the actual run is successful.
+- Wait for/inspect the Backend Regression run triggered by Milestone 390 and verify the exact result.
+- Do not claim green until the actual latest run is successful.
 - If failures remain, fix the first concrete failure and repeat.
-- Update any remaining payment-provider tests to match the owner-scoped, credential-safe configuration model without weakening production isolation.
 - Add DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Inspect the Backend Regression run triggered by Milestone 389. If it is still red, take the first actual failing test from the CI log and fix that exact issue before adding more features.**
+**Inspect the new Backend Regression run for Milestone 390. If red, fix the first actual remaining failure from its log. If green, record the green baseline and proceed to DB-backed moderation integration tests.**
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
