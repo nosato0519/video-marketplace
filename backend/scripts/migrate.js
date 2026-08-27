@@ -6,39 +6,44 @@ import { getPool } from '../src/db.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(here, '../migrations');
 const pool = getPool();
+const MIGRATION_LOCK_ID = 7139421;
 
 async function main() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      version TEXT PRIMARY KEY,
-      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+  const lockClient = await pool.connect();
+  try {
+    await lockClient.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
+    await lockClient.query(`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        version TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-  const files = (await fs.readdir(migrationsDir))
-    .filter(name => /^\d+_.+\.sql$/.test(name))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    const files = (await fs.readdir(migrationsDir))
+      .filter(name => /^\d+_.+\.sql$/.test(name))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const applied = new Set(
-    (await pool.query('SELECT version FROM schema_migrations')).rows.map(row => row.version)
-  );
+    const applied = new Set(
+      (await lockClient.query('SELECT version FROM schema_migrations')).rows.map(row => row.version)
+    );
 
-  for (const file of files) {
-    if (applied.has(file)) continue;
-    const sql = await fs.readFile(path.join(migrationsDir, file), 'utf8');
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      await client.query(sql);
-      await client.query('INSERT INTO schema_migrations(version) VALUES ($1)', [file]);
-      await client.query('COMMIT');
-      console.log(`applied ${file}`);
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    for (const file of files) {
+      if (applied.has(file)) continue;
+      const sql = await fs.readFile(path.join(migrationsDir, file), 'utf8');
+      try {
+        await lockClient.query('BEGIN');
+        await lockClient.query(sql);
+        await lockClient.query('INSERT INTO schema_migrations(version) VALUES ($1)', [file]);
+        await lockClient.query('COMMIT');
+        console.log(`applied ${file}`);
+      } catch (error) {
+        await lockClient.query('ROLLBACK');
+        throw error;
+      }
     }
+  } finally {
+    await lockClient.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
+    lockClient.release();
   }
 }
 
