@@ -4,29 +4,26 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 424 — Buyer order/report acceptance fixture aligned with canonical UUID commerce schema; seller authenticated HTTP acceptance is next.**
+**Milestone 425 — Seller authenticated profile/earnings/payout acceptance is being hardened against the first CI failure; UI/browser acceptance follows after CI is green.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - Core catalog/detail, purchase, payment, refund/failure, protected media, moderation/reporting and seller product/media APIs are implemented and covered by automated acceptance tests.
-- Buyer order history uses canonical UUID `orders` and joins directly through `orders.product_id`.
-- Buyer report API is mounted and enforces published/active/blocked-product checks and duplicate open-report prevention.
-- Seller profile API supports read/update and verification submission state guards.
-- Seller earnings API returns seller-scoped aggregate and recent earning records.
-- Seller payout API validates amount/currency, available balance and pending payout limits before creating a requested payout.
+- Buyer order history and reporting acceptance passes on the canonical UUID commerce schema.
+- Seller profile read/update and verification submission APIs are mounted.
+- Seller earnings are seller-scoped and expose aggregate/recent ledger rows.
+- Seller payout creation validates currency, available balance and pending payout exposure.
 - Admin payout, seller verification and content moderation routes are mounted.
-- Fresh PostgreSQL migration preflight and migration execution are deterministic and concurrency-safe.
-- Legacy BIGINT purchase installs are deliberately blocked until a reviewed backup/rollback migration plan exists.
-- Backend Regression and the previously completed PostgreSQL acceptance suite have passed through seller media/product/publish/ownership isolation.
+- Fresh PostgreSQL migration preflight/execution is deterministic and concurrency-safe.
+- Legacy BIGINT purchase installs remain deliberately blocked until a reviewed backup/rollback migration plan exists.
+- The latest PostgreSQL acceptance run reached every prior acceptance test successfully; only the new seller profile/earnings/payout E2E failed.
 
 ## Latest discovered failure and resolution
-Run #78 reached `http-buyer-order-report-e2e` but failed before the API checks because its fixture inserted an `orders` row without the canonical required `product_id` and referenced a nonexistent legacy `order_items` table. The canonical schema defines `orders.product_id` as NOT NULL and does not use `order_items`. The acceptance fixture has now been corrected to create the order with `product_id` directly and to use the canonical `entitlements.user_id` column. This was a test-fixture/schema alignment issue, not evidence of a production API failure.
+Run #83 failed only at `http-seller-profile-earnings-payout-e2e`. The fixture called the seller profile PATCH with snake_case fields and used a nonexistent `/api/seller/verification` endpoint, while the canonical API requires `displayName`, `legalName`, `countryCode` and `/api/seller/profile/submit-verification`. The fixture also had no `seller_earnings` ledger row, so earnings assertions were not aligned with the actual ledger-backed API. The fixture has now been corrected to the canonical API/schema, seeded with a seller earnings row, and expanded to verify verification duplicate protection, seller earnings isolation, successful payout creation and pending-balance overdraw protection.
 
 ## Remaining work
-- Run the corrected buyer order/report acceptance and fix only concrete failures.
-- Add authenticated HTTP E2E coverage for seller profile read/update/verification state transitions.
-- Add authenticated HTTP E2E coverage for seller earnings isolation and payout balance/pending-payout validation.
+- Run the corrected seller profile/earnings/payout acceptance and fix only concrete failures.
 - Wire buyer/seller profile, order history, reporting, earnings and payout flows into the UI and browser-level acceptance.
 - Extend DB-backed integration coverage for Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
@@ -35,11 +32,11 @@ Run #78 reached `http-buyer-order-report-e2e` but failed before the API checks b
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Progress memo
-- **Completed:** Core commerce, moderation, protected media, buyer purchase→Library→download, seller media/product/publish/ownership isolation, buyer order-history/report API, seller profile/earnings/payout API surface.
-- **Latest fix:** Corrected buyer order/report E2E fixture to the canonical UUID order/entitlement schema.
-- **In progress:** CI verification of corrected buyer order/report E2E.
-- **Next:** Seller profile + earnings/payout authenticated HTTP E2E, then UI/browser acceptance.
-- **Key decisions:** Keep cross-seller resource access at 404 to reduce existence leakage; never claim CI success without a completed run; never automatically convert legacy BIGINT purchase data; acceptance fixtures must use the canonical current schema rather than legacy table assumptions.
+- **Completed:** Core commerce, moderation, protected media, buyer purchase→Library→download, buyer order-history/report acceptance, seller media/product/publish/ownership isolation, seller profile/earnings/payout API surface.
+- **Latest fix:** Seller authenticated E2E fixture aligned with canonical profile field names, verification route, seller earnings ledger and payout balance rules.
+- **In progress:** CI verification of corrected seller profile/earnings/payout E2E.
+- **Next:** Once CI is green, begin authenticated buyer/seller UI integration and browser acceptance; do not skip the CI gate.
+- **Key decisions:** Keep cross-seller resource access at 404 to reduce existence leakage; never claim CI success without a completed run; never automatically convert legacy BIGINT purchase data; acceptance fixtures must use the canonical current schema and route contracts rather than legacy assumptions.
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
