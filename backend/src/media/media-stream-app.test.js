@@ -12,7 +12,7 @@ test('configured media stream wiring uses the local provider explicitly', () => 
 
   assert.equal(typeof storage.getStream, 'function');
   assert.equal(typeof storage.getMetadata, 'function');
-  assert.ok(app._router);
+  assert.ok(app.router);
 });
 
 test('configured media stream wiring rejects an unknown provider', () => {
