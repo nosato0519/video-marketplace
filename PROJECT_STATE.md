@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 413 — HTTP payment webhook acceptance added and wired into PostgreSQL Acceptance; awaiting CI verification.**
+**Milestone 414 — HTTP payment webhook acceptance aligned with the canonical route/payload/payment ledger after Run #43 exposed test-fixture mismatches and a real webhook field-shape boundary.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -43,24 +43,24 @@ A reusable, international video marketplace independently designed and implement
 - `019_canonical_categories.sql` adds the canonical categories table and product foreign key.
 - `020_canonical_product_download_policy.sql` adds `download_limit` and `download_expiry_seconds` safely and additively.
 - The workflow supplies test-only media and webhook secrets; no production secret is stored in the repository.
-- Run #32 completed successfully, including migrations, Commerce DB, Moderation DB, HTTP Moderation and four concurrent migration runners, with no duplicate `schema_migrations` rows.
 - `backend/scripts/migration-concurrency-acceptance.js` starts four concurrent migration processes and verifies all exit successfully, no duplicate migration records exist and the legacy purchase migration remains explicitly skipped on fresh installs.
 - `backend/scripts/migrate.js` detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion.
 - `legacy-purchase-migration-acceptance.js` verifies the legacy BIGINT schema is left unchanged and no migration records are written when the guard triggers.
-- `webhook-routes.js` already provides provider webhook routing, signature verification, payment event idempotency and payment completion/refund handling.
-- `backend/scripts/http-payment-webhook-acceptance.js` now exercises the real Express HTTP webhook boundary against PostgreSQL: successful payment, paid order, succeeded payment, single entitlement, duplicate delivery, invalid signature and tampered payload rejection.
+- `webhook-routes.js` provides provider webhook routing, signature verification, payment event idempotency and payment completion/refund handling.
+- `backend/scripts/http-payment-webhook-acceptance.js` is intended to exercise the real Express HTTP webhook boundary against PostgreSQL: successful payment, paid order, succeeded payment, single entitlement, duplicate delivery, invalid signature and tampered payload rejection.
 - `npm run test:http-payment-webhook` is registered in `backend/package.json`.
-- PostgreSQL Acceptance workflow now runs the HTTP payment webhook acceptance after the legacy migration safety acceptance.
+- PostgreSQL Acceptance workflow runs the HTTP payment webhook acceptance after the legacy migration safety acceptance.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance Run #38 completed successfully with fresh-install migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and the dedicated legacy safety acceptance. The newly added HTTP payment webhook acceptance has not yet received a fresh CI result. Backend Regression remains the prior verified baseline.
+PostgreSQL Acceptance Run #43 completed the migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and Legacy BIGINT safety acceptance successfully, but **failed only at HTTP payment webhook acceptance**. The concrete failure was a test fixture using a NULL `payments.provider_payment_id`, which the canonical payment ledger correctly requires. Backend Regression for commit `05ebd337...` passed. citeturn221file0
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Run and inspect fresh PostgreSQL Acceptance with HTTP payment webhook acceptance enabled.
-- Fix any real HTTP/provider integration issues exposed by that acceptance; do not claim payment flow Green without logs.
+- Re-run fresh PostgreSQL Acceptance after aligning the webhook acceptance fixture with the canonical `payments` ledger and real `/api/payments/webhook` contract.
+- Verify the real webhook settlement boundary, including the canonical camelCase payload being normalized for the settlement guard.
+- Add/verify refund and failed-payment HTTP webhook acceptance after the success path is Green.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
@@ -69,7 +69,7 @@ PostgreSQL Acceptance Run #38 completed successfully with fresh-install migratio
 - After payment acceptance is Green, continue the end-to-end buyer purchase → Library → protected media path and then buyer/seller UI integration.
 
 ## Next step
-**Verify a fresh PostgreSQL Acceptance run on the latest main with HTTP payment webhook acceptance. If it passes, move to end-to-end buyer purchase-flow integration and the reviewed legacy migration design; if it fails, fix the concrete integration issue and re-run.**
+**Run the corrected HTTP payment webhook acceptance on the latest main. If it passes, add failed/refunded webhook acceptance and then move to the end-to-end buyer purchase → Library → protected media integration. If it fails, fix the concrete integration issue and re-run.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
