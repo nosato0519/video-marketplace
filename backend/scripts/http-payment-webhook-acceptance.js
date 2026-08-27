@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { query, closePool } from '../src/db.js';
+import { query } from '../src/db.js';
 
 const port = Number(process.env.PORT || 4187);
 const secret = process.env.PAYMENT_WEBHOOK_SECRET || 'acceptance-webhook-secret';
@@ -24,11 +23,11 @@ async function request(path, options = {}) {
 function signature(raw) {
   return crypto.createHmac('sha256', secret).update(raw).digest('hex');
 }
-async function postEvent(event, sig = signature(event.raw)) {
+async function postEvent(raw, sig = signature(raw)) {
   return request('/api/payments/webhooks/mock', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-payment-signature': sig },
-    body: event.raw
+    body: raw
   });
 }
 
@@ -54,17 +53,15 @@ try {
     INSERT INTO payments (id, order_id, provider, status, amount, currency)
     VALUES (gen_random_uuid(), $1, 'mock', 'pending', 1500, 'JPY') RETURNING id`, [orderId])).rows[0].id;
 
-  const event = {
+  const event = JSON.stringify({
     id: `evt_${crypto.randomUUID()}`,
     type: 'payment_succeeded',
     provider: 'mock',
     payment_id: paymentId,
     order_id: orderId,
     amount: 1500,
-    currency: 'JPY',
-    raw: ''
-  };
-  event.raw = JSON.stringify({ ...event, raw: undefined });
+    currency: 'JPY'
+  });
 
   let result = await postEvent(event);
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
@@ -84,12 +81,8 @@ try {
   result = await postEvent(event, 'bad-signature');
   assert.equal(result.response.status, 401);
 
-  const tampered = JSON.stringify({ ...JSON.parse(event.raw), amount: 9999 });
-  result = await request('/api/payments/webhooks/mock', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-payment-signature': signature(tampered) },
-    body: tampered
-  });
+  const tampered = JSON.stringify({ ...JSON.parse(event), amount: 9999 });
+  result = await postEvent(tampered);
   assert.ok([400, 409].includes(result.response.status), JSON.stringify(result.body));
 
   console.log('HTTP payment webhook acceptance: PASS');
@@ -104,5 +97,4 @@ try {
     if (buyerId) await query(`DELETE FROM users WHERE id = $1`, [buyerId]);
   } catch (error) { console.error('cleanup failed', error); }
   serverProcess.kill('SIGTERM');
-  await closePool();
 }
