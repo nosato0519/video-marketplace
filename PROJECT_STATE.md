@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 422 — Buyer order-history/reporting HTTP E2E added and wired into PostgreSQL Acceptance; fresh CI verification is pending.**
+**Milestone 423 — Seller profile, earnings and payout API surface reviewed; authenticated HTTP acceptance is the next implementation step.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -62,25 +62,36 @@ A reusable, international video marketplace independently designed and implement
 - `backend/scripts/http-seller-product-media-e2e-acceptance.js` exercises the real Express API from an authenticated seller session: upload media → list owned media → create draft product → update product → publish → list/detail product, plus cross-seller product/media isolation and published-product update locking.
 - `npm run test:http-seller-product-media-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow runs it after the buyer purchase E2E.
 - Seller product ownership now uses a concrete owner resolver with `requireOwner`, and cross-seller detail access intentionally returns 404 to avoid resource-existence leakage.
-- `backend/scripts/http-buyer-order-report-e2e-acceptance.js` now exercises authenticated buyer order history, buyer-to-order/product ownership isolation, content report creation, duplicate open-report rejection and independent reporting by another buyer.
+- `backend/scripts/http-buyer-order-report-e2e-acceptance.js` exercises authenticated buyer order history, buyer-to-order/product ownership isolation, content report creation, duplicate open-report rejection and independent reporting by another buyer.
 - `npm run test:http-buyer-order-report-e2e` is registered in `backend/package.json`.
 - PostgreSQL Acceptance workflow now runs the buyer order/report E2E after buyer purchase E2E and before seller E2E.
+- Seller profile API exists for authenticated sellers: read profile, update display/legal/country information, and submit verification with state guards.
+- Seller earnings API exists for authenticated sellers and returns aggregate earned/available/paid/refunded amounts plus recent earning records.
+- Seller payout API exists for authenticated sellers and enforces positive amount/currency validation, available-balance limits, pending-payout limits and requested payout creation.
+- Admin payout and seller-verification routes are already mounted in the application.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
 - Verify the fresh PostgreSQL Acceptance run for buyer order-history/reporting and fix only concrete failures.
-- If buyer order/report E2E is Green, extend authenticated HTTP coverage to seller profile, earnings/payout and media/product edge cases.
-- Complete Buyer / Seller UI integration and browser-level acceptance where practical.
-- Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
+- Add authenticated HTTP E2E coverage for seller profile read/update/verification state transitions.
+- Add authenticated HTTP E2E coverage for seller earnings isolation and payout balance/pending-payout validation.
+- Wire seller profile/earnings/payout flows into the Buyer/Seller UI and browser-level acceptance where practical.
 - Extend DB-backed integration coverage for Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
+- Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Inspect the fresh PostgreSQL Acceptance run for buyer order-history/reporting. If it passes, continue with authenticated seller profile and earnings/payout workflows; if it fails, repair the concrete failing boundary before adding more scope.**
+**Confirm Run #78 after the media-secret fix. Then add and run authenticated Seller profile + earnings/payout HTTP acceptance against fresh PostgreSQL. Repair concrete failures before UI integration.**
+
+## Progress memo
+- **Completed:** Core catalog/product/media, moderation/reporting, payment success/refund/failure, buyer purchase→Library→protected download, seller media/product/publish/ownership isolation, buyer order-history/reporting API/E2E scaffolding, seller profile/earnings/payout API surface.
+- **In progress:** Fresh PostgreSQL verification of buyer order-history/reporting after CI environment-secret correction (Run #78).
+- **Next:** Seller profile + earnings/payout HTTP E2E, then UI/browser acceptance.
+- **Key decisions:** Keep cross-seller resource access at 404 to reduce existence leakage; never claim CI success without a completed run; keep legacy BIGINT purchase schema migration blocked until a reviewed backup/rollback plan exists.
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
