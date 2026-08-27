@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 376 — Seller payout request API added and registered.**
+**Milestone 377 — Seller earnings/payout UI page added.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -15,11 +15,12 @@ A reusable, international video marketplace independently designed and implement
 - Protected media: authenticated entitlement-gated streaming route exists at `/api/media/:productId/stream`.
 - Buyer downloads: authenticated entitlement-gated download route exists at `/api/media/:productId/download`, with attachment semantics, private/no-store caching and validated byte ranges.
 - Media storage: provider-neutral storage boundary plus secure local filesystem adapter exists for development/testing.
-- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, persistent media library selection, editing, publish/unpublish, and Seller profile/verification controls.
+- Seller UI: product listing, draft creation, secure video upload, media library selection, editing, publish/unpublish, Seller profile/verification controls exist in `storefront/seller.html`.
 - Seller onboarding: `seller_profiles` migration and authenticated Seller profile read/update and verification submission API exist.
 - Seller earnings: `seller_earnings` ledger migration exists with seller/order/product ownership, gross/platform-fee/net amounts, currency, lifecycle status, timestamps and uniqueness protection per order/product.
 - Seller earnings API: authenticated `GET /api/seller/earnings` returns seller-only earnings summary plus recent earning records.
 - Seller payout API: authenticated `GET /api/seller/payouts` lists the logged-in seller's payout requests; authenticated `POST /api/seller/payouts` validates currency/amount, checks available earnings, accounts for existing pending payout requests, and creates a `requested` payout record.
+- Seller earnings/payout UI: `storefront/seller-earnings.html` and `storefront/seller-earnings.js` provide responsive earnings summary, available balance, paid/refunded totals, sales count, payout request form and payout history connected to the Seller APIs.
 - Payouts use the existing payout lifecycle (`requested`, `reviewing`, `approved`, `processing`, `paid`, `failed`, `cancelled`) and do not pretend to transfer money automatically.
 - Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
@@ -44,6 +45,7 @@ A reusable, international video marketplace independently designed and implement
 - Connected Seller profile/verification to the Seller Dashboard.
 - Added Seller earnings ledger and authenticated Seller earnings API.
 - Added Seller payout request/list API and registered it with the main server.
+- Added Seller earnings/payout UI page connected to the Seller APIs.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -64,9 +66,9 @@ A reusable, international video marketplace independently designed and implement
 - Frontend shell still uses hash routes and is not yet a production router.
 - Product detail and checkout still require full end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
-- Seller onboarding/verification UI is now connected but needs real database/API acceptance testing.
-- Seller earnings API is implemented but still needs Dashboard UI integration and end-to-end validation against real successful payment/settlement records.
-- Seller payout API is implemented but still needs Dashboard UI integration, Admin review actions and end-to-end payout acceptance testing.
+- Seller onboarding/verification UI is connected but needs real database/API acceptance testing.
+- Seller earnings/payout UI is connected to the APIs but needs end-to-end database-backed acceptance testing.
+- Seller payout Admin review/approval actions still need implementation.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -77,7 +79,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Connect Seller Sales & Earnings/Payout UI to the new APIs.** Add earnings summary, earning history, withdrawable balance, payout request form and payout history to the Seller Dashboard. Then build Admin payout review/approval actions around the existing lifecycle. After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
+**Build Admin payout review/approval UI and API around the existing payout lifecycle.** Admin should be able to see pending requests, review them, approve/reject/cancel, mark processing/paid only through controlled actions, and retain an audit trail. After that, connect Seller payout status refresh and continue with no-code Admin moderation/approval flows.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
