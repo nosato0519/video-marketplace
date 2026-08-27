@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 401 — Canonical seller identity usage is now aligned across public catalog and moderation report queries.**
+**Milestone 402 — Canonical commerce schema alignment completed for buyer Library and Order History queries.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -33,7 +33,10 @@ A reusable, international video marketplace independently designed and implement
 - HTTP moderation acceptance verifies a published product is visible before takedown and returns 404 / disappears from the public catalog after a blocked review is created.
 - PostgreSQL acceptance workflow runs migration preflight, migration plan, migrations twice, DB moderation acceptance and HTTP moderation acceptance.
 - `content-report-routes.js` uses the canonical `seller_profiles.user_id = products.seller_id` relationship and `users.status = 'active'` seller availability check.
-- Public catalog now returns the canonical seller user ID (`seller_profiles.user_id`) instead of the nonexistent/incorrect seller-profile ID as `seller_id`.
+- Public catalog returns the canonical seller user ID (`seller_profiles.user_id`).
+- Buyer Library SQL now uses canonical product pricing fields (`price_amount`, `price_currency`) and canonical product delivery flags (`streaming_enabled`, `download_enabled`).
+- Buyer Library excludes unpublished and blocked products even when an active entitlement remains.
+- Order History SQL now uses canonical order ownership (`buyer_id`) and amount (`amount`) fields.
 
 ## Latest verified CI baseline
 Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
@@ -42,7 +45,7 @@ Backend Regression run **#332** completed with **success** after migration prefl
 The PostgreSQL Acceptance workflow is present on `main`, but the available GitHub workflow-run lookup does not currently expose a verifiable run result for the latest push. Therefore the PostgreSQL acceptance suite is **not marked Green** until an accessible run/job result confirms it.
 
 ## Important unresolved technical boundary
-`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Because `CREATE TABLE IF NOT EXISTS` cannot convert an already-created incompatible table, this is not treated as solved by documentation alone. No destructive conversion or DROP has been performed.
+`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree also preserves this legacy history. No destructive conversion or DROP has been performed.
 
 ## Remaining work
 - Verify the PostgreSQL acceptance workflow end-to-end on a fresh PostgreSQL database and inspect actual job logs/results.
@@ -50,12 +53,13 @@ The PostgreSQL Acceptance workflow is present on `main`, but the available GitHu
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
 - Re-run HTTP moderation acceptance after the catalog/report schema corrections.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
+- Complete product purchase → payment → paid order → entitlement → Library → protected media end-to-end testing.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
-- Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
+- Complete payment/provider production compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Run the latest PostgreSQL acceptance workflow from the corrected catalog/report code and, if execution results remain inaccessible, statically cross-check the remaining moderation and catalog SQL against the canonical migrations before moving to checkout/library E2E.**
+**Add a DB-backed commerce acceptance test covering order creation, paid-order completion, entitlement issuance, buyer Library visibility, non-buyer denial, refund/revocation and blocked-product access denial; then run it against fresh PostgreSQL.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
