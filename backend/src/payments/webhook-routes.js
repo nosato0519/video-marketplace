@@ -5,6 +5,7 @@ import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment as defaultCompletePayment } from './complete-payment.js';
 import { refundPayment as defaultRefundPayment } from './refund-payment.js';
+import { failPayment as defaultFailPayment } from './fail-payment.js';
 import { toWebhookErrorResponse } from './webhook-error.js';
 
 export function registerPaymentWebhookRoutes(
@@ -13,6 +14,7 @@ export function registerPaymentWebhookRoutes(
     recordPaymentEvent = defaultRecordPaymentEvent,
     completePayment = defaultCompletePayment,
     refundPayment = defaultRefundPayment,
+    failPayment = defaultFailPayment,
   } = {}
 ) {
   app.post(
@@ -43,8 +45,16 @@ export function registerPaymentWebhookRoutes(
         });
 
         if (recorded.duplicate) return res.status(200).json({ received: true, duplicate: true });
+
         if (payload.eventType === 'payment_failed') {
-          return res.status(200).json({ received: true, processed: false });
+          const result = await failPayment({
+            eventId: payload.eventId,
+            provider: payload.provider,
+            providerPaymentId: payload.paymentId,
+            orderId: payload.orderId,
+            payloadHash,
+          });
+          return res.status(200).json({ received: true, result });
         }
 
         if (payload.eventType === 'payment_refunded') {
