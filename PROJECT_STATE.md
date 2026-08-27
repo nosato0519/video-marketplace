@@ -4,55 +4,93 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 426 — Seller dashboard UI is wired to the authenticated profile, verification, earnings and payout APIs; the corrected seller E2E still requires a verifiable CI run before browser acceptance proceeds.**
+**Milestone 426 — Seller dashboard UI is wired to the authenticated profile, verification, earnings and payout APIs; work is paused at a clean checkpoint before CI/browser verification.**
 
-## Current status
-- Repository: `nosato0519/video-marketplace`
-- Branch: `main`
-- Core catalog/detail, purchase, payment, refund/failure, protected media, moderation/reporting and seller product/media APIs are implemented and covered by automated acceptance tests.
-- Buyer order history and reporting acceptance passes on the canonical UUID commerce schema.
-- Seller profile read/update and verification submission APIs are mounted.
-- Seller earnings are seller-scoped and expose aggregate/recent ledger rows.
-- Seller payout creation validates currency, available balance and pending payout exposure.
-- Admin payout, seller verification and content moderation routes are mounted.
-- Fresh PostgreSQL migration preflight/execution is deterministic and concurrency-safe.
+## End-of-day checkpoint — 2026-08-27
+This checkpoint is intentionally saved so the next development session can resume without relying on chat history.
+
+### Completed
+- Core storefront/catalog foundation is implemented.
+- Buyer purchase flow, order history, Library playback/download authorization, payment/refund/failure handling are implemented.
+- Protected media streaming/download routes are implemented.
+- Reporting/moderation foundations and admin moderation routes are implemented.
+- Seller product/media APIs, product publishing and ownership isolation are implemented.
+- Seller profile read/update API is implemented.
+- Seller verification submission API is implemented with duplicate/already-verified protection.
+- Seller earnings API is seller-scoped and provides summary + recent ledger rows.
+- Seller payout API validates currency, available balance and pending payout exposure before creating a payout request.
+- Admin payout and seller verification routes are mounted.
+- PostgreSQL migration preflight/execution is deterministic and concurrency-safe.
 - Legacy BIGINT purchase installs remain deliberately blocked until a reviewed backup/rollback migration plan exists.
-- Seller dashboard UI is now implemented at `seller/dashboard.html` and calls the canonical authenticated seller profile, verification, earnings and payout endpoints.
-- Seller product management now links directly to the seller dashboard.
-- The last verifiable PostgreSQL acceptance run reached every prior acceptance test successfully; the corrected seller profile/earnings/payout E2E has not yet produced a new verifiable CI result after the fixture correction.
+- Seller authenticated E2E fixture was corrected to use the canonical profile field names, canonical verification route and ledger-backed earnings data; the fixture also covers seller isolation and payout balance protections.
+- **New today:** `seller/dashboard.html` was added. It provides authenticated seller profile editing, verification submission, earnings summary/detail, payout request and payout history UI.
+- **New today:** `seller/products.html` now links to the seller dashboard.
+- `PROJECT_STATE.md` has been updated after the latest meaningful milestone.
 
-## Latest discovered failure and resolution
-Run #83 failed only at `http-seller-profile-earnings-payout-e2e`. The fixture called the seller profile PATCH with snake_case fields and used a nonexistent `/api/seller/verification` endpoint, while the canonical API requires `displayName`, `legalName`, `countryCode` and `/api/seller/profile/submit-verification`. The fixture also had no `seller_earnings` ledger row, so earnings assertions were not aligned with the actual ledger-backed API. The fixture was corrected to the canonical API/schema, seeded with a seller earnings row, and expanded to verify verification duplicate protection, seller earnings isolation, successful payout creation and pending-balance overdraw protection.
+### Verification status
+- The previous verifiable PostgreSQL acceptance run reached all prior acceptance tests successfully.
+- The seller profile/earnings/payout E2E had previously been the only failing acceptance test because its fixture used an outdated API contract.
+- That fixture has been corrected, but **a new CI run has not yet been verified** after the correction.
+- Therefore do **not** claim the corrected seller E2E is green yet.
 
-## Completed this milestone
-- Added authenticated seller dashboard UI for profile editing and verification submission.
-- Added earnings summary and recent earnings ledger display.
-- Added payout request form with server-side validation/error display and payout history.
-- Added navigation between seller dashboard, product management and storefront.
-- Kept all seller data requests same-origin and server-authorized; the UI does not bypass backend authorization.
+## Remaining work — priority order
+### 1. CI gate
+- Run the corrected seller profile/earnings/payout acceptance test.
+- Inspect the actual CI result.
+- Fix only concrete failures.
+- Re-run until the acceptance is verifiably green.
 
-## Remaining work
-- Obtain a verifiable CI run for the corrected seller profile/earnings/payout acceptance and fix only concrete failures.
-- Wire buyer profile, order history and reporting flows into the UI and browser-level acceptance.
-- Complete seller dashboard browser acceptance against authenticated sessions.
-- Extend DB-backed integration coverage for Admin report processing, Takedown and blocked catalog/detail/media access.
-- Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
-- Complete payment/provider production compatibility review.
-- Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
-- Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
+### 2. Seller browser acceptance
+- Test authenticated seller dashboard in a real browser flow.
+- Verify profile save → verification submission → earnings display → payout request → payout history.
+- Verify seller product management → dashboard navigation.
+- Verify unauthorized/non-seller access remains blocked.
 
-## Progress memo
-- **Completed:** Core commerce, moderation, protected media, buyer purchase→Library→download, buyer order-history/report acceptance, seller media/product/publish/ownership isolation, seller profile/earnings/payout API surface, seller dashboard UI integration.
-- **Latest fix:** Seller authenticated E2E fixture aligned with canonical profile field names, verification route, seller earnings ledger and payout balance rules.
-- **Latest UI milestone:** Authenticated seller dashboard added and linked from seller product management.
-- **In progress:** CI verification of corrected seller profile/earnings/payout E2E, followed by seller browser acceptance.
-- **Next:** Get a verifiable green CI result for the corrected seller E2E; then expand authenticated buyer/seller UI and browser acceptance without skipping the CI gate.
-- **Key decisions:** Keep cross-seller resource access at 404 to reduce existence leakage; never claim CI success without a completed run; never automatically convert legacy BIGINT purchase data; acceptance fixtures must use the canonical current schema and route contracts rather than legacy assumptions.
+### 3. Buyer UI integration
+- Add/wire buyer account/profile UI.
+- Add order-history UI.
+- Add reporting UI where appropriate.
+- Confirm purchase → Library → Watch/Download is usable end-to-end from the UI.
 
-## Progress memo rule
-After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
+### 4. Admin UI and moderation acceptance
+- Wire admin payout review UI.
+- Wire seller verification review UI.
+- Wire report processing/takedown UI.
+- Add DB-backed acceptance for report processing, takedown and blocked catalog/detail/media access.
+
+### 5. Production hardening
+- Complete production authentication/session behavior.
+- Privacy/account controls.
+- Region restrictions and applicable compliance controls.
+- PostgreSQL acceptance/clean-install verification.
+- Payment/provider production compatibility review.
+- Security review of authorization, media access, webhook handling, uploads and sensitive operations.
+
+### 6. Legacy data migration
+- Do **not** auto-convert the legacy BIGINT purchase schema.
+- First define and review backup/restore, rollback and data-integrity strategy.
+- Only then design and test BIGINT → UUID migration.
+
+### 7. Commercial release / ZIP
+- Clean-install test.
+- Backup/restore test.
+- Production configuration documentation.
+- Licensing and operator documentation.
+- Commercial ZIP packaging.
+- Final acceptance checklist covering buyer, seller, admin, payment, media, security and installation.
+
+## Tomorrow's exact first step
+**Start by reading this file, inspecting the latest commits, then verify the corrected seller profile/earnings/payout CI result. Do not skip the CI gate and do not move to browser acceptance until the result is actually green.**
+
+## Important technical decisions
+- Keep cross-seller resource access at 404 to reduce existence leakage.
+- Never claim CI success without a completed, verifiable run.
+- Keep seller authorization server-side; UI must not bypass backend authorization.
+- Acceptance fixtures must use the canonical current schema and route contracts rather than legacy assumptions.
+- Never automatically convert legacy BIGINT purchase data.
+- Commit every meaningful milestone and update this state file so future sessions can continue from the repository state.
 
 ## Continuation rule
-At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
+At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
 
 **The latest repository state and this project-state file are the authoritative continuation source.**
