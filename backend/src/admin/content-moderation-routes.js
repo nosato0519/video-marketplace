@@ -35,10 +35,7 @@ router.get('/content/reviews', async (req, res, next) => {
     const status = String(req.query.status || '').trim();
     const values = [];
     let where = '';
-    if (status) {
-      values.push(status);
-      where = 'WHERE r.status = $1';
-    }
+    if (status) { values.push(status); where = 'WHERE r.status = $1'; }
     const result = await query(
       `SELECT r.id, r.product_id, r.reviewer_id, r.status, r.reason_code, r.notes,
               r.created_at, r.resolved_at, p.title AS product_title,
@@ -61,11 +58,11 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
     if (!current.rowCount) return res.status(404).json({ error: 'review_not_found' });
     const row = current.rows[0];
     if (!reviewTransitions[row.status]?.has(nextStatus)) return res.status(409).json({ error: 'invalid_status_transition', from: row.status, to: nextStatus });
-    const notes = req.body?.notes ? String(req.body.notes).slice(0, 2000) : '';
+    const notes = req.body?.notes ? String(req.body.notes).trim().slice(0, 2000) : '';
+    if (['rejected','changes_requested','blocked'].includes(nextStatus) && !notes) return res.status(400).json({ error: 'notes_required' });
     const result = await query(
       `UPDATE content_reviews
-          SET reviewer_id = $2,
-              status = $3,
+          SET reviewer_id = $2, status = $3,
               notes = CASE WHEN $4 <> '' THEN $4 ELSE notes END,
               resolved_at = CASE WHEN $3 IN ('approved','rejected','blocked') THEN NOW() ELSE NULL END
         WHERE id = $1
