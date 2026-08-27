@@ -4,7 +4,18 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 
 ## 2026-08-27 — Current session
 
-### What is already completed
+### This session's implementation
+- Added `storefront/seller.html` Seller Dashboard foundation.
+- Connected seller product listing to the authenticated `/api/seller/products` endpoint.
+- Connected product draft creation to the existing Seller product API using the API's actual camelCase request fields (`priceAmount`, `priceCurrency`, `mediaAssetId`).
+- Connected the Seller video uploader to the authenticated `/api/seller/media/upload` endpoint.
+- Upload sends the actual video MIME type and original filename headers required by the backend.
+- Added Publish action from the Seller product list using `/api/seller/products/:productId/publish`.
+- Added English/Japanese Seller UI strings.
+- Preserved backend authorization and publish validation as the source of truth; the UI does not bypass Seller ownership or media validation.
+- Commit: `734ecde48b3324b841a7e2fcffc94193d6de2c1d`.
+
+### Existing work already completed
 - Core Node/Express/PostgreSQL backend foundation.
 - Catalog/product/order/checkout boundaries.
 - Stripe webhook settlement and idempotent entitlement grant foundations.
@@ -16,27 +27,20 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 - Responsive storefront/UI foundations.
 - Multilingual architecture and locale policy.
 - Catalog language-switching work.
-- `PRODUCT_VISION.md` describing the finished product and definition of done.
-- `SELLER_HANDOFF_GUIDE.md` covering installation, services/accounts, language/currency setup, operation, production launch and delivery requirements.
-- `OPERATIONS_MANUAL.md` outlining routine marketplace administration and support.
+- Buyer Library and Order History localization foundations.
+- `PRODUCT_VISION.md`, `SELLER_HANDOFF_GUIDE.md`, and `OPERATIONS_MANUAL.md` documentation foundations.
 
 ### Current work target
-1. Finish authenticated buyer library/purchase state end-to-end.
-2. Connect buyer-facing Watch and Download controls to real entitlement/media routes.
-3. Verify purchase history/library behavior and error states.
-4. Then move to seller onboarding/upload workflow.
-5. Then no-code admin moderation/approval operations.
+1. Finish Seller Dashboard: attach uploaded media to drafts, edit product, publish/unpublish controls, and validation/error UX.
+2. Add seller onboarding/verification screens.
+3. Add seller sales/earnings and payout screens.
+4. Then move to no-code Admin moderation/approval operations.
+5. Continue production media delivery, object storage/CDN, end-to-end payment/database testing and final acceptance.
 
-### This session's implementation
-- Updated `storefront/library.html` to use the shared localization module.
-- Added locale-aware page text for English/Japanese.
-- Added the shared language switcher to Library.
-- Passed the selected locale to `/api/library`.
-- Kept Watch and Download controls tied to backend-provided `streaming_enabled` and `download_enabled` flags; the backend remains the authorization source.
-- Commit: `20210fe9958972ced2ff5bc0973dc32c9b1e4281`.
-- Expanded `shared/i18n.js` with English/Japanese order-history strings.
-- Updated `storefront/orders.html` to use the shared localization module, language switcher, localized labels/messages, and `Accept-Language` on the authenticated orders request.
-- Order-history localization commit: `2dfadc1d5f9ed9c732646423bb22ba5cdd51231a`.
+### Important correction
+- The Seller product API expects camelCase fields (`priceAmount`, `priceCurrency`, `mediaAssetId`). The dashboard now uses those actual field names instead of the earlier snake_case guesses.
+- The Seller products endpoint returns `{ products: [...] }`; the dashboard now handles that response directly.
+- Do not claim the Seller workflow is complete until upload -> attach -> edit -> publish has been tested end-to-end.
 
 ### Localization note
 - `shared/i18n.js` lists en, ja, de, fr, es, pt-BR, it, ko, zh-CN and zh-TW.
@@ -48,9 +52,3 @@ This file is a human-readable continuation memo. `PROJECT_STATE.md` remains the 
 - Do not claim a feature is complete until its implementation and relevant test/acceptance path are verified.
 - Do not change architecture or jump to an unrelated feature without checking the current next step.
 - After each meaningful milestone, update both the project state and this log, then commit.
-
-### Last verified repository state
-- Branch: `main`
-- Authoritative state file: `PROJECT_STATE.md`
-- Current milestone recorded there: Milestone 368.
-- Immediate next step recorded there: authenticated buyer purchase/library state end-to-end.
