@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 419 — Failed-payment webhook processing and HTTP acceptance have been implemented; fresh CI verification is pending.**
+**Milestone 420 — Failed-payment CI is Green; buyer purchase → Library → protected-media HTTP E2E acceptance has been added and is awaiting fresh CI verification.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -46,29 +46,28 @@ A reusable, international video marketplace independently designed and implement
 - `backend/scripts/migration-concurrency-acceptance.js` starts four concurrent migration processes and verifies all exit successfully, no duplicate migration records exist and the legacy purchase migration remains explicitly skipped on fresh installs.
 - `backend/scripts/migrate.js` detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion.
 - `legacy-purchase-migration-acceptance.js` verifies the legacy BIGINT schema is left unchanged and no migration records are written when the guard triggers.
-- `webhook-routes.js` provides provider webhook routing, signature verification, payment event idempotency and payment completion/refund handling.
+- `webhook-routes.js` provides provider webhook routing, signature verification, payment event idempotency and payment completion/refund/failed handling.
 - `webhook-payload.js` is the canonical HTTP contract: `eventId`, `provider`, `eventType`, `paymentId`, `orderId` are required strings; successful events additionally require numeric `amount`, 3-letter `currency` and `status = succeeded`.
 - `webhook-routes.js` maps the canonical external `paymentId` into the internal `providerPaymentId` fields before payment completion.
 - `complete-payment.js` verifies the webhook payment against the locked order/payment records, rejects amount/currency/provider-payment mismatches, transitions the order to `paid`, marks the payment `succeeded`, and issues an entitlement idempotently.
 - `refund-payment.js` verifies the recorded refund event, requires `paid -> refunded`, revokes the active entitlement and processes duplicate refunds idempotently.
+- `fail-payment.js` verifies the recorded failed event, locks the order/payment, transitions `pending -> cancelled`, marks the payment `failed`, processes the event and handles duplicate delivery idempotently.
 - `backend/scripts/http-payment-webhook-acceptance.js` exercises the real Express HTTP webhook boundary against PostgreSQL using the canonical `/api/payments/webhook` route, canonical payload, non-null provider payment ID, idempotent delivery and rejection checks.
 - `backend/scripts/http-payment-refund-acceptance.js` exercises a real successful payment followed by `payment_refunded`, verifies `paid -> refunded`, entitlement revocation, processed event ledger state and idempotent refund redelivery.
-- `npm run test:http-payment-webhook` and `npm run test:http-payment-refund` are registered in `backend/package.json`.
-- PostgreSQL Acceptance workflow runs the successful payment webhook acceptance and the HTTP payment refund acceptance.
-- `backend/src/payments/fail-payment.js` now processes `payment_failed` events transactionally: it verifies the recorded event, locks the order/payment, transitions `pending -> cancelled`, marks the payment `failed`, processes the event and returns idempotent duplicate handling.
-- `webhook-routes.js` now dispatches `payment_failed` to `failPayment` instead of merely recording the event.
 - `backend/scripts/http-payment-failed-acceptance.js` exercises the real HTTP failed-payment webhook, verifies payment `failed`, order `cancelled`, no entitlement, processed event ledger state and duplicate redelivery.
-- `npm run test:http-payment-failed` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow runs it after the successful-payment and refund webhook acceptances.
-
-## Latest verified CI baseline
-PostgreSQL Acceptance Run #58 completed migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners, Legacy BIGINT safety acceptance, **HTTP Payment Webhook acceptance and HTTP Payment Refund acceptance successfully**. Failed-payment processing was implemented after that verified baseline and has not yet received a fresh CI result.
+- `npm run test:http-payment-webhook`, `npm run test:http-payment-refund` and `npm run test:http-payment-failed` are registered in `backend/package.json`.
+- PostgreSQL Acceptance workflow runs the successful payment webhook, refund and failed-payment HTTP acceptances.
+- **Latest verified CI:** PostgreSQL Acceptance Run #62 passed all migration, Commerce, Moderation, HTTP Moderation, concurrency, legacy safety, successful-payment, refund and **failed-payment** acceptance steps. The subsequent Run #63 was triggered by the project-state documentation update and was still running when last inspected.
+- `backend/scripts/http-buyer-purchase-e2e-acceptance.js` now exercises the real Express API from an authenticated buyer session: POST pending order → insert provider payment fixture → signed payment-success webhook → paid order/entitlement → buyer Library → protected media download, plus non-buyer download denial.
+- `npm run test:http-buyer-purchase-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow now runs it after the payment webhook acceptances.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Run a fresh PostgreSQL Acceptance workflow from the current `main` and verify the new HTTP failed-payment acceptance through the final `PASS` log.
-- If failed-payment acceptance is Green, continue the end-to-end buyer purchase → Library → protected media path and then buyer/seller UI integration.
+- Verify the fresh PostgreSQL Acceptance run for the buyer purchase → Library → protected-media E2E and fix only concrete failures.
+- If buyer E2E is Green, extend the same authenticated HTTP boundary to buyer order history/reporting and seller product/media workflows.
+- Complete Buyer / Seller UI integration and browser-level acceptance where practical.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
@@ -76,7 +75,7 @@ PostgreSQL Acceptance Run #58 completed migration, Commerce, Moderation, HTTP Mo
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Inspect the fresh PostgreSQL Acceptance run triggered by the failed-payment implementation. If HTTP payment failed passes, move to the buyer purchase → Library → protected media end-to-end flow; if it fails, fix only the concrete failing boundary and re-run.**
+**Inspect the fresh PostgreSQL Acceptance run triggered by the buyer E2E addition. If `test:http-buyer-purchase-e2e` passes, continue with authenticated buyer/seller HTTP workflows; if it fails, repair the concrete failing boundary before adding more scope.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
