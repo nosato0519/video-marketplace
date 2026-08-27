@@ -25,7 +25,7 @@ function signature(raw) {
   return crypto.createHmac('sha256', secret).update(raw).digest('hex');
 }
 async function postEvent(raw, sig = signature(raw)) {
-  return request('/api/payments/webhooks/mock', {
+  return request('/api/payments/webhook', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-payment-signature': sig },
     body: raw
@@ -36,6 +36,8 @@ const ids = {
   seller: crypto.randomUUID(), buyer: crypto.randomUUID(), product: crypto.randomUUID(),
   order: crypto.randomUUID(), payment: crypto.randomUUID()
 };
+const providerPaymentId = `pay_${crypto.randomUUID()}`;
+const eventId = `evt_${crypto.randomUUID()}`;
 
 try {
   await wait(1200);
@@ -51,18 +53,29 @@ try {
     VALUES ($1, $2, 'published', 1500, 'JPY', true, true)`, [ids.product, ids.seller]);
   await pool.query(`INSERT INTO orders (id, buyer_id, product_id, amount, currency, status)
     VALUES ($1, $2, $3, 1500, 'JPY', 'pending')`, [ids.order, ids.buyer, ids.product]);
-  await pool.query(`INSERT INTO payments (id, order_id, provider, status, amount, currency)
-    VALUES ($1, $2, 'mock', 'pending', 1500, 'JPY')`, [ids.payment, ids.order]);
+  await pool.query(`INSERT INTO payments (id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key)
+    VALUES ($1, $2, $3, 'mock', $4, 1500, 'JPY', 'pending', $5)`,
+    [ids.payment, ids.order, ids.buyer, providerPaymentId, `mock:${providerPaymentId}`]);
 
-  const event = JSON.stringify({ id: `evt_${crypto.randomUUID()}`, type: 'payment_succeeded', provider: 'mock',
-    payment_id: ids.payment, order_id: ids.order, amount: 1500, currency: 'JPY' });
+  const event = JSON.stringify({
+    eventId,
+    provider: 'mock',
+    eventType: 'payment_succeeded',
+    paymentId: providerPaymentId,
+    orderId: ids.order,
+    amount: 1500,
+    currency: 'JPY',
+    status: 'succeeded'
+  });
 
   let result = await postEvent(event);
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
-  let state = await pool.query(`SELECT status FROM orders WHERE id = $1`, [ids.order]);
+  let state = await pool.query(`SELECT status, provider_payment_id FROM orders WHERE id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'paid');
-  state = await pool.query(`SELECT status FROM payments WHERE id = $1`, [ids.payment]);
+  assert.equal(state.rows[0].provider_payment_id, providerPaymentId);
+  state = await pool.query(`SELECT status, provider_payment_id FROM payments WHERE id = $1`, [ids.payment]);
   assert.equal(state.rows[0].status, 'succeeded');
+  assert.equal(state.rows[0].provider_payment_id, providerPaymentId);
   state = await pool.query(`SELECT count(*)::int AS count FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].count, 1);
 
@@ -76,11 +89,19 @@ try {
 
   const tampered = JSON.stringify({ ...JSON.parse(event), amount: 9999 });
   result = await postEvent(tampered);
-  assert.ok([400, 409].includes(result.response.status), JSON.stringify(result.body));
+  assert.equal(result.response.status, 400, JSON.stringify(result.body));
+
+  const eventRow = await pool.query(
+    `SELECT status, provider, event_id, provider_payment_id FROM payment_events WHERE provider = $1 AND event_id = $2`,
+    ['mock', eventId]
+  );
+  assert.equal(eventRow.rowCount, 1);
+  assert.equal(eventRow.rows[0].status, 'processed');
+  assert.equal(eventRow.rows[0].provider_payment_id, providerPaymentId);
 
   console.log('HTTP payment webhook acceptance: PASS');
 } finally {
-  await pool.query(`DELETE FROM payment_events WHERE payment_id = $1`, [ids.payment]).catch(() => {});
+  await pool.query(`DELETE FROM payment_events WHERE provider = $1 AND event_id = $2`, ['mock', eventId]).catch(() => {});
   await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
   await pool.query(`DELETE FROM orders WHERE id = $1`, [ids.order]).catch(() => {});
