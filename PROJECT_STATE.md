@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 383 — Admin content moderation, user reports and Takedown workflow added.**
+**Milestone 384 — Admin content moderation routes registered with the main API server.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -26,7 +26,7 @@ A reusable, international video marketplace independently designed and implement
 - Seller earnings/payout UI: `storefront/seller-earnings.html` and `storefront/seller-earnings.js` provide responsive earnings summary, available balance, paid/refunded totals, sales count, payout request form and payout history connected to the Seller APIs.
 - Admin payout API/UI/audit: payout review, valid lifecycle transitions and audit history are implemented.
 - Content moderation foundation: `content_reviews`, `content_reports` and `rights_declarations` database structures already exist.
-- Admin content moderation API: `backend/src/admin/content-moderation-routes.js` now provides Admin-only review listing/status transitions, report listing/status transitions and product Takedown creation.
+- Admin content moderation API: `backend/src/admin/content-moderation-routes.js` provides Admin-only review listing/status transitions, report listing/status transitions and product Takedown creation; it is now registered in `backend/src/server.js` under `/api/admin`.
 - Adverse moderation decisions: reject, changes-requested and block actions require a human-readable note; invalid state transitions are rejected.
 - Moderation audit: content review/report/Takedown actions write immutable `audit_events` records with transition/reason metadata.
 - Admin content moderation UI: `storefront/admin-content-moderation.html` and `storefront/admin-content-moderation.js` provide no-code review/report tabs, status filtering, approve/reject/request-changes/block actions, report resolution/dismissal, Takedown action and audit-history access.
@@ -60,6 +60,7 @@ A reusable, international video marketplace independently designed and implement
 - Added Admin Seller verification API with audit logging and recoverable request-changes state.
 - Added Admin Seller verification review UI.
 - Added Admin content moderation/report/Takedown API and audit logging.
+- Registered Admin content moderation routes in the main API server.
 - Added Admin content moderation/report/Takedown review UI.
 
 ## Important architecture decisions
@@ -82,16 +83,16 @@ A reusable, international video marketplace independently designed and implement
 - Eventual self-hosted ZIP distribution is a product deliverable; never ship secrets or private project data.
 
 ## Known issues / risks
-- Admin content moderation UI/API are connected but need database-backed acceptance testing.
-- Takedown currently creates a blocked content review/audit record; the product publication/status model still needs an explicit production-grade visibility/takedown state integration.
-- Content report creation from buyer-facing UI is not yet wired; only Admin report management is implemented in this milestone.
+- Frontend shell still uses hash routes and is not yet a production router.
 - Product detail and checkout still require full end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
 - Seller onboarding/verification UI is connected but needs real database/API acceptance testing.
-- Seller verification Admin UI/API need database-backed acceptance testing, including all review transitions and audit records.
 - Seller earnings/payout UI is connected to the APIs but needs end-to-end database-backed acceptance testing.
 - Admin payout review UI is connected but needs full database-backed acceptance testing.
 - Admin payout audit history UI is connected but needs database-backed acceptance testing.
+- Admin Seller verification UI/API need database-backed acceptance testing.
+- Admin content moderation/report/Takedown UI/API need database-backed acceptance testing.
+- Takedown currently records the blocking review/audit action; product publication-state enforcement must be completed and tested so blocked content is actually unavailable to buyers everywhere.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -102,7 +103,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Wire buyer-facing content reporting and explicit product visibility/Takedown state into the catalog/media access layer, then run end-to-end database acceptance tests across Seller verification, moderation, earnings and payouts.**
+**Complete actual Takedown enforcement and public-report submission.** Ensure a blocked product cannot appear in catalog/detail/search or be streamed/downloaded, and add the buyer-facing report-content endpoint/UI that creates `content_reports` records for Admin review. Then run end-to-end moderation acceptance tests.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
