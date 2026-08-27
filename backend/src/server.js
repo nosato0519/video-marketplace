@@ -20,6 +20,7 @@ import sellerPayoutRoutes from './seller/payout-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
+import contentReportRoutes from './content-report-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -44,6 +45,7 @@ registerCheckoutRoutes(app);
 registerAdminLocaleRoutes(app);
 registerProductTranslationRoutes(app);
 registerLibraryRoutes(app);
+app.use('/api', contentReportRoutes);
 app.use('/api/seller', sellerProductRoutes);
 app.use('/api/seller/media', sellerMediaUploadRoutes);
 app.use('/api/seller', sellerProfileRoutes);
