@@ -116,6 +116,8 @@ jobs:
       - run: npm run test:http-buyer-order-report-e2e
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
+          MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
       - run: npm run test:http-seller-product-media-e2e
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
