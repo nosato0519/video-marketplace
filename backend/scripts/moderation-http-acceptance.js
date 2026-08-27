@@ -32,6 +32,7 @@ async function main() {
   const ids = {
     seller: crypto.randomUUID(),
     reporter: crypto.randomUUID(),
+    admin: crypto.randomUUID(),
     product: crypto.randomUUID(),
     media: crypto.randomUUID()
   };
@@ -48,7 +49,6 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${address.port}`;
 
   try {
-    await client.query('BEGIN');
     await client.query(
       `INSERT INTO users (id, email, role, status)
        VALUES ($1, $2, 'seller', 'active'),
@@ -57,21 +57,15 @@ async function main() {
       [
         ids.seller, `seller-${ids.seller}@acceptance.test`,
         ids.reporter, `reporter-${ids.reporter}@acceptance.test`,
-        crypto.randomUUID(), `admin-${ids.product}@acceptance.test`
+        ids.admin, `admin-${ids.admin}@acceptance.test`
       ]
     );
-    const adminResult = await client.query(
-      `SELECT id FROM users WHERE email = $1`,
-      [`admin-${ids.product}@acceptance.test`]
-    );
-    const adminId = adminResult.rows[0].id;
-
     await client.query(
       `INSERT INTO user_sessions (user_id, token_hash, expires_at)
        VALUES ($1, $2, $3), ($4, $5, $6)`,
       [
         ids.reporter, hashSessionToken(tokens.reporter), sessionExpiry(),
-        adminId, hashSessionToken(tokens.admin), sessionExpiry()
+        ids.admin, hashSessionToken(tokens.admin), sessionExpiry()
       ]
     );
     await client.query(
@@ -109,7 +103,7 @@ async function main() {
     const forbidden = await request(baseUrl, '/api/admin/content/reports', { token: tokens.reporter });
     assert(forbidden.response.status === 403, 'buyer cannot access admin moderation API');
 
-    const reports = await request(baseUrl, `/api/admin/content/reports?status=open`, { token: tokens.admin });
+    const reports = await request(baseUrl, '/api/admin/content/reports?status=open', { token: tokens.admin });
     assert(reports.response.status === 200, 'admin can read the moderation queue');
     assert(reports.data.reports.some((report) => report.id === reportId), 'created report appears in admin queue');
 
@@ -141,10 +135,28 @@ async function main() {
     const reportState = await client.query(`SELECT status FROM content_reports WHERE id = $1`, [reportId]);
     assert(reportState.rows[0].status === 'resolved', 'report is resolved in the database');
 
-    await client.query('ROLLBACK');
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM audit_events WHERE actor_user_id = $1`, [ids.admin]);
+    await client.query(`DELETE FROM content_reviews WHERE product_id = $1`, [ids.product]);
+    await client.query(`DELETE FROM content_reports WHERE product_id = $1`, [ids.product]);
+    await client.query(`DELETE FROM products WHERE id = $1`, [ids.product]);
+    await client.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]);
+    await client.query(`DELETE FROM user_sessions WHERE user_id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
+    await client.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
+    await client.query('COMMIT');
+
     console.log('moderation-http-acceptance: PASS');
   } catch (error) {
-    await client.query('ROLLBACK');
+    try { await client.query('ROLLBACK'); } catch { /* no active transaction */ }
+    try {
+      await client.query(`DELETE FROM audit_events WHERE actor_user_id = $1`, [ids.admin]);
+      await client.query(`DELETE FROM content_reviews WHERE product_id = $1`, [ids.product]);
+      await client.query(`DELETE FROM content_reports WHERE product_id = $1`, [ids.product]);
+      await client.query(`DELETE FROM products WHERE id = $1`, [ids.product]);
+      await client.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]);
+      await client.query(`DELETE FROM user_sessions WHERE user_id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
+      await client.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
+    } catch { /* preserve the original assertion/error */ }
     throw error;
   } finally {
     client.release();
