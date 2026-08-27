@@ -9,5 +9,5 @@ test('registers an authenticated purchase-intent endpoint', () => {
   const app = express();
   app.use(express.json());
   registerPurchaseIntentRoutes(app);
-  assert.ok(app._router);
+  assert.ok(app.router);
 });
