@@ -9,6 +9,7 @@ on:
       - 'backend/scripts/moderation-db-acceptance.js'
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
+      - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -21,6 +22,7 @@ on:
       - 'backend/scripts/moderation-db-acceptance.js'
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
+      - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - '.github/workflows/postgres-migration-acceptance.yml'
@@ -71,3 +73,7 @@ jobs:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
           MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+      - run: npm run test:migration-concurrency
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          MIGRATION_CONCURRENCY_RUNNERS: 4
