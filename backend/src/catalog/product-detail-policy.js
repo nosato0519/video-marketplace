@@ -24,7 +24,8 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        COALESCE(requested.description, language.description, fallback.description) AS description,
        COALESCE(requested.locale, language.locale, fallback.locale) AS content_locale
      FROM products p
-     JOIN seller_profiles sp ON sp.id = p.seller_id
+     JOIN seller_profiles sp ON sp.user_id = p.seller_id
+     JOIN users su ON su.id = p.seller_id
      LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN product_translations requested
        ON requested.product_id = p.id AND requested.locale = $2
@@ -39,7 +40,7 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
      ) fallback ON TRUE
      WHERE p.id = $1
        AND p.status = 'published'
-       AND sp.status = 'active'
+       AND su.status = 'active'
        AND NOT EXISTS (
          SELECT 1 FROM content_reviews cr
           WHERE cr.product_id = p.id AND cr.status = 'blocked'
