@@ -12,6 +12,7 @@
     "test:moderation-db": "node scripts/moderation-db-acceptance.js",
     "test:moderation-http": "node scripts/moderation-http-acceptance.js",
     "test:commerce-db": "node scripts/commerce-db-acceptance.js",
+    "test:migration-concurrency": "node scripts/migration-concurrency-acceptance.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
