@@ -43,7 +43,7 @@ function createUnavailableProvider(config) {
 
 function createStripeProvider() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) throw new Error('payment_provider_not_configured');
+  if (!secretKey) throw new Error('payment_provider_not_configured:stripe');
 
   const successUrl = process.env.STRIPE_SUCCESS_URL;
   const cancelUrl = process.env.STRIPE_CANCEL_URL;
@@ -96,27 +96,4 @@ function withStripeSessionId(url) {
   if (value.includes('{CHECKOUT_SESSION_ID}')) return value;
   const separator = value.includes('?') ? '&' : '?';
   return `${value}${separator}session_id={CHECKOUT_SESSION_ID}`;
-}
-
-function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
-  if (!orderId) throw new Error('order_required');
-  if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
-  if (metadata?.orderId !== orderId) throw new Error('checkout_order_mismatch');
-  if (!metadata?.paymentId) throw new Error('checkout_payment_id_required');
-  if (!/^[A-Z]{3}$/i.test(String(currency))) throw new Error('checkout_currency_invalid');
-  toMinorUnits(amount, String(currency).toUpperCase());
-}
-
-function toMinorUnits(amount, currency) {
-  const value = String(amount).trim();
-  const exponent = ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
-  const pattern = exponent === 0 ? /^(\d+)$/ : /^(\d+)(?:\.(\d{1,2}))?$/;
-  const match = value.match(pattern);
-  if (!match) throw new Error('checkout_amount_invalid');
-
-  const whole = BigInt(match[1]);
-  const fraction = exponent === 0 ? 0n : BigInt((match[2] ?? '').padEnd(2, '0'));
-  const minor = whole * (10n ** BigInt(exponent)) + fraction;
-  if (minor <= 0n || minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('checkout_amount_invalid');
-  return Number(minor);
 }
