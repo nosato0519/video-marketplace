@@ -49,16 +49,15 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${address.port}`;
 
   try {
+    const sellerEmail = `seller-${ids.seller}@acceptance.test`;
+    const reporterEmail = `reporter-${ids.reporter}@acceptance.test`;
+    const adminEmail = `admin-${ids.admin}@acceptance.test`;
     await client.query(
-      `INSERT INTO users (id, email, role, status)
-       VALUES ($1, $2, 'seller', 'active'),
-              ($3, $4, 'buyer', 'active'),
-              ($5, $6, 'admin', 'active')`,
-      [
-        ids.seller, `seller-${ids.seller}@acceptance.test`,
-        ids.reporter, `reporter-${ids.reporter}@acceptance.test`,
-        ids.admin, `admin-${ids.admin}@acceptance.test`
-      ]
+      `INSERT INTO users (id, email, email_normalized, role, status)
+       VALUES ($1, $2, $2, 'seller', 'active'),
+              ($3, $4, $4, 'buyer', 'active'),
+              ($5, $6, $6, 'admin', 'active')`,
+      [ids.seller, sellerEmail, ids.reporter, reporterEmail, ids.admin, adminEmail]
     );
     await client.query(
       `INSERT INTO user_sessions (user_id, token_hash, expires_at)
@@ -69,20 +68,34 @@ async function main() {
       ]
     );
     await client.query(
+      `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code)
+       VALUES ($1, 'Acceptance Seller', 'Acceptance Seller LLC', 'JP')`,
+      [ids.seller]
+    );
+    await client.query(
       `INSERT INTO media_assets (id, owner_user_id, storage_key, mime_type, byte_size, status)
        VALUES ($1, $2, $3, 'video/mp4', 1, 'ready')`,
       [ids.media, ids.seller, `acceptance/${ids.media}`]
     );
     await client.query(
-      `INSERT INTO products (id, seller_id, media_asset_id, status, price_amount, title)
-       VALUES ($1, $2, $3, 'published', 100, 'HTTP Acceptance product')`,
+      `INSERT INTO products (id, seller_id, media_asset_id, status, price_amount, title, description, published_at)
+       VALUES ($1, $2, $3, 'published', 100, 'HTTP Acceptance product', 'Acceptance catalog product', NOW())`,
       [ids.product, ids.seller, ids.media]
+    );
+    await client.query(
+      `INSERT INTO product_translations (product_id, locale, title, description)
+       VALUES ($1, 'en', 'HTTP Acceptance product', 'Acceptance catalog product')`,
+      [ids.product]
     );
 
     const unauthenticated = await request(baseUrl, `/api/products/${ids.product}/reports`, {
       method: 'POST', body: { reason_code: 'copyright', description: 'Valid acceptance report' }
     });
     assert(unauthenticated.response.status === 401, 'report API rejects unauthenticated users');
+
+    const publicBefore = await request(baseUrl, `/api/catalog/products/${ids.product}`);
+    assert(publicBefore.response.status === 200, 'published product is visible before takedown');
+    assert(publicBefore.data?.data?.id === ids.product, 'public detail returns the acceptance product before takedown');
 
     const reportResponse = await request(baseUrl, `/api/products/${ids.product}/reports`, {
       token: tokens.reporter,
@@ -126,6 +139,13 @@ async function main() {
     );
     assert(blocked.rowCount === 1, 'blocked review exists in the database');
 
+    const publicAfter = await request(baseUrl, `/api/catalog/products/${ids.product}`);
+    assert(publicAfter.response.status === 404, 'blocked product is hidden from public detail');
+
+    const catalogAfter = await request(baseUrl, '/api/catalog/products?search=HTTP%20Acceptance%20product');
+    assert(catalogAfter.response.status === 200, 'public catalog remains available after takedown');
+    assert(!catalogAfter.data?.data?.some((product) => product.id === ids.product), 'blocked product is absent from public catalog');
+
     const resolved = await request(baseUrl, `/api/admin/content/reports/${reportId}/status`, {
       token: tokens.admin,
       method: 'POST', body: { status: 'resolved' }
@@ -139,8 +159,10 @@ async function main() {
     await client.query(`DELETE FROM audit_events WHERE actor_user_id = $1`, [ids.admin]);
     await client.query(`DELETE FROM content_reviews WHERE product_id = $1`, [ids.product]);
     await client.query(`DELETE FROM content_reports WHERE product_id = $1`, [ids.product]);
+    await client.query(`DELETE FROM product_translations WHERE product_id = $1`, [ids.product]);
     await client.query(`DELETE FROM products WHERE id = $1`, [ids.product]);
     await client.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]);
+    await client.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]);
     await client.query(`DELETE FROM user_sessions WHERE user_id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
     await client.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
     await client.query('COMMIT');
@@ -152,8 +174,10 @@ async function main() {
       await client.query(`DELETE FROM audit_events WHERE actor_user_id = $1`, [ids.admin]);
       await client.query(`DELETE FROM content_reviews WHERE product_id = $1`, [ids.product]);
       await client.query(`DELETE FROM content_reports WHERE product_id = $1`, [ids.product]);
+      await client.query(`DELETE FROM product_translations WHERE product_id = $1`, [ids.product]);
       await client.query(`DELETE FROM products WHERE id = $1`, [ids.product]);
       await client.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]);
+      await client.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]);
       await client.query(`DELETE FROM user_sessions WHERE user_id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
       await client.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [ids.seller, ids.reporter, ids.admin]);
     } catch { /* preserve the original assertion/error */ }
