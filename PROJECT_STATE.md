@@ -4,7 +4,7 @@
 A reusable, international video marketplace inspired by the usability of Japanese video marketplaces such as Pancolle Movie, but independently designed and implemented. The platform must work for general video sales and be capable of supporting adult content where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 369 — Seller dashboard foundation connected to authenticated seller product API.**
+**Milestone 370 — Seller media attachment and publish validation corrected; Seller publish/unpublish flow connected.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -20,7 +20,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Regression tests: backend/security workflow and media/security unit tests have been added; download authorization/attachment/range behavior now has dedicated regression coverage.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
 - Buyer UI: Library and Order History are connected to localized authenticated API boundaries; final end-to-end acceptance still remains.
-- Seller UI: new `storefront/seller.html` foundation is committed. It authenticates against `/api/seller/products`, lists seller products, supports language selection (en/ja), and creates a product draft through the authenticated seller API.
+- Seller UI: `storefront/seller.html` now supports authenticated product listing, video upload, automatic attachment of the uploaded Media Asset ID to the next Draft, Publish and Unpublish controls, plus English/Japanese UI strings.
+- Seller backend: Publish validation now passes the actual media asset object to the canonical publish guard, so title/price/currency/media presence/asset ownership/readiness checks can operate correctly.
 - Continuation: this file is the authoritative project state and must be updated after every meaningful milestone.
 
 ## Completed technical milestones in the current media-security/commerce phase
@@ -42,6 +43,9 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Added authenticated buyer download route with range support and regression tests.
 - Strengthened installation and production acceptance documentation.
 - Added Seller Dashboard UI foundation and connected product listing/product draft creation to the existing authenticated Seller API.
+- Connected Seller video upload to product Draft attachment flow.
+- Added Seller Publish/Unpublish UI controls.
+- Corrected Seller publish guard integration so the canonical media validation receives `mediaAsset` as designed.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -61,7 +65,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Frontend shell still uses hash routes and is not yet a production router.
 - Product detail currently uses demo data and checkout/product flows still require end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI is not yet fully connected to authenticated backend purchase state and download controls.
-- Seller dashboard currently provides product listing and draft creation, but video upload, product editing, publish/unpublish, seller onboarding/verification, sales/earnings and payouts still need UI integration and acceptance testing.
+- Seller product editing UI, seller onboarding/verification, sales/earnings and payouts still need UI integration and acceptance testing.
+- Seller upload -> attach -> edit -> publish -> catalog visibility has not yet been verified against a real configured PostgreSQL environment.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -72,7 +77,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Connect Seller Dashboard to the authenticated video upload API, then add seller product edit/publish/unpublish controls and seller onboarding/verification screens.** After Seller flows are stable, complete no-code admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
+**Add Seller product editing UI using the existing PATCH endpoint, then add seller onboarding/verification screens.** After that, add sales/earnings and payout screens, then no-code Admin moderation/approval operations. Continue production object storage/CDN, end-to-end payment/database testing and final production acceptance.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions, known issues/risks and exact next step.
