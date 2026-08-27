@@ -22,9 +22,13 @@ async function main() {
   try {
     await client.query('BEGIN');
 
+    const sellerEmail = `seller-${ids.seller}@acceptance.test`;
+    const reporterEmail = `reporter-${ids.reporter}@acceptance.test`;
     await client.query(
-      `INSERT INTO users (id, email) VALUES ($1, $2), ($3, $4)`,
-      [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.reporter, `reporter-${ids.reporter}@acceptance.test`]
+      `INSERT INTO users (id, email, email_normalized, role, status)
+       VALUES ($1, $2, $2, 'seller', 'active'),
+              ($3, $4, $4, 'buyer', 'active')`,
+      [ids.seller, sellerEmail, ids.reporter, reporterEmail]
     );
     await client.query(
       `INSERT INTO media_assets (id, owner_user_id, storage_key, mime_type, byte_size, status)
