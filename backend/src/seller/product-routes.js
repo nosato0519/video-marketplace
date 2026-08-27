@@ -7,6 +7,11 @@ import { validateProductForPublishing } from '../catalog/publish-guard.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
 
+const productOwner = (productId) => async () => {
+  const result = await query('SELECT seller_id FROM products WHERE id = $1', [productId]);
+  return result.rows[0]?.seller_id;
+};
+
 router.get('/products', async (req, res, next) => {
   try {
     const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE seller_id = $1 ORDER BY created_at DESC`, [req.user.id]);
@@ -18,9 +23,8 @@ router.get('/products/:productId', async (req, res, next) => {
   try {
     const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE id = $1`, [req.params.productId]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
-    requireOwner(result.rows[0], 'seller_id')(req, res, () => {});
-    if (res.headersSent) return;
-    return res.json({ product: result.rows[0] });
+    const ownerMiddleware = requireOwner(productOwner(req.params.productId));
+    return ownerMiddleware(req, res, () => res.json({ product: result.rows[0] }));
   } catch (error) { return next(error); }
 });
 
@@ -37,8 +41,10 @@ router.patch('/products/:productId', async (req, res, next) => {
     const current = await query('SELECT * FROM products WHERE id = $1', [req.params.productId]);
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const product = current.rows[0];
-    requireOwner(product, 'seller_id')(req, res, () => {});
-    if (res.headersSent) return;
+    const ownerMiddleware = requireOwner(productOwner(req.params.productId));
+    let authorized = false;
+    await ownerMiddleware(req, { ...res, status: res.status.bind(res), json: (body) => { authorized = body?.error !== 'not_found'; return res.json(body); }, headersSent: res.headersSent }, () => { authorized = true; });
+    if (!authorized || res.headersSent) return;
     const { title, description, priceAmount, priceCurrency, mediaAssetId } = req.body || {};
     if (product.status === 'published') return res.status(409).json({ error: 'published_product_locked' });
     const result = await query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = COALESCE($6, media_asset_id), updated_at = NOW() WHERE id = $1 AND seller_id = $7 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), mediaAssetId == null ? null : mediaAssetId, req.user.id]);
