@@ -1,27 +1,44 @@
--- Milestone 321: establish the canonical payment ledger.
--- The migration is idempotent so deploy/replay is safe.
+-- Milestone 321: reconcile the payment ledger with the earlier 006 migration.
+--
+-- 006_payment_ledger.sql is historical and may already have created `payments`.
+-- Do not rely on CREATE TABLE IF NOT EXISTS to change its shape: PostgreSQL
+-- correctly leaves an existing table untouched. Add the fields required by the
+-- current payment model explicitly and backfill them from the canonical order.
 
-CREATE TABLE IF NOT EXISTS payments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-  provider TEXT NOT NULL,
-  provider_payment_id TEXT,
-  amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
-  currency CHAR(3) NOT NULL CHECK (currency ~ '^[A-Z]{3}$'),
-  status TEXT NOT NULL DEFAULT 'pending'
-    CHECK (status IN ('pending', 'succeeded', 'failed', 'refunded')),
-  idempotency_key TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  succeeded_at TIMESTAMPTZ,
-  refunded_at TIMESTAMPTZ,
-  UNIQUE (order_id, provider),
-  UNIQUE (provider, idempotency_key)
-);
+ALTER TABLE payments
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE RESTRICT;
 
-CREATE UNIQUE INDEX IF NOT EXISTS payments_provider_payment_id_idx
-  ON payments(provider, provider_payment_id)
-  WHERE provider_payment_id IS NOT NULL;
+ALTER TABLE payments
+  ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
+
+UPDATE payments p
+SET user_id = o.buyer_id
+FROM orders o
+WHERE p.order_id = o.id
+  AND p.user_id IS NULL;
+
+UPDATE payments
+SET idempotency_key = provider || ':' || provider_payment_id
+WHERE idempotency_key IS NULL
+  AND provider_payment_id IS NOT NULL;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM payments WHERE user_id IS NULL) THEN
+    RAISE EXCEPTION 'cannot finalize payments.user_id: an existing payment has no matching order buyer';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM payments WHERE idempotency_key IS NULL) THEN
+    RAISE EXCEPTION 'cannot finalize payments.idempotency_key: provider payment identity is missing';
+  END IF;
+END $$;
+
+ALTER TABLE payments
+  ALTER COLUMN user_id SET NOT NULL,
+  ALTER COLUMN idempotency_key SET NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS payments_provider_idempotency_idx
+  ON payments(provider, idempotency_key);
 
 CREATE INDEX IF NOT EXISTS payments_order_created_idx
   ON payments(order_id, created_at DESC);
