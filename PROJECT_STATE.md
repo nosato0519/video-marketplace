@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 421 — Authenticated seller product/media HTTP E2E acceptance added; fresh PostgreSQL CI verification is pending.**
+**Milestone 421 — Authenticated seller product/media HTTP E2E acceptance added; one concrete CI type mismatch was fixed and fresh verification is pending.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -61,12 +61,14 @@ A reusable, international video marketplace independently designed and implement
 - `npm run test:http-buyer-purchase-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow runs it after the payment webhook acceptances.
 - `backend/scripts/http-seller-product-media-e2e-acceptance.js` exercises the real Express API from an authenticated seller session: upload media → list owned media → create draft product → update product → publish → list/detail product, plus cross-seller product/media isolation and published-product update locking.
 - `npm run test:http-seller-product-media-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow now runs it after the buyer purchase E2E.
+- PostgreSQL Acceptance Run #69 reached the new seller E2E and failed only on a strict type assertion because PostgreSQL returned `byte_size` as the string `'24'`; the test has been corrected to normalize that value before comparison. Earlier acceptance steps in Run #69 remained green.
+- The seller E2E cleanup was also hardened to detach the media asset from the product before deleting the fixture, respecting the existing `ON DELETE RESTRICT` relationship.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Verify the fresh PostgreSQL Acceptance run triggered by the seller product/media E2E addition and fix only concrete failures.
+- Verify the fresh PostgreSQL Acceptance run against the corrected seller product/media E2E and fix only concrete failures.
 - If seller E2E is Green, extend the authenticated HTTP boundary to buyer order history/reporting and additional seller workflows such as profile, earnings/payout and media/product edge cases.
 - Complete Buyer / Seller UI integration and browser-level acceptance where practical.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
@@ -76,7 +78,7 @@ A reusable, international video marketplace independently designed and implement
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Inspect the fresh PostgreSQL Acceptance run triggered by the seller product/media E2E addition. If `test:http-seller-product-media-e2e` passes, continue with authenticated buyer order-history/reporting and the next seller workflow; if it fails, repair the concrete failing boundary before adding more scope.**
+**Inspect the fresh PostgreSQL Acceptance run for the corrected seller product/media E2E. If it passes, continue with authenticated buyer order-history/reporting and the next seller workflow; if it fails, repair the concrete failing boundary before adding more scope.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
