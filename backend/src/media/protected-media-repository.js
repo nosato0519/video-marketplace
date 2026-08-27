@@ -37,7 +37,13 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
       product_id: row.product_id,
       status: row.entitlement_status,
     },
-    product: { id: row.product_id, status: row.product_status, content_blocked: row.content_blocked },
+    product: {
+      id: row.product_id,
+      status: row.product_status,
+      content_blocked: row.content_blocked,
+      moderation_status: row.content_blocked ? 'blocked' : null,
+      media_asset_id: row.asset_id,
+    },
     asset: {
       id: row.asset_id,
       storage_key: row.storage_key,
@@ -47,3 +53,6 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
     },
   };
 }
+
+// Backwards-compatible name used by the protected-media route and its tests.
+export const getProtectedMediaForUser = getProtectedMediaContext;
