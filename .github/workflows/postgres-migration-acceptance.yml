@@ -11,6 +11,7 @@ on:
       - 'backend/scripts/commerce-db-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
+      - 'PROJECT_STATE.md'
       - '.github/workflows/postgres-migration-acceptance.yml'
   pull_request:
     paths:
