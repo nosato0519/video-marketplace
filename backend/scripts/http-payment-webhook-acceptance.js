@@ -6,8 +6,9 @@ import { createApp } from '../src/app.js';
 
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
-
 const secret = process.env.PAYMENT_WEBHOOK_SECRET || 'acceptance-only-payment-webhook-secret-0123456789abcdef';
+process.env.PAYMENT_WEBHOOK_SECRET = secret;
+
 const pool = getPool();
 const server = createServer(createApp());
 
@@ -58,7 +59,7 @@ try {
   });
 
   let result = await postWebhook(baseUrl, event, sign(event));
-  assert.equal(result.response.status, 200, JSON.stringify(result.body));
+  assert.equal(result.response.status, 200, `Webhook response: ${JSON.stringify(result.body)}`);
   let state = await pool.query(`SELECT status, provider_payment_id FROM orders WHERE id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'paid');
   assert.equal(state.rows[0].provider_payment_id, providerPaymentId);
