@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 379 — Admin payout review page added and connected to the payout state API.**
+**Milestone 380 — Admin payout audit trail implemented.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -22,7 +22,8 @@ A reusable, international video marketplace independently designed and implement
 - Seller payout API: authenticated `GET /api/seller/payouts` lists the logged-in seller's payout requests; authenticated `POST /api/seller/payouts` validates currency/amount, checks available earnings, accounts for existing pending payout requests, and creates a `requested` payout record.
 - Seller earnings/payout UI: `storefront/seller-earnings.html` and `storefront/seller-earnings.js` provide responsive earnings summary, available balance, paid/refunded totals, sales count, payout request form and payout history connected to the Seller APIs.
 - Admin payout API: authenticated Admin-only `GET /api/admin/payouts` lists payout requests with seller identity; `POST /api/admin/payouts/:id/status` enforces the payout state machine and records review/payment timestamps and failure reasons.
-- Admin payout UI: `storefront/admin-payouts.html` and `storefront/admin-payouts.js` provide responsive filtering, payout request review, seller identity/amount/status display and valid next-state actions connected to the Admin payout API.
+- Admin payout UI: `storefront/admin-payouts.html` and `storefront/admin-payouts.js` provide responsive filtering, payout request review, seller identity/amount display and valid next-state actions connected to the Admin payout API.
+- Admin payout audit: every successful Admin payout status change is now written to `audit_events` with actor, payout resource, from/to status and failure reason when applicable; a payout-specific audit endpoint is available to Admins.
 - Payouts use the existing payout lifecycle (`requested`, `reviewing`, `approved`, `processing`, `paid`, `failed`, `cancelled`) and do not pretend to transfer money automatically.
 - Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
@@ -50,6 +51,7 @@ A reusable, international video marketplace independently designed and implement
 - Added Seller earnings/payout UI page connected to the Seller APIs.
 - Added Admin payout review/status API and registered it with the main server.
 - Added Admin payout review UI connected to the payout status API.
+- Added Admin payout audit trail and payout-specific audit API.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -60,6 +62,7 @@ A reusable, international video marketplace independently designed and implement
 - Seller earnings are represented as a separate ledger rather than calculating arbitrary totals from client-side UI data.
 - Payout requests are records for an admin/provider-controlled payout lifecycle; the seller API never claims funds were transferred merely because a request was created.
 - Admin payout status changes are restricted to explicit valid transitions; `paid` is only reachable from `processing`, while failures can return to `reviewing` for rework.
+- Admin payout changes are auditable through the existing immutable-style `audit_events` table; audit metadata records the transition without exposing secrets.
 - Safety/moderation, reporting, takedown/removal, account controls, auditability and region restrictions are architectural requirements.
 - Admin must be usable from smartphone and desktop and routine operation must require no programming, SQL, shell or config-file editing.
 - Video assets remain in private storage; authorization occurs before media access.
@@ -73,7 +76,8 @@ A reusable, international video marketplace independently designed and implement
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
 - Seller onboarding/verification UI is connected but needs real database/API acceptance testing.
 - Seller earnings/payout UI is connected to the APIs but needs end-to-end database-backed acceptance testing.
-- Admin payout review UI is connected but needs audit logging and end-to-end acceptance testing.
+- Admin payout review UI is connected but needs audit-log display and end-to-end acceptance testing.
+- Audit logging is implemented for successful status transitions; failed database writes are surfaced as request errors and do not silently claim an audit was recorded.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -84,7 +88,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Add an actual audit trail for Admin payout actions and wire Seller payout status refresh to the Dashboard.** Then continue with no-code Admin moderation/verification actions and end-to-end database acceptance testing.
+**Connect the audit trail to the Admin payout UI so an Admin can inspect the history of each payout directly from the screen.** Then move into Admin Seller verification/moderation controls and end-to-end database acceptance testing.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
