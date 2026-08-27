@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "migrate": "node scripts/migrate.js",
     "migrate:preflight": "node scripts/migrate-preflight.js",
+    "migration:plan": "node scripts/migration-plan.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
