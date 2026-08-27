@@ -15,6 +15,7 @@
     "test:migration-concurrency": "node scripts/migration-concurrency-acceptance.js",
     "test:legacy-purchase-migration": "node scripts/legacy-purchase-migration-acceptance.js",
     "test:http-payment-webhook": "node scripts/http-payment-webhook-acceptance.js",
+    "test:http-payment-refund": "node scripts/http-payment-refund-acceptance.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
