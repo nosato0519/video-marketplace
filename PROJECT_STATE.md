@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 392 — Canonical moderation database schema added.**
+**Milestone 393 — Concurrent-safe PostgreSQL migration runner verified by Backend Regression.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -14,27 +14,29 @@ A reusable, international video marketplace independently designed and implement
 - Admin content moderation API/UI exists for reviews, reports and Takedown.
 - Buyer product detail exposes a Report this content form and authenticated report API.
 - Moderation actions are audited through `audit_events`.
-- Backend Regression previously verified Green on main before this schema-only change.
+- Backend Regression runs `npm install` and `npm test`.
 - Protected media route injects its context reader, allowing HTTP-boundary tests without PostgreSQL.
 - Media download/protected-media fixtures include required product-to-asset and entitlement ownership fields.
 - Payment checkout validation restores the established `checkout_*` error contract and rejects mismatched order metadata.
 - Payment-provider settings tests use the owner-scoped API and correct return shapes.
 - Owner payment-routing test uses isolated test-only Stripe configuration.
-- Existing `005_reports.sql` defines the older generic `reports` table; it is preserved as legacy data and is not modified.
-- New `013_content_moderation.sql` defines the canonical `content_reviews` and `content_reports` tables required by the current moderation application code, including product/user foreign keys, status constraints, indexes, and a partial unique index preventing duplicate open/reviewing reports per reporter/product.
+- Existing `005_reports.sql` is preserved as legacy and is not modified.
+- `013_content_moderation.sql` defines the canonical `content_reviews` and `content_reports` tables required by current moderation code.
+- `backend/scripts/migrate.js` provides deterministic numbered PostgreSQL migration execution, tracks applied files in `schema_migrations`, runs each migration transactionally and uses a PostgreSQL advisory lock to serialize concurrent migration processes.
+- `npm run migrate` is exposed in the backend package scripts.
 
 ## Latest verified CI baseline
-Backend Regression run **#324** (`33036690023`) tested commit `636066a6e6a26726d392b7b2429f475988c59459` on `main` and completed with **success**. Its regression job and `npm test` step both completed successfully. The new migration must receive a fresh CI run before this milestone is considered regression-verified.
+Backend Regression run **#328** (`33037656593`) tested commit `cb8fde364cb0f5264881706285b5f760317e7d34` on `main` and completed with **success**. The regression job and `npm test` step both completed successfully after the concurrent-migration safety change.
 
 ## Remaining work
-- Verify the new moderation migration with a fresh CI run and database migration/acceptance environment.
+- Add an explicit migration-runner verification path for a real PostgreSQL acceptance environment, including fresh DB and already-migrated DB cases.
 - Add DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Run and verify the new moderation migration against the project's database setup, then add DB-backed moderation integration tests. Do not declare the migration verified until CI/database acceptance confirms it.**
+**Build the migration acceptance test path around the real PostgreSQL environment, then use it to validate the canonical moderation schema before adding the full DB-backed moderation flow tests.**
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
