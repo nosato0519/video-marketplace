@@ -63,7 +63,7 @@ try {
   });
   assert.equal(uploadResponse.response.status, 201, JSON.stringify(uploadResponse.body));
   assert.equal(uploadResponse.body.mediaAsset.mime_type, 'video/mp4');
-  assert.equal(uploadResponse.body.mediaAsset.byte_size, uploadBytes.length);
+  assert.equal(Number(uploadResponse.body.mediaAsset.byte_size), uploadBytes.length);
   ids.media = uploadResponse.body.mediaAsset.id;
 
   const assetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
@@ -126,7 +126,10 @@ try {
 
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
-  if (ids.product) await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
+  if (ids.product) {
+    await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [ids.product]).catch(() => {});
+    await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
+  }
   if (ids.media) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [ids.media]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
