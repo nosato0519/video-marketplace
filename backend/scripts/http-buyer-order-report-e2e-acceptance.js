@@ -7,7 +7,7 @@ import { createSessionToken, hashSessionToken, sessionExpiry } from '../src/auth
 
 const pool = getPool();
 const server = createServer(createApp());
-const ids = { seller: crypto.randomUUID(), buyer: crypto.randomUUID(), product: crypto.randomUUID(), order: crypto.randomUUID(), payment: crypto.randomUUID(), entitlement: crypto.randomUUID() };
+const ids = { seller: crypto.randomUUID(), buyer: crypto.randomUUID(), otherBuyer: crypto.randomUUID(), product: crypto.randomUUID(), order: crypto.randomUUID(), payment: crypto.randomUUID(), entitlement: crypto.randomUUID() };
 const buyerToken = createSessionToken();
 const otherBuyerToken = createSessionToken();
 
@@ -24,30 +24,24 @@ try {
   const buyerCookie = `video_marketplace_session=${encodeURIComponent(buyerToken)}`;
   const otherBuyerCookie = `video_marketplace_session=${encodeURIComponent(otherBuyerToken)}`;
 
-  await pool.query(`INSERT INTO users (id,email,email_normalized,role,status) VALUES ($1,$2,$2,'seller','active'),($3,$4,$4,'buyer','active'),($5,$6,$6,'buyer','active')`, [ids.seller,`seller-${ids.seller}@acceptance.test`,ids.buyer,`buyer-${ids.buyer}@acceptance.test`,ids.product,`other-${ids.product}@acceptance.test`]).catch(async () => {
-    await pool.query(`INSERT INTO users (id,email,email_normalized,role,status) VALUES ($1,$2,$2,'seller','active'),($3,$4,$4,'buyer','active'),($5,$6,$6,'buyer','active')`, [ids.seller,`seller-${ids.seller}@acceptance.test`,ids.buyer,`buyer-${ids.buyer}@acceptance.test`,ids.product,`other-${ids.product}@acceptance.test`]);
-  });
-  await pool.query(`DELETE FROM users WHERE id = $1`, [ids.product]);
-  const otherBuyer = crypto.randomUUID();
-  await pool.query(`INSERT INTO users (id,email,email_normalized,role,status) VALUES ($1,$2,$2,'buyer','active')`, [otherBuyer,`other-${otherBuyer}@acceptance.test`]);
+  await pool.query(`INSERT INTO users (id,email,email_normalized,role,status) VALUES ($1,$2,$2,'seller','active'),($3,$4,$4,'buyer','active'),($5,$6,$6,'buyer','active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`, ids.otherBuyer, `other-${ids.otherBuyer}@acceptance.test`]);
   await pool.query(`INSERT INTO seller_profiles (user_id,display_name) VALUES ($1,'Report E2E Seller')`, [ids.seller]);
   await pool.query(`INSERT INTO products (id,seller_id,status,price_amount,price_currency,title,description,streaming_enabled,download_enabled,published_at) VALUES ($1,$2,'published',1800,'JPY','Report E2E Product','Reportable product',TRUE,TRUE,NOW())`, [ids.product,ids.seller]);
-  await pool.query(`INSERT INTO user_sessions (user_id,token_hash,expires_at) VALUES ($1,$2,$3),($4,$5,$6)`, [ids.buyer,hashSessionToken(buyerToken),sessionExpiry(),otherBuyer,hashSessionToken(otherBuyerToken),sessionExpiry()]);
-  await pool.query(`INSERT INTO orders (id,buyer_id,status,amount,currency) VALUES ($1,$2,'paid',1800,'JPY')`, [ids.order,ids.buyer]);
-  await pool.query(`INSERT INTO order_items (order_id,product_id,quantity,unit_price_amount,unit_price_currency) VALUES ($1,$2,1,1800,'JPY')`, [ids.order,ids.product]);
+  await pool.query(`INSERT INTO user_sessions (user_id,token_hash,expires_at) VALUES ($1,$2,$3),($4,$5,$6)`, [ids.buyer,hashSessionToken(buyerToken),sessionExpiry(),ids.otherBuyer,hashSessionToken(otherBuyerToken),sessionExpiry()]);
+  await pool.query(`INSERT INTO orders (id,buyer_id,product_id,status,amount,currency) VALUES ($1,$2,$3,'paid',1800,'JPY')`, [ids.order,ids.buyer,ids.product]);
   await pool.query(`INSERT INTO payments (id,order_id,user_id,provider,provider_payment_id,amount,currency,status,idempotency_key) VALUES ($1,$2,$3,'mock','report-pay',1800,'JPY','succeeded','report-pay')`, [ids.payment,ids.order,ids.buyer]);
-  await pool.query(`INSERT INTO entitlements (id,buyer_id,product_id,order_id,status) VALUES ($1,$2,$3,$4,'active')`, [ids.entitlement,ids.buyer,ids.product,ids.order]);
+  await pool.query(`INSERT INTO entitlements (id,user_id,product_id,order_id,status) VALUES ($1,$2,$3,$4,'active')`, [ids.entitlement,ids.buyer,ids.product,ids.order]);
 
   const history = await request(baseUrl, '/api/orders', { headers: { cookie: buyerCookie } });
   assert.equal(history.response.status, 200, JSON.stringify(history.body));
-  const item = history.body.items.find((row) => row.order_id === ids.order || row.id === ids.order);
+  const item = history.body.items.find((row) => row.id === ids.order);
   assert.ok(item, 'buyer order history should include own order');
   assert.equal(item.product_id, ids.product);
   assert.equal(item.status, 'paid');
 
   const otherHistory = await request(baseUrl, '/api/orders', { headers: { cookie: otherBuyerCookie } });
   assert.equal(otherHistory.response.status, 200, JSON.stringify(otherHistory.body));
-  assert.equal(otherHistory.body.items.some((row) => row.order_id === ids.order || row.id === ids.order), false);
+  assert.equal(otherHistory.body.items.some((row) => row.id === ids.order), false);
 
   const report = await request(baseUrl, `/api/products/${ids.product}/reports`, { method: 'POST', headers: { 'content-type': 'application/json', cookie: buyerCookie }, body: JSON.stringify({ reason_code: 'copyright', description: 'I believe this content uses copyrighted material without permission.' }) });
   assert.equal(report.response.status, 201, JSON.stringify(report.body));
@@ -66,14 +60,11 @@ try {
   await pool.query(`DELETE FROM content_reports WHERE product_id = $1`, [ids.product]).catch(() => {});
   await pool.query(`DELETE FROM entitlements WHERE id = $1`, [ids.entitlement]).catch(() => {});
   await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
-  await pool.query(`DELETE FROM order_items WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM orders WHERE id = $1`, [ids.order]).catch(() => {});
-  await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.buyer, ids.seller]]).catch(() => {});
+  await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.buyer, ids.otherBuyer]]).catch(() => {});
   await pool.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]).catch(() => {});
   await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
-  await pool.query(`DELETE FROM users WHERE id = $1`, [ids.buyer]).catch(() => {});
-  await pool.query(`DELETE FROM users WHERE email LIKE 'other-%@acceptance.test'`).catch(() => {});
-  await pool.query(`DELETE FROM users WHERE id = $1`, [ids.seller]).catch(() => {});
+  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.buyer, ids.otherBuyer, ids.seller]]).catch(() => {});
   await new Promise((resolve) => server.close(resolve));
   await pool.end();
 }
