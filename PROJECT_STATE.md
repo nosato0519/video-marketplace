@@ -4,7 +4,7 @@
 A reusable, international video marketplace inspired by the usability of Japanese video marketplaces such as Pancolle Movie, but independently designed and implemented. The platform must work for general video sales and be capable of supporting adult content where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 371 — Seller upload-to-draft attachment and publish-state UI flow implemented.**
+**Milestone 372 — Seller media asset library API added for persistent video selection/recovery.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -20,7 +20,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Regression tests: backend/security workflow and media/security unit tests have been added; download authorization/attachment/range behavior now has dedicated regression coverage.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
 - Buyer UI: Library and Order History are connected to localized authenticated API boundaries; final end-to-end acceptance still remains.
-- Seller UI: `storefront/seller.html` now supports authenticated seller product listing, draft creation, secure video upload, automatic media-asset attachment to the next draft, and publish/unpublish controls.
+- Seller UI: `storefront/seller.html` supports authenticated product listing, draft creation, secure video upload, draft media attachment, editing, and publish/unpublish controls.
+- Seller media: authenticated `GET /api/seller/media/assets` now provides the logged-in seller's own media asset library, enabling persistent asset selection/recovery rather than relying only on browser memory.
 - Continuation: this file is the authoritative project state and must be updated after every meaningful milestone.
 
 ## Completed technical milestones in the current media-security/commerce phase
@@ -44,6 +45,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Added Seller Dashboard UI foundation and connected product listing/product draft creation to the existing authenticated Seller API.
 - Added Seller video upload UI and publish/unpublish controls.
 - Added automatic attachment of the uploaded media asset to the next seller draft.
+- Added Seller product editing UI.
+- Added persistent Seller media asset library API.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -63,8 +66,8 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Frontend shell still uses hash routes and is not yet a production router.
 - Product detail currently uses demo data and checkout/product flows still require end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI is not yet fully connected to authenticated backend purchase state and download controls.
-- Seller dashboard now covers upload/draft/publish UI, but product editing, seller onboarding/verification, sales/earnings and payouts still need UI integration and acceptance testing.
-- The upload-to-draft flow currently keeps the uploaded Media Asset ID in the browser until the next draft is created; a production UI should support selecting an existing asset and recovering from refresh/navigation.
+- Seller dashboard now covers upload/draft/edit/publish UI, but the new persistent media asset library still needs frontend integration and acceptance testing.
+- Seller onboarding/verification, sales/earnings and payouts still need UI integration and acceptance testing.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -75,7 +78,7 @@ A reusable, international video marketplace inspired by the usability of Japanes
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Build Seller product editing with persistent media-asset selection, then complete seller onboarding/verification and sales/payout screens.** After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
+**Integrate the Seller media asset library into the dashboard so sellers can choose any existing uploaded video, attach it to a draft, and recover selections after refresh.** Then complete seller onboarding/verification and sales/payout screens. After Seller flows are stable, complete no-code Admin moderation/approval actions, then production media delivery, object storage/CDN, end-to-end payment/database testing and final production acceptance.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions, known issues/risks and exact next step.
