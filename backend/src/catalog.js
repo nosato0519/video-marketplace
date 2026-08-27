@@ -22,7 +22,8 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        COALESCE(pt.title, fallback.title) AS title,
        COALESCE(pt.description, fallback.description) AS description
      FROM products p
-     JOIN seller_profiles sp ON sp.id = p.seller_id
+     JOIN seller_profiles sp ON sp.user_id = p.seller_id
+     JOIN users su ON su.id = p.seller_id
      LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN product_translations pt
        ON pt.product_id = p.id AND pt.locale = $1
@@ -34,7 +35,7 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        LIMIT 1
      ) fallback ON TRUE
      WHERE p.status = 'published'
-       AND sp.status = 'active'
+       AND su.status = 'active'
        AND NOT EXISTS (
          SELECT 1 FROM content_reviews cr
           WHERE cr.product_id = p.id AND cr.status = 'blocked'
