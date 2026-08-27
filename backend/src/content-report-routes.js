@@ -16,10 +16,11 @@ async function createReport(req, res, next, productId, body = {}) {
     const product = await query(
       `SELECT p.id
          FROM products p
-         JOIN seller_profiles sp ON sp.id = p.seller_id
+         JOIN seller_profiles sp ON sp.user_id = p.seller_id
+         JOIN users su ON su.id = p.seller_id
         WHERE p.id = $1
           AND p.status = 'published'
-          AND sp.status = 'active'
+          AND su.status = 'active'
           AND NOT EXISTS (
             SELECT 1 FROM content_reviews cr
              WHERE cr.product_id = p.id AND cr.status = 'blocked'
