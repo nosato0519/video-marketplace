@@ -14,6 +14,7 @@ import { registerProductTranslationRoutes } from './i18n/product-translation-rou
 import { registerLibraryRoutes } from './library-routes.js';
 import sellerProductRoutes from './seller/product-routes.js';
 import sellerMediaUploadRoutes from './media/media-upload-route.js';
+import sellerProfileRoutes from './seller/profile-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -40,6 +41,7 @@ registerProductTranslationRoutes(app);
 registerLibraryRoutes(app);
 app.use('/api/seller', sellerProductRoutes);
 app.use('/api/seller/media', sellerMediaUploadRoutes);
+app.use('/api/seller', sellerProfileRoutes);
 const mediaStorage = registerConfiguredMediaStreamRoutes(app);
 registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
