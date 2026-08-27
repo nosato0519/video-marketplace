@@ -2,6 +2,7 @@ import { canAccessPurchasedMedia } from '../payments/entitlement-service.js';
 
 export function authorizeProtectedMedia({ user, entitlement, product, asset }) {
   if (!user) return { allowed: false, status: 401, error: 'authentication_required' };
+  if (product?.content_blocked) return { allowed: false, status: 404, error: 'not_found' };
   if (!canAccessPurchasedMedia({ entitlement, product, asset })) {
     return { allowed: false, status: 404, error: 'not_found' };
   }
