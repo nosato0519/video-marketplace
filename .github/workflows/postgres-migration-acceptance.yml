@@ -10,6 +10,7 @@ on:
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
       - 'backend/scripts/migration-concurrency-acceptance.js'
+      - 'backend/scripts/legacy-purchase-migration-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -23,6 +24,7 @@ on:
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
       - 'backend/scripts/migration-concurrency-acceptance.js'
+      - 'backend/scripts/legacy-purchase-migration-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - '.github/workflows/postgres-migration-acceptance.yml'
@@ -77,3 +79,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           MIGRATION_CONCURRENCY_RUNNERS: 4
+      - run: npm run test:legacy-purchase-migration
+        env:
+          LEGACY_DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_legacy_test
