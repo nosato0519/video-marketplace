@@ -73,6 +73,7 @@ export function registerPaymentWebhookRoutes(
 
         return res.status(200).json({ received: true, result });
       } catch (error) {
+        console.error('payment webhook error:', error?.message || error);
         const response = toWebhookErrorResponse(error);
         if (response.status === 500) return next(error);
         return res.status(response.status).json(response.body);
