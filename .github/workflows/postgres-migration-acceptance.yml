@@ -12,6 +12,7 @@ on:
       - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/scripts/legacy-purchase-migration-acceptance.js'
       - 'backend/scripts/http-payment-webhook-acceptance.js'
+      - 'backend/scripts/http-payment-refund-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -27,6 +28,7 @@ on:
       - 'backend/scripts/migration-concurrency-acceptance.js'
       - 'backend/scripts/legacy-purchase-migration-acceptance.js'
       - 'backend/scripts/http-payment-webhook-acceptance.js'
+      - 'backend/scripts/http-payment-refund-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -86,6 +88,10 @@ jobs:
         env:
           LEGACY_DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_legacy_test
       - run: npm run test:http-payment-webhook
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
+      - run: npm run test:http-payment-refund
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
