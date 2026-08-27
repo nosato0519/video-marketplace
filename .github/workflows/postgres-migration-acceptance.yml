@@ -6,6 +6,7 @@ on:
       - 'backend/migrations/**'
       - 'backend/scripts/migrate.js'
       - 'backend/scripts/migration-plan.js'
+      - 'backend/scripts/acceptance/**'
       - 'backend/scripts/moderation-db-acceptance.js'
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
@@ -17,6 +18,7 @@ on:
       - 'backend/scripts/http-buyer-purchase-e2e-acceptance.js'
       - 'backend/scripts/http-buyer-order-report-e2e-acceptance.js'
       - 'backend/scripts/http-seller-product-media-e2e-acceptance.js'
+      - 'backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -26,6 +28,7 @@ on:
       - 'backend/migrations/**'
       - 'backend/scripts/migrate.js'
       - 'backend/scripts/migration-plan.js'
+      - 'backend/scripts/acceptance/**'
       - 'backend/scripts/moderation-db-acceptance.js'
       - 'backend/scripts/moderation-http-acceptance.js'
       - 'backend/scripts/commerce-db-acceptance.js'
@@ -37,6 +40,7 @@ on:
       - 'backend/scripts/http-buyer-purchase-e2e-acceptance.js'
       - 'backend/scripts/http-buyer-order-report-e2e-acceptance.js'
       - 'backend/scripts/http-seller-product-media-e2e-acceptance.js'
+      - 'backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
       - 'PROJECT_STATE.md'
@@ -119,6 +123,11 @@ jobs:
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
           MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
       - run: npm run test:http-seller-product-media-e2e
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
+          MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+      - run: npm run test:http-seller-profile-earnings-payout-e2e
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
