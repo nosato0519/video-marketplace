@@ -11,10 +11,11 @@ export async function getProductForOrder(productId) {
        p.price_currency,
        p.status
      FROM products p
-     JOIN seller_profiles sp ON sp.id = p.seller_id
+     JOIN seller_profiles sp ON sp.user_id = p.seller_id
+     JOIN users su ON su.id = p.seller_id
      WHERE p.id = $1
        AND p.status = 'published'
-       AND sp.status = 'active'
+       AND su.status = 'active'
      LIMIT 1`,
     [productId]
   );
