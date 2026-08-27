@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { createServer } from 'node:http';
 import { getPool } from '../src/db.js';
 import { createApp } from '../src/app.js';
+import { validateWebhookPayload } from '../src/payments/webhook-payload.js';
 
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
@@ -57,6 +58,12 @@ try {
     eventId, provider: 'mock', eventType: 'payment_succeeded', paymentId: providerPaymentId,
     orderId: ids.order, amount: 1500, currency: 'JPY', status: 'succeeded'
   });
+  const parsedEvent = JSON.parse(event);
+  assert.doesNotThrow(() => validateWebhookPayload(parsedEvent));
+  assert.equal(parsedEvent.eventType, 'payment_succeeded');
+  assert.equal(parsedEvent.status, 'succeeded');
+  assert.equal(parsedEvent.paymentId, providerPaymentId);
+  assert.equal(parsedEvent.orderId, ids.order);
 
   let result = await postWebhook(baseUrl, event, sign(event));
   assert.equal(result.response.status, 200, `Webhook response: ${JSON.stringify(result.body)}`);
@@ -77,7 +84,7 @@ try {
   result = await postWebhook(baseUrl, event, 'bad-signature');
   assert.equal(result.response.status, 401);
 
-  const tampered = JSON.stringify({ ...JSON.parse(event), amount: 9999 });
+  const tampered = JSON.stringify({ ...parsedEvent, amount: 9999 });
   result = await postWebhook(baseUrl, tampered, sign(tampered));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   state = await pool.query(`SELECT status FROM orders WHERE id = $1`, [ids.order]);
