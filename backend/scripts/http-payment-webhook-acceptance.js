@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { query } from '../src/db.js';
+import { getPool } from '../src/db.js';
 
 const port = Number(process.env.PORT || 4187);
 const secret = process.env.PAYMENT_WEBHOOK_SECRET || 'acceptance-webhook-secret';
 const base = `http://127.0.0.1:${port}`;
+const pool = getPool();
 const serverProcess = spawn(process.execPath, ['src/server.js'], {
   cwd: new URL('..', import.meta.url).pathname,
   env: { ...process.env, PORT: String(port), PAYMENT_WEBHOOK_SECRET: secret, NODE_ENV: 'test' },
@@ -31,51 +32,43 @@ async function postEvent(raw, sig = signature(raw)) {
   });
 }
 
-let buyerId, sellerId, productId, orderId, paymentId;
+const ids = {
+  seller: crypto.randomUUID(), buyer: crypto.randomUUID(), product: crypto.randomUUID(),
+  order: crypto.randomUUID(), payment: crypto.randomUUID()
+};
+
 try {
   await wait(1200);
-  const users = await query(`
-    INSERT INTO users (id, email, password_hash, role, status)
-    VALUES (gen_random_uuid(), $1, 'acceptance', 'buyer', 'active'),
-           (gen_random_uuid(), $2, 'acceptance', 'seller', 'active')
-    RETURNING id, email`, [`buyer-${crypto.randomUUID()}@example.test`, `seller-${crypto.randomUUID()}@example.test`]);
-  buyerId = users.rows.find((u) => u.email.startsWith('buyer-')).id;
-  sellerId = users.rows.find((u) => u.email.startsWith('seller-')).id;
+  const sellerEmail = `seller-${ids.seller}@acceptance.test`;
+  const buyerEmail = `buyer-${ids.buyer}@acceptance.test`;
+  await pool.query(`
+    INSERT INTO users (id, email, email_normalized, role, status)
+    VALUES ($1, $2, $3, 'seller', 'active'), ($4, $5, $6, 'buyer', 'active')`,
+    [ids.seller, sellerEmail, sellerEmail.toLowerCase(), ids.buyer, buyerEmail, buyerEmail.toLowerCase()]
+  );
+  await pool.query(`INSERT INTO seller_profiles (user_id, display_name) VALUES ($1, 'Webhook Seller')`, [ids.seller]);
+  await pool.query(`INSERT INTO products (id, seller_id, status, price_amount, price_currency, streaming_enabled, download_enabled)
+    VALUES ($1, $2, 'published', 1500, 'JPY', true, true)`, [ids.product, ids.seller]);
+  await pool.query(`INSERT INTO orders (id, buyer_id, product_id, amount, currency, status)
+    VALUES ($1, $2, $3, 1500, 'JPY', 'pending')`, [ids.order, ids.buyer, ids.product]);
+  await pool.query(`INSERT INTO payments (id, order_id, provider, status, amount, currency)
+    VALUES ($1, $2, 'mock', 'pending', 1500, 'JPY')`, [ids.payment, ids.order]);
 
-  await query(`INSERT INTO seller_profiles (user_id, display_name) VALUES ($1, 'Webhook Seller')`, [sellerId]);
-  productId = (await query(`
-    INSERT INTO products (id, seller_id, status, price_amount, price_currency, streaming_enabled, download_enabled)
-    VALUES (gen_random_uuid(), $1, 'published', 1500, 'JPY', true, true) RETURNING id`, [sellerId])).rows[0].id;
-  orderId = (await query(`
-    INSERT INTO orders (id, buyer_id, seller_id, product_id, amount, currency, status)
-    VALUES (gen_random_uuid(), $1, $2, $3, 1500, 'JPY', 'pending') RETURNING id`, [buyerId, sellerId, productId])).rows[0].id;
-  paymentId = (await query(`
-    INSERT INTO payments (id, order_id, provider, status, amount, currency)
-    VALUES (gen_random_uuid(), $1, 'mock', 'pending', 1500, 'JPY') RETURNING id`, [orderId])).rows[0].id;
-
-  const event = JSON.stringify({
-    id: `evt_${crypto.randomUUID()}`,
-    type: 'payment_succeeded',
-    provider: 'mock',
-    payment_id: paymentId,
-    order_id: orderId,
-    amount: 1500,
-    currency: 'JPY'
-  });
+  const event = JSON.stringify({ id: `evt_${crypto.randomUUID()}`, type: 'payment_succeeded', provider: 'mock',
+    payment_id: ids.payment, order_id: ids.order, amount: 1500, currency: 'JPY' });
 
   let result = await postEvent(event);
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
-
-  let state = await query(`SELECT status FROM orders WHERE id = $1`, [orderId]);
+  let state = await pool.query(`SELECT status FROM orders WHERE id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'paid');
-  state = await query(`SELECT status FROM payments WHERE id = $1`, [paymentId]);
+  state = await pool.query(`SELECT status FROM payments WHERE id = $1`, [ids.payment]);
   assert.equal(state.rows[0].status, 'succeeded');
-  state = await query(`SELECT count(*)::int AS count FROM entitlements WHERE order_id = $1`, [orderId]);
+  state = await pool.query(`SELECT count(*)::int AS count FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].count, 1);
 
   result = await postEvent(event);
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
-  state = await query(`SELECT count(*)::int AS count FROM entitlements WHERE order_id = $1`, [orderId]);
+  state = await pool.query(`SELECT count(*)::int AS count FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].count, 1);
 
   result = await postEvent(event, 'bad-signature');
@@ -87,14 +80,13 @@ try {
 
   console.log('HTTP payment webhook acceptance: PASS');
 } finally {
-  try {
-    if (orderId) await query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]);
-    if (paymentId) await query(`DELETE FROM payment_events WHERE payment_id = $1`, [paymentId]);
-    if (paymentId) await query(`DELETE FROM payments WHERE id = $1`, [paymentId]);
-    if (orderId) await query(`DELETE FROM orders WHERE id = $1`, [orderId]);
-    if (productId) await query(`DELETE FROM products WHERE id = $1`, [productId]);
-    if (sellerId) await query(`DELETE FROM seller_profiles WHERE user_id = $1`, [sellerId]);
-    if (buyerId) await query(`DELETE FROM users WHERE id = $1`, [buyerId]);
-  } catch (error) { console.error('cleanup failed', error); }
+  await pool.query(`DELETE FROM payment_events WHERE payment_id = $1`, [ids.payment]).catch(() => {});
+  await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [ids.order]).catch(() => {});
+  await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
+  await pool.query(`DELETE FROM orders WHERE id = $1`, [ids.order]).catch(() => {});
+  await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
+  await pool.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]).catch(() => {});
+  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.seller, ids.buyer]]).catch(() => {});
   serverProcess.kill('SIGTERM');
+  await pool.end();
 }
