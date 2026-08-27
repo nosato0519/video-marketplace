@@ -7,8 +7,9 @@ const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
 
 const transitions = {
-  submitted: new Set(['under_review', 'verified', 'rejected']),
-  under_review: new Set(['verified', 'rejected']),
+  submitted: new Set(['under_review', 'verified', 'rejected', 'request_changes']),
+  under_review: new Set(['verified', 'rejected', 'request_changes']),
+  request_changes: new Set(['submitted']),
   rejected: new Set(['submitted']),
   verified: new Set()
 };
@@ -20,7 +21,7 @@ async function audit(actor, action, resourceId, metadata) {
 router.get('/seller-verifications', async (req, res, next) => {
   try {
     const status = String(req.query.status || 'submitted').trim();
-    const allowed = new Set(['submitted','under_review','verified','rejected','not_started']);
+    const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
     if (!allowed.has(status)) return res.status(400).json({ error: 'invalid_status' });
     const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email FROM seller_profiles sp JOIN users u ON u.id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
     return res.json({ sellers: result.rows });
@@ -30,7 +31,7 @@ router.get('/seller-verifications', async (req, res, next) => {
 router.post('/seller-verifications/:userId/review', async (req, res, next) => {
   try {
     const action = String(req.body?.action || '').trim();
-    const target = { request_changes: 'rejected', reject: 'rejected', approve: 'verified', start_review: 'under_review' }[action];
+    const target = { request_changes: 'request_changes', reject: 'rejected', approve: 'verified', start_review: 'under_review' }[action];
     if (!target) return res.status(400).json({ error: 'invalid_review_action' });
     const current = await query(`SELECT user_id, verification_status FROM seller_profiles WHERE user_id=$1`, [req.params.userId]);
     if (!current.rowCount) return res.status(404).json({ error: 'seller_profile_not_found' });
@@ -38,7 +39,7 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     if (!transitions[from]?.has(target)) return res.status(409).json({ error: 'invalid_verification_transition', from, to: target });
     const note = req.body?.note == null ? null : String(req.body.note).trim().slice(0, 1000);
     if ((action === 'reject' || action === 'request_changes') && !note) return res.status(400).json({ error: 'review_note_required' });
-    const result = await query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE verified_at END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
+    const result = await query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
     await audit(req.user.id, `seller.verification.${action}`, req.params.userId, { from_status: from, to_status: target, note });
     return res.json({ profile: result.rows[0] });
   } catch (e) { return next(e); }
