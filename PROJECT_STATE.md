@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 400 — Found and fixed a canonical-schema mismatch in the public content-report route.**
+**Milestone 401 — Canonical seller identity usage is now aligned across public catalog and moderation report queries.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -32,7 +32,8 @@ A reusable, international video marketplace independently designed and implement
 - Public catalog/detail queries use `users.status = 'active'` rather than a nonexistent `seller_profiles.status` column.
 - HTTP moderation acceptance verifies a published product is visible before takedown and returns 404 / disappears from the public catalog after a blocked review is created.
 - PostgreSQL acceptance workflow runs migration preflight, migration plan, migrations twice, DB moderation acceptance and HTTP moderation acceptance.
-- Discovered `content-report-routes.js` still joined `seller_profiles` through the obsolete `sp.id = p.seller_id` relationship and checked the obsolete `seller_profiles.status` column; this has now been corrected to `sp.user_id = p.seller_id` plus `users.status = 'active'`.
+- `content-report-routes.js` uses the canonical `seller_profiles.user_id = products.seller_id` relationship and `users.status = 'active'` seller availability check.
+- Public catalog now returns the canonical seller user ID (`seller_profiles.user_id`) instead of the nonexistent/incorrect seller-profile ID as `seller_id`.
 
 ## Latest verified CI baseline
 Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
@@ -47,14 +48,14 @@ The PostgreSQL Acceptance workflow is present on `main`, but the available GitHu
 - Verify the PostgreSQL acceptance workflow end-to-end on a fresh PostgreSQL database and inspect actual job logs/results.
 - Verify migration idempotency and concurrent execution against PostgreSQL.
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
-- Re-run HTTP moderation acceptance after the report-route schema correction.
+- Re-run HTTP moderation acceptance after the catalog/report schema corrections.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Re-run the PostgreSQL acceptance workflow from the latest commit and inspect the first accessible failure; if the run remains inaccessible, continue static cross-checking of every moderation query against the canonical migrations rather than claiming Green.**
+**Run the latest PostgreSQL acceptance workflow from the corrected catalog/report code and, if execution results remain inaccessible, statically cross-check the remaining moderation and catalog SQL against the canonical migrations before moving to checkout/library E2E.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
