@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "migrate:preflight": "node scripts/migrate-preflight.js",
     "migration:plan": "node scripts/migration-plan.js",
+    "test:moderation-db": "node scripts/moderation-db-acceptance.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
