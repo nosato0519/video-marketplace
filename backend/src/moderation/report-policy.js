@@ -1,4 +1,13 @@
-const MODERATION_ROLES = new Set(['moderator', 'admin']);
+const MODERATION_ROLES = new Set(['admin']);
+
+export const REPORT_REASON_CODES = new Set([
+  'copyright',
+  'privacy',
+  'prohibited_content',
+  'illegal_content',
+  'abuse',
+  'other'
+]);
 
 export function assertCanModerate(user) {
   if (!user) throw new Error('authentication_required');
@@ -32,7 +41,7 @@ export function applyReportDecision({ user, report, decision, resolutionNote = '
 
 export function moderationActionForReport({ report, resourceStatus, decision }) {
   if (decision !== 'resolve') return { resourceStatus };
-  if (report.resource_type === 'product' && report.reason_code === 'policy_violation') {
+  if (report.resource_type === 'product' && REPORT_REASON_CODES.has(report.reason_code)) {
     return { resourceStatus: 'suspended' };
   }
   return { resourceStatus };
