@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 415 — HTTP payment webhook acceptance fixture corrected to use the canonical payment ledger fields; fresh PostgreSQL CI re-run pending.**
+**Milestone 416 — HTTP payment webhook acceptance fixture aligned with the canonical payment ledger; fresh CI verification triggered.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -52,7 +52,7 @@ A reusable, international video marketplace independently designed and implement
 - PostgreSQL Acceptance workflow runs the HTTP payment webhook acceptance after the legacy migration safety acceptance.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance Run #43 completed the migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and Legacy BIGINT safety acceptance successfully, but failed at HTTP payment webhook acceptance because its older fixture inserted NULL `payments.provider_payment_id`. Run #46 used an intermediate state and also failed before the current corrected fixture was present. The current `main` fixture now uses a non-null provider payment ID and the canonical payment route/payload. Backend Regression Run #384 passed for the webhook normalization changes.
+PostgreSQL Acceptance Run #43 completed the migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and Legacy BIGINT safety acceptance successfully, but failed at HTTP payment webhook acceptance because its older fixture inserted NULL `payments.provider_payment_id`. A later run used an intermediate fixture and also failed before the current corrected fixture was present. The current `main` fixture now supplies `provider_payment_id`, `user_id`, `idempotency_key`, the canonical `/api/payments/webhook` route and canonical camelCase event fields. **Fresh verification is still required; no Green claim is made yet.**
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
@@ -68,7 +68,7 @@ PostgreSQL Acceptance Run #43 completed the migration, Commerce, Moderation, HTT
 - After payment acceptance is Green, continue the end-to-end buyer purchase → Library → protected media path and then buyer/seller UI integration.
 
 ## Next step
-**Run fresh PostgreSQL Acceptance on the corrected latest main and inspect the HTTP payment webhook step. If it passes, add failed/refunded HTTP webhook acceptance and then continue the end-to-end buyer purchase → Library → protected media integration. If it fails, fix only the concrete failing boundary and re-run.**
+**Inspect the fresh PostgreSQL Acceptance run triggered from this saved state. If the HTTP payment webhook step passes, add failed/refunded HTTP webhook acceptance and then continue the end-to-end buyer purchase → Library → protected media integration. If it fails, fix only the concrete failing boundary and re-run.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
