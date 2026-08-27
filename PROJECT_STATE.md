@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 410 — Migration concurrency acceptance added; latest PostgreSQL Acceptance was Green before this test extension.**
+**Milestone 411 — Legacy purchase-schema replay is explicitly blocked until a reviewed BIGINT→UUID migration exists. Fresh canonical installs remain supported.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -40,30 +40,26 @@ A reusable, international video marketplace independently designed and implement
 - `018_canonical_commerce_columns.sql` adds the missing canonical `payment_reference`, `refund_reference`, `updated_at`, `streaming_enabled` and `download_enabled` columns on fresh or existing installations without touching legacy purchase tables.
 - `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
 - `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow runs it on fresh PostgreSQL after migrations.
-- Run #24 proved migration preflight, migration plan, both migration passes, Commerce DB acceptance and Moderation DB acceptance; HTTP moderation exposed the missing canonical categories table.
-- `019_canonical_categories.sql` adds the canonical categories table and product category relationship required by product detail policy.
-- `020_canonical_product_download_policy.sql` adds nullable `download_limit` and `download_expiry_seconds` with positive-value checks.
+- Run #24 proved migration preflight, migration plan, both migration passes, Commerce DB acceptance and Moderation DB acceptance; HTTP moderation exposed the missing canonical `categories` table.
+- `019_canonical_categories.sql` adds the canonical categories table and product foreign key.
+- Run #25 exposed missing product delivery-policy columns; `020_canonical_product_download_policy.sql` added `download_limit` and `download_expiry_seconds` safely and additively.
 - The workflow supplies a test-only `MEDIA_URL_SECRET` and `/tmp/video-marketplace-media` to the HTTP acceptance step. No production secret is stored in the repository.
-- Run #27 exposed an `ON CONFLICT` partial-index predicate mismatch in duplicate reporting.
-- `content-report-routes.js` now uses the exact canonical partial-index predicate `status IN ('open','reviewing') AND reporter_id IS NOT NULL`, preserving deterministic 409 duplicate-report behavior.
-- PostgreSQL Acceptance run #30 completed successfully on the current main commit `a98aeea...`.
+- Run #27 exposed a mismatch between the content-report partial unique index predicate and the `ON CONFLICT` target; `content-report-routes.js` was corrected to match the canonical predicate exactly.
 - Backend Regression previously completed successfully with 165 passed and 0 failed.
-- `backend/scripts/migration-concurrency-acceptance.js` now starts four `migrate.js` processes concurrently, verifies all runners exit successfully, checks `schema_migrations` for duplicate versions, and verifies the legacy 001 migration remains explicitly skipped.
-- `npm run test:migration-concurrency` is registered in the backend package.
-- PostgreSQL Acceptance workflow now runs the migration concurrency acceptance after HTTP moderation acceptance.
+- PostgreSQL Acceptance Run #32 completed successfully, including migrations, Commerce DB, Moderation DB, HTTP Moderation and four concurrent migration runners, with no duplicate `schema_migrations` rows.
+- `backend/scripts/migration-concurrency-acceptance.js` starts four concurrent migration processes and verifies all exit successfully, no duplicate migration records exist and the legacy purchase migration remains explicitly skipped on fresh installs.
+- `backend/scripts/migrate.js` now detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion. This makes the fresh-install and legacy-install boundary explicit and safe.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance run **#30** completed with success on `a98aeea...`. The migration concurrency test has now been added in commits `e08ebfd...`, `dcf7c0d...`, and `da655e7...`; a fresh run validating this new final step is still required.
-
-## CI verification note
-Do not mark Milestone 410 Green until a fresh PostgreSQL Acceptance run completes the newly added four-process migration concurrency acceptance successfully.
+PostgreSQL Acceptance Run **#32** completed successfully with all acceptance stages green, including four concurrent migration runners and no duplicate migration records. The current commit `53c262ec...` adds the legacy-schema fail-closed guard and therefore requires fresh acceptance verification.
 
 ## Important unresolved technical boundary
-`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree preserves this legacy history. No destructive conversion or DROP has been performed.
+`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are now deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Verify fresh PostgreSQL Acceptance including the four-process migration concurrency test and inspect actual job logs/results.
-- Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
+- Run and verify fresh PostgreSQL acceptance after the legacy-schema guard change.
+- Add a dedicated legacy-schema fixture test proving the guard fails closed without modifying legacy tables.
+- Design and implement a reviewed BIGINT→UUID legacy purchase data migration, including orders, entitlements and payment-event reconciliation, only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
@@ -71,7 +67,7 @@ Do not mark Milestone 410 Green until a fresh PostgreSQL Acceptance run complete
 - After backend acceptance is Green, continue the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path and then the buyer/seller UI integration.
 
 ## Next step
-**Run and verify a fresh PostgreSQL Acceptance run on the current main after the concurrency-test workflow change. If the concurrency step passes, mark Milestone 410 Green and move to the legacy fresh-install/legacy-install migration boundary; then continue the end-to-end purchase and payment path. If it fails, isolate the actual runner/log failure, fix it additively, update this state file, and re-run before moving on.**
+**Run a fresh PostgreSQL Acceptance against commit `53c262ec...`, then add the dedicated legacy-schema guard test. If fresh acceptance remains Green, move to the reviewed legacy-to-canonical migration design and purchase-flow integration; do not automatically replay or mutate an existing BIGINT purchase database.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
