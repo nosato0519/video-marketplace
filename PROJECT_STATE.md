@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 393 — Concurrent-safe PostgreSQL migration runner verified by Backend Regression.**
+**Milestone 397 — Migration policy boundary recorded; legacy purchase history remains immutable pending real-DB acceptance.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -14,7 +14,7 @@ A reusable, international video marketplace independently designed and implement
 - Admin content moderation API/UI exists for reviews, reports and Takedown.
 - Buyer product detail exposes a Report this content form and authenticated report API.
 - Moderation actions are audited through `audit_events`.
-- Backend Regression runs `npm install` and `npm test`.
+- Backend Regression runs `npm install`, migration preflight and `npm test`.
 - Protected media route injects its context reader, allowing HTTP-boundary tests without PostgreSQL.
 - Media download/protected-media fixtures include required product-to-asset and entitlement ownership fields.
 - Payment checkout validation restores the established `checkout_*` error contract and rejects mismatched order metadata.
@@ -24,19 +24,26 @@ A reusable, international video marketplace independently designed and implement
 - `013_content_moderation.sql` defines the canonical `content_reviews` and `content_reports` tables required by current moderation code.
 - `backend/scripts/migrate.js` provides deterministic numbered PostgreSQL migration execution, tracks applied files in `schema_migrations`, runs each migration transactionally and uses a PostgreSQL advisory lock to serialize concurrent migration processes.
 - `npm run migrate` is exposed in the backend package scripts.
+- `npm run migrate:preflight` validates the migration set without incorrectly rejecting legitimate repeated version numbers.
+- `017_migration_legacy_policy.sql` records the canonical purchase migration and the rule that the historical purchase migration requires review before replay against populated databases.
 
 ## Latest verified CI baseline
-Backend Regression run **#328** (`33037656593`) tested commit `cb8fde364cb0f5264881706285b5f760317e7d34` on `main` and completed with **success**. The regression job and `npm test` step both completed successfully after the concurrent-migration safety change.
+Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
+
+## Important unresolved technical boundary
+`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Because `CREATE TABLE IF NOT EXISTS` cannot convert an already-created incompatible table, this is not treated as solved by documentation alone. No destructive conversion or DROP has been performed.
 
 ## Remaining work
-- Add an explicit migration-runner verification path for a real PostgreSQL acceptance environment, including fresh DB and already-migrated DB cases.
+- Build an actual PostgreSQL acceptance environment and verify the complete migration set on a fresh database.
+- Verify migration idempotency and concurrent execution against PostgreSQL.
+- Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
 - Add DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete product checkout/library end-to-end testing and production payment/provider compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Build the migration acceptance test path around the real PostgreSQL environment, then use it to validate the canonical moderation schema before adding the full DB-backed moderation flow tests.**
+**Create the real PostgreSQL acceptance path and use it to reproduce the fresh-install migration sequence. Do not declare the migration system production-ready until the BIGINT/UUID purchase-schema boundary is proven safe.**
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
