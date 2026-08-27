@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 417 — Canonical HTTP payment webhook contract verified in source; fresh CI verification remains the gate.**
+**Milestone 418 — Successful payment webhook acceptance is Green; HTTP refund webhook acceptance has been added and is awaiting fresh CI verification.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -50,19 +50,21 @@ A reusable, international video marketplace independently designed and implement
 - `webhook-payload.js` is the canonical HTTP contract: `eventId`, `provider`, `eventType`, `paymentId`, `orderId` are required strings; successful events additionally require numeric `amount`, 3-letter `currency` and `status = succeeded`.
 - `webhook-routes.js` maps the canonical external `paymentId` into the internal `providerPaymentId` fields before payment completion.
 - `complete-payment.js` verifies the webhook payment against the locked order/payment records, rejects amount/currency/provider-payment mismatches, transitions the order to `paid`, marks the payment `succeeded`, and issues an entitlement idempotently.
+- `refund-payment.js` verifies the recorded refund event, requires `paid -> refunded`, revokes the active entitlement and processes duplicate refunds idempotently.
 - `backend/scripts/http-payment-webhook-acceptance.js` exercises the real Express HTTP webhook boundary against PostgreSQL using the canonical `/api/payments/webhook` route, canonical payload, non-null provider payment ID, idempotent delivery and rejection checks.
-- `npm run test:http-payment-webhook` is registered in `backend/package.json`.
-- PostgreSQL Acceptance workflow runs the HTTP payment webhook acceptance after the legacy migration safety acceptance.
+- `backend/scripts/http-payment-refund-acceptance.js` now exercises a real successful payment followed by `payment_refunded`, verifies `paid -> refunded`, entitlement revocation, processed event ledger state and idempotent refund redelivery.
+- `npm run test:http-payment-webhook` and `npm run test:http-payment-refund` are registered in `backend/package.json`.
+- PostgreSQL Acceptance workflow runs the successful payment webhook acceptance and now also runs the HTTP payment refund acceptance.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance Run #43 completed migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners and Legacy BIGINT safety acceptance successfully, but failed at an older HTTP payment webhook fixture because `payments.provider_payment_id` was NULL. Subsequent Run #48 reached the real HTTP boundary but used an older checkout and failed with connection/validation issues before the corrected fixture was verified. The current `main` fixture now uses the canonical webhook route, payload fields, provider payment ID, user ID and idempotency key, and starts the real Express app in-process. **Fresh verification is still required; no Green claim is made yet.**
+PostgreSQL Acceptance Run #54 completed migration, Commerce, Moderation, HTTP Moderation, four concurrent migration runners, Legacy BIGINT safety acceptance and **HTTP Payment Webhook acceptance successfully**. The successful payment path, duplicate delivery handling, invalid signature rejection and tampered-event rejection are therefore Green in CI. The newly added HTTP refund acceptance has not yet received a fresh CI result.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Run a fresh PostgreSQL Acceptance workflow from the current `main` and verify the HTTP payment webhook fixture through the final `PASS` log.
-- Add/verify failed-payment and refunded-payment HTTP webhook acceptance after the success path is Green.
+- Run a fresh PostgreSQL Acceptance workflow from the current `main` and verify the new HTTP payment refund fixture through the final `PASS` log.
+- Add/verify failed-payment HTTP webhook acceptance.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
@@ -71,7 +73,7 @@ PostgreSQL Acceptance Run #43 completed migration, Commerce, Moderation, HTTP Mo
 - After payment acceptance is Green, continue the end-to-end buyer purchase → Library → protected media path and then buyer/seller UI integration.
 
 ## Next step
-**Trigger and inspect a fresh PostgreSQL Acceptance run from this saved state. The current source contract and fixture have been cross-checked. If the HTTP payment webhook step passes, add failed/refunded HTTP webhook acceptance; if it fails, fix only the concrete failing boundary and re-run.**
+**Inspect the fresh PostgreSQL Acceptance run triggered by the refund-acceptance changes. If HTTP payment refund passes, add failed-payment HTTP webhook acceptance; if it fails, fix only the concrete failing boundary and re-run.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
