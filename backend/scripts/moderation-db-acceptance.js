@@ -15,6 +15,7 @@ async function main() {
     media: crypto.randomUUID(),
     product: crypto.randomUUID(),
     report: crypto.randomUUID(),
+    duplicateReport: crypto.randomUUID(),
     review: crypto.randomUUID()
   };
 
@@ -44,12 +45,24 @@ async function main() {
     );
     assert(report.rows[0].status === 'open', 'report starts open');
 
+    let duplicateRejected = false;
+    try {
+      await client.query(
+        `INSERT INTO content_reports (id, product_id, reporter_id, reason_code, description, status)
+         VALUES ($1, $2, $3, 'copyright', 'Duplicate acceptance report', 'open')`,
+        [ids.duplicateReport, ids.product, ids.reporter]
+      );
+    } catch (error) {
+      duplicateRejected = error.code === '23505';
+    }
+    assert(duplicateRejected, 'duplicate open report is rejected by the database constraint');
+
     const duplicate = await client.query(
       `SELECT 1 FROM content_reports
        WHERE product_id = $1 AND reporter_id = $2 AND status IN ('open','reviewing')`,
       [ids.product, ids.reporter]
     );
-    assert(duplicate.rowCount === 1, 'open report is discoverable for duplicate prevention');
+    assert(duplicate.rowCount === 1, 'open report remains unique after duplicate attempt');
 
     await client.query(`UPDATE content_reports SET status = 'reviewing' WHERE id = $1`, [ids.report]);
     await client.query(
