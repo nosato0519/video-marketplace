@@ -50,6 +50,7 @@ async function main() {
     assert(report.rows[0].status === 'open', 'report starts open');
 
     let duplicateRejected = false;
+    await client.query('SAVEPOINT duplicate_report_attempt');
     try {
       await client.query(
         `INSERT INTO content_reports (id, product_id, reporter_id, reason_code, description, status)
@@ -58,6 +59,9 @@ async function main() {
       );
     } catch (error) {
       duplicateRejected = error.code === '23505';
+    } finally {
+      await client.query('ROLLBACK TO SAVEPOINT duplicate_report_attempt');
+      await client.query('RELEASE SAVEPOINT duplicate_report_attempt');
     }
     assert(duplicateRejected, 'duplicate open report is rejected by the database constraint');
 
