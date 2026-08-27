@@ -6,13 +6,9 @@ import { registerProtectedMediaRoutes } from './protected-media-route.js';
 
 async function withServer(dependencies, run) {
   const app = express();
-  app.use((req, _res, next) => {
-    req.user = { id: 'user_1' };
-    next();
-  });
+  app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
   registerProtectedMediaRoutes(app, { secret: 'test-secret', ...dependencies });
   app.use((error, _req, res, _next) => res.status(500).json({ error: { code: 'INTERNAL_ERROR' } }));
-
   const server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));
   const { port } = server.address();
@@ -23,8 +19,8 @@ async function withServer(dependencies, run) {
 test('protected media route returns a signed URL for an authorized buyer', async () => {
   await withServer({
     getProtectedMediaForUser: async () => ({
-      entitlement: { user_id: 'user_1', status: 'active' },
-      product: { status: 'published' },
+      entitlement: { user_id: 'user_1', product_id: 'product_1', status: 'active' },
+      product: { id: 'product_1', status: 'published', media_asset_id: 'asset_1' },
       asset: { id: 'asset_1', status: 'ready', storage_key: 'private/video.mp4' },
     }),
   }, async (baseUrl) => {
