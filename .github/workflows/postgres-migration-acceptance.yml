@@ -15,6 +15,7 @@ on:
       - 'backend/scripts/http-payment-refund-acceptance.js'
       - 'backend/scripts/http-payment-failed-acceptance.js'
       - 'backend/scripts/http-buyer-purchase-e2e-acceptance.js'
+      - 'backend/scripts/http-buyer-order-report-e2e-acceptance.js'
       - 'backend/scripts/http-seller-product-media-e2e-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
@@ -34,6 +35,7 @@ on:
       - 'backend/scripts/http-payment-refund-acceptance.js'
       - 'backend/scripts/http-payment-failed-acceptance.js'
       - 'backend/scripts/http-buyer-purchase-e2e-acceptance.js'
+      - 'backend/scripts/http-buyer-order-report-e2e-acceptance.js'
       - 'backend/scripts/http-seller-product-media-e2e-acceptance.js'
       - 'backend/src/**'
       - 'backend/package.json'
@@ -111,6 +113,9 @@ jobs:
           PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
           MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+      - run: npm run test:http-buyer-order-report-e2e
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
       - run: npm run test:http-seller-product-media-e2e
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
