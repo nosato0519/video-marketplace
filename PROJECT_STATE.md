@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 378 — Admin payout review API added and registered.**
+**Milestone 379 — Admin payout review page added and connected to the payout state API.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -22,6 +22,7 @@ A reusable, international video marketplace independently designed and implement
 - Seller payout API: authenticated `GET /api/seller/payouts` lists the logged-in seller's payout requests; authenticated `POST /api/seller/payouts` validates currency/amount, checks available earnings, accounts for existing pending payout requests, and creates a `requested` payout record.
 - Seller earnings/payout UI: `storefront/seller-earnings.html` and `storefront/seller-earnings.js` provide responsive earnings summary, available balance, paid/refunded totals, sales count, payout request form and payout history connected to the Seller APIs.
 - Admin payout API: authenticated Admin-only `GET /api/admin/payouts` lists payout requests with seller identity; `POST /api/admin/payouts/:id/status` enforces the payout state machine and records review/payment timestamps and failure reasons.
+- Admin payout UI: `storefront/admin-payouts.html` and `storefront/admin-payouts.js` provide responsive filtering, payout request review, seller identity/amount/status display and valid next-state actions connected to the Admin payout API.
 - Payouts use the existing payout lifecycle (`requested`, `reviewing`, `approved`, `processing`, `paid`, `failed`, `cancelled`) and do not pretend to transfer money automatically.
 - Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
@@ -48,6 +49,7 @@ A reusable, international video marketplace independently designed and implement
 - Added Seller payout request/list API and registered it with the main server.
 - Added Seller earnings/payout UI page connected to the Seller APIs.
 - Added Admin payout review/status API and registered it with the main server.
+- Added Admin payout review UI connected to the payout status API.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -71,7 +73,7 @@ A reusable, international video marketplace independently designed and implement
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
 - Seller onboarding/verification UI is connected but needs real database/API acceptance testing.
 - Seller earnings/payout UI is connected to the APIs but needs end-to-end database-backed acceptance testing.
-- Admin payout review API is implemented but needs Admin UI, audit logging and end-to-end acceptance testing.
+- Admin payout review UI is connected but needs audit logging and end-to-end acceptance testing.
 - PostgreSQL environment still needs clean provisioning and end-to-end testing.
 - Authentication/session persistence, region controls and complete payout lifecycle still need completion and integration testing.
 - No production object-storage provider, video processing pipeline or CDN is connected yet.
@@ -82,7 +84,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Build the Admin payout management UI and add an audit log for payout state changes.** Admin should be able to review requests from a no-code dashboard, see seller/amount/status/history, perform only valid transitions, enter a failure reason when needed, and retain who/when/what changed. Then connect Seller payout status refresh and continue with no-code Admin moderation/approval flows.
+**Add an actual audit trail for Admin payout actions and wire Seller payout status refresh to the Dashboard.** Then continue with no-code Admin moderation/verification actions and end-to-end database acceptance testing.
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
