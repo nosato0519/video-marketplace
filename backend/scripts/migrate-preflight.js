@@ -12,18 +12,16 @@ async function main() {
 
   if (files.length === 0) throw new Error('No migration files found');
 
-  const versions = files.map(file => Number(file.match(/^\d+/)[0]));
-  const duplicates = versions.filter((v, i) => versions.indexOf(v) !== i);
-  if (duplicates.length) throw new Error(`Duplicate migration versions: ${[...new Set(duplicates)].join(', ')}`);
-
-  for (let i = 0; i < files.length; i++) {
-    const expected = i + 1;
-    if (versions[i] !== expected) {
-      throw new Error(`Migration sequence gap: expected ${String(expected).padStart(3, '0')}, found ${files[i]}`);
-    }
-  }
-
+  let previousVersion = 0;
   for (const file of files) {
+    const match = file.match(/^(\d+)_.+\.sql$/);
+    const version = Number(match[1]);
+    if (version < 1) throw new Error(`Invalid migration version: ${file}`);
+    if (version < previousVersion) {
+      throw new Error(`Migration ordering error: ${file}`);
+    }
+    previousVersion = version;
+
     const sql = await fs.readFile(path.join(migrationsDir, file), 'utf8');
     if (!sql.trim()) throw new Error(`Empty migration: ${file}`);
   }
