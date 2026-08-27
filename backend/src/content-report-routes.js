@@ -41,7 +41,7 @@ async function createReport(req, res, next, productId, body = {}) {
     const result = await query(
       `INSERT INTO content_reports (id, product_id, reporter_id, reason_code, description, status, created_at)
        VALUES ($1, $2, $3, $4, $5, 'open', NOW())
-       ON CONFLICT (product_id, reporter_id) WHERE status IN ('open','reviewing') DO NOTHING
+       ON CONFLICT (product_id, reporter_id) WHERE status IN ('open','reviewing') AND reporter_id IS NOT NULL DO NOTHING
        RETURNING id, product_id, reason_code, description, status, created_at`,
       [crypto.randomUUID(), productId, req.user.id, reasonCode, description]
     );
