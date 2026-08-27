@@ -17,7 +17,7 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        p.download_enabled,
        p.published_at,
        c.slug AS category,
-       sp.id AS seller_id,
+       sp.user_id AS seller_id,
        sp.display_name AS seller,
        COALESCE(pt.title, fallback.title) AS title,
        COALESCE(pt.description, fallback.description) AS description
