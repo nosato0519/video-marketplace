@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 381 — Admin payout audit history is now visible from the payout review UI.**
+**Milestone 382 — Admin Seller verification workflow and no-code review page added.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -17,6 +17,9 @@ A reusable, international video marketplace independently designed and implement
 - Media storage: provider-neutral storage boundary plus secure local filesystem adapter exists for development/testing.
 - Seller UI: product listing, draft creation, secure video upload, media library selection, editing, publish/unpublish, Seller profile/verification controls exist in `storefront/seller.html`.
 - Seller onboarding: `seller_profiles` migration and authenticated Seller profile read/update and verification submission API exist.
+- Seller verification: Admin-only review API now lists verification submissions and supports start-review, approve, reject and recoverable request-changes actions with required notes where appropriate.
+- Seller verification audit: Admin review actions write immutable `audit_events` records and seller-specific audit history can be retrieved.
+- Seller verification UI: `storefront/admin-sellers.html` and `storefront/admin-sellers.js` provide no-code filtering, seller identity/profile details, review notes, approve/reject/request-changes/start-review actions and audit-history access.
 - Seller earnings: `seller_earnings` ledger migration exists with seller/order/product ownership, gross/platform-fee/net amounts, currency, lifecycle status, timestamps and uniqueness protection per order/product.
 - Seller earnings API: authenticated `GET /api/seller/earnings` returns seller-only earnings summary plus recent earning records.
 - Seller payout API: authenticated `GET /api/seller/payouts` lists the logged-in seller's payout requests; authenticated `POST /api/seller/payouts` validates currency/amount, checks available earnings, accounts for existing pending payout requests, and creates a `requested` payout record.
@@ -25,7 +28,6 @@ A reusable, international video marketplace independently designed and implement
 - Admin payout UI: `storefront/admin-payouts.html` and `storefront/admin-payouts.js` provide responsive filtering, payout request review, seller identity/amount/status display and valid next-state actions connected to the Admin payout API.
 - Admin payout audit UI: each payout row can now expand its audit history from `GET /api/admin/payouts/:id/audit`, showing action, actor and timestamp.
 - Payouts use the existing payout lifecycle (`requested`, `reviewing`, `approved`, `processing`, `paid`, `failed`, `cancelled`) and do not pretend to transfer money automatically.
-- Verification: no automatic/fake approval is implemented. Submission enters `submitted` and is intended for Admin review.
 - Documentation: installation/deployment manual, buyer/seller/admin acceptance requirements, handoff guide and operations-manual outline exist.
 - Continuation: this file is the authoritative project state and must be updated after every meaningful milestone.
 
@@ -52,6 +54,8 @@ A reusable, international video marketplace independently designed and implement
 - Added Admin payout review/status API and registered it with the main server.
 - Added Admin payout review UI connected to the payout status API.
 - Added Admin payout audit API and connected audit history to the Admin payout UI.
+- Added Admin Seller verification API with audit logging and recoverable request-changes state.
+- Added Admin Seller verification review UI.
 
 ## Important architecture decisions
 - Centrally operated marketplace with multiple independent sellers.
@@ -63,6 +67,7 @@ A reusable, international video marketplace independently designed and implement
 - Payout requests are records for an admin/provider-controlled payout lifecycle; the seller API never claims funds were transferred merely because a request was created.
 - Admin payout status changes are restricted to explicit valid transitions; `paid` is only reachable from `processing`, while failures can return to `reviewing` for rework.
 - Admin payout status changes create an immutable audit event containing the actor, transition and relevant metadata.
+- Seller verification has explicit `submitted`, `under_review`, `verified`, `rejected` and recoverable `request_changes` states; rejection/request-changes decisions require a human-readable note.
 - Safety/moderation, reporting, takedown/removal, account controls, auditability and region restrictions are architectural requirements.
 - Admin must be usable from smartphone and desktop and routine operation must require no programming, SQL, shell or config-file editing.
 - Video assets remain in private storage; authorization occurs before media access.
@@ -75,6 +80,7 @@ A reusable, international video marketplace independently designed and implement
 - Product detail and checkout still require full end-to-end database-backed integration and production UI wiring.
 - Buyer library/account UI still needs full authenticated purchase/download acceptance testing.
 - Seller onboarding/verification UI is connected but needs real database/API acceptance testing.
+- Seller verification Admin UI/API need database-backed acceptance testing, including all review transitions and audit records.
 - Seller earnings/payout UI is connected to the APIs but needs end-to-end database-backed acceptance testing.
 - Admin payout review UI is connected but needs full database-backed acceptance testing.
 - Admin payout audit history UI is connected but needs database-backed acceptance testing.
@@ -88,7 +94,7 @@ A reusable, international video marketplace independently designed and implement
 - Commercial ZIP is not yet ready; clean-install, upgrade, backup/restore, licensing and final acceptance testing remain.
 
 ## Next step
-**Begin Admin Seller verification/moderation controls.** Build the no-code Admin review screen for seller verification submissions, with explicit approve/reject/request-changes actions, audit logging and seller-visible status updates. Then proceed to content moderation/report/takedown controls and end-to-end database acceptance testing.
+**Continue with content moderation/report/takedown controls and then run end-to-end database acceptance testing for Seller verification, earnings and payouts.**
 
 ## Continuation rule
 At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, commit with a clear message and update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
