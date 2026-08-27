@@ -10,6 +10,31 @@ const MIGRATION_LOCK_ID = 7139421;
 const LEGACY_MIGRATIONS = new Set(['001_purchase_flow.sql']);
 const ALLOW_LEGACY = process.env.ALLOW_LEGACY_PURCHASE_MIGRATION === 'true';
 
+async function assertPurchaseSchemaBoundary(client, applied) {
+  if (applied.has('003_orders_entitlements.sql')) return;
+
+  const legacyOrders = await client.query(`
+    SELECT c.data_type, c.udt_name
+    FROM information_schema.columns c
+    WHERE c.table_schema = 'public'
+      AND c.table_name = 'orders'
+      AND c.column_name = 'id'
+    LIMIT 1
+  `);
+  const legacyOrderId = legacyOrders.rows[0]?.udt_name === 'int8' || legacyOrders.rows[0]?.data_type === 'bigint';
+  if (!legacyOrderId) return;
+
+  if (ALLOW_LEGACY) {
+    throw new Error(
+      'legacy purchase schema detected: 001_purchase_flow.sql created BIGINT orders, but the canonical purchase schema in 003_orders_entitlements.sql uses UUID. No automatic conversion is implemented. Back up the installation and run a reviewed legacy-to-canonical migration before continuing.'
+    );
+  }
+
+  throw new Error(
+    'legacy purchase schema detected: orders.id is BIGINT and 003_orders_entitlements.sql is not applied. Automatic replay is blocked to prevent destructive schema/type conflicts. Set up a reviewed legacy-to-canonical migration before continuing.'
+  );
+}
+
 async function main() {
   const lockClient = await pool.connect();
   try {
@@ -23,7 +48,6 @@ async function main() {
       )
     `);
 
-    // Backward-compatible upgrade for installations created before status existed.
     await lockClient.query(`
       ALTER TABLE schema_migrations
       ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'applied'
@@ -37,6 +61,8 @@ async function main() {
       (await lockClient.query('SELECT version, status FROM schema_migrations'))
         .rows.map(row => [row.version, row.status])
     );
+
+    await assertPurchaseSchemaBoundary(lockClient, applied);
 
     for (const file of files) {
       if (applied.has(file)) continue;
