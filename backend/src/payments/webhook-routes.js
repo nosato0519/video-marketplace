@@ -64,7 +64,11 @@ export function registerPaymentWebhookRoutes(
           providerPaymentId: payload.paymentId,
           orderId: payload.orderId,
           payloadHash,
-          payment: payload,
+          payment: {
+            ...payload,
+            order_id: payload.orderId,
+            provider_payment_id: payload.paymentId,
+          },
         });
 
         return res.status(200).json({ received: true, result });
