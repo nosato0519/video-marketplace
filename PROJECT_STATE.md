@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 421 — Authenticated seller product/media HTTP E2E acceptance added; one concrete CI type mismatch was fixed and fresh verification is pending.**
+**Milestone 422 — Buyer order-history/reporting HTTP E2E added and wired into PostgreSQL Acceptance; fresh CI verification is pending.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -34,9 +34,9 @@ A reusable, international video marketplace independently designed and implement
 - PostgreSQL acceptance workflow runs migration preflight, migration plan, migrations twice, Commerce DB acceptance and Moderation acceptance.
 - `content-report-routes.js` uses the canonical `seller_profiles.user_id = products.seller_id` relationship and `users.status = 'active'` seller availability check.
 - Public catalog returns the canonical seller user ID (`seller_profiles.user_id`).
-- Buyer Library SQL now uses canonical product pricing fields (`price_amount`, `price_currency`) and canonical product delivery flags (`streaming_enabled`, `download_enabled`).
+- Buyer Library SQL uses canonical product pricing fields (`price_amount`, `price_currency`) and canonical product delivery flags (`streaming_enabled`, `download_enabled`).
 - Buyer Library excludes unpublished and blocked products even when an active entitlement remains.
-- Order History SQL now uses canonical order ownership (`buyer_id`) and amount (`amount`) fields.
+- Order History SQL uses canonical order ownership (`buyer_id`) and amount (`amount`) fields.
 - `018_canonical_commerce_columns.sql` adds the missing canonical `payment_reference`, `refund_reference`, `updated_at`, `streaming_enabled` and `download_enabled` columns on fresh or existing installations without touching legacy purchase tables.
 - `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
 - `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow runs it on fresh PostgreSQL after migrations.
@@ -56,29 +56,31 @@ A reusable, international video marketplace independently designed and implement
 - `backend/scripts/http-payment-refund-acceptance.js` exercises a real successful payment followed by `payment_refunded`, verifies `paid -> refunded`, entitlement revocation, processed event ledger state and idempotent refund redelivery.
 - `backend/scripts/http-payment-failed-acceptance.js` exercises the real HTTP failed-payment webhook, verifies payment `failed`, order `cancelled`, no entitlement, processed event ledger state and duplicate redelivery idempotently.
 - `npm run test:http-payment-webhook`, `npm run test:http-payment-refund` and `npm run test:http-payment-failed` are registered in `backend/package.json`.
-- PostgreSQL Acceptance Run #67 passed all migration, Commerce, Moderation, HTTP Moderation, concurrency, legacy safety, successful-payment, refund, failed-payment and buyer purchase → Library → protected-media E2E acceptance steps.
+- PostgreSQL Acceptance Run #74 passed all migration, Commerce, Moderation, HTTP Moderation, concurrency, legacy safety, successful-payment, refund, failed-payment, buyer purchase → Library → protected-media E2E and seller media → product → publish → ownership-isolation E2E steps.
 - `backend/scripts/http-buyer-purchase-e2e-acceptance.js` exercises the real Express API from an authenticated buyer session: POST pending order → insert provider payment fixture → signed payment-success webhook → paid order/entitlement → buyer Library → protected media download, plus non-buyer download denial.
 - `npm run test:http-buyer-purchase-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow runs it after the payment webhook acceptances.
 - `backend/scripts/http-seller-product-media-e2e-acceptance.js` exercises the real Express API from an authenticated seller session: upload media → list owned media → create draft product → update product → publish → list/detail product, plus cross-seller product/media isolation and published-product update locking.
-- `npm run test:http-seller-product-media-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow now runs it after the buyer purchase E2E.
-- PostgreSQL Acceptance Run #69 reached the new seller E2E and failed only on a strict type assertion because PostgreSQL returned `byte_size` as the string `'24'`; the test has been corrected to normalize that value before comparison. Earlier acceptance steps in Run #69 remained green.
-- The seller E2E cleanup was also hardened to detach the media asset from the product before deleting the fixture, respecting the existing `ON DELETE RESTRICT` relationship.
+- `npm run test:http-seller-product-media-e2e` is registered in `backend/package.json` and the PostgreSQL Acceptance workflow runs it after the buyer purchase E2E.
+- Seller product ownership now uses a concrete owner resolver with `requireOwner`, and cross-seller detail access intentionally returns 404 to avoid resource-existence leakage.
+- `backend/scripts/http-buyer-order-report-e2e-acceptance.js` now exercises authenticated buyer order history, buyer-to-order/product ownership isolation, content report creation, duplicate open-report rejection and independent reporting by another buyer.
+- `npm run test:http-buyer-order-report-e2e` is registered in `backend/package.json`.
+- PostgreSQL Acceptance workflow now runs the buyer order/report E2E after buyer purchase E2E and before seller E2E.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Verify the fresh PostgreSQL Acceptance run against the corrected seller product/media E2E and fix only concrete failures.
-- If seller E2E is Green, extend the authenticated HTTP boundary to buyer order history/reporting and additional seller workflows such as profile, earnings/payout and media/product edge cases.
+- Verify the fresh PostgreSQL Acceptance run for buyer order-history/reporting and fix only concrete failures.
+- If buyer order/report E2E is Green, extend authenticated HTTP coverage to seller profile, earnings/payout and media/product edge cases.
 - Complete Buyer / Seller UI integration and browser-level acceptance where practical.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration only after backup/restore and rollback strategy is defined.
-- Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
+- Extend DB-backed integration coverage for Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Inspect the fresh PostgreSQL Acceptance run for the corrected seller product/media E2E. If it passes, continue with authenticated buyer order-history/reporting and the next seller workflow; if it fails, repair the concrete failing boundary before adding more scope.**
+**Inspect the fresh PostgreSQL Acceptance run for buyer order-history/reporting. If it passes, continue with authenticated seller profile and earnings/payout workflows; if it fails, repair the concrete failing boundary before adding more scope.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
