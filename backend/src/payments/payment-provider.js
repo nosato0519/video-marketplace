@@ -49,16 +49,17 @@ function createStripeProvider() {
 }
 
 function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
-  if (!orderId) throw new Error('order_id_required');
-  if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('payment_amount_invalid');
-  if (!currency || !/^[A-Za-z]{3}$/.test(String(currency))) throw new Error('payment_currency_invalid');
-  if (!metadata || typeof metadata !== 'object') throw new Error('payment_metadata_required');
-  if (!idempotencyKey) throw new Error('payment_idempotency_key_required');
+  if (!orderId) throw new Error('checkout_order_id_required');
+  if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('checkout_amount_invalid');
+  if (!currency || !/^[A-Za-z]{3}$/.test(String(currency))) throw new Error('checkout_currency_invalid');
+  if (!metadata || typeof metadata !== 'object') throw new Error('checkout_metadata_required');
+  if (metadata.orderId && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
+  if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
 }
 
 function toMinorUnits(amount, currency) {
   const value = Number(amount);
-  if (!Number.isFinite(value) || value <= 0) throw new Error('payment_amount_invalid');
+  if (!Number.isFinite(value) || value <= 0) throw new Error('checkout_amount_invalid');
   return ZERO_DECIMAL_CURRENCIES.has(currency) ? Math.round(value) : Math.round(value * 100);
 }
 
