@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 407 — Canonical category schema added after HTTP moderation acceptance exposed a catalog schema mismatch.**
+**Milestone 408 — Product download-policy schema gap isolated and fixed after HTTP moderation acceptance exposed missing product delivery columns.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -41,25 +41,26 @@ A reusable, international video marketplace independently designed and implement
 - `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
 - `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow runs it on fresh PostgreSQL after migrations.
 - PostgreSQL Acceptance run #24 proved migration preflight, migration plan, both migration passes, commerce DB acceptance and moderation DB acceptance all succeed.
-- Run #24 failed at HTTP moderation because `product-detail-policy.js` referenced a `categories` table that did not exist in the canonical migration tree; the resulting 42P01 error caused the pre-takedown visibility assertion to fail.
-- The duplicate-report database unique-index error seen in the same run is expected during the race/duplicate acceptance path and did not fail the moderation DB acceptance step; the HTTP API has been hardened with deterministic conflict handling.
-- The workflow now supplies a test-only `MEDIA_URL_SECRET` and `/tmp/video-marketplace-media` to the HTTP acceptance step. No production secret is stored in the repository.
-- `019_canonical_categories.sql` now creates the canonical nullable `categories` table, adds `products.category_id` as a nullable foreign key and indexes it. Existing products remain valid without a category.
+- Run #24 failed at HTTP moderation because `product-detail-policy.js` referenced a `categories` table that did not exist in the canonical migration tree; migration `019_canonical_categories.sql` was then added.
+- PostgreSQL Acceptance run #25 used the latest code available to that run and proved migrations (including 019), Commerce DB and Moderation DB acceptance all succeed. HTTP moderation still failed because the product detail query also referenced missing `products.download_limit` and `products.download_expiry_seconds` columns.
+- `020_canonical_product_download_policy.sql` now adds those product delivery-policy columns with safe nullable defaults and positive-value checks. It is additive and does not touch legacy purchase tables.
+- The duplicate-report unique-constraint log line remains an expected duplicate/race boundary event; the API acceptance path is designed to turn the duplicate into deterministic 409 behavior.
+- The workflow supplies a test-only `MEDIA_URL_SECRET` and `/tmp/video-marketplace-media` to the HTTP acceptance step. No production secret is stored in the repository.
 
 ## Latest verified CI baseline
-Backend Regression run **#369** completed with **success**. PostgreSQL Acceptance run **#24** completed with failure only at HTTP moderation acceptance; migration and DB acceptance stages were successful.
+Backend Regression run **#371** completed with **success**. PostgreSQL Acceptance run **#25** completed with failure only at HTTP moderation acceptance; migrations (including 019) and DB acceptance stages were successful. The latest main branch now contains migration 020, so run #25 is not a validation of migration 020.
 
 ## CI verification note
-The new category migration must be verified by a fresh PostgreSQL Acceptance run. Do not mark the milestone Green until an accessible run/job result confirms HTTP moderation acceptance and the complete workflow succeed.
+Do not mark the acceptance milestone Green yet. A fresh PostgreSQL Acceptance run must verify migration 020 and complete HTTP moderation acceptance successfully.
 
 ## Important unresolved technical boundary
-`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree also preserves this legacy history. No destructive conversion or DROP has been performed.
+`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree preserves this legacy history. No destructive conversion or DROP has been performed.
 
 ## Remaining work
-- Verify the PostgreSQL acceptance workflow end-to-end after migration 019 and inspect actual job logs/results.
+- Verify a fresh PostgreSQL acceptance workflow end-to-end after migration 020 and inspect actual job logs/results.
 - Verify migration idempotency and concurrent execution against PostgreSQL.
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
-- Re-run and complete HTTP moderation acceptance after the category schema fix.
+- Complete HTTP moderation acceptance after the product download-policy schema fix.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
@@ -67,7 +68,7 @@ The new category migration must be verified by a fresh PostgreSQL Acceptance run
 - After backend acceptance is Green, continue the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path and then the buyer/seller UI integration.
 
 ## Next step
-**Verify the new PostgreSQL Acceptance run after migration 019, fix any remaining HTTP moderation/media-access failure, then mark the acceptance milestone Green only after the complete workflow is verifiably successful.**
+**Verify the fresh PostgreSQL Acceptance run containing migration 020. If HTTP moderation passes, proceed to migration idempotency/concurrency verification; if another schema/runtime gap appears, isolate it from the actual job logs, fix it additively, update this state file, and re-run before moving to production payment and buyer/seller UI integration.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
