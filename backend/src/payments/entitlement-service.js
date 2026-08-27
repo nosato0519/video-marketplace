@@ -14,7 +14,6 @@ export function createEntitlementFromVerifiedPayment({ order, product }) {
 export function canAccessPurchasedMedia({ entitlement, product, asset }) {
   if (!entitlement || entitlement.status !== 'active') return false;
   if (!product || product.id !== entitlement.product_id || product.status !== 'published') return false;
-  if (product.moderation_status === 'blocked') return false;
   if (!asset || asset.id !== product.media_asset_id || asset.status !== 'ready') return false;
   return true;
 }
