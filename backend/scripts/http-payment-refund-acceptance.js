@@ -80,7 +80,7 @@ try {
 
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
-  assert.equal(result.body.result?.duplicate, true);
+  assert.equal(result.body.duplicate, true);
 
   const eventRow = await pool.query(`SELECT status, event_type, provider_payment_id FROM payment_events
     WHERE provider = 'mock' AND event_id = $1`, [refundEventId]);
