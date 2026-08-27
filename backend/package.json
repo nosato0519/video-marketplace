@@ -17,6 +17,7 @@
     "test:http-payment-webhook": "node scripts/http-payment-webhook-acceptance.js",
     "test:http-payment-refund": "node scripts/http-payment-refund-acceptance.js",
     "test:http-payment-failed": "node scripts/http-payment-failed-acceptance.js",
+    "test:http-buyer-purchase-e2e": "node scripts/http-buyer-purchase-e2e-acceptance.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
