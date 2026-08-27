@@ -86,7 +86,7 @@ try {
 
   const tampered = JSON.stringify({ ...parsedEvent, amount: 9999 });
   result = await postWebhook(baseUrl, tampered, sign(tampered));
-  assert.equal(result.response.status, 200, JSON.stringify(result.body));
+  assert.equal(result.response.status, 400, JSON.stringify(result.body));
   state = await pool.query(`SELECT status FROM orders WHERE id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'paid');
 
