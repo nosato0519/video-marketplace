@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 402 — Canonical commerce schema alignment completed for buyer Library and Order History queries.**
+**Milestone 403 — Canonical commerce columns and DB-backed buyer commerce acceptance flow added.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -37,12 +37,15 @@ A reusable, international video marketplace independently designed and implement
 - Buyer Library SQL now uses canonical product pricing fields (`price_amount`, `price_currency`) and canonical product delivery flags (`streaming_enabled`, `download_enabled`).
 - Buyer Library excludes unpublished and blocked products even when an active entitlement remains.
 - Order History SQL now uses canonical order ownership (`buyer_id`) and amount (`amount`) fields.
+- `018_canonical_commerce_columns.sql` adds the missing canonical `payment_reference`, `refund_reference`, `updated_at`, `streaming_enabled` and `download_enabled` columns on fresh or existing installations without touching legacy purchase tables.
+- `commerce-db-acceptance.js` covers pending order creation, paid completion, entitlement issuance, buyer Library visibility, non-buyer denial, protected-media authorization, blocked-product denial, refund/revocation and post-refund Library/access denial.
+- `npm run test:commerce-db` is registered and the PostgreSQL acceptance workflow now runs it on fresh PostgreSQL after migrations.
 
 ## Latest verified CI baseline
 Backend Regression run **#332** completed with **success** after migration preflight was corrected for the repository's legitimate repeated migration numbers.
 
 ## CI verification note
-The PostgreSQL Acceptance workflow is present on `main`, but the available GitHub workflow-run lookup does not currently expose a verifiable run result for the latest push. Therefore the PostgreSQL acceptance suite is **not marked Green** until an accessible run/job result confirms it.
+The PostgreSQL Acceptance workflow now includes the commerce acceptance suite, but the newly pushed workflow result has **not yet been independently verified** through an accessible workflow-run/job result. Therefore this milestone is **not marked Green** until an accessible run/job result confirms migration and commerce acceptance success.
 
 ## Important unresolved technical boundary
 `001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. The current migration tree also preserves this legacy history. No destructive conversion or DROP has been performed.
@@ -53,13 +56,12 @@ The PostgreSQL Acceptance workflow is present on `main`, but the available GitHu
 - Decide and implement the safe fresh-install/legacy-install migration split for the historical purchase schema.
 - Re-run HTTP moderation acceptance after the catalog/report schema corrections.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
-- Complete product purchase → payment → paid order → entitlement → Library → protected media end-to-end testing.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
 - Complete payment/provider production compatibility review.
 - Finish clean-install, backup/restore, licensing, documentation and commercial ZIP acceptance testing.
 
 ## Next step
-**Add a DB-backed commerce acceptance test covering order creation, paid-order completion, entitlement issuance, buyer Library visibility, non-buyer denial, refund/revocation and blocked-product access denial; then run it against fresh PostgreSQL.**
+**Verify the new PostgreSQL Acceptance workflow on a fresh PostgreSQL database, inspect the commerce acceptance job logs, and fix any schema or flow failures before extending the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
