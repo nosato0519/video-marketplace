@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 411 — Legacy purchase-schema replay is explicitly blocked until a reviewed BIGINT→UUID migration exists. Fresh canonical installs remain supported.**
+**Milestone 412 — Dedicated legacy purchase-schema safety acceptance added; awaiting CI verification.**
 
 ## Current status
 - Repository: `nosato0519/video-marketplace`
@@ -48,17 +48,18 @@ A reusable, international video marketplace independently designed and implement
 - Backend Regression previously completed successfully with 165 passed and 0 failed.
 - PostgreSQL Acceptance Run #32 completed successfully, including migrations, Commerce DB, Moderation DB, HTTP Moderation and four concurrent migration runners, with no duplicate `schema_migrations` rows.
 - `backend/scripts/migration-concurrency-acceptance.js` starts four concurrent migration processes and verifies all exit successfully, no duplicate migration records exist and the legacy purchase migration remains explicitly skipped on fresh installs.
-- `backend/scripts/migrate.js` now detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion. This makes the fresh-install and legacy-install boundary explicit and safe.
+- `backend/scripts/migrate.js` detects an existing `public.orders.id` BIGINT schema when the canonical UUID purchase migration is still unapplied and fails closed. It never attempts an automatic destructive BIGINT→UUID conversion.
+- A dedicated `legacy-purchase-migration-acceptance.js` test now creates an isolated PostgreSQL database with a representative BIGINT `orders` table and row, runs the real migration command expecting a fail-closed legacy-schema error, verifies the legacy row is unchanged and verifies no `schema_migrations` records were written.
+- `npm run test:legacy-purchase-migration` is registered and PostgreSQL Acceptance now runs the dedicated legacy safety test after the fresh-install/concurrency checks.
 
 ## Latest verified CI baseline
-PostgreSQL Acceptance Run **#32** completed successfully with all acceptance stages green, including four concurrent migration runners and no duplicate migration records. The current commit `53c262ec...` adds the legacy-schema fail-closed guard and therefore requires fresh acceptance verification.
+PostgreSQL Acceptance Run **#32** completed successfully with all fresh-install acceptance stages green, including four concurrent migration runners and no duplicate migration records. The latest commits `960f72d...`, `3d7dcec...`, and `911fba6...` add the dedicated legacy safety test, package script, and workflow integration; the combined latest state has not yet received a fresh Acceptance result.
 
 ## Important unresolved technical boundary
-`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are now deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
+`001_purchase_flow.sql` historically creates BIGINT purchase tables, while `003_orders_entitlements.sql` defines the current UUID-based canonical `orders` / `entitlements` model. Fresh installs skip the legacy purchase migration and use the canonical UUID schema. Existing installations with the legacy BIGINT purchase schema are deliberately blocked before replay of the canonical purchase migration. **No automatic conversion exists yet; a reviewed, backed-up legacy-to-canonical data migration is still required for those installations.**
 
 ## Remaining work
-- Run and verify fresh PostgreSQL acceptance after the legacy-schema guard change.
-- Add a dedicated legacy-schema fixture test proving the guard fails closed without modifying legacy tables.
+- Verify the new dedicated legacy-schema acceptance test and the full fresh PostgreSQL acceptance on the latest main.
 - Design and implement a reviewed BIGINT→UUID legacy purchase data migration, including orders, entitlements and payment-event reconciliation, only after backup/restore and rollback strategy is defined.
 - Extend DB-backed integration coverage for buyer report creation, Admin report processing, Takedown and blocked catalog/detail/media access.
 - Complete production authentication/session, privacy/account controls, region restrictions and PostgreSQL acceptance testing.
@@ -67,7 +68,7 @@ PostgreSQL Acceptance Run **#32** completed successfully with all acceptance sta
 - After backend acceptance is Green, continue the end-to-end purchase → payment-provider → paid order → entitlement → Library → protected media path and then the buyer/seller UI integration.
 
 ## Next step
-**Run a fresh PostgreSQL Acceptance against commit `53c262ec...`, then add the dedicated legacy-schema guard test. If fresh acceptance remains Green, move to the reviewed legacy-to-canonical migration design and purchase-flow integration; do not automatically replay or mutate an existing BIGINT purchase database.**
+**Run and inspect fresh PostgreSQL Acceptance on the latest main. If the dedicated legacy test passes, preserve that guard as the safety boundary and move to the reviewed BIGINT→UUID migration design plus end-to-end purchase-flow integration. If the test exposes an issue, fix it additively and re-run before touching production purchase data.**
 
 ## Progress memo rule
 After each meaningful milestone or discovered failure, update this file with what was completed, what remains, the important technical decision, and the exact next step. Do not claim CI success without a verifiable run result.
