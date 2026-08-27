@@ -18,6 +18,7 @@ import sellerProfileRoutes from './seller/profile-routes.js';
 import sellerEarningsRoutes from './seller/earnings-routes.js';
 import sellerPayoutRoutes from './seller/payout-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
+import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -48,6 +49,7 @@ app.use('/api/seller', sellerProfileRoutes);
 app.use('/api/seller', sellerEarningsRoutes);
 app.use('/api/seller', sellerPayoutRoutes);
 app.use('/api/admin', adminPayoutRoutes);
+app.use('/api/admin', adminSellerVerificationRoutes);
 const mediaStorage = registerConfiguredMediaStreamRoutes(app);
 registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
