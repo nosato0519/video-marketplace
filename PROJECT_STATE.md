@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 440 — Buyer static contract test aligned with the actual Account/Orders/Library implementation.**
+**Milestone 441 — Seller product creation, private media upload, and publishing flow now has static contract coverage.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -38,23 +38,26 @@ A reusable, international video marketplace independently designed and implement
 - Seller dashboard static contract test and `.github/workflows/seller-static-regression.yml` have been added.
 - `tests/buyer-account-static.test.js` checks authenticated Account/Orders/Library API wiring, account navigation, and Library stream/download links.
 - `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
-- **New:** Buyer static contract assertions were corrected to match the actual current whitespace/quote style and the actual Account/Orders/Library API contracts.
+- Buyer static contract assertions were corrected to match the actual current whitespace/quote style and the actual Account/Orders/Library API contracts.
+- **New:** `tests/seller-product-flow-static.test.js` checks Seller product listing/editor API wiring, private media upload, product media attachment, publishing/unpublishing controls, same-origin authentication, upload-size guard, and server-side publishing validation messaging.
 
 ### Verification status
-- Latest known PostgreSQL acceptance run (#99) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
+- Latest known PostgreSQL acceptance run (#101) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
 - Admin static regression has a confirmed successful run.
+- Buyer static regression has a confirmed successful run (#2).
 - Seller static regression workflow has been configured; a successful post-commit run is not yet verified.
-- Buyer static regression workflow is configured; the updated test's first post-commit run is not yet verified.
+- Seller product-flow static test has been committed; its first CI run is not yet verified.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
-- Verify Seller Static Regression and Buyer Static Regression workflow results.
+- Verify Seller Static Regression and Seller Product Flow Static Regression workflow results.
 - Execute Seller browser smoke in an actual authenticated seller session.
 - Execute unauthorized/non-seller boundary mode.
 - Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
+- Verify Seller Products → New product → Save → Upload video → Attach media → Publish/Unpublish.
 - Verify buyer Account page with real authenticated `/api/orders` and `/api/library` responses.
 - Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
@@ -96,7 +99,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Verify the updated Buyer Static Regression and Seller Static Regression workflow results, then move to authenticated browser acceptance; fix only concrete failures.**
+**Verify Seller Static Regression and Seller Product Flow Static Regression results, then move to authenticated browser acceptance; fix only concrete failures.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
