@@ -1,0 +1,28 @@
+name: Buyer Static Regression
+
+on:
+  push:
+    paths:
+      - 'account.html'
+      - 'orders.html'
+      - 'library.html'
+      - 'tests/buyer-account-static.test.js'
+      - '.github/workflows/buyer-static-regression.yml'
+  pull_request:
+    paths:
+      - 'account.html'
+      - 'orders.html'
+      - 'library.html'
+      - 'tests/buyer-account-static.test.js'
+      - '.github/workflows/buyer-static-regression.yml'
+
+jobs:
+  buyer-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Buyer account/order/library static contract test
+        run: node tests/buyer-account-static.test.js
