@@ -1,8 +1,8 @@
--- Seller workflow foundation v0.1
+-- Seller workflow foundation v0.2
 
 CREATE TABLE seller_products (
   id UUID PRIMARY KEY,
-  seller_id UUID NOT NULL REFERENCES sellers(id) ON DELETE CASCADE,
+  seller_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE CASCADE,
   product_id UUID NOT NULL UNIQUE REFERENCES products(id) ON DELETE CASCADE,
   workflow_status TEXT NOT NULL DEFAULT 'draft' CHECK (workflow_status IN ('draft','uploading','processing','needs_changes','under_review','approved','published','paused','rejected','blocked')),
   submitted_at TIMESTAMPTZ,
@@ -14,7 +14,7 @@ CREATE TABLE seller_products (
 
 CREATE TABLE seller_drafts (
   id UUID PRIMARY KEY,
-  seller_id UUID NOT NULL REFERENCES sellers(id) ON DELETE CASCADE,
+  seller_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE SET NULL,
   draft_step TEXT NOT NULL DEFAULT 'basic' CHECK (draft_step IN ('basic','media','pricing','availability','rights','preview','review')),
   payload JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -24,13 +24,14 @@ CREATE TABLE seller_drafts (
 
 CREATE TABLE seller_payout_requests (
   id UUID PRIMARY KEY,
-  seller_id UUID NOT NULL REFERENCES sellers(id) ON DELETE CASCADE,
+  seller_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE CASCADE,
   amount_minor BIGINT NOT NULL CHECK (amount_minor > 0),
   currency CHAR(3) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'requested' CHECK (status IN ('requested','reviewing','processing','paid','failed','cancelled')),
+  status TEXT NOT NULL DEFAULT 'requested' CHECK (status IN ('requested','reviewing','approved','processing','paid','failed','cancelled')),
   provider_reference TEXT,
   failure_reason TEXT,
   requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  reviewed_at TIMESTAMPTZ,
   processed_at TIMESTAMPTZ
 );
 
