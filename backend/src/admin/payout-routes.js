@@ -29,17 +29,16 @@ router.get('/payouts', async (_req, res, next) => {
     const result = await query(
       `SELECT p.id,
               p.seller_id,
-              p.amount_minor / 100.0 AS amount,
+              p.amount,
               p.currency,
               p.status,
               p.failure_reason,
               p.requested_at,
               p.reviewed_at,
-              p.processed_at AS paid_at,
+              p.paid_at,
               u.email AS seller_email
-         FROM seller_payout_requests p
-         JOIN seller_profiles sp ON sp.id = p.seller_id
-         JOIN users u ON u.id = sp.user_id
+         FROM payouts p
+         JOIN users u ON u.id = p.seller_id
         ORDER BY p.requested_at DESC
         LIMIT 200`
     );
@@ -66,7 +65,7 @@ router.post('/payouts/:id/status', async (req, res, next) => {
   try {
     const nextStatus = String(req.body?.status || '').trim();
     const current = await query(
-      `SELECT id, status FROM seller_payout_requests WHERE id = $1`,
+      `SELECT id, status FROM payouts WHERE id = $1`,
       [req.params.id]
     );
     if (!current.rowCount) return res.status(404).json({ error: 'payout_not_found' });
@@ -81,19 +80,24 @@ router.post('/payouts/:id/status', async (req, res, next) => {
       : null;
 
     const result = await query(
-      `UPDATE seller_payout_requests
+      `UPDATE payouts
           SET status = $2,
-              failure_reason = CASE WHEN $2 = 'failed' THEN $3 ELSE failure_reason END,
+              reviewed_by = CASE
+                WHEN $2 IN ('reviewing','approved','processing','failed','cancelled')
+                THEN $3
+                ELSE reviewed_by
+              END,
+              failure_reason = CASE WHEN $2 = 'failed' THEN $4 ELSE failure_reason END,
               reviewed_at = CASE
                 WHEN $2 IN ('reviewing','approved','processing','failed','cancelled')
                 THEN COALESCE(reviewed_at, NOW())
                 ELSE reviewed_at
               END,
-              processed_at = CASE WHEN $2 IN ('paid','failed','cancelled') THEN COALESCE(processed_at, NOW()) ELSE processed_at END
+              paid_at = CASE WHEN $2 = 'paid' THEN COALESCE(paid_at, NOW()) ELSE paid_at END
         WHERE id = $1
-        RETURNING id, seller_id, amount_minor / 100.0 AS amount, currency, status,
-                  failure_reason, requested_at, reviewed_at, processed_at AS paid_at`,
-      [req.params.id, nextStatus, reason]
+        RETURNING id, seller_id, amount, currency, status, failure_reason,
+                  requested_at, reviewed_at, paid_at`,
+      [req.params.id, nextStatus, req.user.id, reason]
     );
 
     await audit(
