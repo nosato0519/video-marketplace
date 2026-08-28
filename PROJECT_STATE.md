@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 436 — Admin dashboard HTML entrypoint added; public Admin overview now resolves to an existing page, while browser/API acceptance remains required.**
+**Milestone 437 — Admin static entrypoint contract checks added; browser and live authenticated acceptance remain required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -32,10 +32,12 @@ A reusable, international video marketplace independently designed and implement
 - Admin dashboard overview metrics explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired.
 - `app/admin/moderation.html` is implemented as an authenticated Admin moderation console consuming review/report/takedown APIs.
 - `admin/index.html` is the public Admin entrypoint with hash dispatch.
-- **New:** `app/admin/admin-dashboard.html` added as the missing HTML entrypoint for the existing `admin-dashboard.js` renderer, so the public Admin overview route no longer points at a nonexistent file.
+- `app/admin/admin-dashboard.html` is the HTML entrypoint for the existing `admin-dashboard.js` renderer.
+- **New:** `tests/admin-static-entrypoint.test.js` checks the public Admin entrypoint, dashboard renderer entrypoint, moderation API paths, takedown path, and explicit 401/403 handling without requiring credentials or a running database.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
+- The new Admin static contract test has been committed but has not yet been executed by a CI run after this commit.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
@@ -86,7 +88,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Browser-verify `/admin/#/admin` and `/admin/#/admin/moderation`, then perform authenticated-admin and unauthorized acceptance before building the next Admin console.**
+**Let CI execute the new static Admin contract test, then continue with authenticated browser acceptance.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
@@ -96,6 +98,7 @@ A reusable, international video marketplace independently designed and implement
 - Admin dashboards must never display placeholder values as real production metrics or health status.
 - Moderation UI must rely on server-side Admin authorization and must not infer permission from client state.
 - Destructive moderation actions require an explicit reason and are audit-recorded by the backend.
+- Static contract tests may validate wiring without claiming runtime/browser success.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
 - Commit every meaningful milestone and update this state file.
