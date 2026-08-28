@@ -5,6 +5,7 @@ on:
     paths:
       - 'backend/package.json'
       - 'backend/src/media/media-upload-route.js'
+      - 'backend/src/media/media-upload-route.test.js'
       - 'backend/src/media/media-upload-validation.js'
       - 'backend/src/media/media-upload-validation.test.js'
       - '.github/workflows/media-upload-validation-regression.yml'
@@ -12,6 +13,7 @@ on:
     paths:
       - 'backend/package.json'
       - 'backend/src/media/media-upload-route.js'
+      - 'backend/src/media/media-upload-route.test.js'
       - 'backend/src/media/media-upload-validation.js'
       - 'backend/src/media/media-upload-validation.test.js'
       - '.github/workflows/media-upload-validation-regression.yml'
@@ -32,4 +34,4 @@ jobs:
       - name: Install backend dependencies
         run: npm install --no-package-lock
       - name: Run media upload signature regression tests
-        run: node --test src/media/media-upload-validation.test.js
+        run: node --test src/media/media-upload-validation.test.js src/media/media-upload-route.test.js
