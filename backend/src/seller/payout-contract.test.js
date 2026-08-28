@@ -1,29 +1,39 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const sellerPayoutRoute = 'seller/payout-routes.js';
-const adminPayoutRoute = 'admin/payout-routes.js';
-const payoutTable = 'seller_payout_requests';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const sellerPayoutRoute = fs.readFileSync(path.join(here, 'payout-routes.js'), 'utf8');
+const adminPayoutRoute = fs.readFileSync(path.join(here, '..', 'admin', 'payout-routes.js'), 'utf8');
+const payoutMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '004_payouts_audit.sql'), 'utf8');
+const sellerProfileMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '010_seller_profile.sql'), 'utf8');
+const sellerEarningsMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '011_seller_earnings.sql'), 'utf8');
 
-function assertUsesCanonicalPayoutTable(source, label) {
-  assert.match(source, /seller_payout_requests/, `${label} must use the canonical payout request table`);
-  assert.doesNotMatch(source, /FROM payouts\b|UPDATE payouts\b|INSERT INTO payouts\b/, `${label} must not use the legacy payouts table`);
+function assertCanonicalPayoutRoute(source, label) {
+  assert.match(source, /\bFROM payouts\b|\bINSERT INTO payouts\b|\bUPDATE payouts\b/, `${label} must use the migrated payouts table`);
+  assert.doesNotMatch(source, /seller_payout_requests/, `${label} must not depend on an unmigrated seller_payout_requests table`);
 }
 
-test('seller payout contract uses seller_payout_requests and seller profile identity', () => {
-  assert.ok(sellerPayoutRoute);
-  assert.ok(payoutTable);
-  assert.ok(true);
+test('seller and admin payout routes use the migrated payouts contract', () => {
+  assertCanonicalPayoutRoute(sellerPayoutRoute, 'seller payout route');
+  assertCanonicalPayoutRoute(adminPayoutRoute, 'admin payout route');
 });
 
-test('payout status contract is canonical', () => {
+test('seller payout identity remains users.id and profile identity is user keyed', () => {
+  assert.match(payoutMigration, /seller_id UUID NOT NULL REFERENCES users\(id\)/);
+  assert.match(sellerProfileMigration, /user_id UUID PRIMARY KEY REFERENCES users\(id\)/);
+  assert.match(sellerEarningsMigration, /seller_id UUID NOT NULL REFERENCES users\(id\)/);
+});
+
+test('payout lifecycle is shared by the migration and route policy', () => {
   const statuses = ['requested', 'reviewing', 'approved', 'processing', 'paid', 'failed', 'cancelled'];
-  assert.deepEqual(statuses, [...new Set(statuses)]);
+  for (const status of statuses) assert.match(payoutMigration, new RegExp(`'${status}'`));
+  for (const status of statuses) assert.match(adminPayoutRoute, new RegExp(status));
 });
 
-// This contract is intentionally source-level: the runtime DB acceptance suite verifies
-// the SQL against a clean PostgreSQL install. Keeping this small test here prevents a
-// future route edit from silently reintroducing the legacy `payouts` table contract.
-test('route source guard is defined for future integration', () => {
-  assert.equal(typeof assertUsesCanonicalPayoutTable, 'function');
+test('available balance source is seller earnings', () => {
+  assert.match(sellerPayoutRoute, /FROM seller_earnings/);
+  assert.match(sellerPayoutRoute, /status = 'available'/);
 });
