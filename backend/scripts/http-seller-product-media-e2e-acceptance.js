@@ -12,7 +12,9 @@ process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
 const pool = getPool();
 const server = createServer(createApp());
 const mediaRoot = process.env.MEDIA_STORAGE_DIR;
-const uploadBytes = Buffer.from('seller-e2e-video-fixture');
+// Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
+// `ftyp` box signature at byte offset 4; the fixture is not used for playback.
+const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
 const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
