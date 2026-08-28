@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Video Market Admin</title><meta http-equiv="Cache-Control" content="no-store"></head><body><main style="font-family:system-ui,sans-serif;max-width:720px;margin:15vh auto;padding:24px"><h1>Video Market Admin</h1><p id="status">Loading admin section…</p><noscript>JavaScript is required for the admin console.</noscript></main><script>
+(function(){
+  const routes={
+    '#/admin':'/app/admin/admin-dashboard.html',
+    '#/admin/moderation':'/app/admin/moderation.html'
+  };
+  const hash=window.location.hash||'#/admin';
+  const target=routes[hash];
+  if(target){window.location.replace(target);return;}
+  document.getElementById('status').textContent='This admin section is not connected yet. Return to the Admin Dashboard and choose an available section.';
+})();
+</script></body></html>
