@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 448 — Media upload signature validation helper and unit coverage added; route integration remains intentionally pending.**
+**Milestone 449 — Media upload signature validation is integrated into the upload path and route-level regression coverage is added.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -32,22 +32,19 @@ A reusable, international video marketplace independently designed and implement
 - `app/admin/moderation.html` is implemented as an authenticated Admin moderation console consuming review/report/takedown APIs.
 - `admin/index.html` is the public Admin entrypoint with hash dispatch.
 - `app/admin/admin-dashboard.html` is the HTML entrypoint for the existing `admin-dashboard.js` renderer.
-- `tests/admin-static-entrypoint.test.js` checks the public Admin entrypoint, dashboard renderer entrypoint, moderation API paths, takedown path, and explicit 401/403 handling without requiring credentials or a running database.
-- `.github/workflows/admin-static-regression.yml` runs the Admin static entrypoint contract test on changes to Admin/static test files.
-- Seller dashboard static contract test and `.github/workflows/seller-static-regression.yml` have been added.
-- `tests/buyer-account-static.test.js` checks authenticated Account/Orders/Library API wiring, account navigation, and Library stream/download links.
-- `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
-- Buyer static contract assertions were corrected to match the actual whitespace/quote style and the actual Account/Orders/Library API contracts.
-- `tests/seller-product-flow-static.test.js` checks Seller product listing/editor API wiring, private media upload, product media attachment, publishing/unpublishing controls, same-origin authentication, upload-size guard, and server-side publishing validation messaging.
-- `.github/workflows/seller-product-flow-static-regression.yml` runs the Seller product flow static contract test on relevant changes.
-- Seller Product Flow Static Regression has a confirmed successful run.
-- `tests/buyer-purchase-flow-static.test.js` checks Product → Order → Checkout wiring and authenticated Buyer Order History/Library navigation plus protected Watch/Download links and 401 handling.
-- `.github/workflows/buyer-purchase-flow-static-regression.yml` runs the Buyer purchase flow static contract test on relevant changes, with a confirmed successful run.
+- Admin static contract test and regression workflow are implemented.
+- Seller dashboard static contract test and regression workflow are implemented.
+- Buyer Account/Orders/Library static contract test and regression workflow are implemented.
+- Seller Product Flow static contract test and regression workflow are implemented and have a confirmed successful run.
+- Buyer purchase-flow static contract test and regression workflow are implemented and have a confirmed successful run.
 - Browser acceptance checklist is stored in `tests/browser-acceptance-checklist.md` and explicitly requires actual browser evidence.
 - Media stream/download routes require authentication and protected-media authorization, use private/no-store caching, and support range requests.
-- Media upload currently enforces seller authorization, allowed MIME types, upload-size limits, safe storage-key construction, and cleanup on failure.
-- **New:** `backend/src/media/media-upload-validation.js` provides lightweight magic-byte signature checks for supported MP4/WebM/Matroska media.
-- **New:** `backend/src/media/media-upload-validation.test.js` covers valid/invalid MP4 signatures, WebM/Matroska EBML signatures, and required signature lengths.
+- Media upload enforces seller authorization, allowed MIME types, upload-size limits, safe storage-key construction, streamed storage and cleanup on failure.
+- `backend/src/media/media-upload-validation.js` provides lightweight magic-byte signature checks for supported MP4/WebM/Matroska media.
+- `backend/src/media/media-upload-validation.test.js` covers valid/invalid MP4 signatures, WebM/Matroska EBML signatures, and required signature lengths.
+- **New:** `backend/src/media/media-upload-route.js` now performs bounded prefix inspection from the stored file before inserting a media asset as `ready`; it does not buffer the full upload in memory.
+- **New:** `backend/src/media/media-upload-route.test.js` covers signature mismatch rejection/temporary-file cleanup and bounded-prefix inspection behavior.
+- **New:** Media Upload Validation Regression workflow now runs both signature unit tests and route-level upload regression tests.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
@@ -56,16 +53,15 @@ A reusable, international video marketplace independently designed and implement
 - Seller static regression has a confirmed successful run.
 - Seller product-flow static regression has a confirmed successful run (#3).
 - Buyer purchase-flow static regression has a confirmed successful run (#1).
-- The new media signature-validation unit tests have been added but their CI result has not yet been verified.
+- The media signature-validation workflow has been updated to include route-level tests; the new post-update CI run still requires verification.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Product → Order → Checkout → Library UI has not yet been browser-verified against real authenticated/payment responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Media upload hardening
-- Decide and implement safe route integration of media signature validation without buffering multi-GB uploads in memory.
-- Consider a bounded prefix inspection stream or storage-side verification before marking an asset `ready`.
-- Add route-level tests proving mismatched file bodies are rejected and temporary files are removed.
+- Verify the post-update Media Upload Validation CI run.
+- If green, close this hardening milestone.
 
 ### 2. Browser/UI verification
 - Execute Seller browser smoke in an actual authenticated seller session.
@@ -114,7 +110,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Integrate bounded media signature inspection into the upload path without buffering the full file, add route-level mismatch/cleanup tests, then verify CI.**
+**Verify the new Media Upload Validation CI run; if green, move immediately to Seller/Buyer/Admin browser acceptance and record concrete runtime evidence.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
