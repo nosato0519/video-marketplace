@@ -1,0 +1,24 @@
+name: Seller Static Regression
+
+on:
+  push:
+    paths:
+      - 'seller/**'
+      - 'tests/seller-dashboard-static.test.js'
+      - '.github/workflows/seller-static-regression.yml'
+  pull_request:
+    paths:
+      - 'seller/**'
+      - 'tests/seller-dashboard-static.test.js'
+      - '.github/workflows/seller-static-regression.yml'
+
+jobs:
+  seller-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Seller dashboard static contract test
+        run: node tests/seller-dashboard-static.test.js
