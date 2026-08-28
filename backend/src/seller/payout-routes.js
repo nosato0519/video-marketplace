@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../db.js';
+import { getPool, query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 
@@ -28,22 +28,31 @@ router.get('/payouts', async (req, res, next) => {
 });
 
 router.post('/payouts', async (req, res, next) => {
+  const client = await getPool().connect();
   try {
     const amount = Number(req.body?.amount);
     const currency = String(req.body?.currency ?? 'JPY').trim().toUpperCase();
     if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'invalid_amount' });
     if (!/^[A-Z]{3}$/.test(currency)) return res.status(400).json({ error: 'invalid_currency' });
 
-    const balance = await query(
+    await client.query('BEGIN');
+    // Serialize payout requests per seller/currency so concurrent requests cannot
+    // both pass the available-balance check before either is inserted.
+    await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2))`, [String(req.user.id), currency]);
+
+    const balance = await client.query(
       `SELECT COALESCE(SUM(net_amount), 0) AS available
          FROM seller_earnings
         WHERE seller_id = $1 AND currency = $2 AND status = 'available'`,
       [req.user.id, currency]
     );
     const available = Number(balance.rows[0]?.available || 0);
-    if (amount > available) return res.status(409).json({ error: 'insufficient_available_balance', available });
+    if (amount > available) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'insufficient_available_balance', available });
+    }
 
-    const pending = await query(
+    const pending = await client.query(
       `SELECT COALESCE(SUM(amount), 0) AS pending_amount
          FROM payouts
         WHERE seller_id = $1 AND currency = $2
@@ -52,17 +61,24 @@ router.post('/payouts', async (req, res, next) => {
     );
     const pendingAmount = Number(pending.rows[0]?.pending_amount || 0);
     if (amount > Math.max(0, available - pendingAmount)) {
+      await client.query('ROLLBACK');
       return res.status(409).json({ error: 'amount_exceeds_withdrawable_balance', available, pending: pendingAmount });
     }
 
-    const result = await query(
+    const result = await client.query(
       `INSERT INTO payouts (id, seller_id, amount, currency, status)
        VALUES (gen_random_uuid(), $1, $2, $3, 'requested')
        RETURNING id, amount, currency, status, requested_at`,
       [req.user.id, amount, currency]
     );
+    await client.query('COMMIT');
     return res.status(201).json({ payout: result.rows[0] });
-  } catch (error) { return next(error); }
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch {}
+    return next(error);
+  } finally {
+    client.release();
+  }
 });
 
 export default router;
