@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 444 — Buyer purchase-to-library static regression workflow added; runtime CI result remains to be verified.**
+**Milestone 448 — Media upload signature validation helper and unit coverage added; route integration remains intentionally pending.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -23,7 +23,6 @@ A reusable, international video marketplace independently designed and implement
 - Seller authenticated E2E fixture was corrected to the canonical profile fields, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
 - Seller dashboard UI exists at `seller/dashboard.html` with profile, verification, earnings, payout and payout-history flows.
 - Seller product management links to the seller dashboard.
-- Seller browser acceptance checklist and smoke harness exist with authenticated-seller and unauthorized-boundary modes.
 - Seller dashboard auth/error handling was hardened for 401/403 responses.
 - `account.html` buyer account hub is implemented and reads authenticated orders/library data.
 - `orders.html` standalone authenticated buyer order-history page is implemented.
@@ -43,7 +42,12 @@ A reusable, international video marketplace independently designed and implement
 - `.github/workflows/seller-product-flow-static-regression.yml` runs the Seller product flow static contract test on relevant changes.
 - Seller Product Flow Static Regression has a confirmed successful run.
 - `tests/buyer-purchase-flow-static.test.js` checks Product → Order → Checkout wiring and authenticated Buyer Order History/Library navigation plus protected Watch/Download links and 401 handling.
-- **New:** `.github/workflows/buyer-purchase-flow-static-regression.yml` runs the Buyer purchase flow static contract test on relevant changes.
+- `.github/workflows/buyer-purchase-flow-static-regression.yml` runs the Buyer purchase flow static contract test on relevant changes, with a confirmed successful run.
+- Browser acceptance checklist is stored in `tests/browser-acceptance-checklist.md` and explicitly requires actual browser evidence.
+- Media stream/download routes require authentication and protected-media authorization, use private/no-store caching, and support range requests.
+- Media upload currently enforces seller authorization, allowed MIME types, upload-size limits, safe storage-key construction, and cleanup on failure.
+- **New:** `backend/src/media/media-upload-validation.js` provides lightweight magic-byte signature checks for supported MP4/WebM/Matroska media.
+- **New:** `backend/src/media/media-upload-validation.test.js` covers valid/invalid MP4 signatures, WebM/Matroska EBML signatures, and required signature lengths.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
@@ -51,14 +55,19 @@ A reusable, international video marketplace independently designed and implement
 - Buyer static regression has a confirmed successful run (#2).
 - Seller static regression has a confirmed successful run.
 - Seller product-flow static regression has a confirmed successful run (#3).
-- Buyer purchase-flow static regression workflow has just been added; its first run is not yet verified.
+- Buyer purchase-flow static regression has a confirmed successful run (#1).
+- The new media signature-validation unit tests have been added but their CI result has not yet been verified.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Product → Order → Checkout → Library UI has not yet been browser-verified against real authenticated/payment responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
-### 1. Browser/UI verification
-- Verify Buyer purchase-flow static regression result.
+### 1. Media upload hardening
+- Decide and implement safe route integration of media signature validation without buffering multi-GB uploads in memory.
+- Consider a bounded prefix inspection stream or storage-side verification before marking an asset `ready`.
+- Add route-level tests proving mismatched file bodies are rejected and temporary files are removed.
+
+### 2. Browser/UI verification
 - Execute Seller browser smoke in an actual authenticated seller session.
 - Execute unauthorized/non-seller boundary mode.
 - Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
@@ -73,19 +82,19 @@ A reusable, international video marketplace independently designed and implement
 - Verify Admin Moderation page as authenticated admin and verify unauthorized boundary.
 - Record concrete failures only; fix and re-run.
 
-### 2. Buyer UI integration
+### 3. Buyer UI integration
 - Add buyer reporting UI where appropriate.
 - Confirm purchase → Account → Order History → Library → Watch/Download is usable end-to-end from the UI.
 - Add any missing account/profile controls required for the final product.
 
-### 3. Admin UI and moderation acceptance
+### 4. Admin UI and moderation acceptance
 - Wire authenticated live metrics where backend contracts exist.
 - Wire admin payout review UI.
 - Wire seller verification review UI.
 - Add DB-backed acceptance for report processing, takedown and blocked catalog/detail/media access.
 - Connect remaining Admin navigation sections only when their actual screens exist.
 
-### 4. Production hardening
+### 5. Production hardening
 - Complete production authentication/session behavior.
 - Privacy/account controls.
 - Region restrictions and applicable compliance controls.
@@ -93,11 +102,11 @@ A reusable, international video marketplace independently designed and implement
 - Payment/provider production compatibility review.
 - Security review of authorization, media access, webhook handling, uploads and sensitive operations.
 
-### 5. Legacy data migration
+### 6. Legacy data migration
 - Do not auto-convert the legacy BIGINT purchase schema.
 - Define and review backup/restore, rollback and data-integrity strategy before any BIGINT → UUID migration.
 
-### 6. Commercial release / ZIP
+### 7. Commercial release / ZIP
 - Clean-install test.
 - Backup/restore test.
 - Licensing and operator documentation.
@@ -105,7 +114,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Verify Buyer purchase-flow static regression result, then move to authenticated browser acceptance; fix only concrete failures.**
+**Integrate bounded media signature inspection into the upload path without buffering the full file, add route-level mismatch/cleanup tests, then verify CI.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
@@ -118,6 +127,8 @@ A reusable, international video marketplace independently designed and implement
 - Static contract tests may validate wiring without claiming runtime/browser success.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
+- Do not buffer multi-GB media uploads in memory for signature validation.
+- Do not mark media `ready` until the upload integrity checks required by policy have completed.
 - Commit every meaningful milestone and update this state file.
 
 ## Continuation rule
