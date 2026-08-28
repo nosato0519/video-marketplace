@@ -62,4 +62,4 @@ Purpose: manual/runtime acceptance for the real user journeys that static and HT
 - [ ] Account → Orders → Library → Storefront navigation remains usable.
 
 ## Evidence rule
-Do not mark an item complete from static code inspection alone. Record the actual environment, account role, URL/route, result, and any failure before marking the checkbox complete.
+A checkbox is complete only after an actual browser/runtime run. Static code inspection, HTTP/API E2E, and CI contract tests do not count as browser acceptance. Record the commit SHA, browser, environment, account role, route, timestamp, result, and concrete failure evidence before marking an item complete.
