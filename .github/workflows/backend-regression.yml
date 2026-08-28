@@ -24,6 +24,8 @@ jobs:
       - run: npm install
       - run: npm run migrate:preflight
       - run: npm test
+      - name: Run authentication HTTP acceptance
+        run: npm run test:http-auth
       - name: Run media authorization regression
         run: node --test src/media/protected-access.test.js
       - name: Run media upload validation regression
