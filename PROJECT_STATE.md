@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 434 — Admin moderation console added for authenticated review/report workflows and audited takedowns; browser and DB-backed acceptance remain required.**
+**Milestone 435 — Public Admin entrypoint and moderation route exposure added; browser/API acceptance remains required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -30,13 +30,14 @@ A reusable, international video marketplace independently designed and implement
 - `account.html` was hardened for the canonical `/api/orders` response shape and current order field names.
 - `library.html` has explicit navigation to My Account, Order History and Storefront.
 - Admin dashboard overview metrics explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired.
-- **New:** `app/admin/moderation.html` added as an authenticated Admin moderation console consuming `/api/admin/content/reviews`, `/api/admin/content/reports`, status transition endpoints, and content takedown. It handles 401/403 explicitly and requires a takedown reason; review actions surface notes requirements.
+- `app/admin/moderation.html` is implemented as an authenticated Admin moderation console consuming review/report/takedown APIs.
+- **New:** `admin/index.html` added as the public Admin entrypoint with hash dispatch for the Admin area; `admin/moderation.html` exposes the moderation console from the public `/admin/` path.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
-- Admin moderation console has not yet been browser-verified or DB-accepted end-to-end. Do not claim moderation acceptance is green.
+- Admin moderation console and public Admin entrypoint have not yet been browser-verified or DB-accepted end-to-end. Do not claim moderation acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
@@ -47,6 +48,7 @@ A reusable, international video marketplace independently designed and implement
 - Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
 - Verify navigation Account → Orders → Library → Storefront on desktop and mobile widths.
+- Verify `/admin/#/admin/moderation` resolves to the public moderation entrypoint and loads the console.
 - Verify Admin Moderation page as authenticated admin and verify unauthorized boundary.
 - Record concrete failures only; fix and re-run.
 
@@ -60,7 +62,7 @@ A reusable, international video marketplace independently designed and implement
 - Wire admin payout review UI.
 - Wire seller verification review UI.
 - Add DB-backed acceptance for report processing, takedown and blocked catalog/detail/media access.
-- Link the moderation console into the Admin Dashboard navigation once the exact route convention is verified.
+- Connect remaining Admin navigation sections only when their actual screens exist.
 
 ### 4. Production hardening
 - Complete production authentication/session behavior.
@@ -77,13 +79,12 @@ A reusable, international video marketplace independently designed and implement
 ### 6. Commercial release / ZIP
 - Clean-install test.
 - Backup/restore test.
-- Production configuration documentation.
 - Licensing and operator documentation.
 - Commercial ZIP packaging.
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Verify the new Admin Moderation console's route/asset loading and connect it to the existing Admin navigation without guessing the application's routing convention; then perform browser/API acceptance.**
+**Browser-verify `/admin/#/admin/moderation` and the public moderation entrypoint, then perform authenticated-admin and unauthorized acceptance before building the next Admin console.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
