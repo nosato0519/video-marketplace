@@ -16,10 +16,15 @@ let userId = null;
 let cookie = null;
 
 async function request(baseUrl, path, options = {}) {
-  const response = await fetch(`${baseUrl}${path}`, options);
+  console.log(`http-auth-acceptance: request ${options.method || 'GET'} ${path}`);
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...options,
+    signal: options.signal || AbortSignal.timeout(15_000),
+  });
   const text = await response.text();
   let body = text;
   try { body = JSON.parse(text); } catch {}
+  console.log(`http-auth-acceptance: response ${options.method || 'GET'} ${path} -> ${response.status}`);
   return { response, body };
 }
 
@@ -29,9 +34,14 @@ function sessionCookie(response) {
   return match ? `video_marketplace_session=${match[1]}` : null;
 }
 
+const serverError = (error) => console.error('http-auth-acceptance: server error', error);
+server.on('error', serverError);
+
 try {
+  console.log('http-auth-acceptance: starting server');
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  console.log(`http-auth-acceptance: server listening ${baseUrl}`);
 
   let result = await request(baseUrl, '/api/auth/register', {
     method: 'POST', headers: { 'content-type': 'application/json' },
@@ -70,8 +80,8 @@ try {
   console.log('http-auth-acceptance: PASS');
 } finally {
   if (userId) {
-    await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]).catch(() => {});
-    await pool.query('DELETE FROM users WHERE id = $1', [userId]).catch(() => {});
+    await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]).catch((error) => console.error('http-auth-acceptance: session cleanup failed', error));
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]).catch((error) => console.error('http-auth-acceptance: user cleanup failed', error));
   }
   await new Promise((resolve) => server.close(resolve));
   await pool.end();
