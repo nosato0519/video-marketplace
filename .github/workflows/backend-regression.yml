@@ -28,3 +28,5 @@ jobs:
         run: node --test src/media/protected-access.test.js
       - name: Run media upload validation regression
         run: node --test src/media/media-upload-validation.test.js
+      - name: Run media access HTTP acceptance
+        run: npm run test:http-media-access-e2e
