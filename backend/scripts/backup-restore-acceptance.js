@@ -40,7 +40,7 @@ try {
   if (stat.size === 0) throw new Error('round-trip dump is empty');
 
   await run('psql', ['-v', 'ON_ERROR_STOP=1', '-c', 'UPDATE backup_restore_acceptance_marker SET value = \'mutated-after-backup\' WHERE id = 1;']);
-  await run('pg_restore', ['--clean', '--if-exists', '--no-owner', '--dbname', parsed.toString(), dump], databaseEnv);
+  await run('pg_restore', ['--clean', '--if-exists', '--no-owner', dump]);
 
   const result = await run('psql', ['-At', '-v', 'ON_ERROR_STOP=1', '-c', 'SELECT value FROM backup_restore_acceptance_marker WHERE id = 1;']);
   if (result.stdout.trim() !== marker) throw new Error(`restore verification failed: expected ${marker}, got ${result.stdout.trim()}`);
