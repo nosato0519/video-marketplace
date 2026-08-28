@@ -6,6 +6,7 @@ import { pipeline } from 'node:stream/promises';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
+import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-validation.js';
 
 const router = express.Router();
 const MAX_BYTES = Number(process.env.MEDIA_MAX_UPLOAD_BYTES || 5 * 1024 * 1024 * 1024);
@@ -58,6 +59,20 @@ router.post('/upload', async (req, res, next) => {
 
   try {
     await pipeline(limiter(), fs.createWriteStream(filePath, { flags: 'wx' }));
+
+    const signatureLength = requiredSignatureBytes(mime);
+    const handle = await fs.promises.open(filePath, 'r');
+    let signature;
+    try {
+      signature = Buffer.alloc(signatureLength);
+      const { bytesRead } = await handle.read(signature, 0, signatureLength, 0);
+      if (bytesRead !== signatureLength || !mediaSignatureMatches(mime, signature)) {
+        throw Object.assign(new Error('invalid_media_signature'), { statusCode: 415 });
+      }
+    } finally {
+      await handle.close();
+    }
+
     const result = await query(
       `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
        VALUES ($1, $2, $3, $4, $5, $6, 'ready')
