@@ -37,7 +37,7 @@ router.post('/payouts', async (req, res, next) => {
 
     await client.query('BEGIN');
     // Serialize payout requests per seller/currency so concurrent requests cannot
-    // both pass the available-balance check before either is inserted.
+    // both pass the balance check before either is inserted.
     await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2))`, [String(req.user.id), currency]);
 
     const balance = await client.query(
@@ -47,22 +47,22 @@ router.post('/payouts', async (req, res, next) => {
       [req.user.id, currency]
     );
     const available = Number(balance.rows[0]?.available || 0);
-    if (amount > available) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'insufficient_available_balance', available });
-    }
 
-    const pending = await client.query(
-      `SELECT COALESCE(SUM(amount), 0) AS pending_amount
+    // A payout consumes the corresponding seller earnings once it is accepted
+    // into the payout lifecycle. Failed/cancelled payouts release the balance.
+    const reserved = await client.query(
+      `SELECT COALESCE(SUM(amount), 0) AS reserved_amount
          FROM payouts
         WHERE seller_id = $1 AND currency = $2
-          AND status IN ('requested','reviewing','approved','processing')`,
+          AND status NOT IN ('failed','cancelled')`,
       [req.user.id, currency]
     );
-    const pendingAmount = Number(pending.rows[0]?.pending_amount || 0);
-    if (amount > Math.max(0, available - pendingAmount)) {
+    const reservedAmount = Number(reserved.rows[0]?.reserved_amount || 0);
+    const withdrawable = Math.max(0, available - reservedAmount);
+
+    if (amount > withdrawable) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'amount_exceeds_withdrawable_balance', available, pending: pendingAmount });
+      return res.status(409).json({ error: 'amount_exceeds_withdrawable_balance', available, reserved: reservedAmount });
     }
 
     const result = await client.query(
