@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 457 — Seller payout creation is now transactionally serialized per seller/currency to prevent concurrent requests from overspending the same available balance. Runtime/CI verification remains.**
+**Milestone 458 — Seller payout HTTP acceptance now includes a real concurrent-request regression; runtime/CI verification remains.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -21,13 +21,14 @@
 - Extended `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to cover Admin authentication, Admin payout listing, requested -> reviewing -> approved -> processing -> paid transitions, invalid terminal transition rejection, audit retrieval, and Seller-side persistence of the final paid state.
 - Confirmed `.github/workflows/postgres-migration-acceptance.yml` runs the payout HTTP acceptance script after a fresh PostgreSQL migration and a second idempotent migration pass.
 - Hardened Seller payout creation with an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency, preventing concurrent payout requests from racing through the available-balance check and both being accepted.
+- Added a concurrent HTTP acceptance case to the Seller Profile/Earnings/Payout E2E: two simultaneous 2,500 JPY payout requests with only 3,500 JPY withdrawable after the first 1,000 JPY request must produce exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green, but it predates the latest payout lifecycle extension and concurrency hardening.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
 - Seller and Admin payout routes now match the actual migration schema at source level.
-- The extended payout HTTP acceptance script is wired into CI, but GitHub currently reports no workflow run associated with the latest payout commits and the latest commit status has no checks. Do not claim payout runtime acceptance green.
+- The extended payout HTTP acceptance script, including concurrency coverage, is wired into CI, but GitHub currently reports no workflow run associated with the latest payout commits and the latest commit status has no checks. Do not claim payout runtime acceptance green.
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
 ## Canonical seller/payout model
