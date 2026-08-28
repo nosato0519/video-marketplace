@@ -87,9 +87,6 @@ try {
   assert.equal(overdraw.response.status, 409, JSON.stringify(overdraw.body));
   assert.equal(overdraw.body.error, 'amount_exceeds_withdrawable_balance');
 
-  // Concurrency acceptance: two simultaneous requests must not both pass the
-  // balance/reservation checks. With 4,500 JPY available and 1,000 JPY already
-  // reserved, two 2,500 JPY requests can only result in one success.
   const [concurrentA, concurrentB] = await Promise.all([
     request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) }),
     request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) })
@@ -123,7 +120,12 @@ try {
   const audit = await request(baseUrl, `/api/admin/payouts/${payoutId}/audit`, { headers: { cookie: adminCookie } });
   assert.equal(audit.response.status, 200, JSON.stringify(audit.body));
   assert.ok(Array.isArray(audit.body.events));
-  assert.equal(audit.body.events.filter((event) => event.resource_id === payoutId).length >= 4, true);
+  const payoutAuditEvents = audit.body.events.filter((event) => event.resource_id === payoutId);
+  assert.equal(payoutAuditEvents.length, 4, JSON.stringify(audit.body));
+  assert.deepEqual(
+    payoutAuditEvents.map((event) => event.metadata?.to_status ?? event.details?.to_status ?? event.action).filter(Boolean),
+    ['reviewing', 'approved', 'processing', 'paid']
+  );
 
   const sellerPayoutsAfterAdmin = await request(baseUrl, '/api/seller/payouts', { headers: { cookie } });
   assert.equal(sellerPayoutsAfterAdmin.response.status, 200, JSON.stringify(sellerPayoutsAfterAdmin.body));
