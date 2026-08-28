@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 441 — Seller product creation, private media upload, and publishing flow now has static contract coverage.**
+**Milestone 442 — Seller Product Flow Static Regression workflow added; runtime CI result remains to be verified.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -38,15 +38,16 @@ A reusable, international video marketplace independently designed and implement
 - Seller dashboard static contract test and `.github/workflows/seller-static-regression.yml` have been added.
 - `tests/buyer-account-static.test.js` checks authenticated Account/Orders/Library API wiring, account navigation, and Library stream/download links.
 - `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
-- Buyer static contract assertions were corrected to match the actual current whitespace/quote style and the actual Account/Orders/Library API contracts.
-- **New:** `tests/seller-product-flow-static.test.js` checks Seller product listing/editor API wiring, private media upload, product media attachment, publishing/unpublishing controls, same-origin authentication, upload-size guard, and server-side publishing validation messaging.
+- Buyer static contract assertions were corrected to match the actual whitespace/quote style and the actual Account/Orders/Library API contracts.
+- `tests/seller-product-flow-static.test.js` checks Seller product listing/editor API wiring, private media upload, product media attachment, publishing/unpublishing controls, same-origin authentication, upload-size guard, and server-side publishing validation messaging.
+- **New:** `.github/workflows/seller-product-flow-static-regression.yml` runs the Seller product flow static contract test on relevant changes.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
 - Admin static regression has a confirmed successful run.
 - Buyer static regression has a confirmed successful run (#2).
 - Seller static regression workflow has been configured; a successful post-commit run is not yet verified.
-- Seller product-flow static test has been committed; its first CI run is not yet verified.
+- Seller product-flow static regression workflow has just been added; its first run is not yet verified.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
