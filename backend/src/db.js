@@ -20,6 +20,20 @@ export function getPool() {
 }
 
 export async function query(text, values = []) {
-  const result = await getPool().query(text, values);
-  return result;
+  return getPool().query(text, values);
+}
+
+export async function withTransaction(fn) {
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch {}
+    throw error;
+  } finally {
+    client.release();
+  }
 }
