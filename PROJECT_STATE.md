@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 433 — Admin dashboard placeholder metrics hardened to never present fake production status; buyer/seller browser verification remains the main gate.**
+**Milestone 434 — Admin moderation console added for authenticated review/report workflows and audited takedowns; browser and DB-backed acceptance remain required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -29,13 +29,14 @@ A reusable, international video marketplace independently designed and implement
 - `orders.html` standalone authenticated buyer order-history page is implemented.
 - `account.html` was hardened for the canonical `/api/orders` response shape and current order field names.
 - `library.html` has explicit navigation to My Account, Order History and Storefront.
-- **New:** Admin dashboard cards remain available for operator navigation, but overview metrics now explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired. The UI no longer presents `Healthy` or fake sales/review/payout numbers as production facts.
+- Admin dashboard overview metrics explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired.
+- **New:** `app/admin/moderation.html` added as an authenticated Admin moderation console consuming `/api/admin/content/reviews`, `/api/admin/content/reports`, status transition endpoints, and content takedown. It handles 401/403 explicitly and requires a takedown reason; review actions surface notes requirements.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
-- Admin dashboard is not considered live-data accepted; metrics are intentionally marked unavailable.
+- Admin moderation console has not yet been browser-verified or DB-accepted end-to-end. Do not claim moderation acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
@@ -46,6 +47,7 @@ A reusable, international video marketplace independently designed and implement
 - Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
 - Verify navigation Account → Orders → Library → Storefront on desktop and mobile widths.
+- Verify Admin Moderation page as authenticated admin and verify unauthorized boundary.
 - Record concrete failures only; fix and re-run.
 
 ### 2. Buyer UI integration
@@ -57,8 +59,8 @@ A reusable, international video marketplace independently designed and implement
 - Wire authenticated live metrics where backend contracts exist.
 - Wire admin payout review UI.
 - Wire seller verification review UI.
-- Wire report processing/takedown UI.
 - Add DB-backed acceptance for report processing, takedown and blocked catalog/detail/media access.
+- Link the moderation console into the Admin Dashboard navigation once the exact route convention is verified.
 
 ### 4. Production hardening
 - Complete production authentication/session behavior.
@@ -81,7 +83,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Browser-verify the buyer Account/Orders/Library flow and pending Seller acceptance; then wire only the admin live-data endpoints that have verified backend contracts.**
+**Verify the new Admin Moderation console's route/asset loading and connect it to the existing Admin navigation without guessing the application's routing convention; then perform browser/API acceptance.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
@@ -89,6 +91,8 @@ A reusable, international video marketplace independently designed and implement
 - Keep seller authorization server-side; UI must not bypass backend authorization.
 - Buyer account/order/library pages use same-origin authenticated requests and never trust client-provided user IDs.
 - Admin dashboards must never display placeholder values as real production metrics or health status.
+- Moderation UI must rely on server-side Admin authorization and must not infer permission from client state.
+- Destructive moderation actions require an explicit reason and are audit-recorded by the backend.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
 - Commit every meaningful milestone and update this state file.
