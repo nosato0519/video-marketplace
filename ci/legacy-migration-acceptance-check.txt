@@ -1,0 +1,2 @@
+Acceptance checkpoint: legacy purchase migration investigation branch.
+This file intentionally records no behavioral change; it exists to make the branch CI-visible for investigation.
