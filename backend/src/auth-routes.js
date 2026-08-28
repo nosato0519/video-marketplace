@@ -118,7 +118,8 @@ export function registerAuthRoutes(app) {
     try {
       const token = readSessionToken(req);
       if (token) await query(`UPDATE user_sessions SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL`, [hashSessionToken(token)]);
-      return res.clearCookie(SESSION_COOKIE, { ...cookieOptions(), maxAge: 0 });
+      res.clearCookie(SESSION_COOKIE, { ...cookieOptions(), maxAge: 0 });
+      return res.json({ ok: true });
     } catch (error) { return next(error); }
   });
 }
