@@ -1,0 +1,26 @@
+name: Seller Product Flow Static Regression
+
+on:
+  push:
+    paths:
+      - 'seller/products.html'
+      - 'seller/product-editor.html'
+      - 'tests/seller-product-flow-static.test.js'
+      - '.github/workflows/seller-product-flow-static-regression.yml'
+  pull_request:
+    paths:
+      - 'seller/products.html'
+      - 'seller/product-editor.html'
+      - 'tests/seller-product-flow-static.test.js'
+      - '.github/workflows/seller-product-flow-static-regression.yml'
+
+jobs:
+  seller-product-flow-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Seller product flow static contract test
+        run: node tests/seller-product-flow-static.test.js
