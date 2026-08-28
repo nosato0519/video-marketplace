@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 456 — Payout acceptance is wired into the PostgreSQL CI workflow; no workflow run is currently associated with the latest payout changes, so runtime Green remains unproven.**
+**Milestone 457 — Seller payout creation is now transactionally serialized per seller/currency to prevent concurrent requests from overspending the same available balance. Runtime/CI verification remains.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -20,13 +20,14 @@
 - Added source-level payout contract regression coverage against the real migrations.
 - Extended `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to cover Admin authentication, Admin payout listing, requested -> reviewing -> approved -> processing -> paid transitions, invalid terminal transition rejection, audit retrieval, and Seller-side persistence of the final paid state.
 - Confirmed `.github/workflows/postgres-migration-acceptance.yml` runs the payout HTTP acceptance script after a fresh PostgreSQL migration and a second idempotent migration pass.
+- Hardened Seller payout creation with an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency, preventing concurrent payout requests from racing through the available-balance check and both being accepted.
 
 ### Verification status
-- Latest known PostgreSQL acceptance run (#101) is green, but it predates the latest payout lifecycle extension.
+- Latest known PostgreSQL acceptance run (#101) is green, but it predates the latest payout lifecycle extension and concurrency hardening.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
 - Seller and Admin payout routes now match the actual migration schema at source level.
-- The extended payout HTTP acceptance script is wired into CI, but GitHub currently reports **no workflow run associated with the latest payout commits** and the latest commit status has no checks. Do not claim payout runtime acceptance green.
+- The extended payout HTTP acceptance script is wired into CI, but GitHub currently reports no workflow run associated with the latest payout commits and the latest commit status has no checks. Do not claim payout runtime acceptance green.
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
 ## Canonical seller/payout model
@@ -40,12 +41,12 @@
 - Do not introduce `seller_payout_requests` or `seller_profiles.id` merely to satisfy stale route code; the real migration set is authoritative.
 
 ## Release blocker status
-**BLOCKED:** Source-level payout contracts are reconciled and the full HTTP acceptance is wired into the PostgreSQL workflow. Remaining blocker is empirical verification: obtain a CI run for the latest changes, prove fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
+**BLOCKED:** Source-level payout contracts, lifecycle acceptance code, and concurrency protection are implemented. Remaining blocker is empirical verification: obtain a CI run for the latest changes, prove fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
 
 ## Remaining work — priority order
 1. **Payout runtime + clean-install verification — BLOCKER**
    - Obtain/execute the PostgreSQL acceptance workflow for the latest payout changes.
-   - Verify audit events and available-balance calculations.
+   - Verify audit events, available-balance calculations, and concurrent-request behavior.
    - Verify fresh migration installation and existing-install migration expectations.
 2. **Admin integration**
    - Live metrics against verified canonical tables.
