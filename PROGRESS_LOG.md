@@ -1,6 +1,6 @@
 # Development Progress Log
 
-## 2026-08-28 — Milestone 445 checkpoint
+## 2026-08-28 — Milestone 446 checkpoint
 
 ### Completed / verified
 - Buyer Purchase Flow Static Regression CI is green.
@@ -12,17 +12,19 @@
 - Seller product editor enforces the 5 GiB client-side guard while the server remains authoritative.
 - Buyer product page creates an order and then requests checkout using the returned order ID.
 - Buyer Library provides protected watch/download entry points.
+- Added `tests/browser-acceptance-checklist.md` as the authoritative manual/runtime checklist for Seller, Buyer purchase, authorization boundaries, Admin and responsive smoke acceptance.
 
 ### No speculative changes
-The current UI/API inspection did not identify a concrete defect that can be safely fixed from source inspection alone. No unnecessary code changes were made.
+No runtime browser was available through the current development connector, so no browser result is claimed as green. The checklist explicitly requires real runtime evidence before marking items complete.
 
 ### Remaining work
-1. Execute authenticated browser acceptance for Seller dashboard/products/product editor.
-2. Execute authenticated browser acceptance for Buyer product → order → checkout → library → watch/download.
-3. Execute unauthorized boundary checks for Buyer/Seller/Admin.
-4. Execute Admin UI acceptance for dashboard/moderation/payout/verification.
-5. Perform production hardening: authentication/session, media protection, upload limits, webhooks, payment compatibility, privacy/compliance, clean install and backup/restore.
-6. Final commercial ZIP packaging and full release acceptance.
+1. Execute the new browser acceptance checklist in an actual browser/runtime environment.
+2. Execute authenticated Seller dashboard/products/product-editor acceptance.
+3. Execute authenticated Buyer product → order → checkout → library → watch/download acceptance.
+4. Execute unauthorized Buyer/Seller/Admin boundary checks.
+5. Execute Admin UI acceptance for dashboard/moderation/payout/verification.
+6. Perform production hardening: authentication/session, media protection, upload limits, webhooks, payment compatibility, privacy/compliance, clean install and backup/restore.
+7. Final commercial ZIP packaging and full release acceptance.
 
 ### Exact next step
-Continue with browser-level acceptance preparation/verification; do not claim browser success until an actual browser run is available and green.
+Use an actual browser/runtime environment to execute `tests/browser-acceptance-checklist.md`. Do not convert source inspection or HTTP E2E into a browser-success claim.
