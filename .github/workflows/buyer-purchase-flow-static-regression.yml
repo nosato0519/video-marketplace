@@ -1,0 +1,28 @@
+name: Buyer Purchase Flow Static Regression
+
+on:
+  push:
+    paths:
+      - 'product.html'
+      - 'library.html'
+      - 'orders.html'
+      - 'tests/buyer-purchase-flow-static.test.js'
+      - '.github/workflows/buyer-purchase-flow-static-regression.yml'
+  pull_request:
+    paths:
+      - 'product.html'
+      - 'library.html'
+      - 'orders.html'
+      - 'tests/buyer-purchase-flow-static.test.js'
+      - '.github/workflows/buyer-purchase-flow-static-regression.yml'
+
+jobs:
+  buyer-purchase-flow-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Buyer purchase flow static contract test
+        run: node tests/buyer-purchase-flow-static.test.js
