@@ -1,0 +1,31 @@
+name: Media Upload Validation Regression
+
+on:
+  push:
+    paths:
+      - 'backend/src/media/media-upload-route.js'
+      - 'backend/src/media/media-upload-validation.js'
+      - 'backend/src/media/media-upload-validation.test.js'
+      - '.github/workflows/media-upload-validation-regression.yml'
+  pull_request:
+    paths:
+      - 'backend/src/media/media-upload-route.js'
+      - 'backend/src/media/media-upload-validation.js'
+      - 'backend/src/media/media-upload-validation.test.js'
+      - '.github/workflows/media-upload-validation-regression.yml'
+
+jobs:
+  media-upload-validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install backend dependencies
+        run: npm ci
+      - name: Run media upload signature regression tests
+        run: node --test src/media/media-upload-validation.test.js
