@@ -2,7 +2,16 @@ name: postgres-migration-acceptance
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'backend/migrations/**'
+      - 'backend/src/**'
+      - 'backend/scripts/**'
+      - 'backend/package.json'
+      - '.github/workflows/postgres-migration-acceptance.yml'
   push:
+    branches:
+      - hardening/backup-restore
     paths:
       - 'backend/migrations/**'
       - 'backend/src/**'
