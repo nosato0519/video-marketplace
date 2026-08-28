@@ -44,7 +44,7 @@ test('rejects reuse of an event id when the payload hash changes', { skip: !proc
     eventType: 'payment_succeeded',
     providerPaymentId: `pay_tamper_${suffix}`,
     payloadHash: 'original_hash',
-    orderId: 'order_1',
+    orderId: null,
   };
 
   await recordPaymentEvent(event);
