@@ -23,6 +23,7 @@
     "test:http-seller-product-media-e2e": "node scripts/http-seller-product-media-e2e-acceptance.js",
     "test:http-buyer-order-report-e2e": "node scripts/http-buyer-order-report-e2e-acceptance.js",
     "test:http-seller-profile-earnings-payout-e2e": "node scripts/http-seller-profile-earnings-payout-e2e-acceptance.js",
+    "test:admin-payout-concurrency-regression": "node scripts/admin-payout-concurrency-regression.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": {
