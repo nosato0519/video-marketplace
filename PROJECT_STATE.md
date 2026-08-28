@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 430 — Buyer account hub and standalone order-history UI added; browser acceptance and UI/API contract verification remain required.**
+**Milestone 431 — Buyer Account/Orders UI contract hardening complete; browser/API verification remains the gate before declaring buyer UI accepted.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -25,22 +25,22 @@ A reusable, international video marketplace independently designed and implement
 - Seller product management links to the seller dashboard.
 - Seller dashboard browser acceptance checklist and smoke harness exist, including explicit authenticated-seller and unauthorized-boundary modes.
 - Seller dashboard auth/error handling was hardened for 401/403 responses.
-- **New:** `account.html` added as the buyer account hub, loading authenticated `/api/orders` and `/api/library` data and linking to the storefront, full order history and Library.
-- **New:** `orders.html` added as a standalone authenticated buyer order-history page with order/product/amount/currency/status/date display and navigation back to Account/Library/Storefront.
-- **New:** `PROJECT_STATE.md` updated to record the buyer UI milestone and the remaining verification work.
+- `account.html` buyer account hub is implemented.
+- `orders.html` standalone authenticated buyer order-history page is implemented.
+- **New:** `account.html` was hardened to tolerate the canonical order response as either an array or an object containing `items`/`orders`, and to recognize the current product/date field variants without trusting client user IDs.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
-- The newly added buyer Account and Orders pages have not yet been browser-verified against the live API response schema. Do not claim these UI flows are green until tested.
+- Buyer Account and Orders UI have not yet been browser-verified against real authenticated API responses. Do not claim buyer UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
-- Execute the Seller browser smoke harness in an actual authenticated seller session.
-- Execute the unauthorized/non-seller boundary mode.
+- Execute Seller browser smoke in an actual authenticated seller session.
+- Execute unauthorized/non-seller boundary mode.
 - Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
-- Verify buyer Account page loads authenticated order/library data.
-- Verify buyer Orders page matches the canonical `/api/orders` response fields and displays real records correctly.
+- Verify buyer Account page with real authenticated `/api/orders` and `/api/library` responses.
+- Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
 - Record concrete failures only; fix and re-run.
 
@@ -76,13 +76,13 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Browser-verify the new buyer Account/Orders UI against the canonical API responses, while also executing the pending Seller browser smoke/authorization checks. Fix concrete mismatches before adding more UI.**
+**Browser-verify the buyer Account/Orders/Library flow and the pending Seller browser acceptance. Fix only observed contract or UI failures, then re-run CI/acceptance as appropriate.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
 - Never claim CI/browser success without a completed, verifiable run.
 - Keep seller authorization server-side; UI must not bypass backend authorization.
-- Buyer account/order/library pages must use same-origin authenticated requests and must not trust client-provided user IDs.
+- Buyer account/order/library pages use same-origin authenticated requests and never trust client-provided user IDs.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
 - Commit every meaningful milestone and update this state file.
