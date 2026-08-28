@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 454 — Seller/Admin payout routes are aligned with the actual `payouts` migration schema; runtime and clean-install verification remain.**
+**Milestone 455 — Payout HTTP acceptance now covers the Seller -> Admin lifecycle and audit contract; execution against PostgreSQL remains the blocker.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -16,15 +16,16 @@
 - Media upload hardening workflow with route-level tests; observed green.
 - Confirmed actual migration set: `010_seller_profile.sql` defines `seller_profiles.user_id` as the primary key; `011_seller_earnings.sql` defines `seller_earnings.seller_id -> users.id`; `004_payouts_audit.sql` defines canonical `payouts.seller_id -> users.id` and the payout lifecycle.
 - Corrected Seller payout route to use the migrated `payouts` table and `seller_earnings` available balance.
+- Corrected Admin payout route to use the same canonical `payouts` / `users.id` schema. Admin listing reads `p.amount`/`p.paid_at`, and status transitions update `reviewed_by`/`reviewed_at`/`paid_at` using columns present in the payout migration.
 - Added source-level payout contract regression coverage against the real migrations.
-- **Corrected Admin payout route to use the same canonical `payouts` / `users.id` schema.** Admin listing now reads `p.amount`/`p.paid_at`, and status transitions update `reviewed_by`/`reviewed_at`/`paid_at` using columns that actually exist in `004_payouts_audit.sql`.
+- **Extended `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to cover Admin authentication, Admin payout listing, requested -> reviewing -> approved -> processing -> paid transitions, invalid terminal transition rejection, audit retrieval, and Seller-side persistence of the final paid state.**
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
 - Seller and Admin payout routes now match the actual migration schema at source level.
-- **Runtime payout flow and clean-install verification are still pending.** Do not claim them green until executed against PostgreSQL.
+- **The payout HTTP acceptance script now expresses the full Seller/Admin lifecycle, but it has not yet been executed against PostgreSQL in this session. Do not claim runtime payout acceptance green.**
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
 ## Canonical seller/payout model
@@ -38,12 +39,11 @@
 - Do not introduce `seller_payout_requests` or `seller_profiles.id` merely to satisfy stale route code; the real migration set is authoritative.
 
 ## Release blocker status
-**BLOCKED:** The Seller/Admin route source contract is now reconciled with the actual payout migration. The remaining blocker is empirical verification: runtime payout flow, fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
+**BLOCKED:** Source-level payout contracts are reconciled and HTTP acceptance now covers the lifecycle. Remaining blocker is empirical verification: execute against PostgreSQL, prove fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
 
 ## Remaining work — priority order
 1. **Payout runtime + clean-install verification — BLOCKER**
-   - Run route-level regression against PostgreSQL.
-   - Verify Seller payout creation/listing and Admin review/status transitions end-to-end.
+   - Execute the extended Seller/Admin HTTP acceptance against PostgreSQL.
    - Verify audit events and available-balance calculations.
    - Verify fresh migration installation and existing-install migration expectations.
 2. **Admin integration**
@@ -63,7 +63,7 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Run the real payout runtime/DB acceptance against the canonical `payouts` model, then implement Admin live metrics from the verified schema.**
+**Execute `http-seller-profile-earnings-payout-e2e-acceptance.js` against the real PostgreSQL migration path. Fix any runtime failures before touching Admin live metrics.**
 
 ## Continuation rule
 At the start of every development session, read this file first, inspect latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
