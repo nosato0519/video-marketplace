@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 431 — Buyer Account/Orders UI contract hardening complete; browser/API verification remains the gate before declaring buyer UI accepted.**
+**Milestone 432 — Buyer Account → Orders → Library navigation integrated; browser/API verification remains the release gate.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -20,19 +20,20 @@ A reusable, international video marketplace independently designed and implement
 - Admin payout and seller verification routes are mounted.
 - PostgreSQL migration preflight/execution is deterministic and concurrency-safe.
 - Legacy BIGINT purchase installs remain deliberately blocked until a reviewed backup/rollback migration plan exists.
-- Seller authenticated E2E fixture was corrected to the canonical profile field names, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
+- Seller authenticated E2E fixture was corrected to the canonical profile fields, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
 - Seller dashboard UI exists at `seller/dashboard.html` with profile, verification, earnings, payout and payout-history flows.
 - Seller product management links to the seller dashboard.
-- Seller dashboard browser acceptance checklist and smoke harness exist, including explicit authenticated-seller and unauthorized-boundary modes.
+- Seller browser acceptance checklist and smoke harness exist with authenticated-seller and unauthorized-boundary modes.
 - Seller dashboard auth/error handling was hardened for 401/403 responses.
-- `account.html` buyer account hub is implemented.
+- `account.html` buyer account hub is implemented and reads authenticated orders/library data.
 - `orders.html` standalone authenticated buyer order-history page is implemented.
-- **New:** `account.html` was hardened to tolerate the canonical order response as either an array or an object containing `items`/`orders`, and to recognize the current product/date field variants without trusting client user IDs.
+- `account.html` was hardened for the canonical `/api/orders` response shape (`{items}`) and current order field names.
+- **New:** `library.html` now has explicit navigation to My Account, Order History and Storefront, completing the primary buyer account navigation loop.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
-- Buyer Account and Orders UI have not yet been browser-verified against real authenticated API responses. Do not claim buyer UI acceptance is green.
+- Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses. Do not claim buyer UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
@@ -42,6 +43,7 @@ A reusable, international video marketplace independently designed and implement
 - Verify buyer Account page with real authenticated `/api/orders` and `/api/library` responses.
 - Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
+- Verify navigation Account → Orders → Library → Storefront on desktop and mobile widths.
 - Record concrete failures only; fix and re-run.
 
 ### 2. Buyer UI integration
