@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 442 — Seller Product Flow Static Regression workflow added; runtime CI result remains to be verified.**
+**Milestone 443 — Buyer purchase-to-library static contract coverage added.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -40,28 +40,32 @@ A reusable, international video marketplace independently designed and implement
 - `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
 - Buyer static contract assertions were corrected to match the actual whitespace/quote style and the actual Account/Orders/Library API contracts.
 - `tests/seller-product-flow-static.test.js` checks Seller product listing/editor API wiring, private media upload, product media attachment, publishing/unpublishing controls, same-origin authentication, upload-size guard, and server-side publishing validation messaging.
-- **New:** `.github/workflows/seller-product-flow-static-regression.yml` runs the Seller product flow static contract test on relevant changes.
+- `.github/workflows/seller-product-flow-static-regression.yml` runs the Seller product flow static contract test on relevant changes.
+- Seller Product Flow Static Regression has a confirmed successful run.
+- **New:** `tests/buyer-purchase-flow-static.test.js` checks Product → Order → Checkout wiring and authenticated Buyer Order History/Library navigation plus protected Watch/Download links and 401 handling.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
 - Admin static regression has a confirmed successful run.
 - Buyer static regression has a confirmed successful run (#2).
-- Seller static regression workflow has been configured; a successful post-commit run is not yet verified.
-- Seller product-flow static regression workflow has just been added; its first run is not yet verified.
+- Seller static regression has a confirmed successful run.
+- Seller product-flow static regression has a confirmed successful run (#3).
+- Buyer purchase-flow static test has just been committed; its first CI run is not yet verified.
 - Seller browser-level acceptance has not been executed in this environment.
-- Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
+- Buyer Product → Order → Checkout → Library UI has not yet been browser-verified against real authenticated/payment responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
-- Verify Seller Static Regression and Seller Product Flow Static Regression workflow results.
+- Verify Buyer purchase-flow static regression result.
 - Execute Seller browser smoke in an actual authenticated seller session.
 - Execute unauthorized/non-seller boundary mode.
 - Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
 - Verify Seller Products → New product → Save → Upload video → Attach media → Publish/Unpublish.
+- Verify buyer Product → Buy now → Order creation → Checkout redirect with real authenticated/payment responses.
 - Verify buyer Account page with real authenticated `/api/orders` and `/api/library` responses.
 - Verify buyer Orders page with real authenticated `/api/orders` records.
-- Verify buyer Library watch/download links end-to-end.
+- Verify buyer Library watch/download links end-to-end after purchase.
 - Verify navigation Account → Orders → Library → Storefront on desktop and mobile widths.
 - Verify `/admin/#/admin` loads `app/admin/admin-dashboard.html`.
 - Verify `/admin/#/admin/moderation` loads `app/admin/moderation.html` and its authenticated API calls.
@@ -100,7 +104,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Verify Seller Static Regression and Seller Product Flow Static Regression results, then move to authenticated browser acceptance; fix only concrete failures.**
+**Add/verify CI for Buyer purchase-flow static coverage, then move to authenticated browser acceptance; fix only concrete failures.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
