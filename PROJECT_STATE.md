@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 432 — Buyer Account → Orders → Library navigation integrated; browser/API verification remains the release gate.**
+**Milestone 433 — Admin dashboard placeholder metrics hardened to never present fake production status; buyer/seller browser verification remains the main gate.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -27,13 +27,15 @@ A reusable, international video marketplace independently designed and implement
 - Seller dashboard auth/error handling was hardened for 401/403 responses.
 - `account.html` buyer account hub is implemented and reads authenticated orders/library data.
 - `orders.html` standalone authenticated buyer order-history page is implemented.
-- `account.html` was hardened for the canonical `/api/orders` response shape (`{items}`) and current order field names.
-- **New:** `library.html` now has explicit navigation to My Account, Order History and Storefront, completing the primary buyer account navigation loop.
+- `account.html` was hardened for the canonical `/api/orders` response shape and current order field names.
+- `library.html` has explicit navigation to My Account, Order History and Storefront.
+- **New:** Admin dashboard cards remain available for operator navigation, but overview metrics now explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired. The UI no longer presents `Healthy` or fake sales/review/payout numbers as production facts.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
-- Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses. Do not claim buyer UI acceptance is green.
+- Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
+- Admin dashboard is not considered live-data accepted; metrics are intentionally marked unavailable.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
@@ -52,6 +54,7 @@ A reusable, international video marketplace independently designed and implement
 - Add any missing account/profile controls required for the final product.
 
 ### 3. Admin UI and moderation acceptance
+- Wire authenticated live metrics where backend contracts exist.
 - Wire admin payout review UI.
 - Wire seller verification review UI.
 - Wire report processing/takedown UI.
@@ -78,13 +81,14 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Browser-verify the buyer Account/Orders/Library flow and the pending Seller browser acceptance. Fix only observed contract or UI failures, then re-run CI/acceptance as appropriate.**
+**Browser-verify the buyer Account/Orders/Library flow and pending Seller acceptance; then wire only the admin live-data endpoints that have verified backend contracts.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
 - Never claim CI/browser success without a completed, verifiable run.
 - Keep seller authorization server-side; UI must not bypass backend authorization.
 - Buyer account/order/library pages use same-origin authenticated requests and never trust client-provided user IDs.
+- Admin dashboards must never display placeholder values as real production metrics or health status.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
 - Commit every meaningful milestone and update this state file.
