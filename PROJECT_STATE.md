@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 451 — Canonical payout model reconciliation implemented; regression and clean-install verification remain before removing the release blocker.**
+**Milestone 452 — Canonical payout model reconciliation is implemented and protected by source-level contract coverage; runtime/clean-install verification remains.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -14,42 +14,42 @@
 - Admin/Seller/Buyer static contract regressions and confirmed Seller Product Flow + Buyer purchase-flow runs.
 - Production configuration, backup/recovery and commercial package documentation.
 - Media upload hardening workflow with route-level tests; observed green.
-- **Payout model reconciliation:** seller workflow now uses `seller_profiles` as the canonical seller identity and `seller_payout_requests` as the canonical payout-request table; Seller and Admin payout routes now read/write that model.
-- `seller_payout_requests` now includes the Admin lifecycle state `approved` plus review/processing timestamps required by the routes.
+- Canonical payout reconciliation: Seller and Admin payout routes now use `seller_payout_requests`, with seller identity resolved through `seller_profiles.user_id` and balances sourced from `seller_settlements`.
+- Added `backend/src/seller/payout-contract.test.js` to establish regression coverage for the canonical payout contract.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
-- **Payout reconciliation is implemented but not yet runtime/clean-install verified.**
+- Payout route source contract coverage has been added; runtime payout flow and clean-install verification are still pending.
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
 ### Release blocker status
-**Previous blocker: payout data-model mismatch — implementation resolved, verification pending.**
+The previously identified payout data-model mismatch has been reconciled in the Seller/Admin route code and the seller workflow migration. The release blocker is **reduced but not removed** until runtime and clean-install verification proves the canonical model end-to-end.
 
 Canonical model:
-- Seller identity: `seller_profiles.id` with `seller_profiles.user_id` mapping to `users.id`.
-- Seller payout request: `seller_payout_requests`.
-- Amount storage: `amount_minor` BIGINT; API exposes major currency amount for existing UI compatibility.
-- Earnings source: `seller_settlements` with `status = 'available'`.
-- Payout lifecycle: `requested → reviewing → approved → processing → paid`, with `failed/cancelled` terminal/recovery paths as defined by Admin transitions.
+- `seller_payout_requests.seller_id -> seller_profiles.id`
+- Seller identity: `seller_profiles.user_id -> users.id`
+- Available balance: `seller_settlements` rows with `status = 'available'`
+- Seller/Admin payout routes read/write `seller_payout_requests`
+- Payout lifecycle: requested -> reviewing -> approved -> processing -> paid, with failed/cancelled branches and audit events.
 
-Important: do not reintroduce legacy `payouts` or `seller_earnings` compatibility tables just to satisfy tests. The repository's canonical commerce schema defines `seller_settlements`, and the reconciled payout routes now use the canonical workflow table.
+Do not add a compatibility/dummy table merely to make tests pass. Verify the real canonical model against a clean PostgreSQL install and existing-install migration expectations.
 
-### Remaining work — priority order
-1. **Payout verification — BLOCKER UNTIL VERIFIED**
-   - Add/adjust Seller payout route regression tests.
-   - Add Admin payout lifecycle regression tests.
-   - Verify clean-install migration order and foreign-key creation.
-   - Verify payout request creation, listing, status transitions and audit events against the canonical tables.
+## Remaining work — priority order
+1. **Payout runtime + clean-install verification — BLOCKER**
+   - Run route-level regression against PostgreSQL.
+   - Verify Seller payout creation/listing and Admin review/status transitions end-to-end.
+   - Verify audit events and available-balance calculations.
+   - Add/adjust reviewed migration for existing installs if needed.
 2. **Admin integration**
-   - Live metrics against canonical orders/reviews/payout data.
+   - Live metrics after canonical payout contract exists.
    - Admin payout review UI.
    - Seller verification review UI.
    - DB-backed moderation/takedown acceptance.
 3. **Browser E2E**
    - Seller authenticated/unauthorized flows.
-   - Buyer Product → Order → Checkout → Account → Orders → Library → Watch/Download.
+   - Buyer Product -> Order -> Checkout -> Account -> Orders -> Library -> Watch/Download.
    - Admin dashboard/moderation authenticated and unauthorized flows.
 4. **Production hardening**
    - Production session/auth behavior, privacy/account controls, region/compliance controls, provider compatibility, security review.
@@ -59,7 +59,7 @@ Important: do not reintroduce legacy `payouts` or `seller_earnings` compatibilit
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Add and run payout Seller/Admin route regression coverage, then perform clean-install verification against the reconciled schema. If green, remove the payout blocker and continue Admin live metrics.**
+**Execute the payout contract against the real PostgreSQL migration path, fix any runtime/schema issues found, then implement Admin live metrics against the verified canonical model.**
 
 ## Continuation rule
 At the start of every development session, read this file first, inspect latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
