@@ -87,9 +87,24 @@ try {
   assert.equal(overdraw.response.status, 409, JSON.stringify(overdraw.body));
   assert.equal(overdraw.body.error, 'amount_exceeds_withdrawable_balance');
 
+  // Concurrency acceptance: two simultaneous requests must not both pass the
+  // balance/pending checks. With 4,500 JPY available and 1,000 JPY already
+  // pending, two 2,500 JPY requests can only result in one success.
+  const [concurrentA, concurrentB] = await Promise.all([
+    request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) }),
+    request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) })
+  ]);
+  const concurrentResults = [concurrentA, concurrentB];
+  assert.equal(concurrentResults.filter((result) => result.response.status === 201).length, 1, JSON.stringify(concurrentResults.map((result) => ({ status: result.response.status, body: result.body }))));
+  assert.equal(concurrentResults.filter((result) => result.response.status === 409).length, 1, JSON.stringify(concurrentResults.map((result) => ({ status: result.response.status, body: result.body }))));
+  assert.equal(concurrentResults.find((result) => result.response.status === 409).body.error, 'amount_exceeds_withdrawable_balance');
+  const concurrentPayoutId = concurrentResults.find((result) => result.response.status === 201).body.payout.id;
+  assert.ok(concurrentPayoutId);
+
   const adminPayouts = await request(baseUrl, '/api/admin/payouts', { headers: { cookie: adminCookie } });
   assert.equal(adminPayouts.response.status, 200, JSON.stringify(adminPayouts.body));
   assert.equal(adminPayouts.body.payouts.some((item) => item.id === payoutId && item.seller_id === sellerId), true);
+  assert.equal(adminPayouts.body.payouts.some((item) => item.id === concurrentPayoutId && item.amount === 2500 && item.seller_id === sellerId), true);
 
   for (const [from, to] of [['requested', 'reviewing'], ['reviewing', 'approved'], ['approved', 'processing'], ['processing', 'paid']]) {
     const transition = await request(baseUrl, `/api/admin/payouts/${payoutId}/status`, { method: 'POST', headers: { cookie: adminCookie, 'content-type': 'application/json' }, body: JSON.stringify({ status: to }) });
