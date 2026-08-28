@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 450 — Release-readiness audit identified a payout data-model mismatch that must be resolved before Admin payout/metrics acceptance.**
+**Milestone 451 — Canonical payout model reconciliation implemented; regression and clean-install verification remain before removing the release blocker.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -13,27 +13,37 @@
 - Deterministic PostgreSQL migration preflight/execution and legacy BIGINT purchase migration block.
 - Admin/Seller/Buyer static contract regressions and confirmed Seller Product Flow + Buyer purchase-flow runs.
 - Production configuration, backup/recovery and commercial package documentation.
+- Media upload hardening workflow with route-level tests; observed green.
+- **Payout model reconciliation:** seller workflow now uses `seller_profiles` as the canonical seller identity and `seller_payout_requests` as the canonical payout-request table; Seller and Admin payout routes now read/write that model.
+- `seller_payout_requests` now includes the Admin lifecycle state `approved` plus review/processing timestamps required by the routes.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#101) is green.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
+- **Payout reconciliation is implemented but not yet runtime/clean-install verified.**
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
-### Release blocker found
-`backend/db/005_seller_workflow.sql` defines `seller_payout_requests` with `seller_id REFERENCES sellers(id)`, while the canonical schema defines `seller_profiles`. Seller/Admin payout routes instead read/write `payouts`, and seller payout creation also reads `seller_earnings`. `backend/db/002_commerce.sql` defines `seller_settlements` but does not define `payouts` or `seller_earnings`. This is not clean-install consistent as currently evidenced.
+### Release blocker status
+**Previous blocker: payout data-model mismatch — implementation resolved, verification pending.**
 
-Do not add a compatibility/dummy table merely to make tests pass. Choose one canonical payout model, reconcile seller identity and columns, update seller/admin routes, add migration/regression coverage, then verify clean install.
+Canonical model:
+- Seller identity: `seller_profiles.id` with `seller_profiles.user_id` mapping to `users.id`.
+- Seller payout request: `seller_payout_requests`.
+- Amount storage: `amount_minor` BIGINT; API exposes major currency amount for existing UI compatibility.
+- Earnings source: `seller_settlements` with `status = 'available'`.
+- Payout lifecycle: `requested → reviewing → approved → processing → paid`, with `failed/cancelled` terminal/recovery paths as defined by Admin transitions.
 
-## Remaining work — priority order
-1. **Payout data-model reconciliation — BLOCKER**
-   - Choose canonical seller identity and payout-request table.
-   - Align seller payout creation/listing and Admin payout review/status transitions.
-   - Align earnings/settlement calculations.
-   - Add reviewed migration for existing installs if needed.
-   - Add clean-install and route-level regression coverage.
+Important: do not reintroduce legacy `payouts` or `seller_earnings` compatibility tables just to satisfy tests. The repository's canonical commerce schema defines `seller_settlements`, and the reconciled payout routes now use the canonical workflow table.
+
+### Remaining work — priority order
+1. **Payout verification — BLOCKER UNTIL VERIFIED**
+   - Add/adjust Seller payout route regression tests.
+   - Add Admin payout lifecycle regression tests.
+   - Verify clean-install migration order and foreign-key creation.
+   - Verify payout request creation, listing, status transitions and audit events against the canonical tables.
 2. **Admin integration**
-   - Live metrics after canonical payout contract exists.
+   - Live metrics against canonical orders/reviews/payout data.
    - Admin payout review UI.
    - Seller verification review UI.
    - DB-backed moderation/takedown acceptance.
@@ -49,7 +59,7 @@ Do not add a compatibility/dummy table merely to make tests pass. Choose one can
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Reconcile the payout data model first. Then implement Admin live metrics against that canonical model, add regression coverage, resume Browser E2E, and finish the release gate.**
+**Add and run payout Seller/Admin route regression coverage, then perform clean-install verification against the reconciled schema. If green, remove the payout blocker and continue Admin live metrics.**
 
 ## Continuation rule
 At the start of every development session, read this file first, inspect latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
