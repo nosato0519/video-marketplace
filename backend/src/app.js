@@ -10,6 +10,7 @@ import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js
 import { registerMediaDownloadRoutes } from './media/media-download-route.js';
 import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
+import { registerAuthRoutes } from './auth-routes.js';
 import { registerAdminLocaleRoutes } from './i18n/admin-locale-routes.js';
 import { registerProductTranslationRoutes } from './i18n/product-translation-routes.js';
 import { registerLibraryRoutes } from './library-routes.js';
@@ -38,6 +39,7 @@ export function createApp() {
     res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
   });
 
+  registerAuthRoutes(app);
   registerCatalogRoutes(app);
   registerProductDetailRoutes(app);
   registerPurchaseIntentRoutes(app);
