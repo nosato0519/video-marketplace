@@ -14,13 +14,21 @@ if (process.env.ALLOW_DB_RESTORE !== 'true') {
   throw new Error('Database restore is destructive. Set ALLOW_DB_RESTORE=true explicitly before running restore.');
 }
 
+const parsed = new URL(databaseUrl);
+const databaseEnv = {
+  PGHOST: parsed.hostname,
+  PGPORT: parsed.port || '5432',
+  PGUSER: decodeURIComponent(parsed.username),
+  PGPASSWORD: decodeURIComponent(parsed.password),
+  PGDATABASE: parsed.pathname.replace(/^\//, '')
+};
+
 const child = spawn('pg_restore', [
   '--clean',
   '--if-exists',
   '--no-owner',
-  '--dbname', databaseUrl,
   backupPath
-], { stdio: ['ignore', 'inherit', 'inherit'] });
+], { env: { ...process.env, ...databaseEnv }, stdio: ['ignore', 'inherit', 'inherit'] });
 
 const exitCode = await new Promise((resolve, reject) => {
   child.on('error', reject);
