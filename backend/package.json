@@ -13,6 +13,7 @@
     "restore:db": "node scripts/restore-db.js",
     "backup:media:local": "node scripts/backup-media-local.js",
     "restore:media:local": "node scripts/restore-media-local.js",
+    "test:backup-restore-acceptance": "node scripts/backup-restore-acceptance.js",
     "test:moderation-db": "node scripts/moderation-db-acceptance.js",
     "test:moderation-http": "node scripts/moderation-http-acceptance.js",
     "test:commerce-db": "node scripts/commerce-db-acceptance.js",
