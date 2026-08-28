@@ -4,12 +4,12 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 429 — Seller browser smoke harness refined with explicit authenticated-seller and unauthorized-boundary modes; actual browser execution remains the verification gate.**
+**Milestone 430 — Buyer account hub and standalone order-history UI added; browser acceptance and UI/API contract verification remain required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
 - Core storefront/catalog foundation is implemented.
-- Buyer purchase flow, order history, Library playback/download authorization, payment/refund/failure handling are implemented.
+- Buyer purchase flow, order history API, Library playback/download authorization, payment/refund/failure handling are implemented.
 - Protected media streaming/download routes are implemented.
 - Reporting/moderation foundations and admin moderation routes are implemented.
 - Seller product/media APIs, product publishing and ownership isolation are implemented.
@@ -23,27 +23,31 @@ A reusable, international video marketplace independently designed and implement
 - Seller authenticated E2E fixture was corrected to the canonical profile field names, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
 - Seller dashboard UI exists at `seller/dashboard.html` with profile, verification, earnings, payout and payout-history flows.
 - Seller product management links to the seller dashboard.
-- Added `backend/scripts/seller-dashboard-browser-acceptance.md` with the browser-level acceptance flow and authorization checks.
+- Seller dashboard browser acceptance checklist and smoke harness exist, including explicit authenticated-seller and unauthorized-boundary modes.
 - Seller dashboard auth/error handling was hardened for 401/403 responses.
-- Added `backend/scripts/seller-dashboard-browser-smoke.html` for same-origin browser smoke checks.
-- **New:** Refined the smoke harness to have explicit `Seller session` and `Unauthenticated / non-seller boundary` modes. Seller mode expects 2xx; boundary mode expects 401/403, so an expected authorization rejection is no longer incorrectly reported as a generic failure.
+- **New:** `account.html` added as the buyer account hub, loading authenticated `/api/orders` and `/api/library` data and linking to the storefront, full order history and Library.
+- **New:** `orders.html` added as a standalone authenticated buyer order-history page with order/product/amount/currency/status/date display and navigation back to Account/Library/Storefront.
+- **New:** `PROJECT_STATE.md` updated to record the buyer UI milestone and the remaining verification work.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
-- Browser-level acceptance has not been executed in this environment. Do not claim browser acceptance is green.
+- Seller browser-level acceptance has not been executed in this environment.
+- The newly added buyer Account and Orders pages have not yet been browser-verified against the live API response schema. Do not claim these UI flows are green until tested.
 
 ## Remaining work — priority order
-### 1. Seller browser acceptance
-- Execute the smoke harness in an actual browser against an authenticated seller session.
+### 1. Browser/UI verification
+- Execute the Seller browser smoke harness in an actual authenticated seller session.
 - Execute the unauthorized/non-seller boundary mode.
-- Verify dashboard load, profile persistence, verification submission/duplicate rejection, earnings display, payout success/failure, product navigation and authorization boundaries.
+- Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
+- Verify buyer Account page loads authenticated order/library data.
+- Verify buyer Orders page matches the canonical `/api/orders` response fields and displays real records correctly.
+- Verify buyer Library watch/download links end-to-end.
 - Record concrete failures only; fix and re-run.
 
 ### 2. Buyer UI integration
-- Add/wire buyer account/profile UI.
-- Add order-history UI.
-- Add reporting UI where appropriate.
-- Confirm purchase → Library → Watch/Download is usable end-to-end from the UI.
+- Add buyer reporting UI where appropriate.
+- Confirm purchase → Account → Order History → Library → Watch/Download is usable end-to-end from the UI.
+- Add any missing account/profile controls required for the final product.
 
 ### 3. Admin UI and moderation acceptance
 - Wire admin payout review UI.
@@ -72,12 +76,13 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Run the refined Seller browser smoke harness in an actual browser/test session. Do not mark it passed from code inspection alone.**
+**Browser-verify the new buyer Account/Orders UI against the canonical API responses, while also executing the pending Seller browser smoke/authorization checks. Fix concrete mismatches before adding more UI.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
 - Never claim CI/browser success without a completed, verifiable run.
 - Keep seller authorization server-side; UI must not bypass backend authorization.
+- Buyer account/order/library pages must use same-origin authenticated requests and must not trust client-provided user IDs.
 - Acceptance fixtures must use the canonical current schema and route contracts.
 - Never automatically convert legacy BIGINT purchase data.
 - Commit every meaningful milestone and update this state file.
