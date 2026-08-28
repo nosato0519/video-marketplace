@@ -8,14 +8,19 @@ const orders = fs.readFileSync(path.join(root, 'orders.html'), 'utf8');
 const library = fs.readFileSync(path.join(root, 'library.html'), 'utf8');
 
 for (const html of [account, orders, library]) {
-  assert.match(html, /credentials:'same-origin'/);
-  assert.match(html, /\/api\/(orders|library)/);
+  assert.match(html, /credentials:\s*['"]same-origin['"]/);
 }
 
+assert.match(account, /\/api\/orders/);
+assert.match(account, /\/api\/library/);
 assert.match(account, /\/orders\.html/);
 assert.match(account, /\/library\.html/);
+
+assert.match(orders, /\/api\/orders/);
 assert.match(orders, /\/account\.html/);
 assert.match(orders, /\/library\.html/);
+
+assert.match(library, /\/api\/library/);
 assert.match(library, /\/account\.html/);
 assert.match(library, /\/orders\.html/);
 assert.match(library, /\/api\/media\//);
