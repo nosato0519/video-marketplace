@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 435 — Public Admin entrypoint and moderation route exposure added; browser/API acceptance remains required.**
+**Milestone 436 — Admin dashboard HTML entrypoint added; public Admin overview now resolves to an existing page, while browser/API acceptance remains required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -31,13 +31,14 @@ A reusable, international video marketplace independently designed and implement
 - `library.html` has explicit navigation to My Account, Order History and Storefront.
 - Admin dashboard overview metrics explicitly show `Not connected` / `Not checked` until authenticated live endpoints and health checks are actually wired.
 - `app/admin/moderation.html` is implemented as an authenticated Admin moderation console consuming review/report/takedown APIs.
-- **New:** `admin/index.html` added as the public Admin entrypoint with hash dispatch for the Admin area; `admin/moderation.html` exposes the moderation console from the public `/admin/` path.
+- `admin/index.html` is the public Admin entrypoint with hash dispatch.
+- **New:** `app/admin/admin-dashboard.html` added as the missing HTML entrypoint for the existing `admin-dashboard.js` renderer, so the public Admin overview route no longer points at a nonexistent file.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
-- Admin moderation console and public Admin entrypoint have not yet been browser-verified or DB-accepted end-to-end. Do not claim moderation acceptance is green.
+- Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
@@ -48,7 +49,8 @@ A reusable, international video marketplace independently designed and implement
 - Verify buyer Orders page with real authenticated `/api/orders` records.
 - Verify buyer Library watch/download links end-to-end.
 - Verify navigation Account → Orders → Library → Storefront on desktop and mobile widths.
-- Verify `/admin/#/admin/moderation` resolves to the public moderation entrypoint and loads the console.
+- Verify `/admin/#/admin` loads `app/admin/admin-dashboard.html`.
+- Verify `/admin/#/admin/moderation` loads `app/admin/moderation.html` and its authenticated API calls.
 - Verify Admin Moderation page as authenticated admin and verify unauthorized boundary.
 - Record concrete failures only; fix and re-run.
 
@@ -84,7 +86,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Browser-verify `/admin/#/admin/moderation` and the public moderation entrypoint, then perform authenticated-admin and unauthorized acceptance before building the next Admin console.**
+**Browser-verify `/admin/#/admin` and `/admin/#/admin/moderation`, then perform authenticated-admin and unauthorized acceptance before building the next Admin console.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
