@@ -19,18 +19,18 @@ export function renderAdminDashboard() {
       <a class="button secondary" href="#/">View site</a>
     </header>
     <section class="admin-alert" aria-live="polite">
-      <strong>Good morning</strong>
+      <strong>Action queue</strong>
       <span>Review pending moderation and payout requests first.</span>
     </section>
     <section class="admin-stats" aria-label="Overview">
-      <article><span>Today’s sales</span><strong>—</strong></article>
-      <article><span>Pending review</span><strong>—</strong></article>
-      <article><span>Payout requests</span><strong>—</strong></article>
-      <article><span>System status</span><strong>Healthy*</strong></article>
+      <article><span>Today’s sales</span><strong>Not connected</strong></article>
+      <article><span>Pending review</span><strong>Not connected</strong></article>
+      <article><span>Payout requests</span><strong>Not connected</strong></article>
+      <article><span>System status</span><strong>Not checked</strong></article>
     </section>
     <section class="admin-grid" aria-label="Management sections">
       ${sections.map(([id, title, description]) => `<a class="admin-card" href="#/admin/${id}"><strong>${title}</strong><span>${description}</span></a>`).join('')}
     </section>
-    <p class="admin-footnote">* Live health checks will replace this placeholder when production integrations are connected.</p>
+    <p class="admin-footnote">Dashboard metrics remain explicitly unavailable until their authenticated live-data endpoints and health checks are wired. Never display placeholder values as real production status.</p>
   </main>`;
 }
