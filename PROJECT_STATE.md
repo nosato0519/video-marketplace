@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 428 — Seller browser smoke harness added; authenticated browser acceptance remains the verification gate.**
+**Milestone 429 — Seller browser smoke harness refined with explicit authenticated-seller and unauthorized-boundary modes; actual browser execution remains the verification gate.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -23,18 +23,20 @@ A reusable, international video marketplace independently designed and implement
 - Seller authenticated E2E fixture was corrected to the canonical profile field names, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
 - Seller dashboard UI exists at `seller/dashboard.html` with profile, verification, earnings, payout and payout-history flows.
 - Seller product management links to the seller dashboard.
-- `backend/scripts/seller-dashboard-browser-acceptance.md` defines the browser acceptance flow and authorization checks.
-- Seller dashboard API error handling was hardened for explicit 401/403 handling without exposing raw backend status text.
-- **New:** `backend/scripts/seller-dashboard-browser-smoke.html` provides a same-origin browser smoke harness for seller profile, earnings and payout API calls. It preserves credentials and explicitly avoids treating unauthenticated 401/403 responses as a browser pass.
+- Added `backend/scripts/seller-dashboard-browser-acceptance.md` with the browser-level acceptance flow and authorization checks.
+- Seller dashboard auth/error handling was hardened for 401/403 responses.
+- Added `backend/scripts/seller-dashboard-browser-smoke.html` for same-origin browser smoke checks.
+- **New:** Refined the smoke harness to have explicit `Seller session` and `Unauthenticated / non-seller boundary` modes. Seller mode expects 2xx; boundary mode expects 401/403, so an expected authorization rejection is no longer incorrectly reported as a generic failure.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
-- Browser-level acceptance has **not** been executed in this environment. The new smoke harness is test tooling, not proof of browser acceptance.
+- Browser-level acceptance has not been executed in this environment. Do not claim browser acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Seller browser acceptance
-- Open the smoke harness and Seller Dashboard in an actual authenticated seller browser session.
-- Verify profile persistence, verification submission/duplicate rejection, earnings display, payout success/failure, product navigation and authorization boundaries.
+- Execute the smoke harness in an actual browser against an authenticated seller session.
+- Execute the unauthorized/non-seller boundary mode.
+- Verify dashboard load, profile persistence, verification submission/duplicate rejection, earnings display, payout success/failure, product navigation and authorization boundaries.
 - Record concrete failures only; fix and re-run.
 
 ### 2. Buyer UI integration
@@ -58,7 +60,7 @@ A reusable, international video marketplace independently designed and implement
 - Security review of authorization, media access, webhook handling, uploads and sensitive operations.
 
 ### 5. Legacy data migration
-- Do **not** auto-convert the legacy BIGINT purchase schema.
+- Do not auto-convert the legacy BIGINT purchase schema.
 - Define and review backup/restore, rollback and data-integrity strategy before any BIGINT → UUID migration.
 
 ### 6. Commercial release / ZIP
@@ -70,7 +72,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Use an actual authenticated seller browser session to execute `seller-dashboard-browser-smoke.html` and then the full `seller-dashboard-browser-acceptance.md` flow. Do not mark it passed from source inspection.**
+**Run the refined Seller browser smoke harness in an actual browser/test session. Do not mark it passed from code inspection alone.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
@@ -81,6 +83,6 @@ A reusable, international video marketplace independently designed and implement
 - Commit every meaningful milestone and update this state file.
 
 ## Continuation rule
-At the start of every future development session, read this file first, inspect the latest commits and repository tree/code, and continue from the latest saved state without relying on chat history. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
+At the start of every future development session, read this file first, inspect the latest commits and repository tree, and continue from the latest saved state without relying on chat history. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
 
 **The latest repository state and this project-state file are the authoritative continuation source.**
