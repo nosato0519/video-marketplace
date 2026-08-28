@@ -1,6 +1,7 @@
 import { getLocale, setLocale, t } from './i18n.js';
 import { renderCatalog } from './catalog/catalog-view.js';
 import { getProduct } from './catalog/catalog.js';
+import { renderAuth } from './auth/auth-view.js';
 
 const app = document.querySelector('#app');
 
@@ -23,7 +24,7 @@ function renderProduct(id) {
   const product = getProduct(id);
   app.innerHTML = `${header(locale)}<main class="product-detail-page">${product ? `<a class="back-link" href="#/browse">← ${t('nav.discover')}</a><section class="product-detail"><div class="product-detail-media"><div class="product-thumb large">VIDEO</div></div><div class="product-detail-copy"><p class="eyebrow">${product.category}</p><h1>${product.title}</h1><p class="seller-line">${product.seller}</p><p class="detail-description">Premium video product. Streaming and download availability are controlled by the product and operator policy.</p><div class="detail-purchase"><strong>${new Intl.NumberFormat(locale, { style: 'currency', currency: product.currency }).format(product.price)}</strong><button class="button" type="button" id="checkout">Purchase</button></div><p id="checkout-message" class="microcopy" aria-live="polite">Secure checkout integration is prepared as a provider-neutral boundary.</p></div></section>` : `<section class="empty-state"><h1>Product not found</h1><a class="button" href="#/browse">Back to catalog</a></section>`}</main>`;
   wireLocale();
-  document.querySelector('#checkout')?.addEventListener('click', () => { document.querySelector('#checkout-message').textContent = 'Sandbox checkout will connect here next; no payment was charged.'; });
+  document.querySelector('#checkout')?.addEventListener('click', () => { location.hash = '#/login'; });
 }
 
 async function renderBrowse() {
@@ -36,11 +37,19 @@ async function renderBrowse() {
   await renderCatalog({ root: document.querySelector('#catalog-root'), locale, t, query, category, onNavigate: (path) => { location.hash = `#${path}`; } });
 }
 
+function renderAuthPage(mode) {
+  app.innerHTML = header(getLocale()) + '<div id="auth-root"></div>';
+  wireLocale();
+  renderAuth(document.querySelector('#auth-root'), mode);
+}
+
 function render() {
   const rawPath = location.hash.replace(/^#/, '').split('?')[0] || '/';
   const match = rawPath.match(/^\/product\/([^/]+)$/);
   if (match) return renderProduct(decodeURIComponent(match[1]));
   if (rawPath === '/browse' || rawPath === '/categories' || rawPath === '/popular') return renderBrowse();
+  if (rawPath === '/login') return renderAuthPage('login');
+  if (rawPath === '/register') return renderAuthPage('register');
   renderHome();
 }
 
