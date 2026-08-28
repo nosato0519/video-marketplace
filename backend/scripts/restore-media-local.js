@@ -12,7 +12,24 @@ const stat = await fs.stat(archive).catch(() => null);
 if (!stat?.isFile() || stat.size === 0) throw new Error(`Media backup is missing or empty: ${archive}`);
 await fs.mkdir(target, { recursive: true });
 
-const child = spawn('tar', ['-xzf', path.resolve(archive), '-C', target], { stdio: ['ignore', 'inherit', 'inherit'] });
+const archivePath = path.resolve(archive);
+const list = await new Promise((resolve, reject) => {
+  const child = spawn('tar', ['-tzf', archivePath], { stdio: ['ignore', 'pipe', 'inherit'] });
+  let output = '';
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', chunk => { output += chunk; });
+  child.on('error', reject);
+  child.on('exit', code => code === 0 ? resolve(output) : reject(new Error(`tar validation failed with exit code ${code ?? 1}`)));
+});
+
+for (const entry of list.split('\n').filter(Boolean)) {
+  const normalized = path.posix.normalize(entry.replace(/^\.\//, ''));
+  if (!normalized || normalized === '..' || normalized.startsWith('../') || path.posix.isAbsolute(entry)) {
+    throw new Error(`Unsafe archive entry: ${entry}`);
+  }
+}
+
+const child = spawn('tar', ['-xzf', archivePath, '--no-same-owner', '--no-same-permissions', '-C', target], { stdio: ['ignore', 'inherit', 'inherit'] });
 const exitCode = await new Promise((resolve, reject) => {
   child.on('error', reject);
   child.on('exit', code => resolve(code ?? 1));
