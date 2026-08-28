@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 437 — Admin static entrypoint contract checks added; browser and live authenticated acceptance remain required.**
+**Milestone 438 — Admin static entrypoint contract test is now wired into a dedicated GitHub Actions regression workflow; runtime/browser acceptance remains required.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -33,17 +33,19 @@ A reusable, international video marketplace independently designed and implement
 - `app/admin/moderation.html` is implemented as an authenticated Admin moderation console consuming review/report/takedown APIs.
 - `admin/index.html` is the public Admin entrypoint with hash dispatch.
 - `app/admin/admin-dashboard.html` is the HTML entrypoint for the existing `admin-dashboard.js` renderer.
-- **New:** `tests/admin-static-entrypoint.test.js` checks the public Admin entrypoint, dashboard renderer entrypoint, moderation API paths, takedown path, and explicit 401/403 handling without requiring credentials or a running database.
+- `tests/admin-static-entrypoint.test.js` checks the public Admin entrypoint, dashboard renderer entrypoint, moderation API paths, takedown path, and explicit 401/403 handling without requiring credentials or a running database.
+- **New:** `.github/workflows/admin-static-regression.yml` runs the Admin static entrypoint contract test on changes to Admin/static test files.
 
 ### Verification status
-- Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
-- The new Admin static contract test has been committed but has not yet been executed by a CI run after this commit.
+- Latest known PostgreSQL acceptance run (#98) is green, including seller profile/earnings/payout E2E.
+- Admin static contract test is now wired to CI, but its first post-commit workflow result has not yet been verified.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
 
 ## Remaining work — priority order
 ### 1. Browser/UI verification
+- Verify the Admin static regression workflow result after the new workflow commit.
 - Execute Seller browser smoke in an actual authenticated seller session.
 - Execute unauthorized/non-seller boundary mode.
 - Verify Seller Dashboard profile, verification, earnings, payout and product navigation.
@@ -88,7 +90,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Let CI execute the new static Admin contract test, then continue with authenticated browser acceptance.**
+**Verify the Admin Static Regression workflow result, then move to authenticated browser acceptance; fix only concrete failures.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
