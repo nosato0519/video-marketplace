@@ -107,3 +107,4 @@ jobs:
       - run: npm run test:admin-payout-concurrency-regression
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
+          # Acceptance trigger checkpoint: 2026-08-28 payout verification
