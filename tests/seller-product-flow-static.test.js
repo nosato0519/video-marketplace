@@ -20,5 +20,7 @@ assert.match(editor, /Private media credentials are never exposed/);
 assert.match(editor, /Server-side validation/);
 assert.match(editor, /5\*1024\*1024\*1024/);
 assert.match(editor, /credentials:\s*['"]same-origin['"]/);
+assert.match(editor, /headers:\{\s*['"]Content-Type['"]:\s*f\.type\s*,\s*['"]X-Original-Filename['"]:\s*f\.name\s*\}/);
+assert.match(editor, /body:\s*f/);
 
 console.log('Seller product publishing flow static contract checks passed.');
