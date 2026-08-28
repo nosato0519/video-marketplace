@@ -31,18 +31,15 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
-      - run: npm ci
+      - run: npm install
       - run: npm run migrate:preflight
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
       - run: npm run migration:plan
-        env:
-          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
-      - run: npm run migrate
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
       - run: npm run migrate
@@ -78,10 +75,18 @@ jobs:
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
+      - run: npm run test:http-auth
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
       - run: npm run test:http-buyer-purchase-e2e
         env:
           DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           PAYMENT_WEBHOOK_SECRET: acceptance-only-payment-webhook-secret-0123456789abcdef
+          MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
+          MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+      - run: npm run test:http-media-access-e2e
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
           MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
       - run: npm run test:http-buyer-order-report-e2e
@@ -100,3 +105,5 @@ jobs:
           MEDIA_URL_SECRET: acceptance-only-media-url-secret-0123456789abcdef
           MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
       - run: npm run test:admin-payout-concurrency-regression
+        env:
+          DATABASE_URL: postgresql://marketplace:marketplace@localhost:5432/marketplace_test
