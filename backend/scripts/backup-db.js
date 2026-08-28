@@ -9,7 +9,8 @@ const outputArg = process.argv[2] || `backup-${new Date().toISOString().replaceA
 const outputPath = path.resolve(outputArg);
 await fs.mkdir(path.dirname(outputPath), { recursive: true });
 
-const child = spawn('pg_dump', ['--format=custom', '--no-owner', '--file', outputPath, databaseUrl], {
+const child = spawn('pg_dump', ['--format=custom', '--no-owner', '--file', outputPath], {
+  env: { ...process.env, PGCONNECT_TIMEOUT: process.env.PGCONNECT_TIMEOUT || '15', DATABASE_URL: databaseUrl },
   stdio: ['ignore', 'inherit', 'inherit']
 });
 
