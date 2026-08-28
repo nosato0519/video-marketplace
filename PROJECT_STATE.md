@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 427 — Seller dashboard browser-acceptance preparation and auth/error hardening complete; actual browser execution remains the next verification gate.**
+**Milestone 428 — Seller browser smoke harness added; authenticated browser acceptance remains the verification gate.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -23,17 +23,18 @@ A reusable, international video marketplace independently designed and implement
 - Seller authenticated E2E fixture was corrected to the canonical profile field names, verification route and ledger-backed earnings data, including seller isolation and payout balance protections.
 - Seller dashboard UI exists at `seller/dashboard.html` with profile, verification, earnings, payout and payout-history flows.
 - Seller product management links to the seller dashboard.
-- Added `backend/scripts/seller-dashboard-browser-acceptance.md` with the browser-level acceptance flow and authorization checks.
-- **New:** Hardened seller dashboard API error handling so 401/403 responses produce an explicit seller-authentication/permission message instead of exposing raw backend status text; API calls remain same-origin with credentials.
+- `backend/scripts/seller-dashboard-browser-acceptance.md` defines the browser acceptance flow and authorization checks.
+- Seller dashboard API error handling was hardened for explicit 401/403 handling without exposing raw backend status text.
+- **New:** `backend/scripts/seller-dashboard-browser-smoke.html` provides a same-origin browser smoke harness for seller profile, earnings and payout API calls. It preserves credentials and explicitly avoids treating unauthenticated 401/403 responses as a browser pass.
 
 ### Verification status
-- The latest known PostgreSQL acceptance run (#87) was verified green, including seller profile/earnings/payout E2E.
-- Browser-level acceptance has **not** been executed in this environment yet. Do not claim browser acceptance is green.
+- Latest known PostgreSQL acceptance run (#87) is green, including seller profile/earnings/payout E2E.
+- Browser-level acceptance has **not** been executed in this environment. The new smoke harness is test tooling, not proof of browser acceptance.
 
 ## Remaining work — priority order
 ### 1. Seller browser acceptance
-- Execute the browser checklist against an authenticated test seller.
-- Verify dashboard load, profile persistence, verification submission/duplicate rejection, earnings display, payout success/failure, product navigation and authorization boundaries.
+- Open the smoke harness and Seller Dashboard in an actual authenticated seller browser session.
+- Verify profile persistence, verification submission/duplicate rejection, earnings display, payout success/failure, product navigation and authorization boundaries.
 - Record concrete failures only; fix and re-run.
 
 ### 2. Buyer UI integration
@@ -69,7 +70,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Run the Seller browser acceptance flow in an actual browser/test session. Do not mark it passed based on code inspection alone.**
+**Use an actual authenticated seller browser session to execute `seller-dashboard-browser-smoke.html` and then the full `seller-dashboard-browser-acceptance.md` flow. Do not mark it passed from source inspection.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
