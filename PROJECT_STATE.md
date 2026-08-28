@@ -4,7 +4,7 @@
 A reusable, international video marketplace independently designed and implemented for general video sales, with adult-content capability only where legally and operationally permitted.
 
 ## Current milestone
-**Milestone 439 — Buyer Account/Orders/Library static contract checks added with dedicated GitHub Actions regression; runtime/browser acceptance remains required.**
+**Milestone 440 — Buyer static contract test aligned with the actual Account/Orders/Library implementation.**
 
 ## Latest checkpoint — 2026-08-28
 ### Completed
@@ -36,14 +36,15 @@ A reusable, international video marketplace independently designed and implement
 - `tests/admin-static-entrypoint.test.js` checks the public Admin entrypoint, dashboard renderer entrypoint, moderation API paths, takedown path, and explicit 401/403 handling without requiring credentials or a running database.
 - `.github/workflows/admin-static-regression.yml` runs the Admin static entrypoint contract test on changes to Admin/static test files.
 - Seller dashboard static contract test and `.github/workflows/seller-static-regression.yml` have been added.
-- **New:** `tests/buyer-account-static.test.js` checks authenticated Account/Orders/Library API wiring, account navigation, and Library stream/download links.
-- **New:** `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
+- `tests/buyer-account-static.test.js` checks authenticated Account/Orders/Library API wiring, account navigation, and Library stream/download links.
+- `.github/workflows/buyer-static-regression.yml` runs the Buyer Account/Orders/Library static contract test on relevant changes.
+- **New:** Buyer static contract assertions were corrected to match the actual current whitespace/quote style and the actual Account/Orders/Library API contracts.
 
 ### Verification status
 - Latest known PostgreSQL acceptance run (#99) is green, including buyer purchase/report and seller profile/earnings/payout E2E.
 - Admin static regression has a confirmed successful run.
 - Seller static regression workflow has been configured; a successful post-commit run is not yet verified.
-- Buyer static regression has been configured; its first post-commit workflow result is not yet verified.
+- Buyer static regression workflow is configured; the updated test's first post-commit run is not yet verified.
 - Seller browser-level acceptance has not been executed in this environment.
 - Buyer Account/Orders/Library UI has not yet been browser-verified against real authenticated API responses.
 - Admin moderation and Admin dashboard entrypoints have not yet been browser-verified or DB-accepted end-to-end. Do not claim Admin UI acceptance is green.
@@ -95,7 +96,7 @@ A reusable, international video marketplace independently designed and implement
 - Final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Verify Seller Static Regression and Buyer Static Regression workflow results, then move to authenticated browser acceptance; fix only concrete failures.**
+**Verify the updated Buyer Static Regression and Seller Static Regression workflow results, then move to authenticated browser acceptance; fix only concrete failures.**
 
 ## Important technical decisions
 - Keep cross-seller resource access at 404 to reduce existence leakage.
