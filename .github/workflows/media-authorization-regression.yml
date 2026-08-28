@@ -1,0 +1,31 @@
+name: Media Authorization Regression
+
+on:
+  push:
+    paths:
+      - 'backend/src/media/protected-access.js'
+      - 'backend/src/media/protected-access.test.js'
+      - 'backend/src/payments/entitlement-service.js'
+      - '.github/workflows/media-authorization-regression.yml'
+  pull_request:
+    paths:
+      - 'backend/src/media/protected-access.js'
+      - 'backend/src/media/protected-access.test.js'
+      - 'backend/src/payments/entitlement-service.js'
+      - '.github/workflows/media-authorization-regression.yml'
+
+jobs:
+  media-authorization:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install backend dependencies
+        run: npm ci
+      - name: Run media authorization regression tests
+        run: node --test src/media/protected-access.test.js
