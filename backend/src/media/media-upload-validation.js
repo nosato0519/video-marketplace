@@ -1,7 +1,11 @@
+const FTYP = { offset: 4, bytes: [0x66, 0x74, 0x79, 0x70] };
+const EBML = { offset: 0, bytes: [0x1a, 0x45, 0xdf, 0xa3] };
+
 const MIME_SIGNATURES = new Map([
-  ['video/mp4', { offset: 4, bytes: [0x66, 0x74, 0x79, 0x70] }],
-  ['video/webm', { offset: 0, bytes: [0x1a, 0x45, 0xdf, 0xa3] }],
-  ['video/x-matroska', { offset: 0, bytes: [0x1a, 0x45, 0xdf, 0xa3] }],
+  ['video/mp4', FTYP],
+  ['video/quicktime', FTYP],
+  ['video/webm', EBML],
+  ['video/x-matroska', EBML],
 ]);
 
 export function mediaSignatureMatches(mimeType, buffer) {
