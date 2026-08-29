@@ -47,11 +47,22 @@ try {
   assert.equal(Number(payout.body.payout.amount), 1000);
   assert.equal(payout.body.payout.status, 'requested');
 
-  const concurrentPayout = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) });
-  assert.equal(concurrentPayout.response.status, 201, JSON.stringify(concurrentPayout.body));
-  const concurrentPayoutId = concurrentPayout.body.payout.id;
-  assert.equal(Number(concurrentPayout.body.payout.amount), 2500);
-  assert.equal(concurrentPayout.body.payout.status, 'requested');
+  // Only 3,500 JPY remains withdrawable. These two requests are intentionally
+  // issued at the same time so the database advisory lock is tested under
+  // actual contention: exactly one must succeed and one must be rejected.
+  const [concurrentA, concurrentB] = await Promise.all([
+    request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) }),
+    request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 2500, currency: 'JPY' }) }),
+  ]);
+  const concurrentResults = [concurrentA, concurrentB];
+  const successResults = concurrentResults.filter((result) => result.response.status === 201);
+  const conflictResults = concurrentResults.filter((result) => result.response.status === 409);
+  assert.equal(successResults.length, 1, JSON.stringify(concurrentResults.map((result) => ({ status: result.response.status, body: result.body }))));
+  assert.equal(conflictResults.length, 1, JSON.stringify(concurrentResults.map((result) => ({ status: result.response.status, body: result.body }))));
+  assert.equal(conflictResults[0].body.error, 'amount_exceeds_withdrawable_balance');
+  assert.equal(Number(successResults[0].body.payout.amount), 2500);
+  assert.equal(successResults[0].body.payout.status, 'requested');
+  const concurrentPayoutId = successResults[0].body.payout.id;
 
   const adminEmail = `admin-${Date.now()}@example.com`;
   const adminRegister = await request(baseUrl, '/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: adminEmail, password }) });
