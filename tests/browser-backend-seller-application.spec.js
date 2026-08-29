@@ -5,7 +5,7 @@ const appUrl = 'http://127.0.0.1:4173/';
 
 async function registerAndLogin(page, email, password) {
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#app')).toBeVisible();
+  await expect(page.locator('.site-header')).toBeVisible();
   await page.getByRole('link', { name: 'Sign up' }).click();
   await expect(page).toHaveURL(/#\/register/);
   const form = page.locator('#auth-form');
