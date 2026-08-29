@@ -1,0 +1,4 @@
+CI verification checkpoint only.
+
+This file intentionally exists under backend/ so the existing Backend Regression workflow path filter executes against the payout settlement implementation.
+No application or financial logic is contained here.
