@@ -76,8 +76,13 @@ CIではSeller payoutの4段階の状態遷移と4件のaudit event生成・取�
 - `backend/src/admin/payout-routes.js` が監査イベントをDBから取得している
 - SQLのSELECTに `a.id` はあるが **`a.resource_id` が含まれていない**ことを確認した
 - WHERE句では `a.resource_id = $1` を使っているため、DB上では正しくpayoutに紐付いたイベントを検索できる
-- しかしJSONレスポンスへ `resource_id` をSELECTしていないため、E2E側の `event.resource_id === payoutId` が常に成立しない
+- しかしJSONレスポンスへ `resource_id` をSELECTしていないため、E2E側の `event.resource_id === payoutId` が成立しない
 - これはE2Eの期待値を変更する問題ではなく、**監査APIレスポンスの欠落フィールドを修正するアプリ側の問題**と確定
+
+**2026-08-29 修正:**
+- `backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加した
+- 修正コミット: `0dbe08499f1971e03aff0096ec941041e8a08740`
+- まだ修正後CIのPASSは確認していない
 
 ## 6. Seller/Admin機能について
 
@@ -87,7 +92,7 @@ Seller payout / Seller profile / Seller verification / Admin payout / Admin veri
 
 ## 7. 直前に確認した重要CI状態
 
-コミット `327a1b2d51e6b316375d803d202a297558969b7b` に対して、以下を確認済み:
+修正前のコミット `327a1b2d51e6b316375d803d202a297558969b7b` に対して、以下を確認済み:
 - Backend Regression #495: SUCCESS
 - Clean Install #85: SUCCESS
 - Media Upload Validation #18: SUCCESS
@@ -100,8 +105,8 @@ Backend Regression #495では `backup/restore round-trip acceptance: PASS` を�
 1. ~~audit APIの実装元を正確に特定する~~ → **完了**
 2. ~~audit event生成処理・DB保存処理・API serializer/SELECTを確認する~~ → **完了**
 3. ~~`resource_id` がどこで欠落しているかを確定する~~ → **完了**
-4. `backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加する
-5. 変更後の最新SHAを記録する
+4. ~~`backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加する~~ → **完了**
+5. ~~変更後の最新SHAを記録する~~ → **完了: `0dbe08499f1971e03aff0096ec941041e8a08740`**
 6. Seller payout E2Eを再実行する
 7. Postgres Acceptance全体を再実行する
 8. Admin payoutを含む後続AcceptanceがPASSすることを確認する
@@ -149,7 +154,15 @@ Backend Regression #495では `backup/restore round-trip acceptance: PASS` を�
 - **次の1手:** 再開したら最初に何をするか
 - **次の区切り:** どこまで到達したら進捗報告するか
 
-## 12. 完成判定
+## 12. 今回の再開セッションのチェックポイント
+
+- 再開時に `PROGRESS.md` を読み直した: 完了
+- Seller payout E2E失敗原因をコードで確定した: 完了
+- アプリ側の欠落フィールドを最小修正した: 完了
+- 修正後CI: **未確認**
+- 次の区切り: **修正後のSeller payout E2E PASS確認**
+
+## 13. 完成判定
 
 PR #1は次の全条件を満たすまで完成扱いにしない。
 
