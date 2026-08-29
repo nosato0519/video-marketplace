@@ -14,7 +14,7 @@ await fs.mkdir(target, { recursive: true });
 
 const archivePath = path.resolve(archive);
 const list = await new Promise((resolve, reject) => {
-  const child = spawn('tar', ['-tzf', archivePath], { stdio: ['ignore', 'pipe', 'inherit'] });
+  const child = spawn('tar', ['-tvzf', archivePath], { stdio: ['ignore', 'pipe', 'inherit'] });
   let output = '';
   child.stdout.setEncoding('utf8');
   child.stdout.on('data', chunk => { output += chunk; });
@@ -26,6 +26,16 @@ for (const entry of list.split('\n').filter(Boolean)) {
   const normalized = path.posix.normalize(entry.replace(/^\.\//, ''));
   if (!normalized || normalized === '..' || normalized.startsWith('../') || path.posix.isAbsolute(entry)) {
     throw new Error(`Unsafe archive entry: ${entry}`);
+  }
+
+  // Only regular files and directories are allowed. Reject symlinks, hardlinks,
+  // devices, FIFOs, and other special tar entries before extraction.
+  const type = entry[0];
+  if (type !== '-' && type !== 'd') {
+    throw new Error(`Unsafe archive entry type: ${entry}`);
+  }
+  if (entry.includes(' -> ') || entry.includes(' link to ')) {
+    throw new Error(`Unsafe archive link entry: ${entry}`);
   }
 }
 
