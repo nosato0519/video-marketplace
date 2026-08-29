@@ -40,9 +40,9 @@ export async function refundPayment({
     }
 
     const order = await client.query(
-      `SELECT id, status
-         FROM orders
-        WHERE id = $1
+      `SELECT o.id, o.status, o.product_id
+         FROM orders o
+        WHERE o.id = $1
         FOR UPDATE`,
       [orderId]
     );
@@ -81,6 +81,16 @@ export async function refundPayment({
       [current.id]
     );
 
+    const earnings = await client.query(
+      `UPDATE seller_earnings
+          SET status = 'refunded', refunded_at = NOW()
+        WHERE order_id = $1
+          AND product_id = $2
+          AND status IN ('pending', 'available', 'paid')
+        RETURNING id, seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status, refunded_at`,
+      [current.id, current.product_id]
+    );
+
     await client.query(
       `UPDATE payment_events
           SET status = 'processed', processed_at = NOW()
@@ -94,6 +104,7 @@ export async function refundPayment({
       duplicate: false,
       order: updated.rows[0],
       entitlement: revoked.rows[0] ?? null,
+      earnings: earnings.rows[0] ?? null,
     };
   } catch (error) {
     await client.query('ROLLBACK');
