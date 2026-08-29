@@ -60,6 +60,11 @@ router.post('/payouts', async (req, res, next) => {
     const reservedAmount = Number(reserved.rows[0]?.reserved_amount || 0);
     const withdrawable = Math.max(0, available - reservedAmount);
 
+    if (amount < 1000) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'minimum_payout_not_reached', minimum: 1000 });
+    }
+
     if (amount > withdrawable) {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: 'amount_exceeds_withdrawable_balance', available, reserved: reservedAmount });
