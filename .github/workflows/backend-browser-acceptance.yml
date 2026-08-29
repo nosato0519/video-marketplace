@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 # Trigger CI from the current branch state.
+# E2E uses CI-only media security configuration.
 jobs:
   backend-browser-acceptance:
     runs-on: ubuntu-latest
