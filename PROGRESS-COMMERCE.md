@@ -5,20 +5,20 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `a64e5327298173e615eb9fb41036fa4646971f3f`
+- 最新作業コミット: `bb484228c776eb35a8cdf9211cd0a611a9fa9d3e`
 - ベースmain: `72eb8749cc2ceaed7a95c9c120f75afec213aeb9`
 - Backend Regression #565: PASS
 - Clean Install #154: PASS
-- 現在: Seller Application機能を最新mainへ安全に移植し、専用Acceptance CIを追加済み。CI実行結果待ち。
+- 現在: Seller Application Acceptance workflowのpushトリガーを統合ブランチへ明示し、実行可能状態に修正済み。CI結果確認待ち。
 
 ## 今回の実装
-- `backend/migrations/011_seller_applications.sql` を追加
-- buyer向け `backend/src/seller/application-routes.js` を追加
-- admin向け `backend/src/admin/seller-application-routes.js` を追加
-- `backend/src/app.js` にseller application/admin review routesを追加
-- `backend/package.json` に `test:http-seller-application-acceptance` を追加
-- `backend/scripts/http-seller-application-acceptance.js` を追加
-- `.github/workflows/seller-application-acceptance.yml` を追加
+- Seller Application DB migration
+- buyer向け申請API
+- admin審査API
+- app.jsへのroute接続
+- HTTP acceptance script
+- Seller Application Acceptance workflow
+- workflow push対象に `feat/seller-application-main-integration` と `main` を明示
 
 ## Seller Applicationの検証対象
 - buyerだけ申請可能
@@ -34,7 +34,7 @@
 - review操作をaudit_eventsへ記録
 
 ## CI待ち
-専用workflow `Seller Application Acceptance` を追加済み。以下をCIで確認する。
+専用workflow `Seller Application Acceptance` を追加・発火条件を修正済み。以下を実CIで確認する。
 1. npm install
 2. migrate:preflight
 3. migrate
@@ -50,7 +50,7 @@
 `feat/seller-application` はmainより62コミット先行・12コミット遅れで分岐しているため、丸ごとmergeしない。必要機能をmainへ機能単位で移植している。
 
 ## 残作業（優先順）
-1. Seller Application Acceptance CIのPASS確認。
+1. Seller Application Acceptance CIの実Run発生・PASS確認。
 2. PASSなら現在mainとの差分と実装を再確認。
 3. Browser backend acceptanceをmain統合ブランチへ追加・検証。
 4. Browser smoke / module smokeの必要部分を安全に移植・検証。
@@ -63,7 +63,7 @@
 ## 再開手順
 1. このファイルを最初に読む。
 2. `feat/seller-application-main-integration` のHEADを確認。
-3. Seller Application Acceptance CIの最新runを確認。
+3. Seller Application Acceptanceの最新runを確認。
 4. FAILならログから原因を特定し修正→再CI。
 5. PASSならBrowser/Postgres/Securityの次工程へ進む。
 6. 作業が進むたびこのファイルを更新する。
