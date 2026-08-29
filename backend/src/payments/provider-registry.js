@@ -1,18 +1,28 @@
-import { createCheckoutSession } from './payment-provider.js';
+import { createPaymentProvider } from './payment-provider.js';
 
-export function getPaymentProvider() {
-  const provider = process.env.PAYMENT_PROVIDER;
-
-  if (!provider) {
-    return null;
-  }
-
-  throw new Error(`unsupported_payment_provider:${provider}`);
+export function getPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
+  return createPaymentProvider({ provider });
 }
 
-export function startProviderCheckout({ order, reference }) {
-  const provider = getPaymentProvider();
-  if (!provider) throw new Error('payment_provider_unavailable');
+export function startProviderCheckout({ order, reference, paymentId, idempotencyKey } = {}) {
+  if (!order) throw new Error('order_required');
 
-  return createCheckoutSession({ order, provider, reference });
+  const provider = getPaymentProvider();
+  if (!provider.configured) {
+    throw new Error(`payment_provider_adapter_not_ready:${provider.name}`);
+  }
+
+  return provider.createCheckout({
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    idempotencyKey,
+    metadata: {
+      orderId: order.id,
+      ...(paymentId ? { paymentId } : {}),
+      ...(reference ? { reference } : {}),
+      ...(order.seller_id ? { sellerId: order.seller_id } : {}),
+      providerId: provider.name,
+    },
+  });
 }

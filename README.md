@@ -74,5 +74,3 @@ CI and HTTP acceptance tests do not replace browser acceptance. Before a commerc
 ## License / commercial packaging
 
 Review and set the final commercial license, deployment terms, third-party service requirements, and privacy/compliance documents before distributing a paid ZIP package.
-
-<!-- CI trigger: validate current seller-application E2E revision. -->

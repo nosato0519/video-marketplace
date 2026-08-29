@@ -1,38 +1,31 @@
 # Development Progress Log
 
-## 2026-08-29 — Browser acceptance hardening checkpoint
+## 2026-08-28 — Milestone 447 checkpoint
 
 ### Completed / verified
-- Seller Application API acceptance coverage is implemented and previously verified by Postgres acceptance CI.
-- Buyer Seller Application UI and Admin Seller Applications UI are wired to the existing APIs.
-- Creator discovery route is wired into the application shell.
-- Playwright browser acceptance foundation exists on `feat/browser-acceptance`.
-- Browser acceptance tests use the actual static application entrypoint `/app/index.html`.
-- Browser Smoke CI reached Chromium and test execution, but the first run failed because the application shell did not execute.
-- Root cause was identified from the repository tree: `app/main.js` imports `./seller/seller-upload.js`, while that module was missing from the branch. This prevented the browser application module graph from loading and left `#app` empty.
-- Added the missing `app/seller/seller-upload.js` module and wired the existing seller upload/product-draft behavior into the imported export.
+- Buyer Purchase Flow Static Regression CI is green.
+- PostgreSQL/API acceptance coverage is green for the established buyer purchase and seller product/media flows.
+- Seller dashboard, product list, and product editor UI were re-inspected against their current API contracts.
+- Seller dashboard uses same-origin authenticated requests for profile, verification, earnings and payouts and handles 401/403.
+- Seller product management exposes create/edit/publish/unpublish flows.
+- Seller product editor sends the selected video file as the actual upload request body and keeps private media credentials out of the browser.
+- Seller product editor enforces the 5 GiB client-side guard while the server remains authoritative.
+- Buyer product page creates an order and then requests checkout using the returned order ID.
+- Buyer Library provides protected watch/download entry points.
+- `tests/browser-acceptance-checklist.md` is the authoritative manual/runtime checklist for Seller, Buyer purchase, authorization boundaries, Admin and responsive smoke acceptance.
+- Browser acceptance checklist evidence rules were tightened so static inspection, API E2E, and CI cannot be recorded as browser success.
 
-### Browser acceptance evidence policy
-Browser CI must be treated as the source of truth for browser success. Static inspection and API acceptance do not count as browser PASS.
-
-### Current state
-- Seller Application API: PASS
-- Seller Application UI source: IMPLEMENTED
-- Admin Seller Application UI source: IMPLEMENTED
-- Creator UI source: IMPLEMENTED
-- Browser acceptance foundation: IMPLEMENTED
-- Missing seller upload browser module: FIXED in `4ec401241320a58293e93f2159968be5bd2e6007`
-- Browser Smoke after this fix: PENDING CI RESULT
+### No speculative changes
+No runtime browser was available through the current development connector, so no browser result is claimed as green.
 
 ### Remaining work
-1. Confirm Browser Smoke CI passes after the missing-module fix.
-2. If green, execute the authenticated Seller Application browser flow end-to-end with Buyer and Admin states.
-3. Execute authenticated Seller dashboard/products/product-editor acceptance.
-4. Execute authenticated Buyer product → order → checkout → library → watch/download acceptance.
-5. Execute unauthorized Buyer/Seller/Admin boundary checks.
-6. Execute Admin UI acceptance for dashboard/moderation/payout/verification.
-7. Perform production hardening: authentication/session, media protection, upload limits, webhooks, payment compatibility, privacy/compliance, clean install and backup/restore.
-8. Final commercial ZIP packaging and full release acceptance.
+1. Execute `tests/browser-acceptance-checklist.md` in an actual browser/runtime environment.
+2. Execute authenticated Seller dashboard/products/product-editor acceptance.
+3. Execute authenticated Buyer product → order → checkout → library → watch/download acceptance.
+4. Execute unauthorized Buyer/Seller/Admin boundary checks.
+5. Execute Admin UI acceptance for dashboard/moderation/payout/verification.
+6. Perform production hardening: authentication/session, media protection, upload limits, webhooks, payment compatibility, privacy/compliance, clean install and backup/restore.
+7. Final commercial ZIP packaging and full release acceptance.
 
-### Exact resume point
-Start by checking the Browser Smoke workflow triggered by commit `4ec401241320a58293e93f2159968be5bd2e6007`. Do not mark browser acceptance green until the CI test result is confirmed.
+### Exact next step
+Provide/use an actual browser/runtime environment and execute the checklist. Until then, keep browser acceptance marked pending and continue source/API hardening only where concrete defects are found.
