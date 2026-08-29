@@ -23,10 +23,17 @@ async function registerAndLogin(page, email, password) {
   expect(mainJs).toContain("document.querySelector('#app')");
 
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  await expect.poll(async () => page.locator('#app').innerHTML(), {
-    timeout: 10000,
-    message: () => `SPA did not render. URL=${page.url()} HTML=${JSON.stringify(page.locator('#app').innerHTML())} consoleErrors=${JSON.stringify(consoleErrors)} failedRequests=${JSON.stringify(failedRequests)}`,
-  }).toContain('VIDEO MARKET');
+  const moduleProbe = await page.evaluate(async () => {
+    try {
+      await import(`/app/main.js?browser-probe=${Date.now()}`);
+      return { ok: true, error: null };
+    } catch (error) {
+      return { ok: false, error: `${error?.name || 'Error'}: ${error?.message || error}` };
+    }
+  });
+  expect(moduleProbe.ok, `main.js browser module probe failed: ${moduleProbe.error}; consoleErrors=${JSON.stringify(consoleErrors)} failedRequests=${JSON.stringify(failedRequests)}`).toBeTruthy();
+
+  await expect.poll(async () => page.locator('#app').innerHTML(), { timeout: 10000 }).toContain('VIDEO MARKET');
   await expect(page.locator('.site-header')).toBeVisible();
   await page.getByRole('link', { name: 'Sign up' }).click();
   await expect(page).toHaveURL(/#\/register/);
