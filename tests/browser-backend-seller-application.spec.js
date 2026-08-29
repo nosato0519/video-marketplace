@@ -8,10 +8,7 @@ async function registerAndLogin(page, email, password) {
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: /Register|Create account/i }).click();
-  await expect(page).toHaveURL(/#\/login/);
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: /Log in|Login/i }).click();
+  await expect(page).toHaveURL(/#\/browse/);
 }
 
 test.describe('real backend seller application acceptance', () => {
