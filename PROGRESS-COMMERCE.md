@@ -5,14 +5,14 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `8eaaf0ea4b6528d5987cbc5e4debf927e59855a1`
+- 最新作業コミット: `475459fe1b9002998a176f024902aeeaacd72365`
 - Browser Acceptance failed run: `33239035283`
-- Browser failure原因: `/seller/register` が既存 `app/main.js` でSeller Dashboardへ落ち、Seller Application画面が存在しなかった。
-- 修正: `app/main.js` にSeller Application UI/API送信ルートを直接接続。
+- Browser failure原因: 初回はregister画面のEmail selector不一致。その後Seller Application表示後に現UIに存在しない `Pending review` 見出しを期待していた。
+- 修正: Playwrightを現行UIに合わせ、申請後に実API `GET /api/seller/application` を確認する方式へ変更。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Browser Acceptanceの失敗原因を修正済み。修正版CI結果待ち。
+- 現在: Browser Acceptanceテストの期待値修正済み。新CI Runの結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -50,26 +50,20 @@
 ## Browser Acceptance
 初回Run `33239035283` はFAIL。
 
-失敗原因を確認した結果、Playwrightの `#/seller/register` がSeller Application viewへ接続されておらず、既存Seller Dashboardへ流れていた。
+初回の失敗原因:
+- `#/register` の現行UIとPlaywrightの `getByLabel('Email')` selectorが不一致。
 
-修正コミット:
-`8eaaf0ea4b6528d5987cbc5e4debf927e59855a1`
+その後の修正でregister処理は通過し、Seller Application画面まで到達したが、次の期待値が現行UIと不一致だった:
+- `getByRole('heading', { name: 'Pending review' })`
+- 申請後にUIがPending review画面を描画する実装ではない。
+
+今回の修正コミット:
+`475459fe1b9002998a176f024902aeeaacd72365`
 
 修正内容:
-- `/seller/register` を専用Seller Application UIへ接続
-- Display name / Legal name / Country code / Messageフォーム追加
-- `/api/seller/application` POST接続
-- Submit後にSeller Application状態を再表示
-
-修正版で実CIを再実行し、以下を確認する。
-1. PostgreSQL起動
-2. npm install
-3. Playwright/Chromium install
-4. migration preflight + migration
-5. backend health
-6. frontend proxy
-7. browserでbuyer登録→login→seller申請画面表示→申請送信
-8. backend `/api/auth/me` でbuyer roleを確認
+- 申請後の存在しない `Pending review` 見出しへの依存を削除。
+- 申請後に実Backendの `GET /api/seller/application` を呼び、application存在・status=`pending`・displayName・legalName・countryCodeを検証。
+- `/api/auth/me` でユーザーroleがbuyerのままであることも継続確認。
 
 ## PR #2について
 `feat/seller-application` はmainより62コミット先行・12コミット遅れで分岐しているため、丸ごとmergeしない。必要機能をmainへ機能単位で移植している。
@@ -87,7 +81,7 @@
 ## 再開手順
 1. このファイルを最初に読む。
 2. `feat/seller-application-main-integration` のHEADを確認。
-3. 修正版Backend Browser Acceptanceの最新runを確認。
+3. 修正版Browser Acceptanceの最新runを確認。
 4. FAILならログから原因を特定し修正→再CI。
 5. PASSならBrowser/Postgres/Securityの次工程へ進む。
 6. 作業が進むたびこのファイルを更新する。
