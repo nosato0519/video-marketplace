@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { startServer, request } from './http-test-helpers.js';
 
-const server = await startServer();
-const baseUrl = server.baseUrl;
+const { server, baseUrl } = await startServer();
 
 try {
   const sellerEmail = `seller-${Date.now()}@example.com`;
