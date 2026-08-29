@@ -1,9 +1,9 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 458 — Seller payout HTTP acceptance now includes a real concurrent-request regression; runtime/CI verification remains.**
+**Milestone 459 — Truthful concurrent payout acceptance coverage is now implemented; runtime/CI verification remains.**
 
-## Latest checkpoint — 2026-08-28
+## Latest checkpoint — 2026-08-29
 ### Completed
 - Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization, payment/refund/failure handling.
 - Seller product/media, publishing, ownership isolation, profile, verification, earnings and payout UI/API foundations.
@@ -21,14 +21,15 @@
 - Extended `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to cover Admin authentication, Admin payout listing, requested -> reviewing -> approved -> processing -> paid transitions, invalid terminal transition rejection, audit retrieval, and Seller-side persistence of the final paid state.
 - Confirmed `.github/workflows/postgres-migration-acceptance.yml` runs the payout HTTP acceptance script after a fresh PostgreSQL migration and a second idempotent migration pass.
 - Hardened Seller payout creation with an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency, preventing concurrent payout requests from racing through the available-balance check and both being accepted.
-- Added a concurrent HTTP acceptance case to the Seller Profile/Earnings/Payout E2E: two simultaneous 2,500 JPY payout requests with only 3,500 JPY withdrawable after the first 1,000 JPY request must produce exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
+- **2026-08-29:** Audited the payout acceptance test and found its supposed concurrency case was sequential. Corrected it so two 2,500 JPY requests are issued through `Promise.all` against a 3,500 JPY remaining withdrawable balance, asserting exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
+- **2026-08-29:** Added `PROGRESS_LOG.md` as an additional concise continuation checkpoint.
 
 ### Verification status
-- Latest known PostgreSQL acceptance run (#101) is green, but it predates the latest payout lifecycle extension and concurrency hardening.
+- Latest known PostgreSQL acceptance run (#101) is green, but it predates the corrected true-concurrency test.
 - Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
 - Media upload hardening workflow was updated to include route-level tests and was observed green.
-- Seller and Admin payout routes now match the actual migration schema at source level.
-- The extended payout HTTP acceptance script, including concurrency coverage, is wired into CI, but GitHub currently reports no workflow run associated with the latest payout commits and the latest commit status has no checks. Do not claim payout runtime acceptance green.
+- Seller and Admin payout routes match the actual migration schema at source level.
+- The corrected payout HTTP acceptance script is wired into CI, but **the corrected concurrency behavior has not yet been observed in a real CI run**. Do not claim payout runtime acceptance green.
 - Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
 
 ## Canonical seller/payout model
@@ -42,12 +43,12 @@
 - Do not introduce `seller_payout_requests` or `seller_profiles.id` merely to satisfy stale route code; the real migration set is authoritative.
 
 ## Release blocker status
-**BLOCKED:** Source-level payout contracts, lifecycle acceptance code, and concurrency protection are implemented. Remaining blocker is empirical verification: obtain a CI run for the latest changes, prove fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
+**BLOCKED:** Source-level payout contracts, lifecycle acceptance code, and concurrency protection are implemented. Remaining blocker is empirical verification of the corrected concurrent acceptance, fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
 
 ## Remaining work — priority order
 1. **Payout runtime + clean-install verification — BLOCKER**
    - Obtain/execute the PostgreSQL acceptance workflow for the latest payout changes.
-   - Verify audit events, available-balance calculations, and concurrent-request behavior.
+   - Verify audit events, available-balance calculations, and true concurrent-request behavior.
    - Verify fresh migration installation and existing-install migration expectations.
 2. **Admin integration**
    - Live metrics against verified canonical tables.
@@ -66,9 +67,9 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Get a real CI execution for the latest payout changes. If it is unavailable through the connected GitHub controls, continue source-level verification only and do not mark Payout Green.**
+**Get a real CI execution for commit `42ef70604178df4d5c6565a91cd539c03a4b57e2` (or a descendant containing this corrected test). If unavailable through the connected GitHub controls, continue source-level verification only and do not mark Payout Green.**
 
 ## Continuation rule
-At the start of every development session, read this file first, inspect latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update this file with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
+At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update these files with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
 
-**This file and the latest repository state are the authoritative continuation source.**
+**These files and the latest repository state are the authoritative continuation source.**
