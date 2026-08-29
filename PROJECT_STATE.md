@@ -19,7 +19,7 @@
 - Corrected payout acceptance concurrency coverage to use two simultaneous 2,500 JPY HTTP requests against a 3,500 JPY remaining withdrawable balance, asserting exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
 - Seller payout route now enforces the 1,000 JPY minimum and acceptance coverage verifies 999 JPY rejection.
 - Checkout route now passes selected `providerId` through to provider routing.
-- **2026-08-29:** Source audit found that successful payment settlement marked `payments` and `orders` paid and created entitlement, but did not create the canonical `seller_earnings` ledger row.
+- **2026-08-29:** Source audit found that successful payment settlement updated `payments` and `orders` and created entitlement, but did not create the canonical `seller_earnings` ledger row required by payout balance calculations.
 - **2026-08-29:** Fixed `complete-payment.js` so settlement obtains the product owner and creates exactly one `seller_earnings` row in the same transaction, with `gross_amount = order.amount`, `platform_fee = 0`, `net_amount = order.amount`, order currency, and `status = 'available'`.
 - The seller-earnings insert is idempotent on `UNIQUE(order_id, product_id)` and is also executed for an unprocessed event arriving after an order is already paid, allowing safe repair of a missing earning row without duplication.
 - Added database acceptance coverage for seller-earnings creation and retry idempotency.
@@ -35,10 +35,12 @@
 - Platform fee is currently explicitly `0`; no configurable platform-fee policy has been wired into settlement yet and must not be implied otherwise.
 
 ### Verification status
-- Corrected payout concurrency and minimum-payout tests are implemented but not observed in a real CI run.
-- Seller-earnings settlement coverage is implemented but not observed in a real CI run.
-- Checkout provider routing source-level gap is fixed but dedicated HTTP contract coverage remains outstanding.
-- Stripe webhook handling is present; provider consistency through the complete webhook path still requires runtime verification.
+- A GitHub Actions `clean-install` run for the checkpoint is currently **in progress** (`33245787271`, job `clean-install` `99082878150`); no conclusion is available yet.
+- Seller-earnings settlement acceptance is implemented but not yet empirically passed in CI.
+- Corrected payout concurrency and minimum-payout acceptance are implemented but not yet empirically passed in CI.
+- Refund/partial-refund behavior against seller earnings still requires verification.
+- Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
+- Stripe webhook provider consistency through the complete runtime path remains to be verified.
 - Seller, Buyer and Admin browser-level acceptance remains incomplete.
 - Do not claim full release readiness yet.
 
@@ -53,21 +55,19 @@
 - Minimum seller payout policy: 1,000 JPY at API level.
 
 ## Release blocker status
-**BLOCKED:** Payout runtime/CI evidence, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
+**BLOCKED:** Payout runtime/CI evidence, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, refund/earnings reversal verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
 
 ## Remaining work — priority order
-1. **Payout runtime + clean-install verification — BLOCKER**
-   - Obtain/execute CI for the latest main descendant containing corrected concurrency and minimum-payout acceptance.
-   - Verify true concurrent requests, minimum payout rejection, audit events, and available-balance calculations.
-   - Verify fresh PostgreSQL installation and idempotent/existing-install migration behavior.
-2. **Payment provider integration**
+1. **Active CI verification — BLOCKER**
+   - Inspect run `33245787271` until `clean-install` concludes.
+   - Record the exact failed step if the run fails; if it passes, preserve the run as evidence and continue with database acceptance coverage.
+2. **Refund / seller earnings integrity**
+   - Trace refund and partial-refund handling against `seller_earnings` and payout eligibility.
+   - Ensure refunded sales cannot remain payout-eligible.
+3. **Payment provider integration**
    - Add/verify HTTP Checkout contract coverage for `providerId` passthrough.
    - Trace provider consistency from Checkout metadata through webhook/event ledger and `completePayment`.
    - Implement real PayPal, Adyen, Paddle and PayPay adapters or explicitly narrow the supported-provider catalog before release.
-3. **Seller earnings / refunds**
-   - Verify seller earnings are created exactly once for successful settlement.
-   - Verify refund/partial-refund ledger behavior and payout eligibility reversal against the earnings rows.
-   - Decide and implement a configurable platform-fee policy before commercial release.
 4. **Admin integration**
    - Live metrics against verified canonical tables.
    - Admin payout review UI.
@@ -85,9 +85,9 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Trace refund and partial-refund handling against `seller_earnings`, ensuring refunds cannot leave payout-eligible earnings behind; then add/verify the Checkout HTTP contract for selected `providerId`. Keep payout/runtime status BLOCKED until real CI evidence exists.**
+**Inspect the active `clean-install` run `33245787271`; once it concludes, use the result to drive the next correction. In parallel, inspect refund/partial-refund code against `seller_earnings` so payout eligibility cannot survive a refund.**
 
 ## Continuation rule
-At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
+At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run `33245787271`, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
 **These files and the latest repository state are the authoritative continuation source.**
