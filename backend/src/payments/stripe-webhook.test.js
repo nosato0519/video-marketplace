@@ -53,7 +53,7 @@ test('accepts a valid Stripe signature and normalizes checkout completion', asyn
     failPayment: async () => { throw new Error('should_not_fail'); },
   });
   const body = JSON.stringify(makeEvent());
-  const signature = stripe.webhooks.generateTestHeaderString(body, secret);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
 
   await withServer(handler, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
@@ -100,7 +100,7 @@ test('ignores unsupported Stripe event types without touching the payment ledger
     failPayment: async () => {},
   });
   const body = JSON.stringify(makeEvent({ type: 'customer.updated' }));
-  const signature = stripe.webhooks.generateTestHeaderString(body, secret);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
 
   await withServer(handler, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
