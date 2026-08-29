@@ -5,8 +5,8 @@ const appUrl = (hash) => `/app/index.html${hash}`;
 const routes = [
   { hash: '#/', heading: 'Discover videos worth watching.' },
   { hash: '#/browse', heading: 'Discover' },
-  { hash: '#/categories', heading: 'Explore categories' },
-  { hash: '#/popular', heading: 'Popular now' },
+  { hash: '#/categories', heading: 'Categories' },
+  { hash: '#/popular', heading: 'Popular' },
   { hash: '#/creators', heading: 'Discover creators' },
   { hash: '#/login', heading: 'Log in' },
   { hash: '#/register', heading: 'Create your account' },
