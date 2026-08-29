@@ -51,12 +51,14 @@ export function createApp() {
   registerProductTranslationRoutes(app);
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
+  // Seller applications must be reachable by authenticated buyers. Mount this
+  // router before seller-only routers whose router-level middleware rejects buyers.
+  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
   app.use('/api/seller', sellerProfileRoutes);
   app.use('/api/seller', sellerEarningsRoutes);
   app.use('/api/seller', sellerPayoutRoutes);
-  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/admin', adminPayoutRoutes);
   app.use('/api/admin', adminSellerVerificationRoutes);
   app.use('/api/admin', adminSellerApplicationRoutes);
