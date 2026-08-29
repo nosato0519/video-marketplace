@@ -2,6 +2,7 @@ import express from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
+import { settlePaidPayoutEarnings } from '../seller/payout-earnings-settlement.js';
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
@@ -78,6 +79,11 @@ router.post('/payouts/:id/status', async (req, res, next) => {
           RETURNING id, seller_id, amount, currency, status, failure_reason, requested_at, reviewed_at, paid_at`,
         [req.params.id, nextStatus, req.user.id, reason]
       );
+
+      if (nextStatus === 'paid') {
+        await settlePaidPayoutEarnings(db, req.params.id);
+      }
+
       await audit(db, req.user.id, `payout.status.${from}_to_${nextStatus}`, req.params.id, {
         from_status: from,
         to_status: nextStatus,
