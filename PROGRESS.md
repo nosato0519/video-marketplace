@@ -2,7 +2,7 @@
 
 最終更新: 2026-08-29
 対象リポジトリ: `nosato0519/video-marketplace`
-対象ブランチ: `feat/seller-application`
+対象ブランチ: `feat/browser-acceptance`
 
 ## 継続ルール
 - 作業中はこまめにこのファイルを更新してGitHubへ保存する。
@@ -28,42 +28,48 @@
 - 修正後のPostgres AcceptanceでSeller Application stepを含む全Acceptance stepsがSUCCESS。
 - Backend Regression / Clean Install / Media Upload Validationも修正系列でSUCCESS。
 
-## 今回: Seller Application Browser UI
+## 完了済み: Seller Application Browser UI
 - `app/seller/seller-application-view.js` を追加。
 - buyerが `/seller/register` から申請できる画面を追加。
 - 未ログイン時はloginへ誘導し、ログイン後に申請状態を表示。
 - pending / under_reviewではwithdrawを可能にし、approved / rejected / withdrawnの状態を表示。
-- 申請画面でdisplay name / legal name / country code / messageを入力できる。
-- `app/main.js` にSeller Application routeを接続。
 - `app/admin/seller-applications.js` を追加。
-- Adminが `/admin/seller-applications` からpending / under_review等を確認し、start_review / approve / rejectを実行できるUIを追加。
-- `app/admin/admin-navigation.js` にSeller applicationsを追加。
-- `app/admin/admin-dashboard.js` にSeller applicationsを追加。
+- Adminが `/admin/seller-applications` から申請を確認し、review / approve / rejectを実行できるUIを追加。
+- `app/admin/admin-navigation.js` と `app/admin/admin-dashboard.js` にSeller applicationsを追加。
+- Creator discovery route `/creators` とCreator一覧UIを追加。
+- UI変更を含む主要CIは `b29b423...` でAdmin Static / Media Upload Validation / Backend / Postgres Acceptance / Clean InstallすべてSUCCESS確認済み。
+
+## 今回: Browser Acceptance基盤
+- `feat/browser-acceptance` ブランチを `feat/seller-application` の `b29b423b8308b7b0e16b3699e3fb5e297d68dbca` から作成。
+- Playwrightを使う公開画面のブラウザSmoke testを追加。
+- `tests/browser-smoke.spec.js` を追加し、Home / Browse / Categories / Popular / Creators / Login / Registerの表示を実ブラウザで確認するテストを追加。
+- Homeの主要navigationとCreator discovery → Seller registration導線も確認対象にした。
+- `playwright.config.js` を追加し、headless Chromium、失敗時screenshot/trace、baseURLを設定。
+- `.github/workflows/browser-smoke.yml` を追加し、Node 22 / Playwright 1.55.0 / ChromiumをCI上でインストールして、Python静的サーバー経由でSmoke testを実行する構成にした。
+- 現時点ではBrowser Smoke CIのPASSは未確認。コード追加だけをPASSとは扱わない。
 
 ## 現在の状態
-- Seller Application DB: 実装済み、Acceptance PASS
-- Buyer Application API: 実装済み、Acceptance PASS
-- Admin Review API: 実装済み、Acceptance PASS
-- role変更transaction: 実装済み、Acceptance PASS
-- audit記録: 実装済み、Acceptance PASS
-- Buyer Seller Application UI: 実装済み、未ブラウザ実機確認
-- Admin Seller Application UI: 実装済み、未ブラウザ実機確認
-- Browser Acceptance: 未実施
-- PR #2: 作成済み。最新UIコミットを含む状態を次回確認する
-- main: PR #2のUI変更は未Merge
+- Seller Application DB/API: 実装済み、Acceptance PASS
+- Buyer Seller Application UI: 実装済み、主要CI PASS
+- Admin Seller Application UI: 実装済み、主要CI PASS
+- Creator discovery UI/route: 実装済み、主要CI PASS
+- Browser Smoke test: 実装済み、CI実行結果未確認
+- Browser Acceptance: 未完了
+- PR #2: `feat/seller-application`、Open、未Merge
+- `feat/browser-acceptance`: Browser Smoke基盤追加中
 
 ## 次の1手
-- PR #2の最新HEADを確認し、UI変更を含む差分を確認する。
-- Browser Acceptance用の実ブラウザテスト方法/既存テスト基盤を確認する。
-- buyer `/seller/register` → login → application submit → pending表示のブラウザ導線を検証する。
-- admin `/admin/seller-applications` → application review → approve/rejectのブラウザ導線を検証する。
-- UIテストで問題が出た場合は最小修正し、CIを再確認する。
-- Browser Acceptanceが通過した後にPR #2のMerge判断を行う。
+- `feat/browser-acceptance` の最新HEADでBrowser Smoke workflowが実行されたか確認する。
+- Browser SmokeがFAILした場合はログから原因を特定して最小修正する。
+- Browser SmokeがPASSしたら、実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
+- Buyer `/seller/register` → login → application submit → pending表示をブラウザで検証する。
+- Admin `/admin/seller-applications` → application review → approve/rejectをブラウザで検証する。
+- Browser Acceptance通過後にPR #2へ必要な変更を反映し、最終レビューとMerge判断を行う。
 
 ## 作業中断からの再開手順
 1. このファイルを読む。
-2. `feat/seller-application` のHEADとこのファイルの記録をGitHubで照合する。
-3. Seller Application migration / buyer route / admin route / acceptance / workflow / buyer UI / admin UIを確認する。
-4. PR #2とCIの最新結果を確認する。
+2. `feat/browser-acceptance` のHEADとこのファイルの記録をGitHubで照合する。
+3. `feat/seller-application` / PR #2の最新HEADも確認する。
+4. Browser Smoke workflowの最新CI結果を確認する。
 5. 「実装済み」「CI PASS」「ブラウザ実機確認済み」を混同しない。
 6. 新しい作業を行ったら必ずこのファイルを更新する。
