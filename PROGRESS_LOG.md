@@ -20,14 +20,14 @@ Payment settlement -> seller earnings integrity, refund/payout eligibility, and 
 - The new earning uses `gross_amount = order.amount`, `platform_fee = 0`, `net_amount = order.amount`, order currency, and `status = 'available'`.
 - The insert is idempotent on `UNIQUE(order_id, product_id)` and also runs for an unprocessed event arriving after an already-paid order, so a missing earning row can be repaired without duplication.
 - Added database acceptance coverage proving one seller earning is created and remains one row after a retry event.
-- Code and checkpoint changes are now on `main` at `cecff0795b65f0121067cac8c78d7244ce82b77d`.
+- The corrected code/test are now on `main` at `27b785bf0f27d4f7d2c152d04e0be439c2a4b7a4`.
 
 ### Important financial design decision
 - `seller_earnings.platform_fee` currently receives an explicit `0` because no configurable platform-fee policy is wired into the current settlement path. This is intentionally not described as a final commercial fee model.
 
 ### Verification status
-- A GitHub Actions `clean-install` run for the checkpoint was automatically started and is currently **in progress**; it has reached container initialization and has not yet produced a conclusion.
-- Seller-earnings settlement acceptance is implemented but not yet empirically passed in CI.
+- GitHub Actions `clean-install` run `33245787271` / job `99082878150` was started against an earlier documentation checkpoint before the corrected seller-earnings code reached `main`; therefore it is **not evidence for the corrected settlement implementation**. Its observed status was in progress at the last check.
+- Seller-earnings settlement acceptance is implemented but not yet empirically passed on the corrected `main`.
 - Corrected payout concurrency and minimum-payout acceptance are implemented but not yet empirically passed in CI.
 - Refund/partial-refund behavior against seller earnings still requires verification.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
@@ -36,19 +36,19 @@ Payment settlement -> seller earnings integrity, refund/payout eligibility, and 
 - Seller, Buyer and Admin browser-level acceptance remains incomplete.
 
 ### Do not claim
-- Do not claim payout runtime concurrency is green without an actual CI run.
-- Do not claim seller earnings settlement is runtime-verified without an actual database acceptance run.
+- Do not claim payout runtime concurrency is green without an actual CI run containing the corrected tests.
+- Do not claim seller earnings settlement is runtime-verified without an actual database acceptance run containing the corrected code.
 - Do not claim PayPal/Adyen/Paddle/PayPay are real payment integrations until adapters are implemented and runtime-tested.
 - Do not claim browser E2E or production release readiness is complete.
 
 ### Exact checkpoint
 Latest main commit:
-- `cecff0795b65f0121067cac8c78d7244ce82b77d` — payment settlement now creates the canonical seller earnings row atomically and the acceptance test verifies retry idempotency.
-- Previous implementation commit: `e6b53c701e77d07cba852193f26e383f32abc67f`.
-- CI run observed for the checkpoint: `33245787271`, job `clean-install` (`99082878150`), currently in progress.
+- `27b785bf0f27d4f7d2c152d04e0be439c2a4b7a4` — corrected seller-earnings settlement acceptance test is on main.
+- Earlier implementation commit: `e6b53c701e77d07cba852193f26e383f32abc67f`.
+- Active CI run that was already observed: `33245787271`, job `clean-install` (`99082878150`); this run predates the corrected settlement code and must not be used as its verification evidence.
 
 ### Next exact task
-1. Wait for/inspect the active `clean-install` CI job and record its conclusion and failed step if any.
+1. Trigger/obtain a CI run that includes `27b785bf0f27d4f7d2c152d04e0be439c2a4b7a4` and inspect the result.
 2. Trace refund and partial-refund handling against `seller_earnings` and payout eligibility.
 3. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
 4. Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
