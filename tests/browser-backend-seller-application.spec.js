@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
-const appUrl = 'http://127.0.0.1:4173/index.html';
+const appUrl = 'http://127.0.0.1:4173/app/index.html';
 
 async function registerAndLogin(page, email, password) {
   await page.goto(`${appUrl}#/register`);
