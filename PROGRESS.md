@@ -28,7 +28,9 @@
 - active applicationはDBのpartial unique indexで二重申請を防止。
 - Admin approve時はwithTransaction()内でapplication更新、buyer→seller role変更、seller profile作成/更新、audit event記録を原子的に実行する。
 - Adminのreview endpointはrequireAuth + requireRole('admin')で保護。
-- 実装コミット系列: `a682914...` → `f14798c...` → `94f7f4b...` → `9459eeb...`
+- `backend/scripts/http-seller-application-acceptance.js` を追加し、正常系・重複申請・Admin審査/承認・role/profile/audit・reject・非Admin拒否を検証するようにした。
+- `backend/package.json` に `test:http-seller-application` を追加。
+- `.github/workflows/postgres-migration-acceptance.yml` にSeller Application acceptance stepを追加。
 
 ## 現在の状態
 - Seller Application DB: 実装済み、CI未確認
@@ -36,27 +38,24 @@
 - Admin Review API: 実装済み、CI未確認
 - role変更のtransaction: 実装済み、CI未確認
 - audit記録: 実装済み、CI未確認
+- Acceptance test: 実装済み、CI未確認
 - Browser UI: 未実装
-- E2E / Regression: 未追加
+- Admin UI: 未実装
 - PR: 未作成
 - main: 変更なし
 
 ## 残作業（順番固定）
-1. migration runner / schemaとの整合を確認。
-2. Seller Application APIの正常系・重複申請・role制御テストを追加。
-3. Admin approve/reject/review遷移テストを追加。
-4. approve時にrole変更とprofile作成とauditが同一transactionで成立することを確認。
-5. Browser UIを追加し、buyerから申請できる導線を作る。
-6. Admin UIに申請一覧・審査操作を追加。
-7. Buyer → Seller application → Admin approval → Seller Dashboardのbrowser acceptanceを追加。
-8. CIを実行し、PASS/FAILを確認。
-9. FAILならログから原因を確定して最小修正。
-10. 全CI Green後にPR作成・レビュー・Merge判断。
+1. Seller Application acceptanceをCIで実行してPASS/FAILを確認。
+2. FAILならログから原因を確定して最小修正。
+3. API契約が確定したらBuyer UIを追加。
+4. Admin UIに申請一覧・審査操作を追加。
+5. Buyer → Seller application → Admin approval → Seller Dashboardのbrowser acceptanceを追加。
+6. 全CI Green後にPR作成・レビュー・Merge判断。
 
 ## 作業中断からの再開手順
 1. このファイルを読む。
 2. `feat/seller-application` のHEADとこのファイルの記録をGitHubで照合する。
-3. migration / route / app.jsの3点を確認する。
+3. migration / route / app.js / acceptance test / workflowの5点を確認する。
 4. CIの最新結果を確認する。
 5. 「実装済み」「CI PASS」「未確認」を混同しない。
 6. 新しい作業を行ったら必ずこのファイルを更新する。
