@@ -48,20 +48,32 @@
 - Browser Smoke run 24 と Clean Install run 143 がSUCCESS確認済み。
 - PR #3「Add browser smoke acceptance foundation」は2026-08-29に `feat/seller-application` へMerge済み。Merge commitは `3e56605521c6ee7c731c303551028c968a07a1fb`。
 
+## 今回: Seller Application Browser Acceptance強化
+- `tests/browser-seller-application.spec.js` のmock APIベースBrowser Acceptanceを強化。
+- 未認証時 `/seller/register` → Login required → login導線を検証。
+- Buyerの申請POST payloadを検証し、pending表示を確認。
+- Buyerのpending application withdraw POSTとwithdrawn表示、withdraw button消失を検証。
+- Admin approveのPOST actionを検証。
+- Admin rejectでreview note必須のUI検証を維持。
+- 変更コミット: `4028efc8003889234a5def897ae94f0aa10550f8`。
+- まだ実backend接続E2Eではないため、Browser Acceptance全体は未完了扱い。
+
 ## 現在の状態
 - Seller Application DB/API: 実装済み、Acceptance PASS
 - Buyer Seller Application UI: 実装済み、主要CI PASS
 - Admin Seller Application UI: 実装済み、主要CI PASS
 - Creator discovery UI/route: 実装済み、主要CI PASS
 - Browser Smoke: 実装済み、Chromium CI PASS
-- Browser Acceptance: Seller Applicationについてmock APIベースのテストまで実装済み。実backendを接続した認証済みE2Eは未完了
+- Seller Application Browser Acceptance: mock API coverage強化済み、CI結果未確認
+- 実backend接続の認証済みBuyer/Admin Browser E2E: 未完了
 - PR #2: `feat/seller-application`、Open、未Merge
-- `feat/seller-application` HEAD: `3e56605521c6ee7c731c303551028c968a07a1fb`
+- `feat/seller-application` HEAD: `4028efc8003889234a5def897ae94f0aa10550f8`
 - mainへの本番反映: PR #2が未Mergeのため未完了
 
 ## 次の1手
-- PR #2の更新後HEADとCIを確認する。
-- mockではなく実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
+- 新しいBrowser AcceptanceテストのCI結果を確認する。
+- FAILならログから原因を特定して最小修正する。
+- PASSなら、実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
 - Buyer `/seller/register` → login → application submit → pending表示を実backend接続で検証する。
 - Admin `/admin/seller-applications` → review → approve/rejectを実backend接続で検証する。
 - 既存のSeller dashboard/products/product-editor、Buyer購入→checkout→Library→watch/download、権限境界、Admin UI acceptanceへ順次進む。
@@ -71,6 +83,6 @@
 1. このファイルを読む。
 2. `feat/seller-application` のHEADとこのファイルの記録をGitHubで照合する。
 3. PR #2の最新状態を確認する。
-4. Browser Smoke / Backend / Postgres Acceptance / Clean Install等の最新CI結果を確認する。
+4. Browser Smoke / Browser Acceptance / Backend / Postgres Acceptance / Clean Install等の最新CI結果を確認する。
 5. 「実装済み」「CI PASS」「ブラウザ実機確認済み」を混同しない。
 6. 新しい作業を行ったら必ずこのファイルを更新する。
