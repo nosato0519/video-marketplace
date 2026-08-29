@@ -26,19 +26,45 @@
 - Seller payout E2E PASS確認済み。
 - Admin payout concurrency regressionは共有transaction helper設計に合わせて回帰ガードを修正しPASS確認済み。
 
-## 現在のmain
-- Merge commit: `b48d309000171c05a2f4ddd9b0e721d3aa80cf55`
-- Merge後のmainでは `restore-media-local.js` にtar archive type validationが含まれていることを確認済み。
-- Merge後main commitについてGitHub connectorから取得できるworkflow/statusは現時点で0件。したがって「Merge後main CI PASS」は未確認として扱う。
+## Merge後main確認
+- mainのMerge commit `b48d309000171c05a2f4ddd9b0e721d3aa80cf55` に、今回のbackup/restore hardeningとsecurity acceptance追加が含まれていることを確認済み。
+- `.github/workflows/postgres-migration-acceptance.yml` のpush triggerは `hardening/backup-restore` のみで、main pushは対象外。pull_requestとworkflow_dispatchは対象。
+- そのためMerge後main commitに対してGitHub connectorからworkflow/statusが0件であることは、現workflow triggerと整合する。
+- 「Merge後main CI PASS」は実行されていないためPASSとは表現しない。ただし、Merge前に同一変更内容を含む主要CIがPASSしていることは確認済み。
+
+## 現在の状態
+- 実装: 完了
+- PR #1: Merge済み
+- Merge前主要CI: 全てPASS確認済み
+- Merge後mainの追加CI: trigger対象外のため未実行
+- main上の最終ファイル状態: 確認済み
+- PRレビュー指摘: 3件すべて対応内容をMerge前CIで検証済み
 
 ## 残作業
-1. Merge後mainに対するCIがGitHub上で実行される場合は、その結果を確認する。
-2. 実行されない場合は、既存CIがPRイベント中心の構成であることを確認し、コード変更なしで完了判定する。
-3. main上の最終ファイル状態とPR #1のレビュー指摘を照合する。
+- 今回のPR #1 / Backup & Restore Hardeningについて、必須の残作業なし。
+- 今後main向けCIを実行する必要がある場合は、workflow_dispatch等で明示的に起動して確認する。
 
 ## 作業中断からの再開手順
 1. このファイルを読む。
 2. mainのHEADとこのファイルの記録SHAをGitHubで照合する。
-3. 最新CIの有無を確認する。
+3. 必要に応じてworkflow triggerとCI実行履歴を確認する。
 4. 「実装済み」「CI PASS」「未確認」を混同しない。
 5. 新しい作業を行ったら必ずこのファイルを更新する。
+
+## 完成判定
+**PR #1 / Backup & Restore Hardeningは完成。**
+
+完成根拠:
+- Backup / Restore実装完了
+- DATABASE_URLのargv露出対策完了
+- Media archiveのpath traversal / symlink / hardlink / device等の防御完了
+- Backup→Restore round-trip acceptance PASS
+- Media restore security acceptance PASS
+- Seller payout E2E PASS
+- Admin payout concurrency regression PASS
+- Postgres Acceptance PASS
+- Backend Regression PASS
+- Clean Install PASS
+- Media Upload Validation PASS
+- PR #1 Merge済み
+- Merge後mainのworkflow triggerがmain pushを対象外としていることを確認
