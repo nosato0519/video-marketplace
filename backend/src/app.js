@@ -19,8 +19,10 @@ import sellerMediaUploadRoutes from './media/media-upload-route.js';
 import sellerProfileRoutes from './seller/profile-routes.js';
 import sellerEarningsRoutes from './seller/earnings-routes.js';
 import sellerPayoutRoutes from './seller/payout-routes.js';
+import sellerApplicationRoutes from './seller/application-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
+import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import contentReportRoutes from './content-report-routes.js';
 
@@ -54,8 +56,10 @@ export function createApp() {
   app.use('/api/seller', sellerProfileRoutes);
   app.use('/api/seller', sellerEarningsRoutes);
   app.use('/api/seller', sellerPayoutRoutes);
+  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/admin', adminPayoutRoutes);
   app.use('/api/admin', adminSellerVerificationRoutes);
+  app.use('/api/admin', adminSellerApplicationRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
