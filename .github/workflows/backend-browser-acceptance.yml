@@ -1,0 +1,61 @@
+name: Backend Browser Acceptance
+
+on:
+  push:
+    branches: [feat/seller-application]
+  workflow_dispatch:
+
+jobs:
+  backend-browser-acceptance:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: video_marketplace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d video_marketplace"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install root dependencies
+        run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Install Playwright
+        run: npm install --no-save @playwright/test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace
+        run: npm run migrate
+      - name: Start backend
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace
+          PORT: 3000
+          NODE_ENV: test
+        run: node src/server.js > /tmp/video-marketplace-api.log 2>&1 &
+      - name: Wait for backend
+        run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:3000/api/health',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>60){clearInterval(t);process.exit(1)}},1000)"
+      - name: Start frontend
+        run: python3 -m http.server 4173 --directory app > /tmp/video-marketplace-web.log 2>&1 &
+      - name: Run real backend browser acceptance
+        env:
+          BACKEND_URL: http://127.0.0.1:3000
+        run: npx playwright test tests/browser-backend-seller-application.spec.js --reporter=line
+      - name: Dump backend logs on failure
+        if: failure()
+        run: cat /tmp/video-marketplace-api.log || true
