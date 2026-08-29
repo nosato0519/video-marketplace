@@ -37,23 +37,40 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 1. audit APIのSELECTから`resource_id`が欠落 → `a.resource_id`追加済み。修正コミット `0dbe08499f1971e03aff0096ec941041e8a08740`
 2. API返却順がcreated_at DESC → E2E期待順を`paid → processing → approved → reviewing`へ修正。`fd958636...`
 3. `http-test-helpers.js`不足 → helper追加。`f8528fd772149ec23f24f730bbffaad925ac3d71`
-4. helperが`{server, baseUrl}`を返すのにE2E側がserverへオブジェクト全体を代入していた → `const { server, baseUrl } = await startServer();`へ修正。`d978eb...`
-5. 最新Postgres Acceptanceで上記修正後もAdmin昇格部分が`403 forbidden` → E2Eが呼ぶ`POST /api/admin/users/:id/role`は現行`app.js`/Admin routerに存在しないことを確認。
-6. 現行認証は`/api/auth/register`でrole=`buyer`固定、パスワードはscrypt-v1、sessionはDB保存。自己Admin化を本番APIで許可する設計ではないことを確認。
-7. 現行Admin payout routerは`requireAuth` + `requireRole('admin')`で保護され、`/api/admin/payouts`系のみを提供していることを確認。
-8. Seller payout E2EのAdmin fixtureを、存在しないrole変更APIではなく、テストスクリプトからDBのテストユーザーroleだけを`admin`へ設定する方式へ修正。登録直後のrole=`buyer`もassertし、その後DB更新→再ログインしてrole=`admin`をassertする。
-9. 上記修正コミット: `252519d9087d86079707524d360a2788ac5566ff`
+4. helperが`{server, baseUrl}`を返すのにE2E側がserverへオブジェクト全体を代入 → destructuringへ修正。`d978eb...`
+5. 現行認証はregister時role=`buyer`固定、passwordはscrypt-v1、sessionはDB保存。自己Admin化を本番APIで許可する設計ではないことを確認。
+6. 現行Admin payout routerは`requireAuth` + `requireRole('admin')`で保護されていることを確認。
+7. Seller payout E2Eが存在しない`POST /api/admin/users/:id/role`に依存していたため、テストスクリプトからDB上のテストユーザーroleだけを`admin`へ設定する方式へ修正。登録直後のrole=`buyer`もassertし、その後再ログインしてrole=`admin`をassert。コミット `252519d9087d86079707524d360a2788ac5566ff`
+8. 最新Acceptance run `33224930339` はcheckout commit `039845ea...`（`252519d...`を`f0ec59f...`へmergeしたcommit）。Admin fixture変更後もSeller payout E2Eが403で失敗。ログの失敗行はE2Eのseller profile開始直後。
+9. 現行seller profile routerを直接確認し、router全体が`requireRole('seller')`、更新APIは`PATCH /api/seller/profile`、payloadは`displayName/legalName/countryCode`、レスポンスは`profile.user_id`等であることを確認。
+10. 現行seller earnings routerを確認し、`earnings`は配列であり、payoutを作るには`available`な`seller_earnings`残高が必要なことを確認。
+11. 現行seller payout routerを確認し、withdrawable balanceはavailable earningsから未失敗/未cancelled payout予約額を差し引いて計算されることを確認。
+12. Seller payout E2Eを現行API契約に合わせて修正。sellerユーザーをDBで`seller`へ変更して再ログイン、profileをPATCH、buyer/product/order/seller_earningsのテストfixtureをDBに作成して5000 JPYのavailable残高を用意、earnings/payout/admin payout/status/audit/最終seller payoutを現行レスポンス仕様に合わせて検証するよう変更。
+13. 最新修正コミット `72013080e9fabcc79495dcc9a723df6656c3896d`
 
 ## 現在のHEAD
-最新HEADは `252519d9087d86079707524d360a2788ac5566ff`。
-PR #1のhead branchは `hardening/backup-restore`。
+`72013080e9fabcc79495dcc9a723df6656c3896d`
 
 ## 現在の問題 / CI
-`252519d...` のSeller payout E2E修正後のPostgres Acceptance実CI PASSはまだ未確認。
-以前のPostgres AcceptanceではAdmin昇格で403になっていたため、今回そのE2E fixtureを現行API設計に合わせて修正した。
+`72013080...` はSeller payout E2Eの現行API契約不一致を修正した直後。修正後のPostgres Acceptance実CI PASSはまだ未確認。
+
+直前のAcceptance run `33224930339`:
+- migration: PASS
+- commerce DB: PASS
+- moderation DB/HTTP: PASS
+- migration concurrency: PASS
+- legacy purchase migration: PASS
+- payment webhook/refund/failed: PASS
+- auth: PASS
+- buyer purchase E2E: PASS
+- media access E2E: PASS
+- seller product/media E2E: PASS
+- seller profile/earnings/payout E2E: FAIL（403）
+- Admin payout concurrency: skipped
+- Backup/Restore acceptance: skipped
 
 ## 次にやる作業（順番固定）
-1. 最新HEAD `252519d...` のPostgres Acceptance run発生・結果を確認
+1. `72013080...` のPostgres Acceptance run発生・結果を確認
 2. Seller payout E2EがPASSしたか確認
 3. FAILなら最新ログから原因を確定し、推測せず最小修正
 4. 修正するたびにこのPROGRESS.mdを更新して保存
@@ -72,14 +89,13 @@ PR #1のhead branchは `hardening/backup-restore`。
 - Backup/RestoreをSeller payout問題のために不用意に変更しない。
 - assertionを緩めて失敗を隠さない。
 - 本番APIの自己Admin化を許可しない。
-- テスト用Admin fixtureと本番権限モデルを分離する。
-- API仕様を確認してからテストを修正する。
+- テストfixtureと本番権限モデルを分離する。
+- 現行APIの実装とE2Eの契約を直接照合してから修正する。
 - 「PRに含まれる変更」と「ブランチ上のコミット」を区別する。
 - 中断時には必ず現在のHEAD、CI状態、問題、次の1手、次の区切りを記録する。
 
 ## 次の区切り
-**最新HEADでSeller payout E2EがPASSすること。**
-そこまで到達したら一度進捗を明確に報告する。
+**`72013080...` に対するSeller payout E2Eの実CI PASS確認。**
 
 ## 完成条件
 Backup/Restore、Media、Round-trip、Backend Regression、Postgres Acceptance、Clean Install、Media Upload Validationが全て最新HEADでPASSし、最終レビュー完了、Merge後main再検証完了まで完成扱いにしない。
