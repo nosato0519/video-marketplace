@@ -40,6 +40,11 @@ try {
   assert.equal(Array.isArray(earnings.body.earnings), true);
   assert.equal(earnings.body.earnings.some((item) => Number(item.net_amount) === 5000 && item.status === 'available'), true);
 
+  const belowMinimum = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 999, currency: 'JPY' }) });
+  assert.equal(belowMinimum.response.status, 400, JSON.stringify(belowMinimum.body));
+  assert.equal(belowMinimum.body.error, 'minimum_payout_not_reached');
+  assert.equal(Number(belowMinimum.body.minimum), 1000);
+
   const payout = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 1000, currency: 'JPY' }) });
   assert.equal(payout.response.status, 201, JSON.stringify(payout.body));
   const payoutId = payout.body.payout.id;
