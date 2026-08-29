@@ -13,9 +13,14 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
   const allocations = await db.query(
     `SELECT a.seller_earning_id,
             e.net_amount,
-            COALESCE(SUM(a.amount), 0) AS allocated_amount
+            COALESCE(SUM(all_a.amount), 0) AS allocated_amount
        FROM payout_earnings_allocations a
        JOIN seller_earnings e ON e.id = a.seller_earning_id
+       JOIN payout_earnings_allocations all_a
+         ON all_a.seller_earning_id = a.seller_earning_id
+       JOIN payouts all_p
+         ON all_p.id = all_a.payout_id
+        AND all_p.status NOT IN ('failed', 'cancelled')
       WHERE a.payout_id = $1
       GROUP BY a.seller_earning_id, e.net_amount`,
     [payoutId]
