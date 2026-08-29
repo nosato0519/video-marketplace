@@ -22,7 +22,7 @@ test.describe('seller application browser acceptance', () => {
 
     await page.goto(appUrl('#/seller/register'));
     await expect(page.getByRole('heading', { name: 'Login required' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '#/login?return=/seller/register');
+    await expect(page.locator('main').getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '#/login?return=/seller/register');
   });
 
   test('buyer can submit a seller application and see pending status', async ({ page }) => {
