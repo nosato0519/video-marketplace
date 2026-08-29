@@ -46,6 +46,20 @@ jobs:
       - run: npm test
       - name: Run authentication HTTP acceptance
         run: npm run test:http-auth
+      - name: Run payment webhook acceptance
+        run: npm run test:http-payment-webhook
+      - name: Run payment failure acceptance
+        run: npm run test:http-payment-failed
+      - name: Run payment refund acceptance
+        run: npm run test:http-payment-refund
+      - name: Run buyer purchase E2E
+        run: npm run test:http-buyer-purchase-e2e
+      - name: Run seller product media E2E
+        run: npm run test:http-seller-product-media-e2e
+      - name: Run seller earnings and payout E2E
+        run: npm run test:http-seller-profile-earnings-payout-e2e
+      - name: Run admin payout concurrency regression
+        run: npm run test:admin-payout-concurrency-regression
       - name: Run media authorization regression
         run: node --test src/media/protected-access.test.js
       - name: Run media upload validation regression
