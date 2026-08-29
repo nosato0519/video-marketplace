@@ -5,15 +5,15 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `9423e1995c71e4dc88d87b097370e2c1b611b2d1`
-- Browser Acceptance #20 / `33239655068`: FAIL
-- #20原因: ホームで `.site-header` が見つからずtimeout。Backend、migration、health check、frontend proxy、Playwright/Chromiumは正常。
-- 調査: `app/index.html` は `/app/main.js` をmoduleとして読み込む。`app/main.js` の `renderHome()` は `.site-header` を生成する実装。`app/auth/auth-view.js` には `#auth-form` が存在する。`app/styles.css` に `.site-header` の非表示指定はない。
-- 対応: Browser testをSPA bootstrap待ちに変更し、`#app` のinnerHTMLに `VIDEO MARKET` が出ることをpollしてから`.site-header`を確認。さらにpageerror/console errorを収集し、UI初期化失敗を見逃さないようにした。
+- 最新作業コミット: `b26d451fd24a2a8c708595a3ad367ba87ee35579`
+- Browser Acceptance #21 / `33239757589`: FAIL
+- #21原因: `/` を開いた後も `#app` が10秒間空のまま。Backend、migration、health check、frontend proxy、Playwright/Chromiumは正常。
+- #21時点でSPA bootstrap原因を直接観測できるようpageerror/console/requestfailed収集を追加していたが、`#app`待機で先にtimeoutするため十分な診断情報を確定できていない。
+- 今回の対応: Browser testにindex.htmlとmain.jsの直接HTTP取得・content-type・期待script内容の確認を追加。ブラウザのrequestfailedも収集し、SPAが描画されない場合のpoll失敗メッセージへDOM/console/requestfailedを含めるよう修正。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Browser Acceptance #20の原因調査・修正済み。新CI Runの結果待ち。
+- 現在: Browser Acceptance #21の根本原因観測を強化済み。新CI Runの結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -27,6 +27,7 @@
 - Playwright real-backend Seller Application browser acceptance (`tests/browser-backend-seller-application.spec.js`)
 - Backend Browser Acceptance workflow (`.github/workflows/backend-browser-acceptance.yml`)
 - `app/main.js` の `/seller/register` Seller Application画面接続
+- Browser E2EにSPA asset/HTTP/request diagnosticsを追加
 
 ## Seller Applicationの検証対象
 - buyerだけ申請可能
@@ -55,29 +56,29 @@
 - #18 / `33239412922`: FAIL。`#auth-form` をハッシュURL直行後に待つ方式が現行SPA実行順と噛み合わずtimeout。
 - #19 / `33239569178`: FAIL。`#app` 可視性チェックがSPA module初期化前に実行されtimeout。
 - #20 / `33239655068`: FAIL。`.site-header` がSPA描画前の状態で見つからずtimeout。
+- #21 / `33239757589`: FAIL。`#app` が10秒間空のまま。SPA bootstrapが実行されていない/失敗している可能性が高いが、追加診断を次Runで確定する。
 
-### #20の調査結果
-- CIログでPostgreSQL、migration 26件、Backend、health check、frontend proxy、Playwright/Chromiumはすべて正常。
-- `app/index.html` は `/app/main.js` をmoduleとして読み込む。
-- `app/main.js` の `renderHome()` は `header(locale)` を使って `.site-header` を生成する。
-- `app/auth/auth-view.js` の `renderAuth()` は `#auth-form`、email/password input、Create account buttonを生成する。
-- `app/styles.css` の `.site-header` は `display:flex` であり非表示指定はない。
-- したがって、#20の直接原因はSPA bootstrap/実ブラウザ側の初期化完了タイミングをさらに観測する必要がある状態。
+## #21後の診断方針
+- `app/index.html` が `/app/main.js` をmoduleとして読み込むことを確認済み。
+- `app/main.js` は `document.querySelector('#app')` 後に `render()` を呼び、homeでは`.site-header`を生成する。
+- `app/auth/auth-view.js` は`#auth-form`を生成する。
+- CI frontend proxyは `/` → `/app/index.html`、`/app/*` → repository file、`/api/*` → backendへproxyする。
+- 次Runではbrowser test自身がindex/main.jsのHTTP status/content-type/contentとrequestfailed/pageerror/consoleを採取し、module scriptが取得・実行されているかを直接判定する。
 
 ## 最新テスト修正
 コミット:
-`9423e1995c71e4dc88d87b097370e2c1b611b2d1`
+`b26d451fd24a2a8c708595a3ad367ba87ee35579`
 
 変更:
-- `#app` の可視性アサーションを削除済み。
-- `.site-header` を直接待つ方式から、まず `#app.innerHTML` に `VIDEO MARKET` が出るまでpollする方式へ変更。
-- pageerror / console error を収集し、module初期化エラーを検知。
-- その後 `.site-header` を確認し、実際の `Sign up` リンクをクリック。
-- Seller Application以降の実Backend検証は維持。
+- `/` のindex.htmlをpage.requestで直接取得し、200系・HTML content-type・`/app/main.js`参照を確認。
+- `/app/main.js` をpage.requestで直接取得し、200系・JavaScript content-type・主要コード存在を確認。
+- browser `requestfailed` を収集。
+- SPA bootstrap待機の失敗メッセージへDOM、consoleErrors、failedRequestsを含める。
+- Seller Applicationの実Backend検証は維持。
 
 ## 残作業（優先順）
-1. `9423e199...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
-2. FAILならpageerror/console/DOM状態から根本原因を特定して修正→再CI。
+1. `b26d451...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・結果確認。
+2. FAILならHTTP asset/request/pageerror情報からSPA bootstrapの根本原因を特定して修正→再CI。
 3. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
 4. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
 5. Security Regressionを最新統合状態で確認。
