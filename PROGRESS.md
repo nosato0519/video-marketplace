@@ -27,10 +27,9 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 - Round-trip Acceptance: 実CI PASS確認済み
 
 ### CI
-- Backend Regression: PASS確認済み
-- Backend Regression内Round-trip: PASS確認済み
-- Clean Install: PASS確認済み
-- Media Upload Validation: PASS確認済み
+- Backend Regression: PASS確認済み（最新fb9db系）
+- Clean Install: PASS確認済み（最新fb9db系）
+- Media Upload Validation: PASS確認済み（最新fb9db系）
 - 通常テスト: 184/184 PASS確認済み
 
 ### Seller payout E2E
@@ -41,46 +40,68 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 5. 現行認証はregister時role=`buyer`固定、passwordはscrypt-v1、sessionはDB保存。自己Admin化を本番APIで許可する設計ではないことを確認。
 6. 現行Admin payout routerは`requireAuth` + `requireRole('admin')`で保護されていることを確認。
 7. Seller payout E2Eが存在しない`POST /api/admin/users/:id/role`に依存していたため、テストスクリプトからDB上のテストユーザーroleだけを`admin`へ設定する方式へ修正。登録直後のrole=`buyer`もassertし、その後再ログインしてrole=`admin`をassert。コミット `252519d9087d86079707524d360a2788ac5566ff`
-8. 最新Acceptance run `33224930339` はcheckout commit `039845ea...`（`252519d...`を`f0ec59f...`へmergeしたcommit）。Admin fixture変更後もSeller payout E2Eが403で失敗。ログの失敗行はE2Eのseller profile開始直後。
-9. 現行seller profile routerを直接確認し、router全体が`requireRole('seller')`、更新APIは`PATCH /api/seller/profile`、payloadは`displayName/legalName/countryCode`、レスポンスは`profile.user_id`等であることを確認。
-10. 現行seller earnings routerを確認し、`earnings`は配列であり、payoutを作るには`available`な`seller_earnings`残高が必要なことを確認。
-11. 現行seller payout routerを確認し、withdrawable balanceはavailable earningsから未失敗/未cancelled payout予約額を差し引いて計算されることを確認。
-12. Seller payout E2Eを現行API契約に合わせて修正。sellerユーザーをDBで`seller`へ変更して再ログイン、profileをPATCH、buyer/product/order/seller_earningsのテストfixtureをDBに作成して5000 JPYのavailable残高を用意、earnings/payout/admin payout/status/audit/最終seller payoutを現行レスポンス仕様に合わせて検証するよう変更。
-13. 修正コミット `72013080e9fabcc79495dcc9a723df6656c3896d`
-14. Acceptance run `33225584659` のSeller payout E2Eログを確認。`earnings.body.earnings` の各要素に`seller_id`は含まれない現行API仕様なのに、E2Eが`seller_id === sellerId`をassertして `false !== true` で停止していたことを確認。
-15. E2Eのassertionを現行APIレスポンスに合わせ、`seller_id`条件を削除し、`net_amount`をNumber化して`5000`、`status='available'`を確認する最小修正を実施。修正コミット `6813eb89e47ea330ce8680b3bb36954ef41f5cdc`。
-16. `6813eb...` の後、進捗メモを更新し、現在のブランチ先端をメモ上でも追跡可能にした。
+8. Acceptance run `33224930339` はSeller payout E2Eが403で失敗。現行seller profile routerが`requireRole('seller')`であることを確認。
+9. Seller payout E2Eを現行API契約に合わせて修正。seller role fixture、profile PATCH、DB earnings fixture等を追加。コミット `72013080e9fabcc79495dcc9a723df6656c3896d`
+10. Acceptance run `33225584659` でearnings assertionが失敗。現行APIレスポンスに`seller_id`がないのにE2Eが要求していたことを確認。
+11. `seller_id` assertionを削除し、`net_amount`をNumber化して5000、`status='available'`を確認する最小修正を実施。コミット `6813eb89e47ea330ce8680b3bb36954ef41f5cdc`。
+12. その後 `PROGRESS.md` を更新し、HEAD追跡情報を同期。コミット `fb9db853a82b50d2817d8ec2824226532fc6124b`。
+13. 最新Postgres Acceptance run `33225871903` で、Seller payout E2Eは **PASS** まで到達した。ログ上、`http-seller-profile-earnings-payout-e2e-acceptance: PASS` を確認。
 
 ## 現在のHEAD
-`fb9db853a82b50d2817d8ec2824226532fc6124b`
+`3c951f98103a9e8cb062449d9f1290b5bb28647b`
 
 ## 現在の問題 / CI
-`fb9db...` はSeller earnings assertion修正と進捗メモ更新を含む現在のブランチHEAD。修正後のPostgres Acceptance実CI PASSはまだ未確認。
+最新Acceptance run `33225871903` は、Seller payout E2Eを含む前半のテストを通過したが、`admin-payout-concurrency-regression` でFAILした。
 
-直前のAcceptance run `33225584659`:
-- seller profile/earnings/payout E2E: FAIL
-- 失敗原因: `earnings` APIレスポンスにない`seller_id`をE2Eが要求していたため `false !== true`
-- 今回そのassertionを修正済み
+失敗原因は明確で、回帰テストがAdmin payout router自身のソース内に `BEGIN` / `COMMIT` / `ROLLBACK` が直接記述されていることを要求していたため。現行実装は共有DB helper `withTransaction()` を使用しており、transaction境界の `BEGIN` / `COMMIT` / `ROLLBACK` は `backend/src/db.js` に存在する。Admin payout router側は `withTransaction()` と `SELECT ... FOR UPDATE` を使用している。
+
+確認済み:
+- migration: PASS
+- commerce DB: PASS
+- moderation DB: PASS
+- moderation HTTP: PASS
+- migration concurrency: PASS
+- legacy purchase migration: PASS
+- payment webhook/refund/failed: PASS
+- auth: PASS
+- buyer purchase E2E: PASS
+- media access E2E: PASS
+- buyer order report E2E: PASS
+- seller product/media E2E: PASS
+- **seller profile/earnings/payout E2E: PASS**
+- admin payout concurrency regression: FAIL（回帰ガードの期待値が現行transaction helper設計と不一致）
+- backup/restore acceptance: skipped（上記FAILで後続停止）
+
+## 今回の修正
+`backend/scripts/admin-payout-concurrency-regression.js` の回帰ガードを、現行設計に合わせて修正した。
+
+変更内容:
+- Admin payout routerに`withTransaction`が使用されていることを確認
+- `SELECT id, status FROM payouts WHERE id = $1 FOR UPDATE` を確認
+- `UPDATE payouts` を確認
+- transaction境界の `BEGIN` / `COMMIT` / `ROLLBACK` は共有helper `backend/src/db.js` 側で確認
+
+修正コミット:
+`3c951f98103a9e8cb062449d9f1290b5bb28647b`
 
 ## 次にやる作業（順番固定）
-1. `fb9db...` のPostgres Acceptance run発生・結果を確認
-2. Seller payout E2EがPASSしたか確認
+1. `3c951f...` を含む最新HEADのPostgres Acceptance結果を確認
+2. Admin payout concurrency regressionがPASSしたか確認
 3. FAILなら最新ログから原因を確定し、推測せず最小修正
 4. 修正するたびにこのPROGRESS.mdを更新して保存
-5. Seller payout E2E PASS後、Admin payout concurrencyを確認
-6. Backup/Restore round-tripを同じAcceptanceで再確認
-7. Postgres Acceptance全体PASSを確認
-8. Backend Regression / Clean Install / Media Upload Validationを最新HEADでPASS確認
-9. 全CI Green確認
-10. PR #1本文のレビュー指摘と実装状態を照合
-11. 最終レビュー
-12. CI/レビューが全て問題なければMerge
-13. Merge後mainで最終CI確認
+5. Admin payout concurrency PASS後、Backup/Restore acceptanceを確認
+6. Postgres Acceptance全体PASSを確認
+7. Backend Regression / Clean Install / Media Upload Validationを最新HEADでPASS確認
+8. 全CI Green確認
+9. PR #1本文のレビュー指摘と実装状態を照合
+10. 最終レビュー
+11. CI/レビューが全て問題なければMerge
+12. Merge後mainで最終CI確認
 
 ## 作業上の注意
 - CI Green前にMergeしない。
 - Backup/RestoreをSeller payout問題のために不用意に変更しない。
-- assertionを緩めて失敗を隠さない。今回の修正は現行APIが実際に返していない`seller_id`を要求していた誤assertionを除去したもの。
+- assertionを緩めて失敗を隠さない。今回の修正はtransaction実装の実態に合わせた回帰ガード修正。
 - 本番APIの自己Admin化を許可しない。
 - テストfixtureと本番権限モデルを分離する。
 - 現行APIの実装とE2Eの契約を直接照合してから修正する。
@@ -88,7 +109,7 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 - 中断時には必ず現在のHEAD、CI状態、問題、次の1手、次の区切りを記録する。
 
 ## 次の区切り
-**`fb9db...` に対するSeller payout E2Eの実CI PASS確認。**
+**`3c951f...` に対するAdmin payout concurrency regressionの実CI PASS確認。**
 
 ## 完成条件
 Backup/Restore、Media、Round-trip、Backend Regression、Postgres Acceptance、Clean Install、Media Upload Validationが全て最新HEADでPASSし、最終レビュー完了、Merge後main再検証完了まで完成扱いにしない。
