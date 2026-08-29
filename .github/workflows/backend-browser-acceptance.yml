@@ -54,7 +54,7 @@ jobs:
       - name: Wait for backend
         run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:3000/api/health',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>60){clearInterval(t);process.exit(1)}},1000)"
       - name: Start frontend
-        run: python3 -m http.server 4173 --directory . > /tmp/video-marketplace-web.log 2>&1 &
+        run: node scripts/ci-frontend-proxy.mjs > /tmp/video-marketplace-web.log 2>&1 &
       - name: Run real backend browser acceptance
         env:
           BACKEND_URL: http://127.0.0.1:3000
