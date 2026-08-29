@@ -6,6 +6,10 @@ import { registerPurchaseIntentRoutes } from './catalog/purchase-intent-routes.j
 import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
+import { createStripeWebhookHandler } from './payments/stripe-webhook.js';
+import { recordPaymentEvent } from './payments/payment-event-ledger.js';
+import { completePayment } from './payments/complete-payment.js';
+import { failPayment } from './payments/fail-payment.js';
 import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js';
 import { registerMediaDownloadRoutes } from './media/media-download-route.js';
 import { validateMediaSecurityConfig } from './media/media-security-check.js';
@@ -33,6 +37,11 @@ export function createApp() {
 
   validateMediaSecurityConfig();
   registerPaymentWebhookRoutes(app);
+  app.post(
+    '/api/payments/stripe/webhook',
+    express.raw({ type: 'application/json', limit: '1mb' }),
+    createStripeWebhookHandler({ recordPaymentEvent, completePayment, failPayment })
+  );
 
   app.use(express.json({ limit: '1mb' }));
   app.use(loadSessionUser);
