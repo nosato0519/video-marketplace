@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 462 — Payment settlement now creates seller earnings atomically; payout runtime/CI and real multi-provider adapters remain.**
+**Milestone 463 — Refunds now reverse seller-earnings eligibility atomically; payout runtime/CI and real multi-provider adapters remain.**
 
 ## Latest checkpoint — 2026-08-29
 ### Completed
@@ -23,6 +23,8 @@
 - **2026-08-29:** Fixed `complete-payment.js` so settlement obtains the product owner and creates exactly one `seller_earnings` row in the same transaction, with `gross_amount = order.amount`, `platform_fee = 0`, `net_amount = order.amount`, order currency, and `status = 'available'`.
 - The seller-earnings insert is idempotent on `UNIQUE(order_id, product_id)` and is also executed for an unprocessed event arriving after an order is already paid, allowing safe repair of a missing earning row without duplication.
 - Added database acceptance coverage for seller-earnings creation and retry idempotency.
+- **2026-08-29:** Confirmed canonical `seller_earnings` schema in migration `011_seller_earnings.sql`, including `status` values `pending/available/paid/refunded/cancelled`, `refunded_at`, and `UNIQUE(order_id, product_id)`.
+- **2026-08-29:** Fixed `refund-payment.js` so a successful refund transaction also marks the matching seller earning `refunded` and records `refunded_at`, preventing the sale from remaining `available` for payout eligibility.
 
 ### Payment architecture findings
 - Provider catalog contains Stripe, PayPal, Adyen, Paddle and PayPay.
@@ -33,12 +35,12 @@
 - The HTTP Checkout route now preserves the selected provider, but real multi-provider runtime support is not complete.
 - Payment settlement now reaches the canonical seller earnings ledger atomically with payment/order settlement.
 - Platform fee is currently explicitly `0`; no configurable platform-fee policy has been wired into settlement yet and must not be implied otherwise.
+- Refund settlement now reverses the canonical seller-earnings status atomically with order refund and entitlement revocation.
 
 ### Verification status
-- A GitHub Actions `clean-install` run for the checkpoint is currently **in progress** (`33245787271`, job `clean-install` `99082878150`); no conclusion is available yet.
-- Seller-earnings settlement acceptance is implemented but not yet empirically passed in CI.
-- Corrected payout concurrency and minimum-payout acceptance are implemented but not yet empirically passed in CI.
-- Refund/partial-refund behavior against seller earnings still requires verification.
+- The corrected seller-earnings implementation has been exercised by source-level review; a fresh CI run containing the correction still needs to be observed before declaring runtime evidence.
+- Corrected payout concurrency and minimum-payout acceptance are implemented but still require empirical CI evidence containing those tests.
+- Refund/earnings reversal is now implemented transactionally; dedicated acceptance coverage for the earnings status transition still needs to be added and passed in CI.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
 - Stripe webhook provider consistency through the complete runtime path remains to be verified.
 - Seller, Buyer and Admin browser-level acceptance remains incomplete.
@@ -53,17 +55,19 @@
 - Payout lifecycle: requested -> reviewing -> approved -> processing -> paid, with failed/cancelled branches.
 - `audit_events` records payout status transitions.
 - Minimum seller payout policy: 1,000 JPY at API level.
+- Refunds change the matching seller earning from an eligible state to `refunded` inside the same database transaction as order refund.
 
 ## Release blocker status
-**BLOCKED:** Payout runtime/CI evidence, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, refund/earnings reversal verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
+**BLOCKED:** Fresh corrected CI evidence, payout runtime/CI evidence, dedicated refund/earnings acceptance, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
 
 ## Remaining work — priority order
-1. **Active CI verification — BLOCKER**
-   - Inspect run `33245787271` until `clean-install` concludes.
-   - Record the exact failed step if the run fails; if it passes, preserve the run as evidence and continue with database acceptance coverage.
+1. **Fresh corrected CI verification — BLOCKER**
+   - Inspect push-triggered workflow runs for the current main commit.
+   - Record exact run/job conclusion and failed step if any.
 2. **Refund / seller earnings integrity**
-   - Trace refund and partial-refund handling against `seller_earnings` and payout eligibility.
-   - Ensure refunded sales cannot remain payout-eligible.
+   - Add database acceptance coverage asserting refund changes `seller_earnings` to `refunded` and repeated refund events do not duplicate or reapply the transition.
+   - Verify payout eligibility excludes refunded earnings, including after a payout has already been created.
+   - Decide/implement the accounting treatment for refunds after an earning has already been paid out (platform/seller receivable or equivalent ledger adjustment) before commercial release.
 3. **Payment provider integration**
    - Add/verify HTTP Checkout contract coverage for `providerId` passthrough.
    - Trace provider consistency from Checkout metadata through webhook/event ledger and `completePayment`.
@@ -85,9 +89,9 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Inspect the active `clean-install` run `33245787271`; once it concludes, use the result to drive the next correction. In parallel, inspect refund/partial-refund code against `seller_earnings` so payout eligibility cannot survive a refund.**
+**Inspect the push-triggered CI run for the latest main commit `2709c2f459ead11abf001119e3c9b540ea80ce9b`. If it passes, add and run dedicated refund-to-earnings acceptance coverage. If it fails, fix the exact failing step before moving on.**
 
 ## Continuation rule
-At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run `33245787271`, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
+At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
 **These files and the latest repository state are the authoritative continuation source.**
