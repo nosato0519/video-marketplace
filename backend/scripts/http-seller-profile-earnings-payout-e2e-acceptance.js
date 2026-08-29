@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { query } from '../src/db.js';
 import { startServer, request } from './http-test-helpers.js';
 
 const { server, baseUrl } = await startServer();
@@ -26,11 +27,11 @@ try {
   const adminRegister = await request(baseUrl, '/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: adminEmail, password }) });
   assert.equal(adminRegister.response.status, 201, JSON.stringify(adminRegister.body));
   const adminUserId = adminRegister.body.user.id;
-  const adminCookie = adminRegister.cookie;
-  const role = await request(baseUrl, `/api/admin/users/${adminUserId}/role`, { method: 'POST', headers: { cookie: adminCookie, 'content-type': 'application/json' }, body: JSON.stringify({ role: 'admin' }) });
-  assert.equal(role.response.status, 200, JSON.stringify(role.body));
+  assert.equal(adminRegister.body.user.role, 'buyer');
+  await query(`UPDATE users SET role = 'admin' WHERE id = $1`, [adminUserId]);
   const adminLogin = await request(baseUrl, '/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: adminEmail, password }) });
   assert.equal(adminLogin.response.status, 200, JSON.stringify(adminLogin.body));
+  assert.equal(adminLogin.body.user.role, 'admin');
   const adminCookieAfterLogin = adminLogin.cookie;
   const adminPayouts = await request(baseUrl, '/api/admin/payouts', { headers: { cookie: adminCookieAfterLogin } });
   assert.equal(adminPayouts.response.status, 200, JSON.stringify(adminPayouts.body));
