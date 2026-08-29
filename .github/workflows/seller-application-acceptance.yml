@@ -1,0 +1,57 @@
+name: Seller Application Acceptance
+
+on:
+  push:
+    paths:
+      - 'backend/src/seller/application-routes.js'
+      - 'backend/src/admin/seller-application-routes.js'
+      - 'backend/migrations/011_seller_applications.sql'
+      - 'backend/scripts/http-seller-application-acceptance.js'
+      - 'backend/package.json'
+      - '.github/workflows/seller-application-acceptance.yml'
+  pull_request:
+    paths:
+      - 'backend/src/seller/application-routes.js'
+      - 'backend/src/admin/seller-application-routes.js'
+      - 'backend/migrations/011_seller_applications.sql'
+      - 'backend/scripts/http-seller-application-acceptance.js'
+      - 'backend/package.json'
+      - '.github/workflows/seller-application-acceptance.yml'
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: video_marketplace_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d video_marketplace_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/video_marketplace_test
+      NODE_ENV: test
+      MEDIA_STORAGE_PROVIDER: local
+      MEDIA_STORAGE_DIR: ./media-data
+      MEDIA_URL_SECRET: ci-test-media-url-secret-not-for-production
+      PAYMENT_PROVIDER: mock
+      PAYMENT_WEBHOOK_SECRET: ci-test-payment-webhook-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run migrate:preflight
+      - run: npm run migrate
+      - run: npm run test:http-seller-application-acceptance
