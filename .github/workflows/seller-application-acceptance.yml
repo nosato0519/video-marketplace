@@ -2,6 +2,9 @@ name: Seller Application Acceptance
 
 on:
   push:
+    branches:
+      - feat/seller-application-main-integration
+      - main
     paths:
       - 'backend/src/seller/application-routes.js'
       - 'backend/src/admin/seller-application-routes.js'
