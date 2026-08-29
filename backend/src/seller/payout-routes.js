@@ -76,6 +76,48 @@ router.post('/payouts', async (req, res, next) => {
        RETURNING id, amount, currency, status, requested_at`,
       [req.user.id, amount, currency]
     );
+    const payoutId = result.rows[0].id;
+
+    // Persist the exact earnings consumed by this payout. This makes the
+    // payout-to-ledger relationship auditable and lets a payout span multiple
+    // earnings rows or partially consume one row without losing provenance.
+    let remaining = amount;
+    const earnings = await client.query(
+      `SELECT e.id,
+              e.net_amount,
+              COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) AS allocated_amount
+         FROM seller_earnings e
+         LEFT JOIN payout_earnings_allocations a ON a.seller_earning_id = e.id
+         LEFT JOIN payouts p ON p.id = a.payout_id
+        WHERE e.seller_id = $1
+          AND e.currency = $2
+          AND e.status = 'available'
+        GROUP BY e.id, e.net_amount, e.created_at
+        HAVING e.net_amount - COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) > 0
+        ORDER BY e.created_at ASC, e.id ASC
+        FOR UPDATE OF e`,
+      [req.user.id, currency]
+    );
+
+    for (const earning of earnings.rows) {
+      if (remaining <= 0) break;
+      const netAmount = Number(earning.net_amount);
+      const allocated = Number(earning.allocated_amount || 0);
+      const remainingEarning = Math.max(0, netAmount - allocated);
+      const allocation = Math.min(remaining, remainingEarning);
+      if (allocation <= 0) continue;
+      await client.query(
+        `INSERT INTO payout_earnings_allocations (payout_id, seller_earning_id, amount)
+         VALUES ($1, $2, $3)`,
+        [payoutId, earning.id, allocation]
+      );
+      remaining -= allocation;
+    }
+
+    if (remaining > 0.000001) {
+      throw new Error('payout_allocation_invariant_failed');
+    }
+
     await client.query('COMMIT');
     return res.status(201).json({ payout: result.rows[0] });
   } catch (error) {
