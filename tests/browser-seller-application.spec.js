@@ -15,6 +15,16 @@ async function mockAdminSession(page) {
 }
 
 test.describe('seller application browser acceptance', () => {
+  test('unauthenticated visitor is directed to login', async ({ page }) => {
+    await page.route('**/api/auth/me', async (route) => {
+      await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'authentication_required' }) });
+    });
+
+    await page.goto(appUrl('#/seller/register'));
+    await expect(page.getByRole('heading', { name: 'Login required' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '#/login?return=/seller/register');
+  });
+
   test('buyer can submit a seller application and see pending status', async ({ page }) => {
     let application = null;
     await mockBuyerSession(page);
@@ -23,7 +33,11 @@ test.describe('seller application browser acceptance', () => {
         return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ application }) });
       }
       if (route.request().method() === 'POST') {
-        application = { id: 'application-1', status: 'pending', display_name: 'Test Creator', legal_name: 'Test Creator Legal', country_code: 'JP', message: 'I want to sell video products.' };
+        const body = route.request().postDataJSON();
+        expect(body.displayName).toBe('Test Creator');
+        expect(body.legalName).toBe('Test Creator Legal');
+        expect(body.countryCode).toBe('JP');
+        application = { id: 'application-1', status: 'pending', display_name: body.displayName, legal_name: body.legalName, country_code: body.countryCode, message: body.message };
         return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ application }) });
       }
       return route.fallback();
@@ -39,6 +53,25 @@ test.describe('seller application browser acceptance', () => {
     await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
     await expect(page.getByText('Test Creator', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Withdraw application' })).toBeVisible();
+  });
+
+  test('buyer can withdraw a pending application', async ({ page }) => {
+    let application = { id: 'application-1', status: 'pending', display_name: 'Test Creator', legal_name: 'Test Creator Legal', country_code: 'JP' };
+    await mockBuyerSession(page);
+    await page.route('**/api/seller/application', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ application }) });
+    });
+    await page.route('**/api/seller/application/withdraw', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      application = { ...application, status: 'withdrawn' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ application }) });
+    });
+
+    await page.goto(appUrl('#/seller/register'));
+    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
+    await page.getByRole('button', { name: 'Withdraw application' }).click();
+    await expect(page.getByRole('heading', { name: 'Withdrawn' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Withdraw application' })).toHaveCount(0);
   });
 
   test('admin can review and approve a pending seller application', async ({ page }) => {
