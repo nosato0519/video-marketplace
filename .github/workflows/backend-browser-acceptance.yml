@@ -5,6 +5,7 @@ on:
     branches: [feat/seller-application]
   workflow_dispatch:
 
+# Trigger CI from the current branch state.
 jobs:
   backend-browser-acceptance:
     runs-on: ubuntu-latest
