@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 465 — Payout-to-earnings allocation ledger added; payout-paid settlement wiring and runtime verification remain.**
+**Milestone 465 — Payout-to-earnings allocation ledger and payout-paid settlement wiring added; acceptance/CI verification remains.**
 
 ## Latest checkpoint — 2026-08-29
 ### Completed
@@ -16,16 +16,15 @@
 - Confirmed canonical payout schema: `payouts.seller_id -> users.id`; available balance comes from `seller_earnings` rows with `status = 'available'`.
 - Seller payout creation uses an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency.
 - Admin payout lifecycle is transactional with row locking and audit-event insertion.
-- Corrected payout acceptance concurrency coverage to use two simultaneous 2,500 JPY HTTP requests against a 3,500 JPY remaining withdrawable balance, asserting exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
-- Seller payout route enforces the 1,000 JPY minimum.
+- Corrected payout acceptance concurrency coverage and 1,000 JPY minimum payout policy remain implemented.
 - Checkout route passes selected `providerId` through to provider routing.
 - Successful payment settlement creates exactly one canonical `seller_earnings` row in the same transaction as payment/order settlement.
 - Refund settlement marks the matching seller earning `refunded` and records `refunded_at` atomically with order refund and entitlement revocation.
 - Refund acceptance coverage verifies earning creation, refund reversal, zero available balance, and duplicate refund idempotency.
-- **2026-08-29:** Added `payout_earnings_allocations` migration so each payout records exactly which seller-earnings rows it consumes, including partial earnings allocation and multi-earning payouts.
-- **2026-08-29:** Seller payout creation now allocates the requested payout amount against available earnings inside the same transaction, preserving seller/currency locking and failing atomically if the allocation invariant cannot be satisfied.
-- **2026-08-29:** Added a dedicated payout-paid settlement helper and recorded the invariant: an earning becomes `paid` only when cumulative allocations from `paid` payouts cover its full `net_amount`; partial allocations remain available.
-- **2026-08-29:** Added a checkpoint note file documenting the payout/earnings settlement invariant before wiring the admin status route.
+- **2026-08-29:** Added `backend/migrations/012_payout_earnings_allocations.sql` defining `payout_earnings_allocations` so each payout records exact earnings provenance and supports partial/multi-earning payouts.
+- **2026-08-29:** Seller payout creation allocates requested payout amount across available earnings inside the same transaction and fails atomically if allocation cannot cover the request.
+- **2026-08-29:** Added `backend/src/seller/payout-earnings-settlement.js`; an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`, while partial allocations remain available.
+- **2026-08-29:** Wired the payout-paid settlement helper into Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
 
 ### Payment architecture findings
 - Provider catalog contains Stripe, PayPal, Adyen, Paddle and PayPay.
@@ -35,22 +34,21 @@
 - `payment-provider.js` currently has a real Stripe adapter only; PayPal, Adyen, Paddle and PayPay currently resolve to unavailable/not-implemented adapters.
 - The HTTP Checkout route now preserves the selected provider, but real multi-provider runtime support is not complete.
 - Payment settlement now reaches the canonical seller earnings ledger atomically with payment/order settlement.
-- Platform fee is currently explicitly `0`; no configurable platform-fee policy has been wired into settlement yet and must not be implied otherwise.
-- Refund settlement now reverses the canonical seller-earnings status atomically with order refund and entitlement revocation.
+- Platform fee is currently explicitly `0`; no configurable platform-fee policy has been wired into settlement yet.
+- Refund settlement reverses the canonical seller-earnings status atomically with order refund and entitlement revocation.
 
 ### Payout accounting architecture findings
 - `seller_earnings` is the canonical source of seller available balance.
-- `payout_earnings_allocations` now provides provenance from each payout to the earnings it consumes.
+- `payout_earnings_allocations` provides provenance from each payout to the earnings it consumes.
 - A payout can span multiple earnings rows or partially consume one earnings row.
 - Failed/cancelled payouts do not count as active allocations for payout reservation.
-- Payout-paid settlement must mark an earning `paid` only when cumulative paid allocations cover its full net amount.
+- When an Admin payout transitions `processing -> paid`, the payout-paid settlement helper marks only fully covered earnings `paid`; partial earnings remain `available`.
 - Refunds after an earning has already been paid out still require a separate recovery/receivable policy before commercial release.
 
 ### Verification status
-- Dedicated refund-to-earnings acceptance coverage is on `main`, but runtime CI evidence for that dedicated test remains outstanding.
-- Fresh corrected migration/core-regression CI previously passed on the payment-earnings settlement change.
-- Payout allocation changes in Milestone 465 require fresh migration and regression CI evidence.
-- Payout concurrency and minimum-payout acceptance are implemented but require empirical CI evidence containing those tests.
+- Milestone 465 allocation migration, payout creation allocation, and Admin paid-settlement wiring are now on `main`, but require fresh migration/regression CI evidence.
+- Dedicated refund-to-earnings acceptance coverage remains on `main`, but runtime CI evidence for that dedicated test is outstanding.
+- Payout concurrency and minimum-payout acceptance require empirical CI evidence containing the corrected tests.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
 - Stripe webhook provider consistency through the complete runtime path remains to be verified.
 - Seller, Buyer and Admin browser-level acceptance remains incomplete.
@@ -64,20 +62,19 @@
 - Available balance source: `seller_earnings` rows with `status = 'available'`.
 - Payout lifecycle: requested -> reviewing -> approved -> processing -> paid, with failed/cancelled branches.
 - `audit_events` records payout status transitions.
-- `payout_earnings_allocations` records the exact payout-to-earnings consumption relationship.
+- `payout_earnings_allocations` records exact payout-to-earnings consumption.
 - Minimum seller payout policy: 1,000 JPY at API level.
-- Refunds change the matching seller earning from an eligible state to `refunded` inside the same database transaction as order refund.
+- Refunds change the matching seller earning to `refunded` inside the same database transaction as order refund.
 
 ## Release blocker status
-**BLOCKED:** Fresh CI evidence for Milestone 465, payout-paid earnings settlement wiring/verification, refund/earnings acceptance runtime evidence, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
+**BLOCKED:** Fresh CI evidence for Milestone 465, refund/earnings acceptance runtime evidence, payout/refund edge-case verification, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
 
 ## Remaining work — priority order
-1. **Milestone 465 payout settlement wiring and CI — CURRENT**
-   - Wire `settlePayoutEarnings()` into the admin `processing -> paid` transition in the same transaction.
-   - Add acceptance coverage for full and partial payout allocation.
+1. **Milestone 465 verification — CURRENT**
+   - Add acceptance coverage for full and partial payout allocation and payout-paid settlement.
    - Run fresh migration/regression CI and record exact evidence.
 2. **Refund / seller earnings integrity**
-   - Run the dedicated refund-to-earnings acceptance in CI.
+   - Run dedicated refund-to-earnings acceptance in CI.
    - Verify payout eligibility excludes refunded earnings, including after a payout has already been created.
    - Decide/implement accounting treatment for refunds after an earning has already been paid out (platform/seller receivable or equivalent ledger adjustment) before commercial release.
 3. **Payment provider integration**
@@ -101,7 +98,7 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Wire `settlePayoutEarnings()` into `backend/src/admin/payout-routes.js` for `processing -> paid`, add payout-allocation acceptance coverage, then run fresh migration/regression CI. Do not mark payout-paid settlement verified until the CI evidence passes.**
+**Add database acceptance coverage for (a) full payout allocation -> all covered earnings become `paid`, (b) partial payout -> only fully covered earnings become `paid`, and (c) failed/cancelled payout allocations do not consume balance. Then run fresh migration/regression CI.**
 
 ## Continuation rule
 At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
