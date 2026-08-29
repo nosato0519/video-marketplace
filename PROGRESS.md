@@ -2,7 +2,7 @@
 
 最終更新: 2026-08-29
 対象リポジトリ: `nosato0519/video-marketplace`
-対象ブランチ: `feat/browser-acceptance`
+対象ブランチ: `feat/seller-application`
 
 ## 継続ルール
 - 作業中はこまめにこのファイルを更新してGitHubへ保存する。
@@ -39,37 +39,38 @@
 - Creator discovery route `/creators` とCreator一覧UIを追加。
 - UI変更を含む主要CIは `b29b423...` でAdmin Static / Media Upload Validation / Backend / Postgres Acceptance / Clean InstallすべてSUCCESS確認済み。
 
-## 今回: Browser Acceptance基盤
-- `feat/browser-acceptance` ブランチを `feat/seller-application` の `b29b423b8308b7b0e16b3699e3fb5e297d68dbca` から作成。
-- Playwrightを使う公開画面のブラウザSmoke testを追加。
-- `tests/browser-smoke.spec.js` を追加し、Home / Browse / Categories / Popular / Creators / Login / Registerの表示を実ブラウザで確認するテストを追加。
-- Homeの主要navigationとCreator discovery → Seller registration導線も確認対象にした。
-- `playwright.config.js` を追加し、headless Chromium、失敗時screenshot/trace、baseURLを設定。
-- `.github/workflows/browser-smoke.yml` を追加し、Node 22 / Playwright 1.55.0 / ChromiumをCI上でインストールして、Python静的サーバー経由でSmoke testを実行する構成にした。
-- 現時点ではBrowser Smoke CIのPASSは未確認。コード追加だけをPASSとは扱わない。
+## 完了済み: Browser Acceptance foundation
+- `feat/browser-acceptance` を `feat/seller-application` の `b29b423...` から作成。
+- Playwrightによる公開画面Smoke test、Seller Application browser test、module load smokeを追加。
+- Browser Smoke初回失敗の原因は `app/main.js` がimportする `app/seller/seller-upload.js` 欠落だったことを確認。
+- `app/seller/seller-upload.js` を追加してmodule graphを修復。
+- その後のBrowser Smoke CI（commit `54444ff...`）はSUCCESS。
+- Browser Smoke run 24 と Clean Install run 143 がSUCCESS確認済み。
+- PR #3「Add browser smoke acceptance foundation」は2026-08-29に `feat/seller-application` へMerge済み。Merge commitは `3e56605521c6ee7c731c303551028c968a07a1fb`。
 
 ## 現在の状態
 - Seller Application DB/API: 実装済み、Acceptance PASS
 - Buyer Seller Application UI: 実装済み、主要CI PASS
 - Admin Seller Application UI: 実装済み、主要CI PASS
 - Creator discovery UI/route: 実装済み、主要CI PASS
-- Browser Smoke test: 実装済み、CI実行結果未確認
-- Browser Acceptance: 未完了
+- Browser Smoke: 実装済み、Chromium CI PASS
+- Browser Acceptance: Seller Applicationについてmock APIベースのテストまで実装済み。実backendを接続した認証済みE2Eは未完了
 - PR #2: `feat/seller-application`、Open、未Merge
-- `feat/browser-acceptance`: Browser Smoke基盤追加中
+- `feat/seller-application` HEAD: `3e56605521c6ee7c731c303551028c968a07a1fb`
+- mainへの本番反映: PR #2が未Mergeのため未完了
 
 ## 次の1手
-- `feat/browser-acceptance` の最新HEADでBrowser Smoke workflowが実行されたか確認する。
-- Browser SmokeがFAILした場合はログから原因を特定して最小修正する。
-- Browser SmokeがPASSしたら、実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
-- Buyer `/seller/register` → login → application submit → pending表示をブラウザで検証する。
-- Admin `/admin/seller-applications` → application review → approve/rejectをブラウザで検証する。
-- Browser Acceptance通過後にPR #2へ必要な変更を反映し、最終レビューとMerge判断を行う。
+- PR #2の更新後HEADとCIを確認する。
+- mockではなく実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
+- Buyer `/seller/register` → login → application submit → pending表示を実backend接続で検証する。
+- Admin `/admin/seller-applications` → review → approve/rejectを実backend接続で検証する。
+- 既存のSeller dashboard/products/product-editor、Buyer購入→checkout→Library→watch/download、権限境界、Admin UI acceptanceへ順次進む。
+- 各区切りでCI結果とPROGRESSを更新し、最後にPR #2の最終レビューとMerge判断を行う。
 
 ## 作業中断からの再開手順
 1. このファイルを読む。
-2. `feat/browser-acceptance` のHEADとこのファイルの記録をGitHubで照合する。
-3. `feat/seller-application` / PR #2の最新HEADも確認する。
-4. Browser Smoke workflowの最新CI結果を確認する。
+2. `feat/seller-application` のHEADとこのファイルの記録をGitHubで照合する。
+3. PR #2の最新状態を確認する。
+4. Browser Smoke / Backend / Postgres Acceptance / Clean Install等の最新CI結果を確認する。
 5. 「実装済み」「CI PASS」「ブラウザ実機確認済み」を混同しない。
 6. 新しい作業を行ったら必ずこのファイルを更新する。
