@@ -33,13 +33,6 @@
     "test:admin-payout-concurrency-regression": "node scripts/admin-payout-concurrency-regression.js",
     "test": "node --test src/**/*.test.js"
   },
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "express": "^5.1.0",
-    "helmet": "^8.1.0",
-    "pg": "^8.16.3",
-    "stripe": "^18.5.0"
-  }
+  "engines": { "node": ">=20" },
+  "dependencies": { "express": "^5.1.0", "helmet": "^8.1.0", "pg": "^8.16.3", "stripe": "^18.5.0" }
 }
