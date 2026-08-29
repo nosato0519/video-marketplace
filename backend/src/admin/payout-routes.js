@@ -39,7 +39,7 @@ router.get('/payouts', async (_req, res, next) => {
 router.get('/payouts/:id/audit', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT a.id, a.actor_user_id, u.email AS actor_email, a.action, a.metadata, a.created_at
+      `SELECT a.id, a.actor_user_id, u.email AS actor_email, a.action, a.resource_id, a.metadata, a.created_at
          FROM audit_events a LEFT JOIN users u ON u.id = a.actor_user_id
         WHERE a.resource_type = 'payout' AND a.resource_id = $1
         ORDER BY a.created_at DESC LIMIT 100`,
