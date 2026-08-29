@@ -36,8 +36,6 @@ router.post('/payouts', async (req, res, next) => {
     if (!/^[A-Z]{3}$/.test(currency)) return res.status(400).json({ error: 'invalid_currency' });
 
     await client.query('BEGIN');
-    // Serialize payout requests per seller/currency so concurrent requests cannot
-    // both pass the balance check before either is inserted.
     await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2))`, [String(req.user.id), currency]);
 
     const balance = await client.query(
@@ -48,8 +46,6 @@ router.post('/payouts', async (req, res, next) => {
     );
     const available = Number(balance.rows[0]?.available || 0);
 
-    // A payout consumes the corresponding seller earnings once it is accepted
-    // into the payout lifecycle. Failed/cancelled payouts release the balance.
     const reserved = await client.query(
       `SELECT COALESCE(SUM(amount), 0) AS reserved_amount
          FROM payouts
@@ -78,10 +74,11 @@ router.post('/payouts', async (req, res, next) => {
     );
     const payoutId = result.rows[0].id;
 
-    // Persist the exact earnings consumed by this payout. This makes the
-    // payout-to-ledger relationship auditable and lets a payout span multiple
-    // earnings rows or partially consume one row without losing provenance.
     let remaining = amount;
+    // PostgreSQL does not permit FOR UPDATE on a grouped SELECT. Aggregate the
+    // allocation data first, then lock the underlying earning rows in a separate
+    // simple SELECT so the seller/currency advisory lock plus row locks still
+    // provide the intended concurrency protection.
     const earnings = await client.query(
       `SELECT e.id,
               e.net_amount,
@@ -94,13 +91,16 @@ router.post('/payouts', async (req, res, next) => {
           AND e.status = 'available'
         GROUP BY e.id, e.net_amount, e.created_at
         HAVING e.net_amount - COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) > 0
-        ORDER BY e.created_at ASC, e.id ASC
-        FOR UPDATE OF e`,
+        ORDER BY e.created_at ASC, e.id ASC`,
       [req.user.id, currency]
     );
 
     for (const earning of earnings.rows) {
       if (remaining <= 0) break;
+      await client.query(
+        `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`,
+        [earning.id]
+      );
       const netAmount = Number(earning.net_amount);
       const allocated = Number(earning.allocated_amount || 0);
       const remainingEarning = Math.max(0, netAmount - allocated);
