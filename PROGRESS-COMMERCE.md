@@ -5,14 +5,15 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `475459fe1b9002998a176f024902aeeaacd72365`
-- Browser Acceptance failed run: `33239035283`
-- Browser failure原因: 初回はregister画面のEmail selector不一致。その後Seller Application表示後に現UIに存在しない `Pending review` 見出しを期待していた。
-- 修正: Playwrightを現行UIに合わせ、申請後に実API `GET /api/seller/application` を確認する方式へ変更。
+- 最新作業コミット: `ee68524756f0bc1bf1adf75be87fdab73aa6a812`
+- Browser Acceptance #18: FAIL
+- Browser #18原因: 現行SPAの実UIと、テストがハッシュURL直行後に即 `#auth-form` を期待する方式が噛み合わなかった。
+- 現行UI確認: `app/auth/auth-view.js` は実際に `#auth-form` を生成する。`app/main.js` は `/register` で `renderAuthPage('register')` を呼ぶ。
+- 対応: Playwrightの登録導線をホーム → 実際の「Sign up」リンククリック → `#/register` → `#auth-form` の順に変更。SPAの実ユーザーナビゲーションを検証する方式へ修正。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Browser Acceptanceテストの期待値修正済み。新CI Runの結果待ち。
+- 現在: Browser Acceptanceテスト修正済み。新CI Run発火・結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -47,29 +48,33 @@
 - Core 187/187 PASS
 - Payment / Purchase / Seller Earnings / Payout / Media系PASS
 
-## Browser Acceptance
-初回Run `33239035283` はFAIL。
+## Browser Acceptance履歴
+- #15 / `33239035283`: FAIL。初期selector不一致。
+- #16: FAIL。修正後も現行register画面との不一致。
+- #17 / `33239306143`: FAIL。実行対象と修正コミットの不整合を確認。
+- #18 / `33239412922`: FAIL。`#auth-form` をハッシュURL直行後に待つ方式が現行SPA実行順と噛み合わずtimeout。
 
-初回の失敗原因:
-- `#/register` の現行UIとPlaywrightの `getByLabel('Email')` selectorが不一致。
+### #18の調査結果
+- `app/index.html` は `/app/main.js` をmoduleとしてロード。
+- `app/main.js` の `/register` は `renderAuthPage('register')` を呼ぶ。
+- `app/auth/auth-view.js` は `#auth-form` を生成する。
+- したがってDOM実装そのものが欠落しているわけではない。
+- Browserテストを「直接ハッシュURLへ移動」から「ホームを開く→実際のSign upリンクをクリック」に変更し、実ユーザー導線を検証する。
 
-その後の修正でregister処理は通過し、Seller Application画面まで到達したが、次の期待値が現行UIと不一致だった:
-- `getByRole('heading', { name: 'Pending review' })`
-- 申請後にUIがPending review画面を描画する実装ではない。
+## 最新テスト修正
+コミット:
+`ee68524756f0bc1bf1adf75be87fdab73aa6a812`
 
-今回の修正コミット:
-`475459fe1b9002998a176f024902aeeaacd72365`
-
-修正内容:
-- 申請後の存在しない `Pending review` 見出しへの依存を削除。
-- 申請後に実Backendの `GET /api/seller/application` を呼び、application存在・status=`pending`・displayName・legalName・countryCodeを検証。
-- `/api/auth/me` でユーザーroleがbuyerのままであることも継続確認。
-
-## PR #2について
-`feat/seller-application` はmainより62コミット先行・12コミット遅れで分岐しているため、丸ごとmergeしない。必要機能をmainへ機能単位で移植している。
+変更:
+- `page.goto(appUrl)` を実行
+- `#app` の表示を確認
+- `Sign up`リンクをクリック
+- `#/register`への遷移を確認
+- その後 `#auth-form` を確認して入力
+- Seller Application以降の実Backend検証は維持
 
 ## 残作業（優先順）
-1. 修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
+1. `ee685247...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
 2. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
 3. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
 4. Security Regressionを最新統合状態で確認。
@@ -81,7 +86,7 @@
 ## 再開手順
 1. このファイルを最初に読む。
 2. `feat/seller-application-main-integration` のHEADを確認。
-3. 修正版Browser Acceptanceの最新runを確認。
+3. 最新Browser Acceptance runを確認し、対象コミットがHEADと一致しているか確認。
 4. FAILならログから原因を特定し修正→再CI。
 5. PASSならBrowser/Postgres/Securityの次工程へ進む。
 6. 作業が進むたびこのファイルを更新する。
