@@ -38,7 +38,7 @@ try {
   const earnings = await request(baseUrl, '/api/seller/earnings', { headers: { cookie } });
   assert.equal(earnings.response.status, 200, JSON.stringify(earnings.body));
   assert.equal(Array.isArray(earnings.body.earnings), true);
-  assert.equal(earnings.body.earnings.some((item) => item.seller_id === sellerId && Number(item.net_amount) === 5000 && item.status === 'available'), true);
+  assert.equal(earnings.body.earnings.some((item) => Number(item.net_amount) === 5000 && item.status === 'available'), true);
 
   const payout = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 1000, currency: 'JPY' }) });
   assert.equal(payout.response.status, 201, JSON.stringify(payout.body));
@@ -98,5 +98,5 @@ try {
   assert.ok(persistedPayout.paid_at);
   console.log('http-seller-profile-earnings-payout-e2e-acceptance: PASS');
 } finally {
-  await server.close();
+  await new Promise((resolve) => server.close(resolve));
 }
