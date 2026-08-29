@@ -52,6 +52,10 @@ try {
   assert.equal(Number(payout.body.payout.amount), 1000);
   assert.equal(payout.body.payout.status, 'requested');
 
+  const initialAllocation = await query(`SELECT payout_id, seller_earning_id, amount FROM payout_earnings_allocations WHERE payout_id = $1`, [payoutId]);
+  assert.equal(initialAllocation.rows.length, 1, JSON.stringify(initialAllocation.rows));
+  assert.equal(Number(initialAllocation.rows[0].amount), 1000);
+
   // Only 3,500 JPY remains withdrawable. These two requests are intentionally
   // issued at the same time so the database advisory lock is tested under
   // actual contention: exactly one must succeed and one must be rejected.
@@ -95,9 +99,56 @@ try {
     assert.equal(from === 'processing' ? Boolean(transition.body.payout.paid_at) : true, true);
   }
 
+  const firstEarningAfterPartialPaid = await query(`SELECT status, refunded_at FROM seller_earnings WHERE seller_id = $1 AND order_id = $2 AND product_id = $3`, [sellerId, orderId, productId]);
+  assert.equal(firstEarningAfterPartialPaid.rows.length, 1, JSON.stringify(firstEarningAfterPartialPaid.rows));
+  assert.equal(firstEarningAfterPartialPaid.rows[0].status, 'available');
+  assert.equal(firstEarningAfterPartialPaid.rows[0].refunded_at, null);
+
+  const paidAllocation = await query(`SELECT SUM(amount) AS total FROM payout_earnings_allocations WHERE payout_id = $1`, [payoutId]);
+  assert.equal(Number(paidAllocation.rows[0].total), 1000);
+
   const invalidTransition = await request(baseUrl, `/api/admin/payouts/${payoutId}/status`, { method: 'POST', headers: { cookie: adminCookieAfterLogin, 'content-type': 'application/json' }, body: JSON.stringify({ status: 'cancelled' }) });
   assert.equal(invalidTransition.response.status, 409, JSON.stringify(invalidTransition.body));
   assert.equal(invalidTransition.body.error, 'invalid_status_transition');
+
+  // Cancel the second requested payout and prove its allocation does not
+  // consume withdrawable balance or settle the earning as paid.
+  const cancelConcurrent = await request(baseUrl, `/api/admin/payouts/${concurrentPayoutId}/status`, { method: 'POST', headers: { cookie: adminCookieAfterLogin, 'content-type': 'application/json' }, body: JSON.stringify({ status: 'cancelled' }) });
+  assert.equal(cancelConcurrent.response.status, 200, JSON.stringify(cancelConcurrent.body));
+  assert.equal(cancelConcurrent.body.payout.status, 'cancelled');
+  const earningAfterCancelled = await query(`SELECT status FROM seller_earnings WHERE seller_id = $1 AND order_id = $2 AND product_id = $3`, [sellerId, orderId, productId]);
+  assert.equal(earningAfterCancelled.rows[0].status, 'available');
+
+  const withdrawableAfterCancelled = await request(baseUrl, '/api/seller/payouts', { headers: { cookie } });
+  assert.equal(withdrawableAfterCancelled.response.status, 200, JSON.stringify(withdrawableAfterCancelled.body));
+  assert.equal(Number(withdrawableAfterCancelled.body.summary.available), 4000);
+  assert.equal(Number(withdrawableAfterCancelled.body.summary.pending), 0);
+  assert.equal(Number(withdrawableAfterCancelled.body.summary.withdrawable), 4000);
+
+  // Use the remaining 4,000 JPY in a second payout. Once that payout is paid,
+  // the original 5,000 JPY earning is fully covered and must become paid.
+  const fullPayout = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 4000, currency: 'JPY' }) });
+  assert.equal(fullPayout.response.status, 201, JSON.stringify(fullPayout.body));
+  const fullPayoutId = fullPayout.body.payout.id;
+  assert.equal(Number(fullPayout.body.payout.amount), 4000);
+  const fullAllocation = await query(`SELECT SUM(amount) AS total FROM payout_earnings_allocations WHERE payout_id = $1`, [fullPayoutId]);
+  assert.equal(Number(fullAllocation.rows[0].total), 4000);
+
+  for (const to of ['reviewing', 'approved', 'processing', 'paid']) {
+    const transition = await request(baseUrl, `/api/admin/payouts/${fullPayoutId}/status`, { method: 'POST', headers: { cookie: adminCookieAfterLogin, 'content-type': 'application/json' }, body: JSON.stringify({ status: to }) });
+    assert.equal(transition.response.status, 200, JSON.stringify(transition.body));
+    assert.equal(transition.body.payout.status, to);
+  }
+
+  const fullySettledEarning = await query(`SELECT status, paid_at FROM seller_earnings WHERE seller_id = $1 AND order_id = $2 AND product_id = $3`, [sellerId, orderId, productId]);
+  assert.equal(fullySettledEarning.rows.length, 1, JSON.stringify(fullySettledEarning.rows));
+  assert.equal(fullySettledEarning.rows[0].status, 'paid');
+  assert.ok(fullySettledEarning.rows[0].paid_at);
+
+  const allocationTotals = await query(`SELECT COALESCE(SUM(amount) FILTER (WHERE payout_id = $1), 0) AS first_paid, COALESCE(SUM(amount) FILTER (WHERE payout_id = $2), 0) AS second_paid, COALESCE(SUM(amount), 0) AS all_allocations FROM payout_earnings_allocations WHERE seller_earning_id = $3`, [payoutId, fullPayoutId, initialAllocation.rows[0].seller_earning_id]);
+  assert.equal(Number(allocationTotals.rows[0].first_paid), 1000);
+  assert.equal(Number(allocationTotals.rows[0].second_paid), 4000);
+  assert.equal(Number(allocationTotals.rows[0].all_allocations), 5000);
 
   const audit = await request(baseUrl, `/api/admin/payouts/${payoutId}/audit`, { headers: { cookie: adminCookieAfterLogin } });
   assert.equal(audit.response.status, 200, JSON.stringify(audit.body));
@@ -108,10 +159,13 @@ try {
 
   const sellerPayoutsAfterAdmin = await request(baseUrl, '/api/seller/payouts', { headers: { cookie } });
   assert.equal(sellerPayoutsAfterAdmin.response.status, 200, JSON.stringify(sellerPayoutsAfterAdmin.body));
-  assert.equal(sellerPayoutsAfterAdmin.body.payouts.some((item) => item.id === concurrentPayoutId && Number(item.amount) === 2500 && item.status === 'requested'), true);
+  assert.equal(sellerPayoutsAfterAdmin.body.payouts.some((item) => item.id === concurrentPayoutId && Number(item.amount) === 2500 && item.status === 'cancelled'), true);
   const persistedPayout = sellerPayoutsAfterAdmin.body.payouts.find((item) => item.id === payoutId);
   assert.equal(persistedPayout.status, 'paid');
   assert.ok(persistedPayout.paid_at);
+  const persistedFullPayout = sellerPayoutsAfterAdmin.body.payouts.find((item) => item.id === fullPayoutId);
+  assert.equal(persistedFullPayout.status, 'paid');
+  assert.ok(persistedFullPayout.paid_at);
   console.log('http-seller-profile-earnings-payout-e2e-acceptance: PASS');
 } finally {
   await new Promise((resolve) => server.close(resolve));
