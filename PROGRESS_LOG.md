@@ -20,15 +20,15 @@ Payment settlement -> seller earnings integrity, refund/payout eligibility, and 
 - The new earning uses `gross_amount = order.amount`, `platform_fee = 0`, `net_amount = order.amount`, order currency, and `status = 'available'`.
 - The insert is idempotent on `UNIQUE(order_id, product_id)` and also runs for an unprocessed event arriving after an already-paid order, so a missing earning row can be repaired without duplication.
 - Added database acceptance coverage proving one seller earning is created and remains one row after a retry event.
-- Code fix committed as `e6b53c701e77d07cba852193f26e383f32abc67f`.
-- Checkpoint documentation committed as `28fbbe578de2451e67e4050cd5f4d247e1f7be2d`.
+- Code and checkpoint changes are now on `main` at `cecff0795b65f0121067cac8c78d7244ce82b77d`.
 
 ### Important financial design decision
 - `seller_earnings.platform_fee` currently receives an explicit `0` because no configurable platform-fee policy is wired into the current settlement path. This is intentionally not described as a final commercial fee model.
 
 ### Verification status
-- Seller-earnings settlement acceptance is implemented but not observed in a real CI run.
-- Corrected payout concurrency and minimum-payout acceptance are implemented but not observed in a real CI run.
+- A GitHub Actions `clean-install` run for the checkpoint was automatically started and is currently **in progress**; it has reached container initialization and has not yet produced a conclusion.
+- Seller-earnings settlement acceptance is implemented but not yet empirically passed in CI.
+- Corrected payout concurrency and minimum-payout acceptance are implemented but not yet empirically passed in CI.
 - Refund/partial-refund behavior against seller earnings still requires verification.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
 - Stripe webhook provider consistency through the complete runtime path remains to be verified.
@@ -43,16 +43,19 @@ Payment settlement -> seller earnings integrity, refund/payout eligibility, and 
 
 ### Exact checkpoint
 Latest main commit:
-- `28fbbe578de2451e67e4050cd5f4d247e1f7be2d` — checkpoint after atomically wiring successful payment settlement to seller earnings creation.
+- `cecff0795b65f0121067cac8c78d7244ce82b77d` — payment settlement now creates the canonical seller earnings row atomically and the acceptance test verifies retry idempotency.
+- Previous implementation commit: `e6b53c701e77d07cba852193f26e383f32abc67f`.
+- CI run observed for the checkpoint: `33245787271`, job `clean-install` (`99082878150`), currently in progress.
 
 ### Next exact task
-1. Trace refund and partial-refund handling against `seller_earnings` and payout eligibility.
-2. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
-3. Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
-4. Continue payout runtime/CI verification; keep runtime status BLOCKED until empirical evidence exists.
-5. Implement or explicitly scope the remaining real provider adapters.
+1. Wait for/inspect the active `clean-install` CI job and record its conclusion and failed step if any.
+2. Trace refund and partial-refund handling against `seller_earnings` and payout eligibility.
+3. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
+4. Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
+5. Continue payout runtime/CI verification; keep runtime status BLOCKED until empirical evidence exists.
+6. Implement or explicitly scope the remaining real provider adapters.
 
 ### Continuation rule
-On restart, read this file and `PROJECT_STATE.md` first, inspect the latest main commit, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
+On restart, read this file and `PROJECT_STATE.md` first, inspect the latest main commit, the active CI run `33245787271`, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
 **These files and the latest repository state are the authoritative continuation source.**
