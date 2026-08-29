@@ -5,11 +5,12 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `bb484228c776eb35a8cdf9211cd0a611a9fa9d3e`
+- 最新作業コミット: `b307ab9eb21a512b22594748ba1f381d3fa55958`
 - ベースmain: `72eb8749cc2ceaed7a95c9c120f75afec213aeb9`
-- Backend Regression #565: PASS
+- Backend Regression #571: PASS
 - Clean Install #154: PASS
-- 現在: Seller Application Acceptance workflowのpushトリガーを統合ブランチへ明示し、実行可能状態に修正済み。CI結果確認待ち。
+- Seller Application Acceptance #2: PASS
+- 現在: Seller Applicationの実backend Browser Acceptanceを統合ブランチへ追加済み。CI実行結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -19,6 +20,9 @@
 - HTTP acceptance script
 - Seller Application Acceptance workflow
 - workflow push対象に `feat/seller-application-main-integration` と `main` を明示
+- CI frontend proxy (`scripts/ci-frontend-proxy.mjs`)
+- Playwright real-backend Seller Application browser acceptance (`tests/browser-backend-seller-application.spec.js`)
+- Backend Browser Acceptance workflow (`.github/workflows/backend-browser-acceptance.yml`)
 
 ## Seller Applicationの検証対象
 - buyerだけ申請可能
@@ -33,37 +37,41 @@
 - approve時seller_profiles作成/更新
 - review操作をaudit_eventsへ記録
 
-## CI待ち
-専用workflow `Seller Application Acceptance` を追加・発火条件を修正済み。以下を実CIで確認する。
-1. npm install
-2. migrate:preflight
-3. migrate
-4. seller application HTTP acceptance
-
-## 既存の確定PASS
-- Backend Regression #565 全工程PASS
-- Clean Install #154 全工程PASS
+## 確定PASS
+- Seller Application Acceptance #2: PASS
+- Backend Regression #571: PASS
+- Clean Install #154: PASS
 - Core 187/187 PASS
 - Payment / Purchase / Seller Earnings / Payout / Media系PASS
+
+## Browser Acceptance
+実backend + PostgreSQL + Playwright + frontend proxyの構成を統合ブランチへ追加済み。実CIで以下を確認する。
+1. PostgreSQL起動
+2. npm install
+3. Playwright/Chromium install
+4. migration preflight + migration
+5. backend health
+6. frontend proxy
+7. browserでbuyer登録→login→seller申請画面表示→申請送信
+8. backend `/api/auth/me` でbuyer roleを確認
 
 ## PR #2について
 `feat/seller-application` はmainより62コミット先行・12コミット遅れで分岐しているため、丸ごとmergeしない。必要機能をmainへ機能単位で移植している。
 
 ## 残作業（優先順）
-1. Seller Application Acceptance CIの実Run発生・PASS確認。
-2. PASSなら現在mainとの差分と実装を再確認。
-3. Browser backend acceptanceをmain統合ブランチへ追加・検証。
-4. Browser smoke / module smokeの必要部分を安全に移植・検証。
-5. Postgres Acceptanceでseller application migration/APIを確認。
-6. Security Regressionを最新統合状態で確認。
-7. Commerce/Media全CIを最新統合状態で再確認。
-8. 最終セキュリティレビュー。
-9. 全CIと最終条件がPASSするまで完成判定しない。
+1. Backend Browser Acceptance CIの実Run発生・PASS確認。
+2. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
+3. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
+4. Security Regressionを最新統合状態で確認。
+5. Commerce/Media全CIを最新統合状態で再確認。
+6. 最新mainとの差分を再確認し、main統合前のレビュー。
+7. 最終セキュリティレビュー。
+8. 全CIと最終条件がPASSするまで完成判定しない。
 
 ## 再開手順
 1. このファイルを最初に読む。
 2. `feat/seller-application-main-integration` のHEADを確認。
-3. Seller Application Acceptanceの最新runを確認。
+3. Backend Browser Acceptanceの最新runを確認。
 4. FAILならログから原因を特定し修正→再CI。
 5. PASSならBrowser/Postgres/Securityの次工程へ進む。
 6. 作業が進むたびこのファイルを更新する。
