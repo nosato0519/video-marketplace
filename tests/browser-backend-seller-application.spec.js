@@ -5,10 +5,28 @@ const appUrl = 'http://127.0.0.1:4173/';
 
 async function registerAndLogin(page, email, password) {
   const consoleErrors = [];
+  const failedRequests = [];
   page.on('pageerror', (error) => consoleErrors.push(`pageerror: ${error.message}`));
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(`console: ${message.text()}`); });
+  page.on('requestfailed', (request) => failedRequests.push(`${request.method()} ${request.url()} :: ${request.failure()?.errorText || 'unknown'}`));
+
+  const indexResponse = await page.request.get(appUrl);
+  expect(indexResponse.ok(), await indexResponse.text()).toBeTruthy();
+  expect(indexResponse.headers()['content-type']).toContain('text/html');
+  const indexHtml = await indexResponse.text();
+  expect(indexHtml).toContain('/app/main.js');
+
+  const mainResponse = await page.request.get(`${appUrl}app/main.js`);
+  expect(mainResponse.ok(), await mainResponse.text()).toBeTruthy();
+  expect(mainResponse.headers()['content-type']).toContain('javascript');
+  const mainJs = await mainResponse.text();
+  expect(mainJs).toContain("document.querySelector('#app')");
+
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  await expect.poll(async () => page.locator('#app').innerHTML(), { timeout: 10000 }).toContain('VIDEO MARKET');
+  await expect.poll(async () => page.locator('#app').innerHTML(), {
+    timeout: 10000,
+    message: () => `SPA did not render. URL=${page.url()} HTML=${JSON.stringify(page.locator('#app').innerHTML())} consoleErrors=${JSON.stringify(consoleErrors)} failedRequests=${JSON.stringify(failedRequests)}`,
+  }).toContain('VIDEO MARKET');
   await expect(page.locator('.site-header')).toBeVisible();
   await page.getByRole('link', { name: 'Sign up' }).click();
   await expect(page).toHaveURL(/#\/register/);
@@ -18,7 +36,8 @@ async function registerAndLogin(page, email, password) {
   await form.locator('input[name="password"]').fill(password);
   await form.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/#\/browse/);
-  expect(consoleErrors).toEqual([]);
+  expect(consoleErrors, failedRequests.join('\n')).toEqual([]);
+  expect(failedRequests).toEqual([]);
 }
 
 test.describe('real backend seller application acceptance', () => {
