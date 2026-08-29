@@ -23,8 +23,10 @@ import sellerMediaUploadRoutes from './media/media-upload-route.js';
 import sellerProfileRoutes from './seller/profile-routes.js';
 import sellerEarningsRoutes from './seller/earnings-routes.js';
 import sellerPayoutRoutes from './seller/payout-routes.js';
+import sellerApplicationRoutes from './seller/application-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
+import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import contentReportRoutes from './content-report-routes.js';
 
@@ -35,18 +37,12 @@ export function createApp() {
 
   validateMediaSecurityConfig();
   registerPaymentWebhookRoutes(app);
-  app.post(
-    '/api/payments/stripe/webhook',
-    express.raw({ type: 'application/json', limit: '1mb' }),
-    createStripeWebhookHandler({ recordPaymentEvent, completePayment, failPayment })
-  );
+  app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), createStripeWebhookHandler({ recordPaymentEvent, completePayment, failPayment }));
 
   app.use(express.json({ limit: '1mb' }));
   app.use(loadSessionUser);
 
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
-  });
+  app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' }));
 
   registerAuthRoutes(app);
   registerCatalogRoutes(app);
@@ -58,6 +54,8 @@ export function createApp() {
   registerProductTranslationRoutes(app);
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
+  // Seller applications must be reachable by authenticated buyers before seller-only routers.
+  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
   app.use('/api/seller', sellerProfileRoutes);
@@ -65,6 +63,7 @@ export function createApp() {
   app.use('/api/seller', sellerPayoutRoutes);
   app.use('/api/admin', adminPayoutRoutes);
   app.use('/api/admin', adminSellerVerificationRoutes);
+  app.use('/api/admin', adminSellerApplicationRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
@@ -74,10 +73,6 @@ export function createApp() {
     const status = Number(error?.statusCode) || 500;
     res.status(status).json({ error: status === 500 ? { code: 'INTERNAL_ERROR', message: 'Internal server error' } : (error.message || 'Request failed') });
   });
-
-  app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found' } });
-  });
-
+  app.use((_req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found' } }));
   return app;
 }
