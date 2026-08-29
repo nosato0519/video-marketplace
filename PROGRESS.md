@@ -53,56 +53,49 @@ PR #1は Backup / Restore のハードニングとAcceptance CIを完成させ�
 - audit APIのSELECTで `a.resource_id` が欠落していたことを確定: 完了
 - API側へ `a.resource_id` を追加: 完了
 - 修正コミット: `0dbe08499f1971e03aff0096ec941041e8a08740`
-- 修正後のCIで、resource_id欠落によるassertionではなく**イベント順序assertionが次の失敗点になったことを確認**: 完了
+- 修正後のCIで、resource_id欠落ではなくイベント順序assertionが次の失敗点になったことを確認: 完了
 - APIが `ORDER BY a.created_at DESC` で返すことを確認: 完了
 - E2E期待順を `['paid', 'processing', 'approved', 'reviewing']` に合わせる修正: 完了
 - 最新テスト修正コミット: `fd958636cd3188be1c1caae2eef86b33a11328b9`
+
+### 今回追加した修正
+- 最新CIログでSeller payout E2Eが `http-test-helpers.js` の不足により開始直後に `ERR_MODULE_NOT_FOUND` で停止していることを確認: 完了
+- 共通HTTPテストヘルパー `backend/scripts/http-test-helpers.js` を追加: 完了
+- `startServer()` と `request()` を実装し、既存Seller payout E2Eのimport契約に合わせた
+- 修正コミット: `f8528fd772149ec23f24f730bbffaad925ac3d71`
+- 修正後CI: **未確認**
 
 ## 4. PR #1の現在状態
 
 - PR #1: Open
 - merged: false
-- mergeable: true
+- mergeable: true（直近確認時点）
 - base: `main`
-- 現在head: `fd958636cd3188be1c1caae2eef86b33a11328b9`
-- PRの最新情報でコミット数: 26
-- PRの最新情報でchanged files: 12
+- 最新作業コミット: `f8528fd772149ec23f24f730bbffaad925ac3d71`
 - まだMergeしていない
 
 ## 5. PR #1の変更対象について
 
-初期確認時点ではBackup/Restore関連9ファイルだったが、その後のSeller payout E2E修正とaudit API修正を含むため、現在のPRメタデータでは12 changed filesとなっている。
+初期確認時点ではBackup/Restore関連9ファイルだったが、その後のSeller payout E2E修正、audit API修正、HTTP helper追加を含むため、現在はBackup/RestoreのCIを完成させるために必要な関連変更を含む。
 
-Seller/Admin payoutの機能実装そのものを新規にPRへ追加する方針ではない。今回のE2E修正は、既存Acceptance CIをGreenにするための関連テスト/API修正として扱っている。
+Seller/Admin payoutの機能実装そのものを新規にPRへ追加する方針ではない。今回の修正は既存Acceptance CIをGreenにするための関連API・テスト基盤修正として扱っている。
 
 ## 6. 現在残っている問題
 
 ### Postgres Acceptance / Seller payout E2E
 
-修正前はaudit APIレスポンスに `resource_id` がなく、E2Eのfilter結果が0件だった。
+直近の失敗は、Seller payout E2Eがimportしている `backend/scripts/http-test-helpers.js` がブランチに存在しなかったこと。
 
-その問題をAPI側で修正した後、最新のPostgres Acceptance #192では次の失敗が確認された:
+CIログの確定エラー:
+`Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/video-marketplace/video-marketplace/backend/scripts/http-test-helpers.js'`
 
-- audit eventsは取得できている
-- `resource_id` filterは通過している
-- 4件が抽出されている
-- しかしAPIは `ORDER BY a.created_at DESC` のため、新しいイベントから `paid → processing → approved → reviewing` の順で返す
-- E2Eは古い順 `reviewing → approved → processing → paid` を期待していた
-- そのためorder assertionで失敗した
+この問題に対して `http-test-helpers.js` を追加済み。
 
-このorder assertionは最新コミット `fd958636...` でAPIの実際の返却順に合わせて修正済み。
-
-**修正後CIのPASSはまだ未確認。**
+**現在は、追加後のCIで次の失敗が何になるかを確認する段階。**
 
 ## 7. 直近のCI状態
 
-修正前コミット `327a1b2d51e6b316375d803d202a297558969b7b`:
-- Backend Regression #495: SUCCESS
-- Clean Install #85: SUCCESS
-- Media Upload Validation #18: SUCCESS
-- postgres-migration-acceptance #186: FAILURE
-
-API側resource_id修正を含むマージコミット `7ca42c5295815ed5873d84644c6a31846531c9dd` のPostgres Acceptance #192:
+最新修正前のSeller payout E2Eを含むPostgres Acceptance #198:
 - migration/preflight/plan: PASS
 - commerce DB: PASS
 - moderation DB/HTTP: PASS
@@ -112,25 +105,28 @@ API側resource_id修正を含むマージコミット `7ca42c5295815ed5873d84644
 - auth: PASS
 - buyer purchase/media/order report: PASS
 - seller product/media: PASS
-- **seller profile/earnings/payout E2E: FAILURE（order assertion）**
+- seller profile/earnings/payout E2E: FAILURE (`http-test-helpers.js` missing)
 - admin payout concurrency: SKIPPED due to failure
 - backup/restore round-trip: SKIPPED due to failure
 
+最新作業コミット `f8528fd...` ではhelperを追加したため、修正後CIは未確認。
+
 ## 8. 次にやる作業（順番固定）
 
-1. 最新head `fd958636cd3188be1c1caae2eef86b33a11328b9` のCIが発生しているか確認
+1. 最新head `f8528fd772149ec23f24f730bbffaad925ac3d71` のCIが発生しているか確認
 2. Postgres Acceptanceの最新実行結果を確認
 3. Seller payout E2EがPASSしたか確認
 4. PASSしなければ、その失敗ログから次の原因を特定し、最小修正
-5. Seller payout E2E PASS後、同じPostgres Acceptanceで後続のAdmin payout concurrencyを確認
-6. 同じPostgres AcceptanceでBackup/Restore round-tripが再実行されPASSすることを確認
-7. Postgres Acceptance全体PASSを確認
-8. Backend Regression / Clean Install / Media Upload Validationも最新headでPASS確認
-9. 全CI Greenを確認
-10. PR #1本文の古いレビュー指摘・進捗記述を実装済み状態へ更新
-11. 最終レビューを実施
-12. CI/レビューがすべて問題ない場合のみMerge
-13. Merge後、main上で最終CIを確認
+5. 修正のたびに `PROGRESS.md` を更新して保存
+6. Seller payout E2E PASS後、同じPostgres Acceptanceで後続のAdmin payout concurrencyを確認
+7. 同じPostgres AcceptanceでBackup/Restore round-tripが再実行されPASSすることを確認
+8. Postgres Acceptance全体PASSを確認
+9. Backend Regression / Clean Install / Media Upload Validationも最新headでPASS確認
+10. 全CI Greenを確認
+11. PR #1本文の古いレビュー指摘・進捗記述を実装済み状態へ更新
+12. 最終レビューを実施
+13. CI/レビューがすべて問題ない場合のみMerge
+14. Merge後、main上で最終CIを確認
 
 ## 9. 作業上の禁止事項・注意
 
@@ -173,10 +169,10 @@ API側resource_id修正を含むマージコミット `7ca42c5295815ed5873d84644
 ## 12. 今回の再開セッションのチェックポイント
 
 - `PROGRESS.md` を読み直した: 完了
-- API側resource_id欠落原因を再確認: 完了
-- API側修正後のCI失敗原因（返却順）を確認: 完了
-- E2E order assertionをAPIのDESC順へ修正: 完了
-- 最新head: `fd958636cd3188be1c1caae2eef86b33a11328b9`
+- 修正前CI #198の実ログ確認: 完了
+- `http-test-helpers.js` 不足を確定: 完了
+- helper追加: 完了
+- helper追加コミット: `f8528fd772149ec23f24f730bbffaad925ac3d71`
 - 修正後CI: **未確認**
 - 次の区切り: **Seller payout E2E PASS確認**
 
