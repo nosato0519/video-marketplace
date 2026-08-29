@@ -1,6 +1,6 @@
 # Video Marketplace — 作業進捗・再開メモ
 
-最終更新: 2026-08-28
+最終更新: 2026-08-29
 対象リポジトリ: `nosato0519/video-marketplace`
 対象ブランチ: `hardening/backup-restore`
 対象PR: #1
@@ -71,13 +71,13 @@ PR #1は Backup / Restore のハードニングとAcceptance CIを完成させ�
 
 CIではSeller payoutの4段階の状態遷移と4件のaudit event生成・取得までは確認できているが、E2E側のassertionが `event.resource_id === payoutId` で4件を抽出しようとして0件になり失敗している。
 
-重要な確認事項:
-- audit event自体は4件生成されている
-- audit APIも4件返している
-- CIレスポンスには `resource_id` が存在しないことを確認済み
-- DB設計上 `audit_events.resource_id UUID` は存在することを確認済み
-- ただし、audit APIの実装元をまだ正確に取得できていない
-- よって、現時点ではアプリ側を推測で修正しない
+**2026-08-29 再開後の原因特定:**
+- `/api/admin/payouts/:id/audit` の実装元を特定した
+- `backend/src/admin/payout-routes.js` が監査イベントをDBから取得している
+- SQLのSELECTに `a.id` はあるが **`a.resource_id` が含まれていない**ことを確認した
+- WHERE句では `a.resource_id = $1` を使っているため、DB上では正しくpayoutに紐付いたイベントを検索できる
+- しかしJSONレスポンスへ `resource_id` をSELECTしていないため、E2E側の `event.resource_id === payoutId` が常に成立しない
+- これはE2Eの期待値を変更する問題ではなく、**監査APIレスポンスの欠落フィールドを修正するアプリ側の問題**と確定
 
 ## 6. Seller/Admin機能について
 
@@ -97,13 +97,13 @@ Backend Regression #495では `backup/restore round-trip acceptance: PASS` を�
 
 ## 8. 次にやる作業（順番固定）
 
-1. audit APIの実装元を正確に特定する
-2. audit event生成処理・DB保存処理・API serializer/SELECTを確認する
-3. `resource_id` がどこで欠落しているかを確定する
-4. アプリ側の欠陥ならアプリ側を最小修正する
-5. E2E側の期待値・取得方法の問題ならE2Eだけを最小修正する
-6. 修正後にPostgres Acceptanceを再実行する
-7. Seller payout E2E PASSを確認する
+1. ~~audit APIの実装元を正確に特定する~~ → **完了**
+2. ~~audit event生成処理・DB保存処理・API serializer/SELECTを確認する~~ → **完了**
+3. ~~`resource_id` がどこで欠落しているかを確定する~~ → **完了**
+4. `backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加する
+5. 変更後の最新SHAを記録する
+6. Seller payout E2Eを再実行する
+7. Postgres Acceptance全体を再実行する
 8. Admin payoutを含む後続AcceptanceがPASSすることを確認する
 9. Round-tripが再度PASSすることを確認する
 10. 全CI Greenを確認する
