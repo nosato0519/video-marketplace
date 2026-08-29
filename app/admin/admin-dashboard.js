@@ -2,6 +2,7 @@ const sections = [
   ['overview', 'Overview', 'Sales, orders and important alerts'],
   ['products', 'Products', 'Create, edit, publish or pause products'],
   ['sellers', 'Sellers', 'Review sellers and verification status'],
+  ['seller-applications', 'Seller applications', 'Review creator applications before granting seller privileges'],
   ['orders', 'Orders & sales', 'Review orders, refunds and revenue'],
   ['payouts', 'Payouts', 'Review seller payout requests'],
   ['moderation', 'Moderation', 'Review content and reports'],
@@ -20,7 +21,7 @@ export function renderAdminDashboard() {
     </header>
     <section class="admin-alert" aria-live="polite">
       <strong>Action queue</strong>
-      <span>Review pending moderation and payout requests first.</span>
+      <span>Review pending moderation, seller applications and payout requests first.</span>
     </section>
     <section class="admin-stats" aria-label="Overview">
       <article><span>Today’s sales</span><strong>Not connected</strong></article>

@@ -3,6 +3,7 @@ export const adminNavigation = [
   { id: 'orders', label: 'Orders & sales', path: '#/admin/orders' },
   { id: 'products', label: 'Products', path: '#/admin/products' },
   { id: 'sellers', label: 'Sellers', path: '#/admin/sellers' },
+  { id: 'seller-applications', label: 'Seller applications', path: '#/admin/seller-applications' },
   { id: 'buyers', label: 'Buyers', path: '#/admin/buyers' },
   { id: 'moderation', label: 'Moderation', path: '#/admin/moderation' },
   { id: 'reports', label: 'Reports', path: '#/admin/reports' },

@@ -59,6 +59,8 @@ jobs:
         run: npm run test:http-payment-refund
       - name: Run buyer purchase E2E
         run: npm run test:http-buyer-purchase-e2e
+      - name: Run seller application acceptance
+        run: npm run test:http-seller-application
       - name: Run seller product media E2E
         run: npm run test:http-seller-product-media-e2e
       - name: Run seller earnings and payout E2E

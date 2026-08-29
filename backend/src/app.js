@@ -23,8 +23,10 @@ import sellerMediaUploadRoutes from './media/media-upload-route.js';
 import sellerProfileRoutes from './seller/profile-routes.js';
 import sellerEarningsRoutes from './seller/earnings-routes.js';
 import sellerPayoutRoutes from './seller/payout-routes.js';
+import sellerApplicationRoutes from './seller/application-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
+import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import contentReportRoutes from './content-report-routes.js';
 
@@ -58,6 +60,9 @@ export function createApp() {
   registerProductTranslationRoutes(app);
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
+  // Seller applications must be reachable by authenticated buyers. Mount this
+  // router before seller-only routers whose router-level middleware rejects buyers.
+  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
   app.use('/api/seller', sellerProfileRoutes);
@@ -65,6 +70,7 @@ export function createApp() {
   app.use('/api/seller', sellerPayoutRoutes);
   app.use('/api/admin', adminPayoutRoutes);
   app.use('/api/admin', adminSellerVerificationRoutes);
+  app.use('/api/admin', adminSellerApplicationRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
