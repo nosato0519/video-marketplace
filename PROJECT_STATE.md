@@ -21,61 +21,34 @@
 - Successful payment settlement creates exactly one canonical `seller_earnings` row in the same transaction as payment/order settlement.
 - Refund settlement marks the matching seller earning `refunded` and records `refunded_at` atomically with order refund and entitlement revocation.
 - Refund acceptance coverage verifies earning creation, refund reversal, zero available balance, and duplicate refund idempotency.
-- **2026-08-29:** Added `backend/migrations/012_payout_earnings_allocations.sql` defining `payout_earnings_allocations` so each payout records exact earnings provenance and supports partial/multi-earning payouts.
-- **2026-08-29:** Seller payout creation allocates requested amount across available earnings inside the same transaction and fails atomically if allocation cannot cover the request.
-- **2026-08-29:** Added `backend/src/seller/payout-earnings-settlement.js`; an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`, while partial allocations remain available.
-- **2026-08-29:** Wired the payout-paid settlement helper into Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
-- **2026-08-29:** Expanded `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to verify payout allocation provenance, partial paid payout leaves the earning `available`, cancelled payout does not consume withdrawable balance, and a later full payout changes the earning to `paid` only after total paid allocations reach `net_amount`.
-
-### Payment architecture findings
-- Provider catalog contains Stripe, PayPal, Adyen, Paddle and PayPay.
-- Provider selection validates provider, region and currency.
-- Seller/owner payment settings determine which configured provider can be used for an order.
-- `createCheckoutSession()` stores the selected provider on the pending payment and passes it into provider checkout metadata.
-- `payment-provider.js` currently has a real Stripe adapter only; PayPal, Adyen, Paddle and PayPay currently resolve to unavailable/not-implemented adapters.
-- The HTTP Checkout route now preserves the selected provider, but real multi-provider runtime support is not complete.
-- Payment settlement now reaches the canonical seller earnings ledger atomically with payment/order settlement.
-- Platform fee is currently explicitly `0`; no configurable platform-fee policy has been wired into settlement yet.
-- Refund settlement reverses the canonical seller-earnings status atomically with order refund and entitlement revocation.
-
-### Payout accounting architecture findings
-- `seller_earnings` is the canonical source of seller available balance.
-- `payout_earnings_allocations` provides provenance from each payout to the earnings it consumes.
-- A payout can span multiple earnings rows or partially consume one earnings row.
-- Failed/cancelled payouts do not count as active allocations for payout reservation.
-- When an Admin payout transitions `processing -> paid`, the payout-paid settlement helper marks only fully covered earnings `paid`; partial allocations remain `available`.
-- Refunds after an earning has already been paid out still require a separate recovery/receivable policy before commercial release.
+- Added `backend/migrations/012_payout_earnings_allocations.sql` defining `payout_earnings_allocations` so each payout records exact earnings provenance and supports partial/multi-earning payouts.
+- Seller payout creation allocates requested amount across available earnings inside the same transaction and fails atomically if allocation cannot cover the request.
+- Added `backend/src/seller/payout-earnings-settlement.js`; an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`, while partial allocations remain available.
+- Wired the payout-paid settlement helper into Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
+- Expanded `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to verify payout allocation provenance, partial paid payout leaves the earning `available`, cancelled payout does not consume withdrawable balance, and a later full payout changes the earning to `paid` only after total paid allocations reach `net_amount`.
+- **2026-08-29:** Fresh Backend Regression run `33258384757` executed against commit `cff6f454ee04d16424bf0af33968e38312ba6d51`. All prior steps through payment/refund acceptance and the 187 unit tests passed. The seller earnings/payout E2E failed at payout creation because PostgreSQL rejects `FOR UPDATE OF e` on the grouped aggregate query (`SQLSTATE 0A000`).
+- **2026-08-29:** Root cause identified in `backend/src/seller/payout-routes.js`: allocation query used `GROUP BY ... FOR UPDATE OF e`. Fix committed as `36ad9257a3400566f655dcfe13d270fa885a7d36`: aggregate first, then explicitly `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE` before inserting each allocation.
 
 ### Verification status
-- **Acceptance coverage for full/partial payout settlement and cancelled payout balance release is now on `main` (commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef`).** Fresh migration/regression CI evidence is still required.
-- Dedicated refund-to-earnings acceptance coverage remains on `main`, but runtime CI evidence for that dedicated test is outstanding.
-- Payout concurrency and minimum-payout acceptance require empirical CI evidence containing the corrected tests.
+- Fresh regression infrastructure, migrations, 187 unit tests, authentication, payment webhook, payment failure, payment refund, buyer purchase, seller application, and seller product-media acceptance all passed in run `33258384757`.
+- **Payout settlement acceptance is NOT green yet.** Run `33258384757` failed specifically at `http-seller-profile-earnings-payout-e2e` with PostgreSQL `FOR UPDATE is not allowed with GROUP BY clause`.
+- The exact SQL failure was fixed in commit `36ad9257a3400566f655dcfe13d270fa885a7d36`; a fresh CI run against that fix is still required.
+- Refund acceptance has passed in the failed run, but dedicated refund-to-earnings runtime status should still be tracked separately from overall regression.
+- Payout concurrency/minimum-payout and full/partial/cancelled settlement are implemented but require a fresh green runtime run after the SQL fix.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
 - Stripe webhook provider consistency through the complete runtime path remains to be verified.
 - Seller, Buyer and Admin browser-level acceptance remains incomplete.
 - Do not claim full release readiness yet.
 
-## Canonical seller/payout model
-- Seller identity remains `users.id` for commerce, earnings and payout records.
-- `seller_profiles.user_id -> users.id` is the seller-specific profile/onboarding relation.
-- `seller_earnings.seller_id -> users.id`.
-- `payouts.seller_id -> users.id`.
-- Available balance source: `seller_earnings` rows with `status = 'available'`.
-- Payout lifecycle: requested -> reviewing -> approved -> processing -> paid, with failed/cancelled branches.
-- `audit_events` records payout status transitions.
-- `payout_earnings_allocations` records exact payout-to-earnings consumption.
-- Minimum seller payout policy: 1,000 JPY at API level.
-- Refunds change the matching seller earning to `refunded` inside the same database transaction as order refund.
-
 ## Release blocker status
-**BLOCKED:** Fresh CI evidence for Milestone 465, refund/earnings acceptance runtime evidence, payout/refund edge-case verification, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
+**BLOCKED:** Fresh CI evidence after the payout SQL fix, refund/payout edge-case verification, fresh/existing-install migration verification, real non-Stripe provider adapters, provider end-to-end runtime verification, and authenticated Seller/Buyer/Admin browser E2E remain outstanding.
 
 ## Remaining work — priority order
-1. **Milestone 465 verification — CURRENT**
-   - Run fresh migration/regression CI against commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef` and record exact evidence.
-   - If CI fails, fix the exact failing acceptance/runtime path before proceeding.
+1. **Fresh CI after payout SQL fix — CURRENT**
+   - Run/inspect CI for commit `36ad9257a3400566f655dcfe13d270fa885a7d36`.
+   - Confirm `http-seller-profile-earnings-payout-e2e` passes all allocation/settlement assertions.
+   - If it fails, fix the exact runtime failure and rerun.
 2. **Refund / seller earnings integrity**
-   - Run dedicated refund-to-earnings acceptance in CI.
    - Verify payout eligibility excludes refunded earnings, including after a payout has already been created.
    - Decide/implement accounting treatment for refunds after an earning has already been paid out (platform/seller receivable or equivalent ledger adjustment) before commercial release.
 3. **Payment provider integration**
@@ -88,20 +61,14 @@
    - Seller verification review UI.
    - DB-backed moderation/takedown acceptance.
 5. **Browser E2E**
-   - Seller authenticated/unauthorized flows.
-   - Buyer Product -> Order -> Checkout -> Account -> Orders -> Library -> Watch/Download.
-   - Admin dashboard/moderation authenticated and unauthorized flows.
-6. **Production hardening**
-   - Production session/auth behavior, privacy/account controls, region/compliance controls, provider compatibility, security review.
-7. **Clean install / restore**
-   - PostgreSQL clean install and backup/restore verification.
-8. **Commercial release**
-   - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
-
-## Exact next step
-**Run fresh migration/regression CI against `94924e02e331cd89991ea4678cc62a6c22e0c4ef`; then use the resulting evidence to either fix the exact failure or mark the full/partial/cancelled payout settlement acceptance verified.**
+   - Authenticated Buyer, Seller, and Admin browser flows.
+6. **Release hardening**
+   - Fresh install and existing-install upgrade matrix.
+   - Production secrets/provider readiness checks.
+   - Backup/restore drill with verified artifacts.
+   - Final security/authorization review.
 
 ## Continuation rule
-At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
+On restart, read this file and `PROGRESS_LOG.md` first, inspect the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
 **These files and the latest repository state are the authoritative continuation source.**
