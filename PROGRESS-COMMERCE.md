@@ -5,15 +5,15 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `ee68524756f0bc1bf1adf75be87fdab73aa6a812`
-- Browser Acceptance #18: FAIL
-- Browser #18原因: 現行SPAの実UIと、テストがハッシュURL直行後に即 `#auth-form` を期待する方式が噛み合わなかった。
-- 現行UI確認: `app/auth/auth-view.js` は実際に `#auth-form` を生成する。`app/main.js` は `/register` で `renderAuthPage('register')` を呼ぶ。
-- 対応: Playwrightの登録導線をホーム → 実際の「Sign up」リンククリック → `#/register` → `#auth-form` の順に変更。SPAの実ユーザーナビゲーションを検証する方式へ修正。
+- 最新作業コミット: `dc9ae01d678ff860f05b6f4154740e3058c4d4fb`
+- Browser Acceptance #19 / `33239569178`: FAIL
+- Browser #19原因: ホームロード直後に `#app` の可視性を確認したが、SPAのmodule初期化完了前に空の `#app` を可視性判定してtimeoutした。
+- 調査: `app/main.js` はトップページで `renderHome()` を実行し、`#app.innerHTML` を設定する実装。CIではAPI/backend/proxyとも正常起動している。
+- 対応: PlaywrightをDOM rootの可視性に依存させず、実際の `.site-header` が描画されたことを待ってから `Sign up` をクリックする方式へ変更。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Browser Acceptanceテスト修正済み。新CI Run発火・結果待ち。
+- 現在: Browser Acceptance #19の原因修正コミットを作成済み。新CI Runの結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -53,28 +53,27 @@
 - #16: FAIL。修正後も現行register画面との不一致。
 - #17 / `33239306143`: FAIL。実行対象と修正コミットの不整合を確認。
 - #18 / `33239412922`: FAIL。`#auth-form` をハッシュURL直行後に待つ方式が現行SPA実行順と噛み合わずtimeout。
+- #19 / `33239569178`: FAIL。`#app` 可視性チェックがSPA module初期化前に実行されtimeout。
 
-### #18の調査結果
-- `app/index.html` は `/app/main.js` をmoduleとしてロード。
-- `app/main.js` の `/register` は `renderAuthPage('register')` を呼ぶ。
-- `app/auth/auth-view.js` は `#auth-form` を生成する。
-- したがってDOM実装そのものが欠落しているわけではない。
-- Browserテストを「直接ハッシュURLへ移動」から「ホームを開く→実際のSign upリンクをクリック」に変更し、実ユーザー導線を検証する。
+### #19の調査結果
+- CIログでPostgreSQL、migration 26件、Backend、health check、frontend proxyはすべて正常。
+- Playwright本体は `page.goto(appUrl)` 後の `expect(page.locator('#app')).toBeVisible()` で停止。
+- DOM上の `#app` は存在するが空のためvisible判定に失敗した。
+- `app/main.js` のトップルートは `renderHome()` で `#app.innerHTML` を設定するため、テストは実DOM描画完了を待つ必要がある。
 
 ## 最新テスト修正
 コミット:
-`ee68524756f0bc1bf1adf75be87fdab73aa6a812`
+`dc9ae01d678ff860f05b6f4154740e3058c4d4fb`
 
 変更:
-- `page.goto(appUrl)` を実行
-- `#app` の表示を確認
-- `Sign up`リンクをクリック
-- `#/register`への遷移を確認
-- その後 `#auth-form` を確認して入力
-- Seller Application以降の実Backend検証は維持
+- `#app` の可視性アサーションを削除。
+- `.site-header` の可視性を待つ。
+- その後、実際の `Sign up` リンクをクリック。
+- `#/register`遷移後に `#auth-form` を確認して入力。
+- Seller Application以降の実Backend検証は維持。
 
 ## 残作業（優先順）
-1. `ee685247...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
+1. `dc9ae01...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
 2. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
 3. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
 4. Security Regressionを最新統合状態で確認。
