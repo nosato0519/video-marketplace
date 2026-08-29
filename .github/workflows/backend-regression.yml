@@ -64,6 +64,7 @@ jobs:
         run: npm run test:http-seller-application
       - name: Run seller product media E2E
         run: npm run test:http-seller-product-media-e2e
+      # Keep the full payout settlement acceptance in the backend regression gate.
       - name: Run seller earnings and payout E2E
         run: npm run test:http-seller-profile-earnings-payout-e2e
       - name: Run admin payout concurrency regression
