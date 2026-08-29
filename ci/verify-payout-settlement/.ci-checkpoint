@@ -1,0 +1,5 @@
+CI verification checkpoint for payout settlement.
+
+Purpose: trigger the existing pull_request CI on this verification branch without changing product behavior.
+
+Expected next step: inspect the resulting backend-regression workflow run and verify seller earnings/payout E2E.
