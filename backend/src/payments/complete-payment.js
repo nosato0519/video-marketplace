@@ -23,8 +23,12 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     }
 
     const order = await client.query(
-      `SELECT id, buyer_id, product_id, amount, currency, status, provider, provider_payment_id
-         FROM orders WHERE id = $1 FOR UPDATE`,
+      `SELECT o.id, o.buyer_id, o.product_id, o.amount, o.currency, o.status, o.provider, o.provider_payment_id,
+              p.seller_id
+         FROM orders o
+         JOIN products p ON p.id = o.product_id
+        WHERE o.id = $1
+        FOR UPDATE OF o, p`,
       [orderId]
     );
     if (order.rowCount === 0) throw new Error('order_not_found');
@@ -55,6 +59,13 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
+        `INSERT INTO seller_earnings
+          (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
+         VALUES ($1, $2, $3, $4, 0, $4, $5, 'available')
+         ON CONFLICT (order_id, product_id) DO NOTHING`,
+        [current.seller_id, current.id, current.product_id, current.amount, current.currency]
+      );
+      await client.query(
         `UPDATE payment_events SET status = 'processed', processed_at = NOW(), order_id = $1 WHERE id = $2`,
         [current.id, event.rows[0].id]
       );
@@ -78,6 +89,13 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
        ON CONFLICT (order_id) DO NOTHING
        RETURNING id, user_id, product_id, order_id, status, created_at`,
       [current.buyer_id, current.product_id, current.id]
+    );
+    await client.query(
+      `INSERT INTO seller_earnings
+        (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
+       VALUES ($1, $2, $3, $4, 0, $4, $5, 'available')
+       ON CONFLICT (order_id, product_id) DO NOTHING`,
+      [current.seller_id, current.id, current.product_id, current.amount, current.currency]
     );
     await client.query(
       `UPDATE payment_events SET status = 'processed', processed_at = NOW(), order_id = $1 WHERE id = $2`,
