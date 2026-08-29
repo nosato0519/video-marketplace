@@ -22,7 +22,7 @@ const modules = [
 ];
 
 test('all application modules load in Chromium', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/index.html');
   const result = await page.evaluate(async (urls) => {
     const failures = [];
     const base = new URL('./', document.baseURI).href;
