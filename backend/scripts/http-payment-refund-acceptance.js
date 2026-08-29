@@ -63,6 +63,16 @@ try {
   assert.equal(state.rows[0].status, 'paid');
   state = await pool.query(`SELECT status FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'active');
+  state = await pool.query(`SELECT seller_id, gross_amount, platform_fee, net_amount, currency, status, refunded_at
+    FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
+  assert.equal(state.rowCount, 1);
+  assert.equal(state.rows[0].seller_id, ids.seller);
+  assert.equal(Number(state.rows[0].gross_amount), 1500);
+  assert.equal(Number(state.rows[0].platform_fee), 0);
+  assert.equal(Number(state.rows[0].net_amount), 1500);
+  assert.equal(state.rows[0].currency, 'JPY');
+  assert.equal(state.rows[0].status, 'available');
+  assert.equal(state.rows[0].refunded_at, null);
 
   const refund = JSON.stringify({
     eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded',
@@ -77,10 +87,27 @@ try {
   state = await pool.query(`SELECT status, revoked_at FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'revoked');
   assert.notEqual(state.rows[0].revoked_at, null);
+  state = await pool.query(`SELECT COUNT(*)::int AS total,
+      COUNT(*) FILTER (WHERE status = 'available')::int AS available,
+      COUNT(*) FILTER (WHERE status = 'refunded')::int AS refunded,
+      MIN(refunded_at) AS refunded_at
+    FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
+  assert.equal(state.rows[0].total, 1);
+  assert.equal(state.rows[0].available, 0);
+  assert.equal(state.rows[0].refunded, 1);
+  assert.notEqual(state.rows[0].refunded_at, null);
 
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.duplicate, true);
+
+  state = await pool.query(`SELECT COUNT(*)::int AS total,
+      COUNT(*) FILTER (WHERE status = 'available')::int AS available,
+      COUNT(*) FILTER (WHERE status = 'refunded')::int AS refunded
+    FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
+  assert.equal(state.rows[0].total, 1);
+  assert.equal(state.rows[0].available, 0);
+  assert.equal(state.rows[0].refunded, 1);
 
   const eventRow = await pool.query(`SELECT status, event_type, provider_payment_id FROM payment_events
     WHERE provider = 'mock' AND event_id = $1`, [refundEventId]);
@@ -92,6 +119,7 @@ try {
   console.log('HTTP payment refund acceptance: PASS');
 } finally {
   await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2)`, [successEventId, refundEventId]).catch(() => {});
+  await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
   await pool.query(`DELETE FROM orders WHERE id = $1`, [ids.order]).catch(() => {});
