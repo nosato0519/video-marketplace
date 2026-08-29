@@ -9,6 +9,7 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-regression.yml'
+  workflow_dispatch:
 
 jobs:
   regression:
