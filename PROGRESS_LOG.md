@@ -23,6 +23,9 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - **2026-08-29:** Added `backend/src/seller/payout-earnings-settlement.js` defining the payout-paid invariant: an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`; partial allocations remain available.
 - **2026-08-29:** Wired `settlePaidPayoutEarnings()` into the Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
 - **2026-08-29:** Expanded `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to verify payout allocation provenance, partial paid payout leaves the earning `available`, cancelled payout does not consume withdrawable balance, and a later full payout changes the earning to `paid` only after total paid allocations reach `net_amount`.
+- **2026-08-29:** Fresh Backend Regression run `33258384757` executed against commit `cff6f454ee04d16424bf0af33968e38312ba6d51`. All prior steps through payment/refund acceptance and the 187 unit tests passed. The seller earnings/payout E2E failed at payout creation because PostgreSQL rejects `FOR UPDATE OF e` on the grouped aggregate query (`SQLSTATE 0A000`).
+- **2026-08-29:** Root cause identified in `backend/src/seller/payout-routes.js`: allocation query used `GROUP BY ... FOR UPDATE OF e`. Fixed in commit `36ad9257a3400566f655dcfe13d270fa885a7d36` by aggregating first and then explicitly locking each selected `seller_earnings` row with `SELECT id ... FOR UPDATE` before inserting its allocation.
+- **2026-08-29:** Updated `PROJECT_STATE.md` and this log with the exact failing CI run, root cause, fix commit, and next verification task.
 
 ### Important financial design decision
 - `seller_earnings.platform_fee` currently receives explicit `0`; no configurable commercial fee policy is wired yet.
@@ -31,10 +34,11 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - Payout allocations are the provenance layer; do not mark an earning paid merely because a payout exists. It must be fully covered by paid allocations.
 
 ### Verification status
-- **Acceptance coverage for full/partial payout settlement and cancelled payout balance release is now on `main` (commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef`).** Fresh migration/regression CI evidence is still required.
-- Previous corrected seller-earnings CI evidence exists for run `33245987373`.
-- Refund correction and dedicated refund assertions post-date that run and still require a fresh runtime CI run.
-- Payout concurrency and minimum-payout acceptance require empirical CI evidence containing the corrected tests.
+- Fresh migration/regression infrastructure passed through migrations, backup/restore, 187 unit tests, auth, payment webhook, payment failure, payment refund, buyer purchase, seller application, and seller product-media acceptance in run `33258384757`.
+- **Run `33258384757` failed only when `http-seller-profile-earnings-payout-e2e` reached payout allocation.** PostgreSQL returned `FOR UPDATE is not allowed with GROUP BY clause` from `backend/src/seller/payout-routes.js:85`.
+- The SQL locking bug is fixed in `36ad9257a3400566f655dcfe13d270fa885a7d36`; fresh CI evidence for this fix is now the immediate next task.
+- Refund acceptance passed in the same regression run, but dedicated refund-to-earnings runtime status remains separately tracked.
+- Payout concurrency/minimum-payout and full/partial/cancelled settlement require a fresh green runtime run after the SQL fix.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
 - Stripe webhook provider consistency remains to be verified end-to-end.
 - Real PayPal, Adyen, Paddle and PayPay adapters remain outstanding.
@@ -48,16 +52,17 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - Do not claim browser E2E or production release readiness is complete.
 
 ### Exact checkpoint
-Latest functional change: `94924e02e331cd89991ea4678cc62a6c22e0c4ef` expands the existing seller earnings/payout HTTP acceptance flow with full/partial/cancelled payout settlement assertions and allocation provenance checks. The checkpoint documentation was updated afterward in commit `f345aa89610ff36c6b1b5d198beff8800993d4c3`.
+Latest functional fix: `36ad9257a3400566f655dcfe13d270fa885a7d36` fixes the PostgreSQL-invalid `FOR UPDATE` on the grouped payout allocation query by moving row locking to explicit simple `seller_earnings` row selects. Checkpoint docs were updated in commit `2f60a0bfa6ceb6e1189ed6398a6242966203453f`.
 
 ### Next exact task
-1. Run fresh migration/regression CI against `94924e02e331cd89991ea4678cc62a6c22e0c4ef` (or an equivalent current-main workflow) and record exact evidence.
-2. If CI fails, fix the exact acceptance/runtime failure before proceeding.
-3. If CI passes, mark full/partial/cancelled payout settlement runtime-verified.
-4. Verify payout eligibility after refund including a real payout creation attempt.
-5. Decide/implement accounting treatment for refunds after an earning has already been paid out.
-6. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough and trace Stripe provider identity through webhook/event ledger and `completePayment`.
-7. Continue real non-Stripe adapter work and browser E2E.
+1. Run/inspect fresh migration/regression CI against `36ad9257a3400566f655dcfe13d270fa885a7d36`.
+2. Confirm `http-seller-profile-earnings-payout-e2e` passes allocation provenance, partial payout, cancelled payout release, and full payout settlement assertions.
+3. If CI fails, fix the exact runtime failure before proceeding.
+4. If CI passes, mark full/partial/cancelled payout settlement runtime-verified.
+5. Verify payout eligibility after refund including a real payout creation attempt.
+6. Decide/implement accounting treatment for refunds after an earning has already been paid out.
+7. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough and trace Stripe provider identity through webhook/event ledger and `completePayment`.
+8. Continue real non-Stripe adapter work and browser E2E.
 
 ### Continuation rule
 On restart, read this file and `PROJECT_STATE.md` first, inspect the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
