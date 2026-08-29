@@ -19,64 +19,47 @@
 
 ## 完了済み: Seller Application API acceptance
 - buyerからsellerへの権限昇格をユーザー自身に許可せず、Admin承認を必須とする方針で実装。
-- `backend/migrations/011_seller_applications.sql` を追加。
-- `backend/src/seller/application-routes.js` を追加。
-- `backend/src/admin/seller-application-routes.js` を追加。
-- `backend/src/app.js` にSeller application / Admin review routesを登録。
-- Seller application acceptanceを追加し、正常申請、入力検証、重複申請拒否、buyerのSeller API保護、Admin一覧、review遷移、approve、role変更、seller profile作成、audit、reject note必須、reject後のrole維持、非Admin拒否を検証。
-- `.github/workflows/postgres-migration-acceptance.yml` にAcceptanceを組み込み。
-- 修正後のPostgres AcceptanceでSeller Application stepを含む全Acceptance stepsがSUCCESS。
-- Backend Regression / Clean Install / Media Upload Validationも修正系列でSUCCESS。
+- `backend/migrations/011_seller_applications.sql`、Seller/Admin application routesを追加・登録。
+- 正常申請、入力検証、重複申請拒否、buyerのSeller API保護、Admin一覧、review遷移、approve、role変更、seller profile作成、audit、reject note必須、reject後のrole維持、非Admin拒否を検証。
+- Postgres Acceptance / Backend Regression / Clean Install / Media Upload Validationが修正系列でSUCCESS。
 
 ## 完了済み: Seller Application Browser UI
-- `app/seller/seller-application-view.js` を追加。
-- buyerが `/seller/register` から申請できる画面を追加。
-- 未ログイン時はloginへ誘導し、ログイン後に申請状態を表示。
-- pending / under_reviewではwithdrawを可能にし、approved / rejected / withdrawnの状態を表示。
-- `app/admin/seller-applications.js` を追加。
-- Adminが `/admin/seller-applications` から申請を確認し、review / approve / rejectを実行できるUIを追加。
-- `app/admin/admin-navigation.js` と `app/admin/admin-dashboard.js` にSeller applicationsを追加。
-- Creator discovery route `/creators` とCreator一覧UIを追加。
-- UI変更を含む主要CIは `b29b423...` でAdmin Static / Media Upload Validation / Backend / Postgres Acceptance / Clean InstallすべてSUCCESS確認済み。
+- Buyer `/seller/register`、Admin `/admin/seller-applications`、Creator discovery `/creators` を追加。
+- Buyerの申請状態表示、withdraw、Admin review/approve/reject UIを追加。
+- 主要CIでUI変更を検証済み。
 
 ## 完了済み: Browser Acceptance foundation
-- `feat/browser-acceptance` を `feat/seller-application` の `b29b423...` から作成。
-- Playwrightによる公開画面Smoke test、Seller Application browser test、module load smokeを追加。
-- Browser Smoke初回失敗の原因は `app/main.js` がimportする `app/seller/seller-upload.js` 欠落だったことを確認。
-- `app/seller/seller-upload.js` を追加してmodule graphを修復。
-- その後のBrowser Smoke CI（commit `54444ff...`）はSUCCESS。
-- Browser Smoke run 24 と Clean Install run 143 がSUCCESS確認済み。
-- PR #3「Add browser smoke acceptance foundation」は2026-08-29に `feat/seller-application` へMerge済み。Merge commitは `3e56605521c6ee7c731c303551028c968a07a1fb`。
+- Playwrightによる公開画面Smoke、Seller Application browser test、module load smokeを追加。
+- 欠落していた `app/seller/seller-upload.js` を追加してmodule graphを修復。
+- Browser Smoke run 24、Clean Install run 143がSUCCESS。
+- PR #3「Add browser smoke acceptance foundation」は `feat/seller-application` へMerge済み。Merge commitは `3e56605521c6ee7c731c303551028c968a07a1fb`。
 
-## 今回: Seller Application Browser Acceptance強化
-- `tests/browser-seller-application.spec.js` のmock APIベースBrowser Acceptanceを強化。
-- 未認証時 `/seller/register` → Login required → login導線を検証。
-- Buyerの申請POST payloadを検証し、pending表示を確認。
-- Buyerのpending application withdraw POSTとwithdrawn表示、withdraw button消失を検証。
-- Admin approveのPOST actionを検証。
-- Admin rejectでreview note必須のUI検証を維持。
-- 変更コミット: `4028efc8003889234a5def897ae94f0aa10550f8`。
-- まだ実backend接続E2Eではないため、Browser Acceptance全体は未完了扱い。
+## 完了済み: Seller Application Browser Acceptance mock coverage
+- 未認証 `/seller/register` → Login required → login導線を検証。
+- Buyer申請POST payload、pending表示、pending withdraw、withdrawn表示を検証。
+- Admin approve POST action、reject時review note必須を検証。
+- Loginリンクのstrict selector問題を修正。
+- 最新修正コミット `69dfb364...` のBrowser Smoke run 27がSUCCESS。旧コミットの7/8失敗は最新修正では解消済み。
 
 ## 現在の状態
 - Seller Application DB/API: 実装済み、Acceptance PASS
 - Buyer Seller Application UI: 実装済み、主要CI PASS
 - Admin Seller Application UI: 実装済み、主要CI PASS
 - Creator discovery UI/route: 実装済み、主要CI PASS
-- Browser Smoke: 実装済み、Chromium CI PASS
-- Seller Application Browser Acceptance: mock API coverage強化済み、CI結果未確認
+- Browser Smoke: 最新修正でChromium CI PASS
+- Seller Application Browser Acceptance: mock API coverage済み、Browser Smoke PASS
 - 実backend接続の認証済みBuyer/Admin Browser E2E: 未完了
 - PR #2: `feat/seller-application`、Open、未Merge
-- `feat/seller-application` HEAD: `4028efc8003889234a5def897ae94f0aa10550f8`
+- 最新確認済みBrowser Smoke HEAD: `69dfb36491962da6c4701cda7a7bb0f2b6e2c44e16`
 - mainへの本番反映: PR #2が未Mergeのため未完了
 
 ## 次の1手
-- 新しいBrowser AcceptanceテストのCI結果を確認する。
-- FAILならログから原因を特定して最小修正する。
-- PASSなら、実API/backendを同時起動できる環境で認証済みBuyer/AdminのBrowser Acceptanceを追加する。
+- 実API/backendを同時起動できるCI環境の構成を確認する。
+- 既存のPostgres Acceptance / backend workflowの起動手順・テスト用認証方式を確認する。
+- その方式をPlaywright Browser Acceptanceから再利用し、認証済みBuyer/Adminの実backend E2Eを追加する。
 - Buyer `/seller/register` → login → application submit → pending表示を実backend接続で検証する。
 - Admin `/admin/seller-applications` → review → approve/rejectを実backend接続で検証する。
-- 既存のSeller dashboard/products/product-editor、Buyer購入→checkout→Library→watch/download、権限境界、Admin UI acceptanceへ順次進む。
+- その後、Seller dashboard/products/product-editor、Buyer購入→checkout→Library→watch/download、権限境界、Admin UI acceptanceへ順次進む。
 - 各区切りでCI結果とPROGRESSを更新し、最後にPR #2の最終レビューとMerge判断を行う。
 
 ## 作業中断からの再開手順
