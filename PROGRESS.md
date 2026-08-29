@@ -41,88 +41,104 @@ PR #1は Backup / Restore のハードニングとAcceptance CIを完成させ�
 ### CI
 - Backend Regression workflow接続: 完了
 - Postgres migration / acceptance workflow接続: 完了
-- Clean Install: PASS確認済み
+- Clean Install: PASS確認済み（修正前CI）
 - Media Upload Validation: PASS確認済み
-- Backend Regression: PASS確認済み
+- Backend Regression: PASS確認済み（修正前CI）
 - Backend Regression内のRound-trip: PASS確認済み
 - 通常テスト: 184 tests / 184 pass / 0 fail を確認済み
 
-### PR構成
-- `main` と `hardening/backup-restore` の比較で、PR側は17コミット先行、behind 0を確認済み
-- PR #1の変更対象はBackup/Restore関連の9ファイルとして確認済み
-- PR #1はOpen、mergeable=trueを確認済み
+### Seller payout E2E原因調査・修正
+- audit API実装元を特定: 完了
+- `audit_events.resource_id` がDBに存在することを確認: 完了
+- audit APIのSELECTで `a.resource_id` が欠落していたことを確定: 完了
+- API側へ `a.resource_id` を追加: 完了
+- 修正コミット: `0dbe08499f1971e03aff0096ec941041e8a08740`
+- 修正後のCIで、resource_id欠落によるassertionではなく**イベント順序assertionが次の失敗点になったことを確認**: 完了
+- APIが `ORDER BY a.created_at DESC` で返すことを確認: 完了
+- E2E期待順を `['paid', 'processing', 'approved', 'reviewing']` に合わせる修正: 完了
+- 最新テスト修正コミット: `fd958636cd3188be1c1caae2eef86b33a11328b9`
+
+## 4. PR #1の現在状態
+
+- PR #1: Open
+- merged: false
+- mergeable: true
+- base: `main`
+- 現在head: `fd958636cd3188be1c1caae2eef86b33a11328b9`
+- PRの最新情報でコミット数: 26
+- PRの最新情報でchanged files: 12
 - まだMergeしていない
 
-## 4. PR #1に含まれることを確認したファイル
+## 5. PR #1の変更対象について
 
-- `.github/workflows/backend-regression.yml`
-- `.github/workflows/postgres-migration-acceptance.yml`
-- `BACKUP.md`
-- `backend/package.json`
-- `backend/scripts/backup-db.js`
-- `backend/scripts/backup-media-local.js`
-- `backend/scripts/backup-restore-acceptance.js`
-- `backend/scripts/restore-db.js`
-- `backend/scripts/restore-media-local.js`
+初期確認時点ではBackup/Restore関連9ファイルだったが、その後のSeller payout E2E修正とaudit API修正を含むため、現在のPRメタデータでは12 changed filesとなっている。
 
-## 5. 現在残っている問題
+Seller/Admin payoutの機能実装そのものを新規にPRへ追加する方針ではない。今回のE2E修正は、既存Acceptance CIをGreenにするための関連テスト/API修正として扱っている。
+
+## 6. 現在残っている問題
 
 ### Postgres Acceptance / Seller payout E2E
 
-CIではSeller payoutの4段階の状態遷移と4件のaudit event生成・取得までは確認できているが、E2E側のassertionが `event.resource_id === payoutId` で4件を抽出しようとして0件になり失敗している。
+修正前はaudit APIレスポンスに `resource_id` がなく、E2Eのfilter結果が0件だった。
 
-**2026-08-29 再開後の原因特定:**
-- `/api/admin/payouts/:id/audit` の実装元を特定した
-- `backend/src/admin/payout-routes.js` が監査イベントをDBから取得している
-- SQLのSELECTに `a.id` はあるが **`a.resource_id` が含まれていない**ことを確認した
-- WHERE句では `a.resource_id = $1` を使っているため、DB上では正しくpayoutに紐付いたイベントを検索できる
-- しかしJSONレスポンスへ `resource_id` をSELECTしていないため、E2E側の `event.resource_id === payoutId` が成立しない
-- これはE2Eの期待値を変更する問題ではなく、**監査APIレスポンスの欠落フィールドを修正するアプリ側の問題**と確定
+その問題をAPI側で修正した後、最新のPostgres Acceptance #192では次の失敗が確認された:
 
-**2026-08-29 修正:**
-- `backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加した
-- 修正コミット: `0dbe08499f1971e03aff0096ec941041e8a08740`
-- まだ修正後CIのPASSは確認していない
+- audit eventsは取得できている
+- `resource_id` filterは通過している
+- 4件が抽出されている
+- しかしAPIは `ORDER BY a.created_at DESC` のため、新しいイベントから `paid → processing → approved → reviewing` の順で返す
+- E2Eは古い順 `reviewing → approved → processing → paid` を期待していた
+- そのためorder assertionで失敗した
 
-## 6. Seller/Admin機能について
+このorder assertionは最新コミット `fd958636...` でAPIの実際の返却順に合わせて修正済み。
 
-Seller payout / Seller profile / Seller verification / Admin payout / Admin verification等のコミットはリポジトリ上に存在するが、PR #1の変更対象ではないことを確認済み。
+**修正後CIのPASSはまだ未確認。**
 
-これらをBackup/Restore PRへ無関係に混ぜない。
+## 7. 直近のCI状態
 
-## 7. 直前に確認した重要CI状態
-
-修正前のコミット `327a1b2d51e6b316375d803d202a297558969b7b` に対して、以下を確認済み:
+修正前コミット `327a1b2d51e6b316375d803d202a297558969b7b`:
 - Backend Regression #495: SUCCESS
 - Clean Install #85: SUCCESS
 - Media Upload Validation #18: SUCCESS
 - postgres-migration-acceptance #186: FAILURE
 
-Backend Regression #495では `backup/restore round-trip acceptance: PASS` を確認済み。
+API側resource_id修正を含むマージコミット `7ca42c5295815ed5873d84644c6a31846531c9dd` のPostgres Acceptance #192:
+- migration/preflight/plan: PASS
+- commerce DB: PASS
+- moderation DB/HTTP: PASS
+- migration concurrency: PASS
+- legacy purchase migration: PASS
+- payment webhook/refund/failed: PASS
+- auth: PASS
+- buyer purchase/media/order report: PASS
+- seller product/media: PASS
+- **seller profile/earnings/payout E2E: FAILURE（order assertion）**
+- admin payout concurrency: SKIPPED due to failure
+- backup/restore round-trip: SKIPPED due to failure
 
 ## 8. 次にやる作業（順番固定）
 
-1. ~~audit APIの実装元を正確に特定する~~ → **完了**
-2. ~~audit event生成処理・DB保存処理・API serializer/SELECTを確認する~~ → **完了**
-3. ~~`resource_id` がどこで欠落しているかを確定する~~ → **完了**
-4. ~~`backend/src/admin/payout-routes.js` の監査SELECTへ `a.resource_id` を追加する~~ → **完了**
-5. ~~変更後の最新SHAを記録する~~ → **完了: `0dbe08499f1971e03aff0096ec941041e8a08740`**
-6. Seller payout E2Eを再実行する
-7. Postgres Acceptance全体を再実行する
-8. Admin payoutを含む後続AcceptanceがPASSすることを確認する
-9. Round-tripが再度PASSすることを確認する
-10. 全CI Greenを確認する
-11. PR #1本文の古いレビュー指摘・進捗記述を実装済み状態へ更新する
-12. 最終レビューを実施する
-13. CI/レビューがすべて問題ない場合のみMergeする
-14. Merge後、main上で最終CIを確認する
+1. 最新head `fd958636cd3188be1c1caae2eef86b33a11328b9` のCIが発生しているか確認
+2. Postgres Acceptanceの最新実行結果を確認
+3. Seller payout E2EがPASSしたか確認
+4. PASSしなければ、その失敗ログから次の原因を特定し、最小修正
+5. Seller payout E2E PASS後、同じPostgres Acceptanceで後続のAdmin payout concurrencyを確認
+6. 同じPostgres AcceptanceでBackup/Restore round-tripが再実行されPASSすることを確認
+7. Postgres Acceptance全体PASSを確認
+8. Backend Regression / Clean Install / Media Upload Validationも最新headでPASS確認
+9. 全CI Greenを確認
+10. PR #1本文の古いレビュー指摘・進捗記述を実装済み状態へ更新
+11. 最終レビューを実施
+12. CI/レビューがすべて問題ない場合のみMerge
+13. Merge後、main上で最終CIを確認
 
 ## 9. 作業上の禁止事項・注意
 
 - CIがGreenになる前にMergeしない
 - Seller/Admin payoutの問題を理由にBackup/Restoreコードを不用意に変更しない
-- API仕様を推測して `resource_id` assertionを雑に変更しない
-- テスト期待値を4→0などにして失敗を隠さない
+- API仕様を推測してassertionを雑に変更しない
+- テスト期待値を緩めて失敗を隠さない
+- APIの返却順など、実装とテストの契約を確認してから修正する
 - GitHub更新時は必ず最新SHAを取得してから更新する
 - SHA不一致や409が出た場合は古い内容で上書きしない
 - 「実装済み」と「実CIでPASS」を区別して記録する
@@ -138,7 +154,7 @@ Backend Regression #495では `backup/restore round-trip acceptance: PASS` を�
 - PR #1の現在HEAD / 状態
 - 最新CI実行結果
 - Postgres Acceptanceの最新失敗ログ
-- audit API実装元
+- audit API実装とE2Eの現在内容
 
 確認後、このメモの「8. 次にやる作業」の未完了項目から再開する。
 
@@ -156,11 +172,13 @@ Backend Regression #495では `backup/restore round-trip acceptance: PASS` を�
 
 ## 12. 今回の再開セッションのチェックポイント
 
-- 再開時に `PROGRESS.md` を読み直した: 完了
-- Seller payout E2E失敗原因をコードで確定した: 完了
-- アプリ側の欠落フィールドを最小修正した: 完了
+- `PROGRESS.md` を読み直した: 完了
+- API側resource_id欠落原因を再確認: 完了
+- API側修正後のCI失敗原因（返却順）を確認: 完了
+- E2E order assertionをAPIのDESC順へ修正: 完了
+- 最新head: `fd958636cd3188be1c1caae2eef86b33a11328b9`
 - 修正後CI: **未確認**
-- 次の区切り: **修正後のSeller payout E2E PASS確認**
+- 次の区切り: **Seller payout E2E PASS確認**
 
 ## 13. 完成判定
 
