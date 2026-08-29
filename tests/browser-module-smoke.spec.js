@@ -22,11 +22,13 @@ const modules = [
 ];
 
 test('all application modules load in Chromium', async ({ page }) => {
+  await page.goto('/');
   const result = await page.evaluate(async (urls) => {
     const failures = [];
+    const base = new URL('./', document.baseURI).href;
     for (const url of urls) {
       try {
-        await import(url);
+        await import(new URL(url, base).href);
       } catch (error) {
         failures.push({ url, message: String(error?.stack || error) });
       }
