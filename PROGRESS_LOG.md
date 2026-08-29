@@ -22,6 +22,7 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - **2026-08-29:** Seller payout creation now allocates the requested amount across available earnings inside the same transaction, preserving seller/currency serialization and failing atomically if the allocation invariant cannot be met.
 - **2026-08-29:** Added `backend/src/seller/payout-earnings-settlement.js` defining the payout-paid invariant: an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`; partial allocations remain available.
 - **2026-08-29:** Wired `settlePaidPayoutEarnings()` into the Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
+- **2026-08-29:** Expanded `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to verify payout allocation provenance, partial paid payout leaves the earning `available`, cancelled payout does not consume withdrawable balance, and a later full payout changes the earning to `paid` only after total paid allocations reach `net_amount`.
 
 ### Important financial design decision
 - `seller_earnings.platform_fee` currently receives explicit `0`; no configurable commercial fee policy is wired yet.
@@ -30,7 +31,7 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - Payout allocations are the provenance layer; do not mark an earning paid merely because a payout exists. It must be fully covered by paid allocations.
 
 ### Verification status
-- Milestone 465 migration, payout allocation, and Admin paid-settlement wiring are on `main` but require fresh migration/regression CI evidence.
+- **Acceptance coverage for full/partial payout settlement and cancelled payout balance release is now on `main` (commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef`).** Fresh migration/regression CI evidence is still required.
 - Previous corrected seller-earnings CI evidence exists for run `33245987373`.
 - Refund correction and dedicated refund assertions post-date that run and still require a fresh runtime CI run.
 - Payout concurrency and minimum-payout acceptance require empirical CI evidence containing the corrected tests.
@@ -47,17 +48,16 @@ Payout-to-earnings allocation, payout-paid settlement, refund/payout accounting 
 - Do not claim browser E2E or production release readiness is complete.
 
 ### Exact checkpoint
-Latest functional changes now include migration `012_payout_earnings_allocations.sql`, `payout-earnings-settlement.js`, and Admin payout paid-transition wiring. The checkpoint files themselves were updated afterward, so the latest main commit is the checkpoint commit following those functional changes.
+Latest functional change: `94924e02e331cd89991ea4678cc62a6c22e0c4ef` expands the existing seller earnings/payout HTTP acceptance flow with full/partial/cancelled payout settlement assertions and allocation provenance checks. The checkpoint documentation was updated afterward in commit `f345aa89610ff36c6b1b5d198beff8800993d4c3`.
 
 ### Next exact task
-1. Add database acceptance coverage for full payout allocation -> all covered earnings become `paid`.
-2. Add coverage for partial payout -> only fully covered earnings become `paid` and the remainder stays `available`.
-3. Add coverage proving failed/cancelled payout allocations do not consume available balance.
-4. Run fresh migration/regression CI and record exact conclusion/failed step.
-5. Verify payout eligibility after refund including a real payout creation attempt.
-6. Decide/implement accounting treatment for refunds after an earning has already been paid out.
-7. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough and trace Stripe provider identity through webhook/event ledger and `completePayment`.
-8. Continue real non-Stripe adapter work and browser E2E.
+1. Run fresh migration/regression CI against `94924e02e331cd89991ea4678cc62a6c22e0c4ef` (or an equivalent current-main workflow) and record exact evidence.
+2. If CI fails, fix the exact acceptance/runtime failure before proceeding.
+3. If CI passes, mark full/partial/cancelled payout settlement runtime-verified.
+4. Verify payout eligibility after refund including a real payout creation attempt.
+5. Decide/implement accounting treatment for refunds after an earning has already been paid out.
+6. Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough and trace Stripe provider identity through webhook/event ledger and `completePayment`.
+7. Continue real non-Stripe adapter work and browser E2E.
 
 ### Continuation rule
 On restart, read this file and `PROJECT_STATE.md` first, inspect the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
