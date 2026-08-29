@@ -5,12 +5,14 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `b307ab9eb21a512b22594748ba1f381d3fa55958`
-- ベースmain: `72eb8749cc2ceaed7a95c9c120f75afec213aeb9`
+- 最新作業コミット: `8eaaf0ea4b6528d5987cbc5e4debf927e59855a1`
+- Browser Acceptance failed run: `33239035283`
+- Browser failure原因: `/seller/register` が既存 `app/main.js` でSeller Dashboardへ落ち、Seller Application画面が存在しなかった。
+- 修正: `app/main.js` にSeller Application UI/API送信ルートを直接接続。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Seller Applicationの実backend Browser Acceptanceを統合ブランチへ追加済み。CI実行結果待ち。
+- 現在: Browser Acceptanceの失敗原因を修正済み。修正版CI結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -23,6 +25,7 @@
 - CI frontend proxy (`scripts/ci-frontend-proxy.mjs`)
 - Playwright real-backend Seller Application browser acceptance (`tests/browser-backend-seller-application.spec.js`)
 - Backend Browser Acceptance workflow (`.github/workflows/backend-browser-acceptance.yml`)
+- `app/main.js` の `/seller/register` Seller Application画面接続
 
 ## Seller Applicationの検証対象
 - buyerだけ申請可能
@@ -45,7 +48,20 @@
 - Payment / Purchase / Seller Earnings / Payout / Media系PASS
 
 ## Browser Acceptance
-実backend + PostgreSQL + Playwright + frontend proxyの構成を統合ブランチへ追加済み。実CIで以下を確認する。
+初回Run `33239035283` はFAIL。
+
+失敗原因を確認した結果、Playwrightの `#/seller/register` がSeller Application viewへ接続されておらず、既存Seller Dashboardへ流れていた。
+
+修正コミット:
+`8eaaf0ea4b6528d5987cbc5e4debf927e59855a1`
+
+修正内容:
+- `/seller/register` を専用Seller Application UIへ接続
+- Display name / Legal name / Country code / Messageフォーム追加
+- `/api/seller/application` POST接続
+- Submit後にSeller Application状態を再表示
+
+修正版で実CIを再実行し、以下を確認する。
 1. PostgreSQL起動
 2. npm install
 3. Playwright/Chromium install
@@ -59,7 +75,7 @@
 `feat/seller-application` はmainより62コミット先行・12コミット遅れで分岐しているため、丸ごとmergeしない。必要機能をmainへ機能単位で移植している。
 
 ## 残作業（優先順）
-1. Backend Browser Acceptance CIの実Run発生・PASS確認。
+1. 修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
 2. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
 3. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
 4. Security Regressionを最新統合状態で確認。
@@ -71,7 +87,7 @@
 ## 再開手順
 1. このファイルを最初に読む。
 2. `feat/seller-application-main-integration` のHEADを確認。
-3. Backend Browser Acceptanceの最新runを確認。
+3. 修正版Backend Browser Acceptanceの最新runを確認。
 4. FAILならログから原因を特定し修正→再CI。
 5. PASSならBrowser/Postgres/Securityの次工程へ進む。
 6. 作業が進むたびこのファイルを更新する。
