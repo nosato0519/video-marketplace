@@ -23,7 +23,38 @@ router.get('/payouts', async (req, res, next) => {
         LIMIT 100`,
       [req.user.id]
     );
-    return res.json({ payouts: result.rows });
+    const summaryResult = await query(
+      `WITH available_earnings AS (
+         SELECT e.id,
+                e.net_amount,
+                e.currency,
+                COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) AS allocated_amount
+           FROM seller_earnings e
+           LEFT JOIN payout_earnings_allocations a ON a.seller_earning_id = e.id
+           LEFT JOIN payouts p ON p.id = a.payout_id
+          WHERE e.seller_id = $1
+            AND e.currency = 'JPY'
+            AND e.status = 'available'
+          GROUP BY e.id, e.net_amount, e.currency
+       ),
+       balances AS (
+         SELECT COALESCE(SUM(GREATEST(0, net_amount - allocated_amount)), 0) AS available
+           FROM available_earnings
+       ),
+       pending AS (
+         SELECT COALESCE(SUM(amount), 0) AS pending
+           FROM payouts
+          WHERE seller_id = $1
+            AND currency = 'JPY'
+            AND status IN ('requested','reviewing','approved','processing')
+       )
+       SELECT balances.available,
+              pending.pending,
+              GREATEST(0, balances.available - pending.pending) AS withdrawable
+         FROM balances CROSS JOIN pending`,
+      [req.user.id]
+    );
+    return res.json({ payouts: result.rows, summary: summaryResult.rows[0] });
   } catch (error) { return next(error); }
 });
 
@@ -75,10 +106,6 @@ router.post('/payouts', async (req, res, next) => {
     const payoutId = result.rows[0].id;
 
     let remaining = amount;
-    // PostgreSQL does not permit FOR UPDATE on a grouped SELECT. Aggregate the
-    // allocation data first, then lock the underlying earning rows in a separate
-    // simple SELECT so the seller/currency advisory lock plus row locks still
-    // provide the intended concurrency protection.
     const earnings = await client.query(
       `SELECT e.id,
               e.net_amount,
@@ -97,10 +124,7 @@ router.post('/payouts', async (req, res, next) => {
 
     for (const earning of earnings.rows) {
       if (remaining <= 0) break;
-      await client.query(
-        `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`,
-        [earning.id]
-      );
+      await client.query(`SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`, [earning.id]);
       const netAmount = Number(earning.net_amount);
       const allocated = Number(earning.allocated_amount || 0);
       const remainingEarning = Math.max(0, netAmount - allocated);
@@ -114,9 +138,7 @@ router.post('/payouts', async (req, res, next) => {
       remaining -= allocation;
     }
 
-    if (remaining > 0.000001) {
-      throw new Error('payout_allocation_invariant_failed');
-    }
+    if (remaining > 0.000001) throw new Error('payout_allocation_invariant_failed');
 
     await client.query('COMMIT');
     return res.status(201).json({ payout: result.rows[0] });
