@@ -46,24 +46,24 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 10. 現行seller earnings routerを確認し、`earnings`は配列であり、payoutを作るには`available`な`seller_earnings`残高が必要なことを確認。
 11. 現行seller payout routerを確認し、withdrawable balanceはavailable earningsから未失敗/未cancelled payout予約額を差し引いて計算されることを確認。
 12. Seller payout E2Eを現行API契約に合わせて修正。sellerユーザーをDBで`seller`へ変更して再ログイン、profileをPATCH、buyer/product/order/seller_earningsのテストfixtureをDBに作成して5000 JPYのavailable残高を用意、earnings/payout/admin payout/status/audit/最終seller payoutを現行レスポンス仕様に合わせて検証するよう変更。
-13. 最新修正コミット `72013080e9fabcc79495dcc9a723df6656c3896d`
-14. 最新Acceptance run `33225584659` のSeller payout E2Eログを確認。`earnings.body.earnings` の各要素に`seller_id`は含まれない現行API仕様なのに、E2Eが`seller_id === sellerId`をassertして `false !== true` で停止していたことを確認。
-15. E2Eのassertionを現行APIレスポンスに合わせ、`seller_id`条件を削除し、`net_amount`をNumber化して`5000`、`status='available'`を確認する最小修正を実施。コミット `6813eb89e47ea330ce8680b3bb36954ef41f5cdc`
+13. 修正コミット `72013080e9fabcc79495dcc9a723df6656c3896d`
+14. Acceptance run `33225584659` のSeller payout E2Eログを確認。`earnings.body.earnings` の各要素に`seller_id`は含まれない現行API仕様なのに、E2Eが`seller_id === sellerId`をassertして `false !== true` で停止していたことを確認。
+15. E2Eのassertionを現行APIレスポンスに合わせ、`seller_id`条件を削除し、`net_amount`をNumber化して`5000`、`status='available'`を確認する最小修正を実施。修正コミット `6813eb89e47ea330ce8680b3bb36954ef41f5cdc`。
+16. `6813eb...` の後、進捗メモを更新し、現在のブランチ先端をメモ上でも追跡可能にした。
 
 ## 現在のHEAD
-`6813eb89e47ea330ce8680b3bb36954ef41f5cdc`
+`fb9db853a82b50d2817d8ec2824226532fc6124b`
 
 ## 現在の問題 / CI
-`6813eb...` はSeller earnings assertion修正直後。修正後のPostgres Acceptance実CI PASSはまだ未確認。
+`fb9db...` はSeller earnings assertion修正と進捗メモ更新を含む現在のブランチHEAD。修正後のPostgres Acceptance実CI PASSはまだ未確認。
 
 直前のAcceptance run `33225584659`:
-- migration: PASS
 - seller profile/earnings/payout E2E: FAIL
 - 失敗原因: `earnings` APIレスポンスにない`seller_id`をE2Eが要求していたため `false !== true`
-- その他のジョブ結果はこの記録だけでは再断定しない
+- 今回そのassertionを修正済み
 
 ## 次にやる作業（順番固定）
-1. `6813eb...` のPostgres Acceptance run発生・結果を確認
+1. `fb9db...` のPostgres Acceptance run発生・結果を確認
 2. Seller payout E2EがPASSしたか確認
 3. FAILなら最新ログから原因を確定し、推測せず最小修正
 4. 修正するたびにこのPROGRESS.mdを更新して保存
@@ -80,7 +80,7 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 ## 作業上の注意
 - CI Green前にMergeしない。
 - Backup/RestoreをSeller payout問題のために不用意に変更しない。
-- assertionを緩めて失敗を隠さない。今回の修正は現行APIが実際に返していない` seller_id`を要求していた誤assertionを除去したもの。
+- assertionを緩めて失敗を隠さない。今回の修正は現行APIが実際に返していない`seller_id`を要求していた誤assertionを除去したもの。
 - 本番APIの自己Admin化を許可しない。
 - テストfixtureと本番権限モデルを分離する。
 - 現行APIの実装とE2Eの契約を直接照合してから修正する。
@@ -88,7 +88,7 @@ Backup / RestoreのハードニングとAcceptance CIを完成させる。CIをG
 - 中断時には必ず現在のHEAD、CI状態、問題、次の1手、次の区切りを記録する。
 
 ## 次の区切り
-**`6813eb...` に対するSeller payout E2Eの実CI PASS確認。**
+**`fb9db...` に対するSeller payout E2Eの実CI PASS確認。**
 
 ## 完成条件
 Backup/Restore、Media、Round-trip、Backend Regression、Postgres Acceptance、Clean Install、Media Upload Validationが全て最新HEADでPASSし、最終レビュー完了、Merge後main再検証完了まで完成扱いにしない。
