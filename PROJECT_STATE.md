@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 459 — Truthful concurrent payout acceptance coverage is now implemented; runtime/CI verification remains.**
+**Milestone 460 — Payout API policy hardening complete; runtime/CI verification remains.**
 
 ## Latest checkpoint — 2026-08-29
 ### Completed
@@ -13,43 +13,40 @@
 - Deterministic PostgreSQL migration preflight/execution and legacy BIGINT purchase migration block.
 - Admin/Seller/Buyer static contract regressions and confirmed Seller Product Flow + Buyer purchase-flow runs.
 - Production configuration, backup/recovery and commercial package documentation.
-- Media upload hardening workflow with route-level tests; observed green.
-- Confirmed actual migration set: `010_seller_profile.sql` defines `seller_profiles.user_id` as the primary key; `011_seller_earnings.sql` defines `seller_earnings.seller_id -> users.id`; `004_payouts_audit.sql` defines canonical `payouts.seller_id -> users.id` and the payout lifecycle.
-- Corrected Seller payout route to use the migrated `payouts` table and `seller_earnings` available balance.
-- Corrected Admin payout route to use the same canonical `payouts` / `users.id` schema. Admin listing reads `p.amount`/`p.paid_at`, and status transitions update `reviewed_by`/`reviewed_at`/`paid_at` using columns present in the payout migration.
-- Added source-level payout contract regression coverage against the real migrations.
-- Extended `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to cover Admin authentication, Admin payout listing, requested -> reviewing -> approved -> processing -> paid transitions, invalid terminal transition rejection, audit retrieval, and Seller-side persistence of the final paid state.
-- Confirmed `.github/workflows/postgres-migration-acceptance.yml` runs the payout HTTP acceptance script after a fresh PostgreSQL migration and a second idempotent migration pass.
-- Hardened Seller payout creation with an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency, preventing concurrent payout requests from racing through the available-balance check and both being accepted.
-- **2026-08-29:** Audited the payout acceptance test and found its supposed concurrency case was sequential. Corrected it so two 2,500 JPY requests are issued through `Promise.all` against a 3,500 JPY remaining withdrawable balance, asserting exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
-- **2026-08-29:** Added `PROGRESS_LOG.md` as an additional concise continuation checkpoint.
+- Confirmed canonical payout schema: `payouts.seller_id -> users.id`; available balance comes from `seller_earnings` rows with `status = 'available'`.
+- Seller payout creation uses an explicit PostgreSQL transaction and `pg_advisory_xact_lock` keyed by seller/currency.
+- Admin payout lifecycle is transactional with row locking and audit-event insertion.
+- Corrected payout acceptance concurrency coverage to use two simultaneous 2,500 JPY HTTP requests against a 3,500 JPY remaining withdrawable balance, asserting exactly one `201` and one `409 amount_exceeds_withdrawable_balance`.
+- **2026-08-29:** Found and fixed an additional API contract gap: `payout-policy.js` defined a 1,000 JPY minimum payout, but the Seller payout route did not enforce it.
+- **2026-08-29:** Seller payout route now rejects amounts below 1,000 JPY with `400 minimum_payout_not_reached` and reports the minimum.
+- **2026-08-29:** Payout HTTP acceptance now verifies a 999 JPY request is rejected before the normal and concurrency scenarios.
+- `PROGRESS_LOG.md` updated with the exact checkpoint and continuation instructions.
 
 ### Verification status
-- Latest known PostgreSQL acceptance run (#101) is green, but it predates the corrected true-concurrency test.
-- Admin, Buyer and Seller static regressions are green; Seller Product Flow (#3) and Buyer purchase flow (#1) are confirmed green.
-- Media upload hardening workflow was updated to include route-level tests and was observed green.
-- Seller and Admin payout routes match the actual migration schema at source level.
-- The corrected payout HTTP acceptance script is wired into CI, but **the corrected concurrency behavior has not yet been observed in a real CI run**. Do not claim payout runtime acceptance green.
-- Seller, Buyer and Admin browser-level acceptance is NOT complete. Do not claim runtime/browser acceptance green.
+- Latest known PostgreSQL acceptance run (#101) predates the corrected concurrency and minimum-payout acceptance changes.
+- Corrected concurrency test is implemented and wired into CI, but has **not** yet been observed in a real CI run.
+- Minimum payout enforcement is implemented and acceptance-covered in source, but has **not** yet been observed in a real CI run.
+- Seller, Buyer and Admin browser-level acceptance remains incomplete.
+- Do not claim full release readiness yet.
 
 ## Canonical seller/payout model
 - Seller identity remains `users.id` for commerce, earnings and payout records.
-- `seller_profiles.user_id -> users.id` is the seller-specific profile/onboarding relation; `seller_profiles` has no `id` or `status` column in the actual migration.
+- `seller_profiles.user_id -> users.id` is the seller-specific profile/onboarding relation.
 - `seller_earnings.seller_id -> users.id`.
 - `payouts.seller_id -> users.id`.
 - Available balance source: `seller_earnings` rows with `status = 'available'`.
 - Payout lifecycle: requested -> reviewing -> approved -> processing -> paid, with failed/cancelled branches.
 - `audit_events` records payout status transitions.
-- Do not introduce `seller_payout_requests` or `seller_profiles.id` merely to satisfy stale route code; the real migration set is authoritative.
+- Minimum seller payout policy: 1,000 JPY at API level.
 
 ## Release blocker status
-**BLOCKED:** Source-level payout contracts, lifecycle acceptance code, and concurrency protection are implemented. Remaining blocker is empirical verification of the corrected concurrent acceptance, fresh migration installation, existing-install migration expectations, and end-to-end audit behavior.
+**BLOCKED:** Corrected payout concurrency and minimum-payout behavior still require empirical CI/runtime verification. Fresh migration, existing-install migration, audit behavior, and authenticated Seller/Buyer/Admin browser E2E also remain outstanding.
 
 ## Remaining work — priority order
 1. **Payout runtime + clean-install verification — BLOCKER**
-   - Obtain/execute the PostgreSQL acceptance workflow for the latest payout changes.
-   - Verify audit events, available-balance calculations, and true concurrent-request behavior.
-   - Verify fresh migration installation and existing-install migration expectations.
+   - Obtain/execute CI for the latest main descendant containing the corrected payout acceptance.
+   - Verify true concurrent requests, minimum payout rejection, audit events, and available-balance calculations.
+   - Verify fresh PostgreSQL installation and idempotent/existing-install migration behavior.
 2. **Admin integration**
    - Live metrics against verified canonical tables.
    - Admin payout review UI.
@@ -67,9 +64,9 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Get a real CI execution for commit `42ef70604178df4d5c6565a91cd539c03a4b57e2` (or a descendant containing this corrected test). If unavailable through the connected GitHub controls, continue source-level verification only and do not mark Payout Green.**
+**Get a real CI execution for the latest main commit containing both `cbba56541f2e4e8702a55bd267e28b506d449dcf` and `cde683eea2cb2aa32cf64edf9a62dea2bae0df45`. If workflow dispatch is unavailable through connected controls, continue source-level verification only and keep runtime status BLOCKED.**
 
 ## Continuation rule
-At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, latest commits and repository tree, and continue from the latest saved state. After every meaningful milestone, update these files with current milestone/status, completed work, remaining work, important technical decisions and exact next step.
+At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
 **These files and the latest repository state are the authoritative continuation source.**
