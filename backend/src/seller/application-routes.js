@@ -10,8 +10,17 @@ const normalizeText = (value, max) => String(value ?? '').trim().slice(0, max);
 router.get('/application', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT id, status, display_name, legal_name, country_code, message,
-              review_note, submitted_at, reviewed_at, reviewed_by, created_at, updated_at
+      `SELECT id, status,
+              display_name AS "displayName",
+              legal_name AS "legalName",
+              country_code AS "countryCode",
+              message,
+              review_note AS "reviewNote",
+              submitted_at AS "submittedAt",
+              reviewed_at AS "reviewedAt",
+              reviewed_by AS "reviewedBy",
+              created_at AS "createdAt",
+              updated_at AS "updatedAt"
          FROM seller_applications
         WHERE user_id = $1
         ORDER BY created_at DESC
@@ -34,8 +43,17 @@ router.post('/application', async (req, res, next) => {
     const result = await query(
       `INSERT INTO seller_applications (user_id, display_name, legal_name, country_code, message)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, status, display_name, legal_name, country_code, message,
-                 review_note, submitted_at, reviewed_at, reviewed_by, created_at, updated_at`,
+       RETURNING id, status,
+                 display_name AS "displayName",
+                 legal_name AS "legalName",
+                 country_code AS "countryCode",
+                 message,
+                 review_note AS "reviewNote",
+                 submitted_at AS "submittedAt",
+                 reviewed_at AS "reviewedAt",
+                 reviewed_by AS "reviewedBy",
+                 created_at AS "createdAt",
+                 updated_at AS "updatedAt"`,
       [req.user.id, displayName, legalName, countryCode, message]
     );
     return res.status(201).json({ application: result.rows[0] });
@@ -50,7 +68,7 @@ router.post('/application/withdraw', async (req, res, next) => {
     const result = await query(
       `UPDATE seller_applications SET status = 'withdrawn', updated_at = NOW()
         WHERE user_id = $1 AND status IN ('pending','under_review')
-        RETURNING id, status, updated_at`, [req.user.id]
+        RETURNING id, status, updated_at AS "updatedAt"`, [req.user.id]
     );
     if (!result.rowCount) return res.status(409).json({ error: 'no_active_seller_application' });
     return res.json({ application: result.rows[0] });
