@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 465 — Payout-to-earnings allocation ledger and payout-paid settlement wiring added; acceptance/CI verification remains.**
+**Milestone 465 — Payout-to-earnings allocation ledger, payout-paid settlement wiring, and expanded payout settlement acceptance coverage. Fresh CI verification remains.**
 
 ## Latest checkpoint — 2026-08-29
 ### Completed
@@ -22,9 +22,10 @@
 - Refund settlement marks the matching seller earning `refunded` and records `refunded_at` atomically with order refund and entitlement revocation.
 - Refund acceptance coverage verifies earning creation, refund reversal, zero available balance, and duplicate refund idempotency.
 - **2026-08-29:** Added `backend/migrations/012_payout_earnings_allocations.sql` defining `payout_earnings_allocations` so each payout records exact earnings provenance and supports partial/multi-earning payouts.
-- **2026-08-29:** Seller payout creation allocates requested payout amount across available earnings inside the same transaction and fails atomically if allocation cannot cover the request.
+- **2026-08-29:** Seller payout creation allocates requested amount across available earnings inside the same transaction and fails atomically if allocation cannot cover the request.
 - **2026-08-29:** Added `backend/src/seller/payout-earnings-settlement.js`; an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`, while partial allocations remain available.
 - **2026-08-29:** Wired the payout-paid settlement helper into Admin `processing -> paid` transition inside the existing `withTransaction()` transaction.
+- **2026-08-29:** Expanded `backend/scripts/http-seller-profile-earnings-payout-e2e-acceptance.js` to verify payout allocation provenance, partial paid payout leaves the earning `available`, cancelled payout does not consume withdrawable balance, and a later full payout changes the earning to `paid` only after total paid allocations reach `net_amount`.
 
 ### Payment architecture findings
 - Provider catalog contains Stripe, PayPal, Adyen, Paddle and PayPay.
@@ -42,11 +43,11 @@
 - `payout_earnings_allocations` provides provenance from each payout to the earnings it consumes.
 - A payout can span multiple earnings rows or partially consume one earnings row.
 - Failed/cancelled payouts do not count as active allocations for payout reservation.
-- When an Admin payout transitions `processing -> paid`, the payout-paid settlement helper marks only fully covered earnings `paid`; partial earnings remain `available`.
+- When an Admin payout transitions `processing -> paid`, the payout-paid settlement helper marks only fully covered earnings `paid`; partial allocations remain `available`.
 - Refunds after an earning has already been paid out still require a separate recovery/receivable policy before commercial release.
 
 ### Verification status
-- Milestone 465 allocation migration, payout creation allocation, and Admin paid-settlement wiring are now on `main`, but require fresh migration/regression CI evidence.
+- **Acceptance coverage for full/partial payout settlement and cancelled payout balance release is now on `main` (commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef`).** Fresh migration/regression CI evidence is still required.
 - Dedicated refund-to-earnings acceptance coverage remains on `main`, but runtime CI evidence for that dedicated test is outstanding.
 - Payout concurrency and minimum-payout acceptance require empirical CI evidence containing the corrected tests.
 - Checkout provider routing source-level gap is fixed; dedicated HTTP contract coverage remains outstanding.
@@ -71,8 +72,8 @@
 
 ## Remaining work — priority order
 1. **Milestone 465 verification — CURRENT**
-   - Add acceptance coverage for full and partial payout allocation and payout-paid settlement.
-   - Run fresh migration/regression CI and record exact evidence.
+   - Run fresh migration/regression CI against commit `94924e02e331cd89991ea4678cc62a6c22e0c4ef` and record exact evidence.
+   - If CI fails, fix the exact failing acceptance/runtime path before proceeding.
 2. **Refund / seller earnings integrity**
    - Run dedicated refund-to-earnings acceptance in CI.
    - Verify payout eligibility excludes refunded earnings, including after a payout has already been created.
@@ -98,7 +99,7 @@
    - License/operator docs, final ZIP, final buyer/seller/admin/payment/media/security/install acceptance.
 
 ## Exact next step
-**Add database acceptance coverage for (a) full payout allocation -> all covered earnings become `paid`, (b) partial payout -> only fully covered earnings become `paid`, and (c) failed/cancelled payout allocations do not consume balance. Then run fresh migration/regression CI.**
+**Run fresh migration/regression CI against `94924e02e331cd89991ea4678cc62a6c22e0c4ef`; then use the resulting evidence to either fix the exact failure or mark the full/partial/cancelled payout settlement acceptance verified.**
 
 ## Continuation rule
 At the start of every development session, read this file first, inspect `PROGRESS_LOG.md`, the latest main commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
