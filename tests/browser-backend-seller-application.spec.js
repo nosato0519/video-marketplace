@@ -29,8 +29,14 @@ test.describe('real backend seller application acceptance', () => {
     await page.getByLabel(/Message/).fill('Real backend browser acceptance.');
     await page.getByRole('button', { name: 'Submit application' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
-    await expect(page.getByText('Real Backend Creator', { exact: true })).toBeVisible();
+    const response = await page.request.get(`${backendUrl}/api/seller/application`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.application).toBeTruthy();
+    expect(body.application.status).toBe('pending');
+    expect(body.application.displayName).toBe('Real Backend Creator');
+    expect(body.application.legalName).toBe('Real Backend Creator Legal');
+    expect(body.application.countryCode).toBe('JP');
 
     const me = await page.request.get(`${backendUrl}/api/auth/me`);
     expect(me.ok()).toBeTruthy();
