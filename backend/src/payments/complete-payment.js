@@ -85,9 +85,11 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
       [provider, providerPaymentId, current.id]
     );
     const entitlement = await client.query(
-      `INSERT INTO entitlements (user_id, product_id, order_id) VALUES ($1, $2, $3)
-       ON CONFLICT (order_id) DO NOTHING
-       RETURNING id, user_id, product_id, order_id, status, created_at`,
+      `INSERT INTO video_entitlements (buyer_id, product_id, order_id, status, granted_at, revoked_at)
+       VALUES ($1, $2, $3, 'active', NOW(), NULL)
+       ON CONFLICT (buyer_id, product_id)
+       DO UPDATE SET order_id = EXCLUDED.order_id, status = 'active', granted_at = NOW(), revoked_at = NULL
+       RETURNING id, buyer_id, product_id, order_id, status, granted_at, revoked_at`,
       [current.buyer_id, current.product_id, current.id]
     );
     await client.query(
