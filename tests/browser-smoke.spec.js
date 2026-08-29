@@ -6,7 +6,7 @@ const routes = [
   { hash: '#/categories', heading: 'Explore categories' },
   { hash: '#/popular', heading: 'Popular now' },
   { hash: '#/creators', heading: 'Discover creators' },
-  { hash: '#/login', heading: 'Welcome back' },
+  { hash: '#/login', heading: 'Log in' },
   { hash: '#/register', heading: 'Create your account' },
 ];
 
