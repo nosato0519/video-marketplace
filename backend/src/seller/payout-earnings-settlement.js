@@ -17,8 +17,7 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
        FROM payout_earnings_allocations a
        JOIN seller_earnings e ON e.id = a.seller_earning_id
       WHERE a.payout_id = $1
-      GROUP BY a.seller_earning_id, e.net_amount
-      FOR UPDATE OF e`,
+      GROUP BY a.seller_earning_id, e.net_amount`,
     [payoutId]
   );
 
@@ -26,13 +25,22 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
     const allocated = Number(allocation.allocated_amount || 0);
     const netAmount = Number(allocation.net_amount || 0);
     if (allocated + 0.000001 >= netAmount) {
-      await db.query(
-        `UPDATE seller_earnings
-            SET status = 'paid', paid_at = COALESCE(paid_at, NOW())
+      const earning = await db.query(
+        `SELECT id, status
+           FROM seller_earnings
           WHERE id = $1
-            AND status = 'available'`,
+          FOR UPDATE`,
         [allocation.seller_earning_id]
       );
+      if (earning.rowCount && earning.rows[0].status === 'available') {
+        await db.query(
+          `UPDATE seller_earnings
+              SET status = 'paid', paid_at = COALESCE(paid_at, NOW())
+            WHERE id = $1
+              AND status = 'available'`,
+          [allocation.seller_earning_id]
+        );
+      }
     }
   }
 
