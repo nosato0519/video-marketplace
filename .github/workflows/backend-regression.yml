@@ -41,6 +41,8 @@ jobs:
       - run: npm install
       - run: npm run migrate:preflight
       - run: npm run migrate
+      - name: Run backup and restore round-trip acceptance
+        run: npm run test:backup-restore-acceptance
       - run: npm test
       - name: Run authentication HTTP acceptance
         run: npm run test:http-auth
