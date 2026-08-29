@@ -5,15 +5,15 @@
 
 ## 現在地点
 - 作業ブランチ: `feat/seller-application-main-integration`
-- 最新作業コミット: `dc9ae01d678ff860f05b6f4154740e3058c4d4fb`
-- Browser Acceptance #19 / `33239569178`: FAIL
-- Browser #19原因: ホームロード直後に `#app` の可視性を確認したが、SPAのmodule初期化完了前に空の `#app` を可視性判定してtimeoutした。
-- 調査: `app/main.js` はトップページで `renderHome()` を実行し、`#app.innerHTML` を設定する実装。CIではAPI/backend/proxyとも正常起動している。
-- 対応: PlaywrightをDOM rootの可視性に依存させず、実際の `.site-header` が描画されたことを待ってから `Sign up` をクリックする方式へ変更。
+- 最新作業コミット: `9423e1995c71e4dc88d87b097370e2c1b611b2d1`
+- Browser Acceptance #20 / `33239655068`: FAIL
+- #20原因: ホームで `.site-header` が見つからずtimeout。Backend、migration、health check、frontend proxy、Playwright/Chromiumは正常。
+- 調査: `app/index.html` は `/app/main.js` をmoduleとして読み込む。`app/main.js` の `renderHome()` は `.site-header` を生成する実装。`app/auth/auth-view.js` には `#auth-form` が存在する。`app/styles.css` に `.site-header` の非表示指定はない。
+- 対応: Browser testをSPA bootstrap待ちに変更し、`#app` のinnerHTMLに `VIDEO MARKET` が出ることをpollしてから`.site-header`を確認。さらにpageerror/console errorを収集し、UI初期化失敗を見逃さないようにした。
 - Backend Regression #571: PASS
 - Clean Install #154: PASS
 - Seller Application Acceptance #2: PASS
-- 現在: Browser Acceptance #19の原因修正コミットを作成済み。新CI Runの結果待ち。
+- 現在: Browser Acceptance #20の原因調査・修正済み。新CI Runの結果待ち。
 
 ## 今回の実装
 - Seller Application DB migration
@@ -54,33 +54,37 @@
 - #17 / `33239306143`: FAIL。実行対象と修正コミットの不整合を確認。
 - #18 / `33239412922`: FAIL。`#auth-form` をハッシュURL直行後に待つ方式が現行SPA実行順と噛み合わずtimeout。
 - #19 / `33239569178`: FAIL。`#app` 可視性チェックがSPA module初期化前に実行されtimeout。
+- #20 / `33239655068`: FAIL。`.site-header` がSPA描画前の状態で見つからずtimeout。
 
-### #19の調査結果
-- CIログでPostgreSQL、migration 26件、Backend、health check、frontend proxyはすべて正常。
-- Playwright本体は `page.goto(appUrl)` 後の `expect(page.locator('#app')).toBeVisible()` で停止。
-- DOM上の `#app` は存在するが空のためvisible判定に失敗した。
-- `app/main.js` のトップルートは `renderHome()` で `#app.innerHTML` を設定するため、テストは実DOM描画完了を待つ必要がある。
+### #20の調査結果
+- CIログでPostgreSQL、migration 26件、Backend、health check、frontend proxy、Playwright/Chromiumはすべて正常。
+- `app/index.html` は `/app/main.js` をmoduleとして読み込む。
+- `app/main.js` の `renderHome()` は `header(locale)` を使って `.site-header` を生成する。
+- `app/auth/auth-view.js` の `renderAuth()` は `#auth-form`、email/password input、Create account buttonを生成する。
+- `app/styles.css` の `.site-header` は `display:flex` であり非表示指定はない。
+- したがって、#20の直接原因はSPA bootstrap/実ブラウザ側の初期化完了タイミングをさらに観測する必要がある状態。
 
 ## 最新テスト修正
 コミット:
-`dc9ae01d678ff860f05b6f4154740e3058c4d4fb`
+`9423e1995c71e4dc88d87b097370e2c1b611b2d1`
 
 変更:
-- `#app` の可視性アサーションを削除。
-- `.site-header` の可視性を待つ。
-- その後、実際の `Sign up` リンクをクリック。
-- `#/register`遷移後に `#auth-form` を確認して入力。
+- `#app` の可視性アサーションを削除済み。
+- `.site-header` を直接待つ方式から、まず `#app.innerHTML` に `VIDEO MARKET` が出るまでpollする方式へ変更。
+- pageerror / console error を収集し、module初期化エラーを検知。
+- その後 `.site-header` を確認し、実際の `Sign up` リンクをクリック。
 - Seller Application以降の実Backend検証は維持。
 
 ## 残作業（優先順）
-1. `dc9ae01...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
-2. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
-3. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
-4. Security Regressionを最新統合状態で確認。
-5. Commerce/Media全CIを最新統合状態で再確認。
-6. 最新mainとの差分を再確認し、main統合前のレビュー。
-7. 最終セキュリティレビュー。
-8. 全CIと最終条件がPASSするまで完成判定しない。
+1. `9423e199...` を対象とする修正版Backend Browser Acceptance CIの実Run発生・PASS確認。
+2. FAILならpageerror/console/DOM状態から根本原因を特定して修正→再CI。
+3. PASSならBrowser Smoke / module smokeの必要部分を安全に移植・検証。
+4. Postgres Acceptanceでseller application migration/APIを最新統合状態で確認。
+5. Security Regressionを最新統合状態で確認。
+6. Commerce/Media全CIを最新統合状態で再確認。
+7. 最新mainとの差分を再確認し、main統合前のレビュー。
+8. 最終セキュリティレビュー。
+9. 全CIと最終条件がPASSするまで完成判定しない。
 
 ## 再開手順
 1. このファイルを最初に読む。
