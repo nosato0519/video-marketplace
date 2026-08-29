@@ -8,6 +8,7 @@
 - Backend Regression run: `33238457470` (#565)
 - Job: `99063520036`
 - Backend Regressionは完了済み。主要Commerce/Media系ステップをPASS確認。
+- Security Regression workflowはmainに存在し、authorization/admin-account/audit-integrityの回帰スイートを実行する構成を確認。
 
 ## 今回の確認結果
 PASS済み（run `33238457470`）:
@@ -35,6 +36,12 @@ PASS済み（別の実Backend Browser Acceptance run）:
 - real backend browser acceptance
 - cleanup
 
+## Security / Secret確認
+- `.gitignore`で`.env` / `.env.*`を除外し、`.env.example`のみ許可。
+- `BEGIN PRIVATE KEY` / `sk_live` / `pk_live`などの明白な秘密情報パターン、およびCI用Payment/Media Secret文字列をGitHubコード検索で検索したが一致なし。
+- ただしGitHubのコード検索インデックスが利用できない状態があるため、上記は「検索結果なし」であり、完全な秘密情報スキャンの証明ではない。
+- Security Regression workflowは存在するが、最新mainコミットでの同workflowのPASSは今回まだ直接確認できていない。
+
 ## 直前の修正
 CIでSeller Earnings/Payout E2Eが`MEDIA_URL_SECRET`不足で起動失敗していたため、CI専用環境変数をworkflowへ追加した。
 - `MEDIA_STORAGE_PROVIDER=local`
@@ -51,17 +58,19 @@ CIでSeller Earnings/Payout E2Eが`MEDIA_URL_SECRET`不足で起動失敗して�
 - Stripe Provider Registry / Factory
 - Stripe Webhook署名検証・正規化・adapter hardening
 - Stripe Webhook → Payment Settlement接続
-- Refund transaction / Entitlement revoke / refund冪等性テスト実装
+- Refund transaction / Entitlement revoke / refund冪等性テスト
 - Stream / DownloadのEntitlement認可
 - Commerce acceptanceのCI組み込み
+- Seller/Admin role・ownership・state transition・audit境界
 
 ## 未確認／最終確認対象（優先順）
 1. 購入→決済→Stream→Download→Refund→Entitlement revoke→Stream拒否→Download拒否の完全HTTP E2Eが最新mainで完全に確認できているか点検。
 2. Refund後Seller Earnings調整・Payout済み後Refundの残高/会計整合性・二重計上防止を点検。
 3. Stripeイベントの金額・通貨・Order/Payment紐付け・署名・冪等性を最終確認。
 4. Postgres Acceptance / Clean Install / Media Upload Validationを最新mainでPASS確認（Clean InstallとMedia Upload ValidationはBackend RegressionでPASS済み。Postgres fresh DBはRegression環境で確認済み）。
-5. 最終セキュリティレビュー。
-6. 最新mainの実体で上記を確認し、全条件を満たすまで「完成」と判定しない。
+5. Security Regressionを最新mainでPASS確認。
+6. 完全なsecret/configuration scanを可能な範囲で実施。
+7. 最新mainの実体で上記を確認し、全条件を満たすまで「完成」と判定しない。
 
 ## 再開手順
 1. このファイルを最初に読む。
