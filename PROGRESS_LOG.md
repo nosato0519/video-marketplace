@@ -1,18 +1,19 @@
 # Development Progress Log
 
-## 2026-08-31 — Milestone 470
+## 2026-08-31 — Milestone 471
 
 ### Current focus
-Real-backend Browser E2E workflow migration staged in PR #12.
+Fix concrete failures from the first real-backend Browser E2E run in PR #12.
 
 ### Completed
-- Re-read the authoritative checkpoint files before continuing.
-- Reconfirmed the real HTTP Buyer/Seller acceptance suites and existing PostgreSQL-backed CI.
-- Confirmed `playwright.config.js` now launches `tests/browser-server.js`.
-- Created a dedicated branch because direct workflow contents updates were repeatedly rejected with a SHA conflict.
-- Updated `.github/workflows/browser-e2e.yml` on the dedicated branch to remove the Python static-server startup and provide `BROWSER_BACKEND_URL` to the browser proxy.
-- Removed temporary CI staging marker files from the branch.
-- Opened PR #12 for review/validation.
+- Inspected Browser E2E run `33378083465` and its job `99443981183`.
+- Confirmed PostgreSQL startup, migrations, backend startup/health, Chromium installation, and Playwright test discovery all succeeded.
+- Confirmed 33 of 35 browser tests passed.
+- Identified Seller Upload failure as a test defect: `route.request().body()` is not a Playwright Request API.
+- Identified Buyer smoke failure as an outdated fixture assumption: the real migrated database does not seed a `Featured Video` / `demo-1` catalog item.
+- Removed the duplicate mock Seller Upload browser test; the repository already has Seller upload/publish browser coverage.
+- Updated `tests/buyer-smoke.spec.js` so it validates the real backend-backed marketplace browse page without assuming demo seed data.
+- Updated `PROJECT_STATE.md` with the concrete CI result and corrections.
 
 ### Verification status
 - Backend regression: GREEN (#644).
@@ -21,15 +22,17 @@ Real-backend Browser E2E workflow migration staged in PR #12.
 - Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
 - Real HTTP Seller product/media acceptance: IMPLEMENTED.
 - Browser proxy: IMPLEMENTED.
-- Browser CI workflow migration: STAGED IN PR #12; runtime result still pending.
-- Authenticated Buyer/Seller/Admin browser acceptance: OUTSTANDING.
+- Browser CI workflow: IMPLEMENTED IN PR #12.
+- First real-backend Browser E2E: 33/35 passed.
+- Concrete Browser E2E defects: CORRECTED; rerun pending.
+- Authenticated Buyer/Seller/Admin browser acceptance: NOT YET GREEN.
 
 ### Technical decision
-Use the dedicated PR branch to resolve the workflow SHA conflict safely rather than force-overwriting `main`. Do not mark the browser milestone GREEN until CI actually runs the proxy against the real backend and the suite passes.
+Do not weaken the real-backend gate or add fake catalog data merely to satisfy the old demo smoke test. Correct tests to reflect the production API contract and existing deterministic test fixtures.
 
 ### Next exact task
-1. Validate PR #12 CI/status.
-2. Merge only after the workflow change is verified.
-3. Run Browser E2E against PostgreSQL + real Backend + proxy.
-4. Fix concrete browser failures only.
-5. Record the runtime result in both checkpoint files before proceeding to Buyer/Seller/Admin coverage.
+1. Rerun PR #12 Browser E2E.
+2. Inspect every remaining failure, if any, and fix only concrete defects.
+3. Require a fully GREEN browser run before merging PR #12.
+4. Record the GREEN result in both checkpoint files.
+5. Proceed to authenticated Buyer/Seller/Admin coverage and then payment-provider consistency.
