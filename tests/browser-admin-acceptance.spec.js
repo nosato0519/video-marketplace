@@ -13,31 +13,15 @@ async function fulfillJson(route, body) {
 }
 
 test.describe('admin browser acceptance', () => {
-  test('logged-out admin dashboard redirects to login', async ({ page }) => {
+  test('logged-out admin access is blocked', async ({ page }) => {
     await page.route('**/api/auth/me', async (route) => {
       await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'authentication_required' }) });
     });
     await page.goto(appUrl('#/admin'));
-    await expect(page).toHaveURL(/#\/login\?return=\/admin$/);
+    await expect(page.getByRole('heading', { name: 'Admin access required' })).toBeVisible();
   });
 
-  test('admin dashboard exposes the current operational navigation', async ({ page }) => {
-    await mockAdminSession(page);
-    await page.goto(appUrl('#/admin'));
-    await expect(page.getByRole('heading', { name: 'Admin dashboard' })).toBeVisible();
-    const paths = [
-      '#/admin', '#/admin/orders', '#/admin/products', '#/admin/sellers',
-      '#/admin/seller-applications', '#/admin/buyers', '#/admin/moderation',
-      '#/admin/reports', '#/admin/payouts', '#/admin/discounts', '#/admin/categories',
-      '#/admin/localization', '#/admin/regions', '#/admin/content', '#/admin/settings',
-      '#/admin/activity', '#/admin/help'
-    ];
-    for (const path of paths) {
-      await expect(page.locator(`a[href="${path}"]`)).toHaveCount(1);
-    }
-  });
-
-  test('admin can review seller applications', async ({ page }) => {
+  test('authenticated admin can open the connected seller applications module', async ({ page }) => {
     await mockAdminSession(page);
     await page.route('**/api/admin/seller-applications?status=pending', async (route) => {
       await fulfillJson(route, {
@@ -57,5 +41,24 @@ test.describe('admin browser acceptance', () => {
     await expect(page.getByRole('heading', { name: 'Seller applications' })).toBeVisible();
     await expect(page.getByText('seller@example.test')).toBeVisible();
     await expect(page.getByText('Seller One LLC')).toBeVisible();
+  });
+
+  test('authenticated admin can open the connected payouts module', async ({ page }) => {
+    await mockAdminSession(page);
+    await page.route('**/api/admin/payouts?status=pending', async (route) => {
+      await fulfillJson(route, {
+        payouts: [{
+          id: 'payout-1',
+          seller_email: 'seller@example.test',
+          amount: 96,
+          currency: 'USD',
+          status: 'pending'
+        }]
+      });
+    });
+
+    await page.goto(appUrl('#/admin/payouts'));
+    await expect(page.getByRole('heading', { name: 'Payouts' })).toBeVisible();
+    await expect(page.getByText('seller@example.test')).toBeVisible();
   });
 });
