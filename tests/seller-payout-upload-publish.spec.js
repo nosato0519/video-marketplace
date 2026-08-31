@@ -57,10 +57,10 @@ test.describe('seller business browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/seller/upload'));
+    await page.getByLabel('Video file').setInputFiles({ name: 'demo.webm', mimeType: 'video/webm', buffer: Buffer.from('demo-video') });
     await page.getByLabel('Title').fill('Demo Seller Video');
     await page.getByLabel('Description').fill('Browser acceptance video');
     await page.getByLabel('Price (JPY)').fill('1500');
-    await page.locator('#video-file').setInputFiles({ name: 'demo.webm', mimeType: 'video/webm', buffer: Buffer.from('demo-video') });
     await page.getByRole('button', { name: 'Upload and create draft' }).click();
 
     await expect(page.getByText(/Draft .* created successfully/)).toBeVisible();
