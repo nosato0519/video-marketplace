@@ -51,13 +51,14 @@ router.get('/payouts', async (req, res, next) => {
 
     const summaryByCurrency = Object.fromEntries(
       summary.rows.map((row) => {
-        const available = Number(row.available || 0);
+        const earnedAvailable = Number(row.available || 0);
         const pending = Number(row.pending || 0);
         const reservedAmount = reservedByCurrency.get(row.currency) || 0;
+        const available = Math.max(0, earnedAvailable - reservedAmount);
         return [row.currency, {
           available,
           pending,
-          withdrawable: Math.max(0, available - reservedAmount),
+          withdrawable: available,
         }];
       })
     );
