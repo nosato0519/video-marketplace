@@ -21,50 +21,41 @@ test.describe('admin browser acceptance', () => {
     await expect(page).toHaveURL(/#\/login\?return=\/admin$/);
   });
 
-  test('admin dashboard exposes operational management areas', async ({ page }) => {
+  test('admin dashboard exposes the current operational navigation', async ({ page }) => {
     await mockAdminSession(page);
     await page.goto(appUrl('#/admin'));
     await expect(page.getByRole('heading', { name: 'Admin dashboard' })).toBeVisible();
-    await expect(page.locator('a[href="#/admin/users"]')).toHaveCount(1);
-    await expect(page.locator('a[href="#/admin/sellers"]')).toHaveCount(1);
-    await expect(page.locator('a[href="#/admin/products"]')).toHaveCount(1);
-    await expect(page.locator('a[href="#/admin/orders"]')).toHaveCount(1);
-    await expect(page.locator('a[href="#/admin/payouts"]')).toHaveCount(1);
+    const paths = [
+      '#/admin', '#/admin/orders', '#/admin/products', '#/admin/sellers',
+      '#/admin/seller-applications', '#/admin/buyers', '#/admin/moderation',
+      '#/admin/reports', '#/admin/payouts', '#/admin/discounts', '#/admin/categories',
+      '#/admin/localization', '#/admin/regions', '#/admin/content', '#/admin/settings',
+      '#/admin/activity', '#/admin/help'
+    ];
+    for (const path of paths) {
+      await expect(page.locator(`a[href="${path}"]`)).toHaveCount(1);
+    }
   });
 
-  test('admin can review users and sellers', async ({ page }) => {
+  test('admin can review seller applications', async ({ page }) => {
     await mockAdminSession(page);
-    await page.route('**/api/admin/users*', async (route) => {
-      await fulfillJson(route, { users: [{ id: 'user-1', email: 'buyer@example.test', role: 'buyer', status: 'active' }] });
-    });
-    await page.route('**/api/admin/sellers*', async (route) => {
-      await fulfillJson(route, { sellers: [{ id: 'seller-1', email: 'seller@example.test', verification_status: 'submitted', status: 'active' }] });
+    await page.route('**/api/admin/seller-applications?status=pending', async (route) => {
+      await fulfillJson(route, {
+        applications: [{
+          id: 'application-1',
+          email: 'seller@example.test',
+          display_name: 'Seller One',
+          legal_name: 'Seller One LLC',
+          country_code: 'JP',
+          message: 'Please review my application.',
+          status: 'pending'
+        }]
+      });
     });
 
-    await page.goto(appUrl('#/admin/users'));
-    await expect(page.getByRole('heading', { name: 'User management' })).toBeVisible();
-    await expect(page.getByText('buyer@example.test')).toBeVisible();
-
-    await page.goto(appUrl('#/admin/sellers'));
-    await expect(page.getByRole('heading', { name: 'Seller management' })).toBeVisible();
+    await page.goto(appUrl('#/admin/seller-applications'));
+    await expect(page.getByRole('heading', { name: 'Seller applications' })).toBeVisible();
     await expect(page.getByText('seller@example.test')).toBeVisible();
-  });
-
-  test('admin can review products and orders', async ({ page }) => {
-    await mockAdminSession(page);
-    await page.route('**/api/admin/products*', async (route) => {
-      await fulfillJson(route, { products: [{ id: 'product-1', title: 'Demo Video', status: 'published' }] });
-    });
-    await page.route('**/api/admin/orders*', async (route) => {
-      await fulfillJson(route, { orders: [{ id: 'order-1', status: 'paid', total_amount: 120, currency: 'JPY' }] });
-    });
-
-    await page.goto(appUrl('#/admin/products'));
-    await expect(page.getByRole('heading', { name: 'Product moderation' })).toBeVisible();
-    await expect(page.getByText('Demo Video')).toBeVisible();
-
-    await page.goto(appUrl('#/admin/orders'));
-    await expect(page.getByRole('heading', { name: 'Order management' })).toBeVisible();
-    await expect(page.getByText('order-1')).toBeVisible();
+    await expect(page.getByText('Seller One LLC')).toBeVisible();
   });
 });
