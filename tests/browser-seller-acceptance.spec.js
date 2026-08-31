@@ -59,7 +59,7 @@ test.describe('seller browser acceptance', () => {
     await mockSellerSession(page);
     await page.goto(appUrl('#/seller'));
     await expect(page.getByRole('heading', { name: 'Seller dashboard' })).toBeVisible();
-    await expect(page.locator('a[href="#/seller/upload"]')).toHaveCount(1);
+    await expect(page.locator('a[href="#/seller/upload"]')).toHaveCount(2);
     await expect(page.locator('a[href="#/seller/products"]')).toHaveCount(1);
     await expect(page.locator('a[href="#/seller/sales"]')).toHaveCount(1);
     await expect(page.locator('a[href="#/seller/payouts"]')).toHaveCount(1);
