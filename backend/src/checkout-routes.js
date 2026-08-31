@@ -1,5 +1,6 @@
 import { requireAuth } from './auth/require-auth.js';
 import { createCheckoutSession } from './orders/checkout-service.js';
+import { checkoutRateLimit } from './rate-limit.js';
 
 function checkoutError(error) {
   if (error.message === 'order_required') {
@@ -25,7 +26,7 @@ function checkoutError(error) {
 }
 
 export function registerCheckoutRoutes(app) {
-  app.post('/api/orders/:orderId/checkout', requireAuth, async (req, res, next) => {
+  app.post('/api/orders/:orderId/checkout', requireAuth, checkoutRateLimit, async (req, res, next) => {
     try {
       const session = await createCheckoutSession({
         orderId: req.params.orderId,
