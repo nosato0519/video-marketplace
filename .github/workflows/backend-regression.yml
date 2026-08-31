@@ -1,5 +1,6 @@
 name: Backend Regression
 
+# CI checkpoint: keep the existing full regression as the canonical final gate.
 on:
   push:
     paths:
