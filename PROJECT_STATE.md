@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 466 — Post-payout-merge checkpoint and authenticated browser E2E preparation.**
+**Milestone 467 — Authenticated browser E2E checkpoint and real HTTP purchase/media verification.**
 
 ## Latest checkpoint — 2026-08-31
 ### Completed
@@ -21,6 +21,10 @@
 - Fresh Backend Regression **#644 passed**, including Unit 187/187, authentication, payment/refund, Buyer purchase, Seller application/product-media, Seller earnings/payout, Admin payout concurrency, and media authorization/upload/access checks.
 - Fresh Clean Install **#229 passed**.
 - Fresh PostgreSQL Migration Acceptance **#255 passed**.
+- Existing real HTTP Buyer purchase E2E verified in repository: it creates seller/buyer/media/product/session data, performs a real order, signed payment webhook, checks paid order + Library entitlement, downloads protected media, and verifies a non-buyer is denied.
+- Existing real HTTP Seller Product/Media E2E verified in repository: real Seller/media/product creation, upload, draft/edit/publish, ownership isolation and post-publish edit restrictions are covered.
+- Existing `backend-browser-acceptance.yml` CI environment provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suites, starts the real backend, and runs a real-browser acceptance test.
+- Added a browser-level Seller Upload acceptance spec (`tests/browser-seller-upload-acceptance.spec.js`) covering browser upload → media API → product draft API wiring. This test currently uses API mocks and is supplemental, not a replacement for the real HTTP E2E.
 
 ### Current verified status
 - Backend regression: **GREEN**.
@@ -29,6 +33,8 @@
 - Seller payout allocation/settlement runtime: **GREEN in #644**.
 - Admin payout concurrency runtime: **GREEN in #644**.
 - Media authorization/upload/access runtime: **GREEN in #644**.
+- Real HTTP Buyer purchase/media acceptance: **IMPLEMENTED**.
+- Real HTTP Seller product/media acceptance: **IMPLEMENTED**.
 - Browser-level authenticated Buyer/Seller/Admin acceptance: **OUTSTANDING**.
 - Real non-Stripe provider adapters/runtime: **OUTSTANDING**.
 - Refund-after-payout accounting policy: **OUTSTANDING**.
@@ -36,10 +42,10 @@
 
 ## Remaining work — priority order
 1. **Authenticated browser E2E — CURRENT**
-   - Inspect existing `app/` browser pages and any Playwright/CI browser infrastructure.
-   - Add Buyer browser acceptance for browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
-   - Add Seller browser acceptance for application → product/media flow → dashboard → earnings/payout views.
-   - Add Admin browser acceptance for verification, moderation, and payout review flows.
+   - Convert/extend browser acceptance so Buyer browse → product detail → purchase/session → Account/Orders/Library → protected watch/download is exercised against the real backend.
+   - Exercise Seller application → product/media → dashboard → earnings/payout views against the real backend where feasible.
+   - Exercise Admin verification, moderation, and payout review flows against the real backend.
+   - Keep mock-based UI acceptance tests as supplemental coverage only.
 2. **Payment provider integration**
    - Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
    - Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
