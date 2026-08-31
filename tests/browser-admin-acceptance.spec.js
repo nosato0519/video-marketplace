@@ -58,7 +58,7 @@ test.describe('admin browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/admin/payouts'));
-    await expect(page.getByRole('heading', { name: 'Payouts' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Payout operations' })).toBeVisible();
     await expect(page.getByText('seller@example.test')).toBeVisible();
   });
 });
