@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { query } from './db.js';
 import { createSessionToken, hashSessionToken, sessionCookieOptions, sessionExpiry } from './auth/session.js';
 import { requireAuth } from './auth/require-auth.js';
+import { authLoginRateLimit, authRegisterRateLimit } from './rate-limit.js';
 
 const SESSION_COOKIE = 'video_marketplace_session';
 const PASSWORD_HASH_VERSION = 'scrypt-v1';
@@ -70,7 +71,7 @@ async function createSession(res, userId) {
 }
 
 export function registerAuthRoutes(app) {
-  app.post('/api/auth/register', async (req, res, next) => {
+  app.post('/api/auth/register', authRegisterRateLimit, async (req, res, next) => {
     try {
       const email = normalizeEmail(req.body?.email);
       const password = req.body?.password;
@@ -92,7 +93,7 @@ export function registerAuthRoutes(app) {
     }
   });
 
-  app.post('/api/auth/login', async (req, res, next) => {
+  app.post('/api/auth/login', authLoginRateLimit, async (req, res, next) => {
     try {
       const email = normalizeEmail(req.body?.email);
       const password = req.body?.password;
