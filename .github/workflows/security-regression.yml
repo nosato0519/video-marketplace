@@ -11,6 +11,7 @@ on:
       - '.github/workflows/security-regression.yml'
   workflow_dispatch:
 
+# Manual dispatch is available; this workflow also runs automatically when security code or this workflow changes.
 jobs:
   security-regression:
     runs-on: ubuntu-latest
