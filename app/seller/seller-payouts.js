@@ -33,14 +33,14 @@ export async function renderSellerPayouts(root) {
     document.querySelector('#payout-form')?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
-      const message = document.querySelector('#payout-message');
+      const message = form.querySelector('#payout-message');
       const button = form.querySelector('button');
       button.disabled = true; message.textContent = 'Submitting…';
       try {
         const payload = Object.fromEntries(new FormData(form));
-        await api('/seller/payouts', { method: 'POST', body: JSON.stringify({ amount: Number(payload.amount), currency: payload.currency }) });
-        message.textContent = 'Payout request submitted.';
-        await renderSellerPayouts(root);
+        const result = await api('/seller/payouts', { method: 'POST', body: JSON.stringify({ amount: Number(payload.amount), currency: payload.currency }) });
+        message.textContent = result?.payout?.status === 'requested' ? 'Payout request submitted.' : 'Payout request submitted.';
+        button.disabled = false;
       } catch (error) {
         message.textContent = error.body?.error || 'Unable to submit payout request.';
         button.disabled = false;
