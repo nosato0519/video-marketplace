@@ -49,7 +49,7 @@ test.describe('seller browser acceptance', () => {
     await expect(page.getByRole('heading', { name: 'Profile & verification' })).toBeVisible();
     await page.getByLabel('Display name').fill('Seller Updated');
     await page.getByRole('button', { name: 'Save profile' }).click();
-    await expect(page.getByDisplayValue('Seller Updated')).toBeVisible();
+    await expect(page.locator('input[name="displayName"]')).toHaveValue('Seller Updated');
     expect(profileSaved).toBe(true);
     await page.getByRole('button', { name: 'Submit for verification' }).click();
     expect(verificationSubmitted).toBe(true);
@@ -59,11 +59,11 @@ test.describe('seller browser acceptance', () => {
     await mockSellerSession(page);
     await page.goto(appUrl('#/seller'));
     await expect(page.getByRole('heading', { name: 'Seller dashboard' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Upload video/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /My videos/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Sales & earnings/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Payouts/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Seller profile/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Upload video', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'My videos', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Sales & earnings', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Payouts', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Seller profile', exact: true })).toBeVisible();
   });
 
   test('seller earnings page exposes earnings summary', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('seller browser acceptance', () => {
 
     await page.goto(appUrl('#/seller/sales'));
     await expect(page.getByRole('heading', { name: 'Sales & earnings' })).toBeVisible();
-    await expect(page.getByText('￥96')).toBeVisible();
+    await expect(page.locator('#earned')).toContainText('96');
     await expect(page.getByText('paid', { exact: true })).toBeVisible();
     await expect(page.getByText('order-1')).toBeVisible();
   });
