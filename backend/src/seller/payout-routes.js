@@ -23,7 +23,49 @@ router.get('/payouts', async (req, res, next) => {
         LIMIT 100`,
       [req.user.id]
     );
-    return res.json({ payouts: result.rows });
+
+    const summary = await query(
+      `SELECT currency,
+              COALESCE(SUM(CASE WHEN status = 'available' THEN net_amount ELSE 0 END), 0) AS available,
+              COALESCE(SUM(CASE WHEN status = 'pending' THEN net_amount ELSE 0 END), 0) AS pending
+         FROM seller_earnings
+        WHERE seller_id = $1
+        GROUP BY currency
+        ORDER BY currency ASC`,
+      [req.user.id]
+    );
+
+    const reserved = await query(
+      `SELECT currency,
+              COALESCE(SUM(amount), 0) AS reserved_amount
+         FROM payouts
+        WHERE seller_id = $1
+          AND status NOT IN ('failed','cancelled')
+        GROUP BY currency`,
+      [req.user.id]
+    );
+
+    const reservedByCurrency = new Map(
+      reserved.rows.map((row) => [row.currency, Number(row.reserved_amount || 0)])
+    );
+
+    const summaryByCurrency = Object.fromEntries(
+      summary.rows.map((row) => {
+        const available = Number(row.available || 0);
+        const pending = Number(row.pending || 0);
+        const reservedAmount = reservedByCurrency.get(row.currency) || 0;
+        return [row.currency, {
+          available,
+          pending,
+          withdrawable: Math.max(0, available - reservedAmount),
+        }];
+      })
+    );
+
+    return res.json({
+      payouts: result.rows,
+      summary: summaryByCurrency,
+    });
   } catch (error) { return next(error); }
 });
 
