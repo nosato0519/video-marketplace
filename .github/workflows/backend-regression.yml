@@ -76,3 +76,6 @@ jobs:
         run: node --test src/media/media-upload-validation.test.js
       - name: Run media access HTTP acceptance
         run: npm run test:http-media-access-e2e
+      - name: Run security regression suites
+        run: |
+          node --input-type=module -e "import { runAuthorizationRegressionSuite } from './src/security/authorization-test-cases.js'; import { runAdminAccountActionRegressionSuite } from './src/security/admin-account-action-test-cases.js'; import { runAuditIntegrityRegressionSuite } from './src/security/audit-log-integrity-test-cases.js'; const suites=[runAuthorizationRegressionSuite(),runAdminAccountActionRegressionSuite(),runAuditIntegrityRegressionSuite()]; if(!suites.every(s=>s.passed ?? (s.validChainAccepted && s.tamperedChainRejected))) process.exit(1);"
