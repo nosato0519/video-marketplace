@@ -1,109 +1,50 @@
 # Development Progress Log
 
-## 2026-08-31 — Milestone 468
+## 2026-08-31 — Milestone 473
 
 ### Current focus
-Buyer authenticated browser E2E investigation checkpoint.
+Normalize continuation state and eliminate repeated-work loops before the next implementation pass.
 
-### Completed
-- Re-read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before continuing, following the continuation rule.
-- Reconfirmed Backend Regression #644, Clean Install #229, and PostgreSQL Migration Acceptance #255 as the latest recorded GREEN gates.
-- Reconfirmed the existing real HTTP Buyer purchase E2E covers DB setup, session creation, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and non-buyer denial.
-- Reconfirmed the existing real HTTP Seller Product/Media E2E and PostgreSQL-backed browser CI infrastructure.
-- Investigated the expected `tests/browser-buyer-acceptance.spec.js`; it is not present on `main`, so no existing Buyer browser test was falsely treated as complete.
-- Updated `PROJECT_STATE.md` to make this finding and the remaining Buyer browser work authoritative.
+### Findings
+- The repository history shows that the storefront catalog was already moved to an API-first renderer in earlier Milestone 28 commits, so the previous assumption that the catalog still needed to be converted from demo data was stale.
+- Later catalog commits also added public product search/pagination, blocked-product filtering, canonical seller IDs, and category schema work.
+- The current authoritative source is `main`, not the older `ci/real-backend-browser-e2e` PR branch. That PR is divergent from `main` and must not be used as the source of truth for current implementation status.
+- Existing real HTTP Buyer and Seller E2E coverage remains implemented; it must not be recreated merely because an older Browser acceptance file or PR description says it is outstanding.
+- Browser E2E #65 and #66 were already verified GREEN in the prior checkpoint.
+- Browser UI Acceptance had an infrastructure port-collision fix committed, but the authoritative post-fix runtime result still requires one verification pass.
 
-### Important technical decisions
-- Do not claim authenticated browser E2E completion from backend HTTP E2E alone.
-- Do not invent a browser authentication/session helper when the repository already has an established backend session mechanism.
-- Do not create duplicate mock tests merely to make the browser milestone appear complete.
-- Preserve the existing real HTTP Buyer acceptance as the backend integration gate and add browser coverage on top of it.
+### Process correction
+- Added an explicit anti-duplication / continuation protocol to `PROJECT_STATE.md`.
+- Future work must begin from latest `main`, search commit history for previously implemented features, and advance a concrete acceptance criterion before changing code.
+- Stale PR branches and old TODOs are evidence only, not authoritative state.
+- Progress records must capture exact commit/file, verification result, remaining gap, and exact next action after each meaningful change.
+- No force-updates when branch SHAs move.
 
-### Verification status
+### Current verified status
 - Backend regression: GREEN (#644).
 - Clean install: GREEN (#229).
 - PostgreSQL migration acceptance: GREEN (#255).
-- Seller payout settlement: runtime-verified GREEN in #644.
-- Admin payout concurrency: runtime-verified GREEN in #644.
-- Media authorization/upload/access: runtime-verified GREEN in #644.
-- Real HTTP Seller product/media acceptance: IMPLEMENTED.
+- Seller payout allocation/settlement runtime: GREEN (#644).
+- Admin payout concurrency runtime: GREEN (#644).
+- Media authorization/upload/access runtime: GREEN (#644).
 - Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
-- Real backend browser CI infrastructure: IMPLEMENTED.
-- Browser-level authenticated Buyer/Seller/Admin acceptance: OUTSTANDING — CURRENT.
-- Checkout provider HTTP contract/provider consistency: OUTSTANDING.
-- Real PayPal/Adyen/Paddle/PayPay adapters: OUTSTANDING.
-- Refund-after-payout accounting: OUTSTANDING.
+- Real HTTP Seller product/media acceptance: IMPLEMENTED.
+- Browser proxy to real backend: IMPLEMENTED.
+- Browser E2E #65/#66: GREEN.
+- Browser UI Acceptance: infrastructure fix committed; authoritative post-fix runtime verification remains.
+- Authenticated real-backend Buyer/Seller/Admin browser acceptance: OUTSTANDING.
+- Non-Stripe provider adapters/runtime: OUTSTANDING.
+- Refund-after-payout accounting policy: OUTSTANDING.
 - Final commercial release readiness: NOT CLAIMED.
 
-### Next exact task
-1. Inspect current `app/` Buyer pages and existing browser-auth/session bootstrap files.
-2. Build Buyer browser acceptance against the real backend using the established session/auth mechanism.
-3. Cover browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
-4. Run the browser acceptance workflow and fix only concrete failures.
-5. Record the result in both checkpoint files before moving to Seller/Admin browser E2E.
+### Exact next task
+1. Inspect current `main` Browser UI Acceptance workflow and its latest run; verify the port-collision fix once from authoritative mainline state.
+2. Do not touch catalog code unless a current mainline acceptance failure proves a real catalog defect.
+3. Build the missing real-backend Buyer browser acceptance on top of the existing backend/session/API implementation.
+4. Record the runtime result before moving to Seller/Admin browser coverage.
+5. Then address provider integration and refund-after-payout accounting, followed by final release hardening.
 
-### Continuation rule
-On restart, read this file and `PROJECT_STATE.md` first, inspect latest `main`, active CI/workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files.
+### Authoritative continuation
+Checkpoint commit: `3487ce910cdcea121dc18380718f47f4b44eab44`.
 
-**Latest checkpoint-doc commit:** `40f2dfa94eb813e8367ea754f095858719f6843c`.
-
-**These files and the latest repository state are the authoritative continuation source.**
-
-## 2026-08-31 — Milestone 469
-
-### Current focus
-Replace the plain static browser server with a same-origin proxy so Playwright browser tests can exercise the real Backend API.
-
-### Completed
-- Added `tests/browser-server.js`.
-- The browser server serves the repository's `/app` files on port 4173.
-- Requests under `/api/*` are proxied to the real backend at `BROWSER_BACKEND_URL` (default `http://127.0.0.1:3000`).
-- The proxy preserves browser cookies and request bodies, so browser requests remain same-origin from Playwright's point of view.
-- Updated `playwright.config.js` to launch `tests/browser-server.js` through Playwright `webServer` rather than the plain Python static server.
-- Cleaned up temporary marker files created while validating GitHub write behavior.
-
-### Verification status
-- Proxy implementation: COMMITTED.
-- Playwright configuration: COMMITTED.
-- Browser workflow file still points to the old Python static server because the GitHub contents update is returning a SHA conflict; no force-write was performed.
-- Browser E2E runtime: NOT YET VERIFIED after the routing change.
-
-### Technical decision
-Do not mark real-backend browser E2E as GREEN until the CI workflow itself starts the proxy and the Playwright suite actually passes against the real backend.
-
-### Next exact task
-1. Resolve the workflow file write conflict safely.
-2. Update `.github/workflows/browser-e2e.yml` to stop starting the Python server and set `BROWSER_BACKEND_URL`.
-3. Run the Browser E2E workflow.
-4. Fix concrete Buyer/Seller/Admin browser failures only.
-5. Record the runtime result in both checkpoint files before proceeding.
-
-## 2026-08-31 — Milestone 472
-
-### Current focus
-Fix Browser UI Acceptance CI server ownership after Playwright proxy migration.
-
-### Completed
-- Investigated Browser UI Acceptance failure `#58` / run `33378596468`.
-- CI logs showed the workflow manually started `scripts/ci-frontend-proxy.mjs` on port 4173, while `playwright.config.js` also starts `tests/browser-server.js` on the same port through `webServer`.
-- The failure was therefore a test infrastructure port collision, not an application assertion failure.
-- Updated `.github/workflows/browser-ui-acceptance.yml` to remove the manual frontend startup and readiness loop.
-- Playwright now owns startup of the configured browser test server, eliminating the duplicate process on port 4173.
-
-### Verification status
-- Browser E2E #65: GREEN.
-- Browser E2E #66: GREEN.
-- Browser UI Acceptance infrastructure fix: COMMITTED as `64d2c1133313ddb066f7fcba14fb2f3b2300090b`.
-- Browser UI Acceptance after this fix: PENDING rerun.
-- Buyer/Seller/Admin authenticated browser coverage: still OUTSTANDING.
-- Payment provider integration: OUTSTANDING.
-- Refund-after-payout accounting: OUTSTANDING.
-- Final commercial release readiness: NOT CLAIMED.
-
-### Technical decision
-Use one owner for the port 4173 browser server. Playwright `webServer` is the canonical startup path; workflows must not independently launch another server on the same port.
-
-### Next exact task
-1. Rerun Browser UI Acceptance and confirm the port collision is gone.
-2. If GREEN, continue with the remaining browser coverage and record the runtime result.
-3. Then proceed to provider integration and refund-after-payout accounting gates.
+`PROJECT_STATE.md` and this file are the authoritative continuation source. Read both before the next work cycle.
