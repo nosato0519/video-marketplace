@@ -10,10 +10,6 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
   if (!payout.rowCount) throw new Error('payout_not_found');
   if (payout.rows[0].status !== 'paid') throw new Error('payout_not_paid');
 
-  // Lock the underlying earning rows separately. PostgreSQL does not allow
-  // FOR UPDATE on the aggregate query below because it contains GROUP BY.
-  // The payout row lock above serializes payout status transitions while these
-  // earning rows are locked before settlement is evaluated.
   await db.query(
     `SELECT id
        FROM seller_earnings
@@ -26,9 +22,6 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
     [payoutId]
   );
 
-  // An earning can be paid across multiple payouts. When the current payout
-  // becomes paid, evaluate the total non-cancelled allocation across all paid
-  // or otherwise active payouts rather than only the current payout's slice.
   const allocations = await db.query(
     `SELECT a.seller_earning_id,
             e.net_amount,
