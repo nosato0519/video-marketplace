@@ -55,6 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$MEDIA_STORAGE_DIR"
+          npm run test:rate-limit
           npm run test:http-auth
           npm run test:http-seller-application
           npm run test:http-seller-product-media-e2e
