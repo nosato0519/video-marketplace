@@ -1,7 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const assert = require('assert');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 const adminIndex = fs.readFileSync(path.join(root, 'admin', 'index.html'), 'utf8');
 const dashboard = fs.readFileSync(path.join(root, 'app', 'admin', 'admin-dashboard.html'), 'utf8');
