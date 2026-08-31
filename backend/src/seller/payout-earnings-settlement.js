@@ -10,6 +10,20 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
   if (!payout.rowCount) throw new Error('payout_not_found');
   if (payout.rows[0].status !== 'paid') throw new Error('payout_not_paid');
 
+  // Lock the underlying earning rows separately. PostgreSQL does not allow
+  // FOR UPDATE on the aggregate query below because it contains GROUP BY.
+  await db.query(
+    `SELECT id
+       FROM seller_earnings
+      WHERE id IN (
+        SELECT DISTINCT seller_earning_id
+          FROM payout_earnings_allocations
+         WHERE payout_id = $1
+      )
+      FOR UPDATE`,
+    [payoutId]
+  );
+
   const allocations = await db.query(
     `SELECT a.seller_earning_id,
             e.net_amount,
@@ -17,8 +31,7 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
        FROM payout_earnings_allocations a
        JOIN seller_earnings e ON e.id = a.seller_earning_id
       WHERE a.payout_id = $1
-      GROUP BY a.seller_earning_id, e.net_amount
-      FOR UPDATE OF e`,
+      GROUP BY a.seller_earning_id, e.net_amount`,
     [payoutId]
   );
 
