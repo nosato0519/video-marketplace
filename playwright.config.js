@@ -5,7 +5,6 @@ const externalServer = process.env.PLAYWRIGHT_EXTERNAL_SERVER === '1';
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
-  testIgnore: ['**/browser-backend-seller-application.spec.js'],
   timeout: 30_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
