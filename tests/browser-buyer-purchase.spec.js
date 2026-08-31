@@ -23,7 +23,7 @@ test.describe('buyer purchase browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/library'));
-    await expect(page).toHaveURL(/#\/login\?return=%2Flibrary$/);
+    await expect(page).toHaveURL(/#\/login\?return=\/library$/);
   });
 
   test('buyer can open a product and start secure checkout', async ({ page }) => {
