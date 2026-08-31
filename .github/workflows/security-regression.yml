@@ -23,10 +23,5 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - run: npm ci
-      - run: npm test
-      - name: Verify security regression suites
-        run: |
-          node --input-type=module -e "import { runAuthorizationRegressionSuite } from './src/security/authorization-test-cases.js'; import { runAdminAccountActionRegressionSuite } from './src/security/admin-account-action-test-cases.js'; import { runAuditIntegrityRegressionSuite } from './src/security/audit-log-integrity-test-cases.js'; const suites=[runAuthorizationRegressionSuite(),runAdminAccountActionRegressionSuite(),runAuditIntegrityRegressionSuite()]; if(!suites.every(s=>s.passed ?? (s.validChainAccepted && s.tamperedChainRejected))) process.exit(1);"
+      - run: npm install
+      - run: npm run test:security-regression
