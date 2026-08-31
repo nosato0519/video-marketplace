@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 468 — Buyer authenticated browser E2E investigation checkpoint.**
+**Milestone 469 — Real-backend browser routing bridge added.**
 
 ## Latest checkpoint — 2026-08-31
 ### Completed
@@ -17,15 +17,16 @@
 - Checkout route passes selected `providerId` through to provider routing.
 - Successful payment settlement creates exactly one canonical `seller_earnings` row atomically with payment/order settlement.
 - Refund processing reverses the matching seller earning atomically with order refund and entitlement revocation; duplicate refund is idempotent.
-- **PR #8 merged to `main`** with squash merge commit `0dd062065fdcbf96355ec23adb117b64eb7e2998`.
 - Fresh Backend Regression **#644 passed**, including Unit 187/187, authentication, payment/refund, Buyer purchase, Seller application/product-media, Seller earnings/payout, Admin payout concurrency, and media authorization/upload/access checks.
 - Fresh Clean Install **#229 passed**.
 - Fresh PostgreSQL Migration Acceptance **#255 passed**.
 - Existing real HTTP Buyer purchase E2E covers DB setup, session creation, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and non-buyer denial.
 - Existing real HTTP Seller Product/Media E2E covers Seller/media/product creation, upload, draft/edit/publish, ownership isolation and post-publish edit restrictions.
-- Existing `backend-browser-acceptance.yml` provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suites, starts the backend, and runs browser acceptance.
+- Existing backend/browser CI provisions PostgreSQL, runs migrations, starts the real backend, and executes Playwright acceptance.
 - Added supplemental mock-based Seller Upload browser acceptance for upload → media API → product draft API wiring.
-- Re-read the continuation files before this checkpoint and verified that the repository does **not** currently expose the expected `tests/browser-buyer-acceptance.spec.js`; Buyer real-backend browser work therefore still needs to be built from the existing app pages/infrastructure rather than assuming a missing file exists.
+- Added `tests/browser-server.js`, a same-origin browser test server that serves `/app` and proxies `/api/*` to the real backend, preserving browser cookies and request bodies.
+- Updated `playwright.config.js` so Browser E2E uses the proxy server instead of the plain Python static server; Playwright's `webServer` facility supports launching the local test server before tests. citeturn0search0turn0search3
+- Re-read the continuation files before this checkpoint.
 
 ### Current verified status
 - Backend regression: **GREEN**.
@@ -36,19 +37,21 @@
 - Media authorization/upload/access runtime: **GREEN in #644**.
 - Real HTTP Buyer purchase/media acceptance: **IMPLEMENTED**.
 - Real HTTP Seller product/media acceptance: **IMPLEMENTED**.
-- Real backend browser CI infrastructure: **IMPLEMENTED**.
+- Browser proxy to real backend: **IMPLEMENTED locally/configured**.
+- Browser workflow migration from Python static server to proxy: **PENDING — write operation hit a GitHub contents SHA conflict and was not forced**.
 - Browser-level authenticated Buyer/Seller/Admin acceptance: **OUTSTANDING — CURRENT**.
 - Real non-Stripe provider adapters/runtime: **OUTSTANDING**.
 - Refund-after-payout accounting policy: **OUTSTANDING**.
 - Final commercial release readiness: **NOT CLAIMED**.
 
 ## Remaining work — priority order
-1. **Authenticated browser E2E — CURRENT**
-   - Build the Buyer browser acceptance against the real backend: browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
+1. **Finish real-backend Browser E2E infrastructure — CURRENT**
+   - Complete the Browser E2E workflow change so CI starts `tests/browser-server.js` through Playwright instead of the plain Python static server.
+   - Run Browser E2E and fix concrete failures only.
+   - Build Buyer browser acceptance: browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
    - Reuse the existing backend session/auth mechanism; do not invent a parallel authentication path.
    - Then exercise Seller application → product/media → dashboard → earnings/payout views against the real backend where feasible.
    - Then exercise Admin verification, moderation, and payout review flows against the real backend.
-   - Keep mock-based UI acceptance tests as supplemental coverage only.
 2. **Payment provider integration**
    - Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
    - Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
@@ -71,6 +74,6 @@
 ## Continuation rule
 On restart, read this file and `PROGRESS_LOG.md` first, inspect the latest `main` commit, active CI run(s), workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files with current status, completed work, technical decisions, remaining work, and the exact next step.
 
-**Latest main:** `0dd062065fdcbf96355ec23adb117b64eb7e2998`.
+**Latest checkpoint state:** browser proxy implementation/configuration committed; workflow write still pending due SHA conflict.
 
 **These files and the latest repository state are the authoritative continuation source.**
