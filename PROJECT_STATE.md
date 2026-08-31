@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 467 — Authenticated browser E2E checkpoint and real HTTP purchase/media verification.**
+**Milestone 468 — Buyer authenticated browser E2E investigation checkpoint.**
 
 ## Latest checkpoint — 2026-08-31
 ### Completed
@@ -21,10 +21,11 @@
 - Fresh Backend Regression **#644 passed**, including Unit 187/187, authentication, payment/refund, Buyer purchase, Seller application/product-media, Seller earnings/payout, Admin payout concurrency, and media authorization/upload/access checks.
 - Fresh Clean Install **#229 passed**.
 - Fresh PostgreSQL Migration Acceptance **#255 passed**.
-- Existing real HTTP Buyer purchase E2E verified in repository: it creates seller/buyer/media/product/session data, performs a real order, signed payment webhook, checks paid order + Library entitlement, downloads protected media, and verifies a non-buyer is denied.
-- Existing real HTTP Seller Product/Media E2E verified in repository: real Seller/media/product creation, upload, draft/edit/publish, ownership isolation and post-publish edit restrictions are covered.
-- Existing `backend-browser-acceptance.yml` CI environment provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suites, starts the real backend, and runs a real-browser acceptance test.
-- Added a browser-level Seller Upload acceptance spec (`tests/browser-seller-upload-acceptance.spec.js`) covering browser upload → media API → product draft API wiring. This test currently uses API mocks and is supplemental, not a replacement for the real HTTP E2E.
+- Existing real HTTP Buyer purchase E2E covers DB setup, session creation, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and non-buyer denial.
+- Existing real HTTP Seller Product/Media E2E covers Seller/media/product creation, upload, draft/edit/publish, ownership isolation and post-publish edit restrictions.
+- Existing `backend-browser-acceptance.yml` provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suites, starts the backend, and runs browser acceptance.
+- Added supplemental mock-based Seller Upload browser acceptance for upload → media API → product draft API wiring.
+- Re-read the continuation files before this checkpoint and verified that the repository does **not** currently expose the expected `tests/browser-buyer-acceptance.spec.js`; Buyer real-backend browser work therefore still needs to be built from the existing app pages/infrastructure rather than assuming a missing file exists.
 
 ### Current verified status
 - Backend regression: **GREEN**.
@@ -35,16 +36,18 @@
 - Media authorization/upload/access runtime: **GREEN in #644**.
 - Real HTTP Buyer purchase/media acceptance: **IMPLEMENTED**.
 - Real HTTP Seller product/media acceptance: **IMPLEMENTED**.
-- Browser-level authenticated Buyer/Seller/Admin acceptance: **OUTSTANDING**.
+- Real backend browser CI infrastructure: **IMPLEMENTED**.
+- Browser-level authenticated Buyer/Seller/Admin acceptance: **OUTSTANDING — CURRENT**.
 - Real non-Stripe provider adapters/runtime: **OUTSTANDING**.
 - Refund-after-payout accounting policy: **OUTSTANDING**.
 - Final commercial release readiness: **NOT CLAIMED**.
 
 ## Remaining work — priority order
 1. **Authenticated browser E2E — CURRENT**
-   - Convert/extend browser acceptance so Buyer browse → product detail → purchase/session → Account/Orders/Library → protected watch/download is exercised against the real backend.
-   - Exercise Seller application → product/media → dashboard → earnings/payout views against the real backend where feasible.
-   - Exercise Admin verification, moderation, and payout review flows against the real backend.
+   - Build the Buyer browser acceptance against the real backend: browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
+   - Reuse the existing backend session/auth mechanism; do not invent a parallel authentication path.
+   - Then exercise Seller application → product/media → dashboard → earnings/payout views against the real backend where feasible.
+   - Then exercise Admin verification, moderation, and payout review flows against the real backend.
    - Keep mock-based UI acceptance tests as supplemental coverage only.
 2. **Payment provider integration**
    - Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
