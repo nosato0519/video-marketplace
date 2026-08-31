@@ -1,0 +1,1 @@
+Milestone 472: acceptance workflows need single Playwright-managed browser server.
