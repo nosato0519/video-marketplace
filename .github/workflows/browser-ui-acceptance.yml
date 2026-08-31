@@ -2,7 +2,7 @@ name: Browser UI Acceptance
 
 on:
   push:
-    branches: [feat/buyer-browser-e2e]
+    branches: [main, feat/buyer-browser-e2e]
   pull_request:
     branches: [main]
   workflow_dispatch:
