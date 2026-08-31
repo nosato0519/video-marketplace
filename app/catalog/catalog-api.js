@@ -20,3 +20,20 @@ export async function fetchCatalog({ apiBase = DEFAULT_API_BASE, locale = 'en', 
 
   return response.json();
 }
+
+export async function fetchProduct(id, { apiBase = DEFAULT_API_BASE, locale = 'en', signal } = {}) {
+  const qs = query({ locale });
+  const response = await fetch(`${apiBase}/api/catalog/products/${encodeURIComponent(id)}?${qs}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    signal
+  });
+
+  if (!response.ok) {
+    const error = new Error(`PRODUCT_REQUEST_FAILED_${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
+}
