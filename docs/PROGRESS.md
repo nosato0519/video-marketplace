@@ -1,10 +1,10 @@
 # Project Progress Ledger
 
-Last updated: 2026-08-30
+Last updated: 2026-08-31
 
-## Rule: do not redo completed work
+## Rule: continue from existing work; do not waste time recreating it
 
-Items marked PASS are considered completed and must not be reimplemented or recreated unless a later regression proves they are broken.
+Existing work must be inspected and reused before creating anything new. A completed item may be modified or repaired if a regression, integration issue, or later requirement proves it needs changes. However, never restart or recreate an already-built feature merely because the previous progress was forgotten or not recorded.
 
 ## Confirmed PASS
 
@@ -21,6 +21,8 @@ Items marked PASS are considered completed and must not be reimplemented or recr
 - Seller application (historical Backend Regression PASS)
 - Seller product/media (historical Backend Regression PASS)
 
+These items are existing completed work. Reuse and verify them as needed; do not rebuild them from scratch unless a later regression demonstrates that rebuilding/fixing is actually required.
+
 ## Known regression state
 
 Historical Backend Regression run `33258384757` reached the application tests. The unit-test stage reported 186/187 passing and failed on `completePayment uses order_id as the entitlement idempotency key` because the `entitlements` table did not contain `granted_at`. Subsequent E2E stages were skipped because the unit-test stage failed.
@@ -32,7 +34,7 @@ PR #8 is an open/mergeable CI marker PR. Its changed files are `ci/entitlement-s
 ## Remaining work
 
 1. Inspect the actual `completePayment` implementation and canonical `entitlements` migration/schema.
-2. Make the minimum code/schema correction for the `granted_at` mismatch.
+2. Reuse the existing implementation and make only the minimum correction required for the `granted_at` mismatch.
 3. Run a fresh Backend Regression and record the result.
 4. If unit tests pass, verify the previously skipped payout/admin/media E2E stages.
 5. Run final regression.
@@ -45,4 +47,4 @@ The available GitHub connector has not yet exposed the implementation files need
 
 ## Continuation rule
 
-On the next session, start by reading this file and the current PR/CI state. Do not recreate any item in the PASS list. Continue from the `granted_at` schema mismatch investigation, then run fresh CI. Do not claim completion based on a target number of turns; completion requires green CI and merge to `main`.
+On every new session, first read this file and inspect the current PR/CI state. Treat this ledger as the continuation point. Identify what already exists before writing new code. Reuse existing work and continue from the first genuinely unfinished or failing item. Do not recreate completed features simply because the previous work is not immediately visible in chat history. Completion requires green final CI and the required merge to `main`; do not estimate completion by an arbitrary number of turns.
