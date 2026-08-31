@@ -32,6 +32,7 @@
     "test:http-seller-application": "node scripts/http-seller-application-acceptance.js",
     "test:admin-payout-concurrency-regression": "node scripts/admin-payout-concurrency-regression.js",
     "test:security-regression": "node --test src/security/security-regression.test.js",
+    "test:rate-limit": "node --test src/rate-limit.test.js",
     "test": "node --test src/**/*.test.js"
   },
   "engines": { "node": ">=20" },
