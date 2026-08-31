@@ -25,7 +25,7 @@
 - Existing backend/browser CI provisions PostgreSQL, runs migrations, starts the real backend, and executes Playwright acceptance.
 - Added supplemental mock-based Seller Upload browser acceptance for upload → media API → product draft API wiring.
 - Added `tests/browser-server.js`, a same-origin browser test server that serves `/app` and proxies `/api/*` to the real backend, preserving browser cookies and request bodies.
-- Updated `playwright.config.js` so Browser E2E uses the proxy server instead of the plain Python static server; Playwright's `webServer` facility supports launching the local test server before tests. citeturn0search0turn0search3
+- Updated `playwright.config.js` so Browser E2E uses the proxy server instead of the plain Python static server. Playwright supports launching one or more local web servers before tests through `webServer` configuration.
 - Re-read the continuation files before this checkpoint.
 
 ### Current verified status
@@ -38,7 +38,7 @@
 - Real HTTP Buyer purchase/media acceptance: **IMPLEMENTED**.
 - Real HTTP Seller product/media acceptance: **IMPLEMENTED**.
 - Browser proxy to real backend: **IMPLEMENTED locally/configured**.
-- Browser workflow migration from Python static server to proxy: **PENDING — write operation hit a GitHub contents SHA conflict and was not forced**.
+- Browser workflow migration from Python static server to proxy: **PENDING — GitHub contents update is currently returning a SHA conflict and has not been forced**.
 - Browser-level authenticated Buyer/Seller/Admin acceptance: **OUTSTANDING — CURRENT**.
 - Real non-Stripe provider adapters/runtime: **OUTSTANDING**.
 - Refund-after-payout accounting policy: **OUTSTANDING**.
