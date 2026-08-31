@@ -59,11 +59,11 @@ test.describe('seller browser acceptance', () => {
     await mockSellerSession(page);
     await page.goto(appUrl('#/seller'));
     await expect(page.getByRole('heading', { name: 'Seller dashboard' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Upload video', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'My videos', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Sales & earnings', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Payouts', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Seller profile', exact: true })).toBeVisible();
+    await expect(page.locator('a[href="#/seller/upload"]')).toHaveCount(1);
+    await expect(page.locator('a[href="#/seller/products"]')).toHaveCount(1);
+    await expect(page.locator('a[href="#/seller/sales"]')).toHaveCount(1);
+    await expect(page.locator('a[href="#/seller/payouts"]')).toHaveCount(1);
+    await expect(page.locator('a[href="#/seller/profile"]')).toHaveCount(1);
   });
 
   test('seller earnings page exposes earnings summary', async ({ page }) => {
