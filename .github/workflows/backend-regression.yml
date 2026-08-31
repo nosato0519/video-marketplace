@@ -52,6 +52,8 @@ jobs:
       - name: Run backup and restore round-trip acceptance
         run: npm run test:backup-restore-acceptance
       - run: npm test
+      - name: Run rate limit regression
+        run: npm run test:rate-limit
       - name: Run authentication HTTP acceptance
         run: npm run test:http-auth
       - name: Run payment webhook acceptance
