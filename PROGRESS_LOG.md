@@ -48,3 +48,32 @@ On restart, read this file and `PROJECT_STATE.md` first, inspect latest `main`, 
 **Latest checkpoint-doc commit:** `40f2dfa94eb813e8367ea754f095858719f6843c`.
 
 **These files and the latest repository state are the authoritative continuation source.**
+
+## 2026-08-31 — Milestone 469
+
+### Current focus
+Replace the plain static browser server with a same-origin proxy so Playwright browser tests can exercise the real Backend API.
+
+### Completed
+- Added `tests/browser-server.js`.
+- The browser server serves the repository's `/app` files on port 4173.
+- Requests under `/api/*` are proxied to the real backend at `BROWSER_BACKEND_URL` (default `http://127.0.0.1:3000`).
+- The proxy preserves browser cookies and request bodies, so browser requests remain same-origin from Playwright's point of view.
+- Updated `playwright.config.js` to launch `tests/browser-server.js` through Playwright `webServer` rather than the plain Python static server.
+- Cleaned up temporary marker files created while validating GitHub write behavior.
+
+### Verification status
+- Proxy implementation: COMMITTED.
+- Playwright configuration: COMMITTED.
+- Browser workflow file still points to the old Python static server because the GitHub contents update is returning a SHA conflict; no force-write was performed.
+- Browser E2E runtime: NOT YET VERIFIED after the routing change.
+
+### Technical decision
+Do not mark real-backend browser E2E as GREEN until the CI workflow itself starts the proxy and the Playwright suite actually passes against the real backend.
+
+### Next exact task
+1. Resolve the workflow file write conflict safely.
+2. Update `.github/workflows/browser-e2e.yml` to stop starting the Python server and set `BROWSER_BACKEND_URL`.
+3. Run the Browser E2E workflow.
+4. Fix concrete Buyer/Seller/Admin browser failures only.
+5. Record the runtime result in both checkpoint files before proceeding.
