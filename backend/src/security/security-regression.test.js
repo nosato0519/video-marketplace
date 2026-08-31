@@ -4,6 +4,7 @@ import { runAuthorizationRegressionSuite } from './authorization-test-cases.js';
 import { runAdminAccountActionRegressionSuite } from './admin-account-action-test-cases.js';
 import { runAuditIntegrityRegressionSuite } from './audit-log-integrity-test-cases.js';
 
+// CI checkpoint: this single executable test is the canonical security gate.
 test('authorization regression suite passes', () => {
   const result = runAuthorizationRegressionSuite();
   assert.equal(result.passed, true);
