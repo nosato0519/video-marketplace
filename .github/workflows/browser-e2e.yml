@@ -10,7 +10,29 @@ on:
 jobs:
   browser-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: video_marketplace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d video_marketplace_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace_test
+      SESSION_SECRET: ci-session-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+      MEDIA_STORAGE_PROVIDER: local
+      MEDIA_STORAGE_DIR: ${{ github.workspace }}/backend/media-data
+      MEDIA_URL_SECRET: ci-media-url-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+      NODE_ENV: test
+      PORT: 3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,14 +45,42 @@ jobs:
       - name: Install browser test dependencies
         run: npm install
 
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run backend migrations
+        working-directory: backend
+        run: npm run migrate
+
+      - name: Start backend API
+        working-directory: backend
+        run: nohup npm run start > /tmp/video-marketplace-api.log 2>&1 &
+
+      - name: Wait for backend health
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/video-marketplace-api.log
+          exit 1
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Validate test discovery
         run: npx playwright test --list
 
-      - name: Run browser E2E
-        run: npm run test:e2e
+      - name: Run browser E2E against backend
+        env:
+          PLAYWRIGHT_EXTERNAL_SERVER: '1'
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
+        run: |
+          nohup python -m http.server 4173 --directory . > /tmp/video-marketplace-web.log 2>&1 &
+          npm run test:e2e
 
       - name: Upload Playwright report
         if: always()
@@ -46,4 +96,12 @@ jobs:
         with:
           name: playwright-test-results
           path: test-results/
+          if-no-files-found: ignore
+
+      - name: Upload backend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: /tmp/video-marketplace-api.log
           if-no-files-found: ignore
