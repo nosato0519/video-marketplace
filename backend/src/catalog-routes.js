@@ -1,6 +1,19 @@
-import { listCatalog } from './catalog.js';
+import { getCatalogProduct, listCatalog } from './catalog.js';
 
 export function registerCatalogRoutes(app) {
+  app.get('/api/catalog/products/:id', async (req, res, next) => {
+    try {
+      const product = await getCatalogProduct({
+        id: req.params.id,
+        locale: typeof req.query.locale === 'string' ? req.query.locale : 'en'
+      });
+      if (!product) return res.status(404).json({ error: { code: 'PRODUCT_NOT_FOUND', message: 'Product not found' } });
+      return res.json({ data: product });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   app.get('/api/catalog/products', async (req, res, next) => {
     try {
       const result = await listCatalog({
