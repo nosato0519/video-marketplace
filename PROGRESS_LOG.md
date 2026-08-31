@@ -1,52 +1,50 @@
 # Development Progress Log
 
-## 2026-08-31 — Milestone 467
+## 2026-08-31 — Milestone 468
 
 ### Current focus
-Authenticated browser E2E checkpoint, with existing real HTTP Buyer/Seller/Media acceptance coverage reconciled against the project state.
+Buyer authenticated browser E2E investigation checkpoint.
 
 ### Completed
-- Re-read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before continuing, per the continuation rule.
-- Confirmed Backend Regression #644, Clean Install #229, and PostgreSQL Migration Acceptance #255 remain the latest recorded GREEN gates.
-- Confirmed the repository already contains a real HTTP Seller Product/Media E2E covering Seller/media/product creation, upload, draft/edit/publish, ownership isolation, and post-publish edit restrictions.
-- Confirmed the repository already contains a real HTTP Buyer purchase E2E covering real DB setup, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and denial for a non-buyer.
-- Confirmed `.github/workflows/backend-browser-acceptance.yml` provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suite, starts the backend, and runs a real-browser acceptance test.
-- Added `tests/browser-seller-upload-acceptance.spec.js` as supplemental browser wiring coverage for Upload → Media API → Product Draft API. It intentionally remains mock-based and is not treated as the real E2E gate.
-- Corrected the project checkpoint documentation so the authoritative state explicitly records the above real HTTP coverage and the remaining browser-level work.
+- Re-read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before continuing, following the continuation rule.
+- Reconfirmed Backend Regression #644, Clean Install #229, and PostgreSQL Migration Acceptance #255 as the latest recorded GREEN gates.
+- Reconfirmed the existing real HTTP Buyer purchase E2E covers DB setup, session creation, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and non-buyer denial.
+- Reconfirmed the existing real HTTP Seller Product/Media E2E and PostgreSQL-backed browser CI infrastructure.
+- Investigated the expected `tests/browser-buyer-acceptance.spec.js`; it is not present on `main`, so no existing Buyer browser test was falsely treated as complete.
+- Updated `PROJECT_STATE.md` to make this finding and the remaining Buyer browser work authoritative.
 
 ### Important technical decisions
-- Do not duplicate an existing real HTTP E2E merely because a browser mock test is missing.
-- Distinguish clearly between mock-based browser acceptance and real-backend/PostgreSQL E2E; only the latter proves backend integration.
-- Keep the supplemental Seller Upload browser spec, but do not claim it proves Storage/DB integration.
-- The next browser work should focus on authenticated browser flows against the real backend, especially Buyer purchase → Library → protected watch/download, followed by Seller and Admin authenticated journeys.
+- Do not claim authenticated browser E2E completion from backend HTTP E2E alone.
+- Do not invent a browser authentication/session helper when the repository already has an established backend session mechanism.
+- Do not create duplicate mock tests merely to make the browser milestone appear complete.
+- Preserve the existing real HTTP Buyer acceptance as the backend integration gate and add browser coverage on top of it.
 
 ### Verification status
 - Backend regression: GREEN (#644).
 - Clean Install: GREEN (#229).
-- PostgreSQL migration acceptance: GREEN (#255).
+- PostgreSQL Migration Acceptance: GREEN (#255).
 - Seller payout settlement: runtime-verified GREEN in #644.
 - Admin payout concurrency: runtime-verified GREEN in #644.
 - Media authorization/upload/access: runtime-verified GREEN in #644.
 - Real HTTP Seller product/media acceptance: IMPLEMENTED.
 - Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
 - Real backend browser CI infrastructure: IMPLEMENTED.
-- Browser-level authenticated Buyer/Seller/Admin acceptance: OUTSTANDING.
+- Browser-level authenticated Buyer/Seller/Admin acceptance: OUTSTANDING — CURRENT.
 - Checkout provider HTTP contract/provider consistency: OUTSTANDING.
 - Real PayPal/Adyen/Paddle/PayPay adapters: OUTSTANDING.
 - Refund-after-payout accounting: OUTSTANDING.
 - Final commercial release readiness: NOT CLAIMED.
 
 ### Next exact task
-1. Inspect the existing real HTTP Buyer purchase E2E and current browser Buyer pages together.
-2. Add a real-backend browser Buyer acceptance flow using the CI PostgreSQL/backend environment, reusing the established session/auth mechanism rather than inventing a new one.
+1. Inspect current `app/` Buyer pages and existing browser-auth/session bootstrap files.
+2. Build Buyer browser acceptance against the real backend using the established session/auth mechanism.
 3. Cover browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
 4. Run the browser acceptance workflow and fix only concrete failures.
-5. Then implement equivalent real-backend Seller and Admin browser acceptance where required.
-6. After authenticated browser E2E is GREEN, return to payment-provider and refund-after-payout hardening.
+5. Record the result in both checkpoint files before moving to Seller/Admin browser E2E.
 
 ### Continuation rule
 On restart, read this file and `PROJECT_STATE.md` first, inspect latest `main`, active CI/workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files.
 
-**Latest checkpoint-doc commit:** `5d454517c3b53f60f44b695a19264318f3908d91`.
+**Latest checkpoint-doc commit:** `40f2dfa94eb813e8367ea754f095858719f6843c`.
 
 **These files and the latest repository state are the authoritative continuation source.**
