@@ -80,6 +80,16 @@ router.post('/payouts/:id/status', async (req, res, next) => {
         [req.params.id, nextStatus, req.user.id, reason]
       );
 
+      if (nextStatus === 'cancelled') {
+        // A cancelled payout no longer consumes seller-earning balance. Remove
+        // its allocation so the allocation ledger represents only active/paid
+        // consumption and a later payout can reuse the released amount.
+        await db.query(
+          `DELETE FROM payout_earnings_allocations WHERE payout_id = $1`,
+          [req.params.id]
+        );
+      }
+
       if (nextStatus === 'paid') {
         await settlePaidPayoutEarnings(db, req.params.id);
       }
