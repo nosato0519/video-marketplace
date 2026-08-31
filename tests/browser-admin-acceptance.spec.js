@@ -45,7 +45,7 @@ test.describe('admin browser acceptance', () => {
 
   test('authenticated admin can open the connected payouts module', async ({ page }) => {
     await mockAdminSession(page);
-    await page.route('**/api/admin/payouts?status=pending', async (route) => {
+    await page.route('**/api/admin/payouts', async (route) => {
       await fulfillJson(route, {
         payouts: [{
           id: 'payout-1',
