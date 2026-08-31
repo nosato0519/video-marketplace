@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 475 — Real catalog-backed Buyer product detail.**
+**Milestone 476 — End-of-day continuation checkpoint.**
 
 ## Latest checkpoint — 2026-08-31
 ### Completed
@@ -30,8 +30,11 @@
 - Added `app/catalog/product-detail-api.js` to consume the real product-detail endpoint.
 - Updated `app/main.js` Product Detail to load/render the real backend product and removed its demo-product lookup/fallback.
 
-### Important correction
-- The prior assumption that the current mainline catalog was still entirely demo-backed was only partly correct: the backend and catalog-view already had API-backed listing, while the legacy `catalog.js` demo module remained as fallback/category data and the Product Detail route still used it directly. This milestone fixes the real Product Detail path without rebuilding the already-existing catalog backend.
+### Important corrections / process
+- `main` is authoritative; stale PR branches and old TODOs are not the source of truth.
+- Catalog backend/listing work must not be recreated; commit history confirmed those pieces already exist.
+- Product Detail was the actual demo-backed gap found and addressed in Milestone 475.
+- The anti-duplication protocol is mandatory: inspect current main, search history, advance a concrete acceptance criterion, and record the result before moving on.
 
 ### Current verified status
 - Backend regression: GREEN (#644).
@@ -53,11 +56,11 @@
 - Final commercial release readiness: NOT CLAIMED.
 
 ## Remaining work — priority order
-1. **Buyer real-backend browser acceptance — CURRENT**
+1. **Buyer real-backend browser acceptance — NEXT**
    - Verify Browse loads API products without demo fallback in the acceptance environment.
    - Verify clicking an API product opens real Product Detail.
-   - Verify login/session → purchase intent → order → checkout → Library → protected Watch/Download using a test fixture/product.
-   - Keep the test deterministic; seed only required DB data rather than relying on demo IDs.
+   - Verify login/session → purchase intent → order → checkout → Library → protected Watch/Download using a deterministic DB fixture/product.
+   - Reuse existing backend Buyer HTTP E2E setup; do not rebuild existing purchase APIs.
 2. **Seller/Admin browser acceptance**
    - Exercise Seller application/product/media/dashboard/earnings/payout flows against the real backend where feasible.
    - Exercise Admin verification/moderation/payout review against the real backend.
@@ -80,12 +83,12 @@
 2. Inspect the latest `main` commit before relying on any older branch or PR.
 3. Search commit history before implementing a feature named in an old TODO; an existing implementation is not to be recreated.
 4. Treat the latest `main` state plus these checkpoint files as authoritative; stale PR branches are evidence only.
-5. Before editing, state internally what exact acceptance criterion is being advanced. If no criterion advances, do not make a code change.
+5. Before editing, identify the exact acceptance criterion being advanced. If no criterion advances, do not make a code change.
 6. After every meaningful change, record exact files/commit, verification result, remaining gap, and exact next action in both checkpoint files.
-7. Never claim GREEN from an implementation alone; require relevant runtime/CI evidence.
+7. Never claim GREEN from implementation alone; require runtime/CI evidence.
 8. Never force-update a branch when the SHA has moved. Rebase/merge or create a new safe branch instead.
 9. If a previous task description conflicts with current code, current mainline code wins; correct the checkpoint rather than repeating the old task.
 
-**Latest checkpoint:** `d1506f7d262a55c4c2c9d880f850d8ff010322ba` for Product Detail, followed by this state record update.
+**Exact next starting point:** Start from current `main` and verify the new Product Detail path once. Then extend the existing deterministic Buyer HTTP fixture into a real-browser flow. Do not revisit catalog API implementation unless the current acceptance test proves a defect.
 
 **These files and the latest repository state are the authoritative continuation source.**
