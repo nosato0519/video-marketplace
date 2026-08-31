@@ -62,9 +62,22 @@ router.get('/payouts', async (req, res, next) => {
       })
     );
 
+    // Keep the currency-specific view while exposing the default JPY totals at
+    // the response contract used by the seller earnings/payout E2E.
+    const defaultSummary = summaryByCurrency.JPY || {
+      available: 0,
+      pending: 0,
+      withdrawable: 0,
+    };
+
     return res.json({
       payouts: result.rows,
-      summary: summaryByCurrency,
+      summary: {
+        available: defaultSummary.available,
+        pending: defaultSummary.pending,
+        withdrawable: defaultSummary.withdrawable,
+        ...summaryByCurrency,
+      },
     });
   } catch (error) { return next(error); }
 });
