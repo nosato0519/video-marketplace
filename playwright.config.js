@@ -15,4 +15,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     ...devices['Desktop Chrome'],
   },
+  webServer: {
+    command: 'python -m http.server 4173 --directory .',
+    url: 'http://127.0.0.1:4173/app/index.html',
+    reuseExistingServer: !process.env.CI,
+    timeout: 30_000,
+  },
 });
