@@ -21,8 +21,8 @@ Buyer authenticated browser E2E investigation checkpoint.
 
 ### Verification status
 - Backend regression: GREEN (#644).
-- Clean Install: GREEN (#229).
-- PostgreSQL Migration Acceptance: GREEN (#255).
+- Clean install: GREEN (#229).
+- PostgreSQL migration acceptance: GREEN (#255).
 - Seller payout settlement: runtime-verified GREEN in #644.
 - Admin payout concurrency: runtime-verified GREEN in #644.
 - Media authorization/upload/access: runtime-verified GREEN in #644.
@@ -77,3 +77,33 @@ Do not mark real-backend browser E2E as GREEN until the CI workflow itself start
 3. Run the Browser E2E workflow.
 4. Fix concrete Buyer/Seller/Admin browser failures only.
 5. Record the runtime result in both checkpoint files before proceeding.
+
+## 2026-08-31 — Milestone 472
+
+### Current focus
+Fix Browser UI Acceptance CI server ownership after Playwright proxy migration.
+
+### Completed
+- Investigated Browser UI Acceptance failure `#58` / run `33378596468`.
+- CI logs showed the workflow manually started `scripts/ci-frontend-proxy.mjs` on port 4173, while `playwright.config.js` also starts `tests/browser-server.js` on the same port through `webServer`.
+- The failure was therefore a test infrastructure port collision, not an application assertion failure.
+- Updated `.github/workflows/browser-ui-acceptance.yml` to remove the manual frontend startup and readiness loop.
+- Playwright now owns startup of the configured browser test server, eliminating the duplicate process on port 4173.
+
+### Verification status
+- Browser E2E #65: GREEN.
+- Browser E2E #66: GREEN.
+- Browser UI Acceptance infrastructure fix: COMMITTED as `64d2c1133313ddb066f7fcba14fb2f3b2300090b`.
+- Browser UI Acceptance after this fix: PENDING rerun.
+- Buyer/Seller/Admin authenticated browser coverage: still OUTSTANDING.
+- Payment provider integration: OUTSTANDING.
+- Refund-after-payout accounting: OUTSTANDING.
+- Final commercial release readiness: NOT CLAIMED.
+
+### Technical decision
+Use one owner for the port 4173 browser server. Playwright `webServer` is the canonical startup path; workflows must not independently launch another server on the same port.
+
+### Next exact task
+1. Rerun Browser UI Acceptance and confirm the port collision is gone.
+2. If GREEN, continue with the remaining browser coverage and record the runtime result.
+3. Then proceed to provider integration and refund-after-payout accounting gates.
