@@ -1,33 +1,35 @@
 # Development Progress Log
 
-## 2026-08-31 — Milestone 466
+## 2026-08-31 — Milestone 467
 
 ### Current focus
-Post-payout-merge checkpoint and authenticated browser E2E preparation.
+Authenticated browser E2E checkpoint, with existing real HTTP Buyer/Seller/Media acceptance coverage reconciled against the project state.
 
 ### Completed
-- Seller payout allocation provenance and payout-paid settlement implemented and validated.
-- Cancelled payout allocations no longer consume withdrawable balance.
-- Backend Regression #644 passed all covered backend acceptance flows, including 187 unit tests, auth, payments/refunds, Buyer purchase, Seller application/product-media, Seller earnings/payout, Admin payout concurrency, and media authorization/upload/access.
-- Clean Install #229 passed.
-- PostgreSQL Migration Acceptance #255 passed.
-- PR #8 was squash-merged to `main` as `0dd062065fdcbf96355ec23adb117b64eb7e2998`.
-- Updated `PROJECT_STATE.md` to make the post-merge state the authoritative continuation checkpoint.
+- Re-read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before continuing, per the continuation rule.
+- Confirmed Backend Regression #644, Clean Install #229, and PostgreSQL Migration Acceptance #255 remain the latest recorded GREEN gates.
+- Confirmed the repository already contains a real HTTP Seller Product/Media E2E covering Seller/media/product creation, upload, draft/edit/publish, ownership isolation, and post-publish edit restrictions.
+- Confirmed the repository already contains a real HTTP Buyer purchase E2E covering real DB setup, order creation, signed payment webhook settlement, paid order, Library entitlement, protected media download, and denial for a non-buyer.
+- Confirmed `.github/workflows/backend-browser-acceptance.yml` provisions PostgreSQL, runs migrations, executes the real HTTP Seller/Buyer/Media/payment/security acceptance suite, starts the backend, and runs a real-browser acceptance test.
+- Added `tests/browser-seller-upload-acceptance.spec.js` as supplemental browser wiring coverage for Upload → Media API → Product Draft API. It intentionally remains mock-based and is not treated as the real E2E gate.
+- Corrected the project checkpoint documentation so the authoritative state explicitly records the above real HTTP coverage and the remaining browser-level work.
 
-### Important financial design decisions
-- Payout allocations are the provenance layer; an earning becomes `paid` only when cumulative allocations from paid payouts cover its full `net_amount`.
-- Cancelled payouts must not consume withdrawable balance.
-- Refunded earnings are excluded from payout eligibility.
-- Refunds after an earning has already been paid out still require a recovery/receivable policy before commercial release.
-- `seller_earnings.platform_fee` remains explicitly `0`; no configurable commercial fee policy is wired yet.
+### Important technical decisions
+- Do not duplicate an existing real HTTP E2E merely because a browser mock test is missing.
+- Distinguish clearly between mock-based browser acceptance and real-backend/PostgreSQL E2E; only the latter proves backend integration.
+- Keep the supplemental Seller Upload browser spec, but do not claim it proves Storage/DB integration.
+- The next browser work should focus on authenticated browser flows against the real backend, especially Buyer purchase → Library → protected watch/download, followed by Seller and Admin authenticated journeys.
 
 ### Verification status
 - Backend regression: GREEN (#644).
-- Clean install: GREEN (#229).
+- Clean Install: GREEN (#229).
 - PostgreSQL migration acceptance: GREEN (#255).
 - Seller payout settlement: runtime-verified GREEN in #644.
 - Admin payout concurrency: runtime-verified GREEN in #644.
 - Media authorization/upload/access: runtime-verified GREEN in #644.
+- Real HTTP Seller product/media acceptance: IMPLEMENTED.
+- Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
+- Real backend browser CI infrastructure: IMPLEMENTED.
 - Browser-level authenticated Buyer/Seller/Admin acceptance: OUTSTANDING.
 - Checkout provider HTTP contract/provider consistency: OUTSTANDING.
 - Real PayPal/Adyen/Paddle/PayPay adapters: OUTSTANDING.
@@ -35,17 +37,16 @@ Post-payout-merge checkpoint and authenticated browser E2E preparation.
 - Final commercial release readiness: NOT CLAIMED.
 
 ### Next exact task
-1. Inspect existing `app/` browser pages and Playwright/CI browser infrastructure.
-2. Add Buyer browser E2E: browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
-3. Add Seller browser E2E: application → product/media → dashboard → earnings/payout.
-4. Add Admin browser E2E: verification → moderation → payout review.
-5. Run browser acceptance in CI and fix exact failures only.
-6. Then return to provider integration and refund-after-payout accounting hardening.
+1. Inspect the existing real HTTP Buyer purchase E2E and current browser Buyer pages together.
+2. Add a real-backend browser Buyer acceptance flow using the CI PostgreSQL/backend environment, reusing the established session/auth mechanism rather than inventing a new one.
+3. Cover browse → product detail → purchase/session → Account/Orders/Library → protected watch/download.
+4. Run the browser acceptance workflow and fix only concrete failures.
+5. Then implement equivalent real-backend Seller and Admin browser acceptance where required.
+6. After authenticated browser E2E is GREEN, return to payment-provider and refund-after-payout hardening.
 
 ### Continuation rule
 On restart, read this file and `PROJECT_STATE.md` first, inspect latest `main`, active CI/workflow runs, and repository tree, then continue from the latest saved state. After every meaningful milestone, update both checkpoint files.
 
-**Latest functional main:** `0dd062065fdcbf96355ec23adb117b64eb7e2998` before this checkpoint-doc commit.
-**Checkpoint-doc commit:** `5dbe5bcc406aba4caa11747a8ab4865d8c90927e`.
+**Latest checkpoint-doc commit:** `5d454517c3b53f60f44b695a19264318f3908d91`.
 
 **These files and the latest repository state are the authoritative continuation source.**
