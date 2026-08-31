@@ -2,10 +2,12 @@ name: Backend Browser Acceptance
 
 on:
   push:
-    branches: [feat/seller-application]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
-# Trigger CI from the current branch state.
+# Run the real backend browser acceptance test against the current main/PR state.
 # E2E uses CI-only media security configuration.
 jobs:
   backend-browser-acceptance:
