@@ -1,0 +1,42 @@
+name: Seller Browser Acceptance
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - 'tests/browser-seller-acceptance.spec.js'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/seller-browser-acceptance.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'tests/browser-seller-acceptance.spec.js'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/seller-browser-acceptance.yml'
+  workflow_dispatch:
+
+jobs:
+  seller-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save @playwright/test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start frontend
+        env:
+          PORT: 4173
+        run: node scripts/ci-frontend-proxy.mjs > /tmp/video-marketplace-web.log 2>&1 &
+      - name: Wait for frontend
+        run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:4173/app/index.html',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>30){clearInterval(t);process.exit(1)}},500)"
+      - name: Run Seller browser acceptance
+        run: npx playwright test tests/browser-seller-acceptance.spec.js --reporter=line
+      - name: Dump frontend logs on failure
+        if: failure()
+        run: cat /tmp/video-marketplace-web.log || true
