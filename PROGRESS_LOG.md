@@ -1,5 +1,49 @@
 # Development Progress Log
 
+## 2026-08-31 — Milestone 476
+
+### End-of-day checkpoint
+- No new feature implementation was made in this final session; the purpose was to establish a precise continuation point and prevent duplicate work.
+- `PROJECT_STATE.md` and this log now explicitly identify the next acceptance criterion: verify the real-backend Product Detail path, then extend the existing deterministic Buyer HTTP fixture into a real-browser Buyer flow.
+- The current mainline is authoritative. Older Browser E2E PR branches must not be treated as current state.
+- Existing catalog API/listing and backend Buyer purchase/media E2E are already implemented and must be reused, not rebuilt.
+- Product Detail real-backend integration was implemented in Milestone 475, but runtime browser verification remains pending.
+
+### Verified status carried forward
+- Backend Regression #644: GREEN.
+- Clean Install #229: GREEN.
+- PostgreSQL Migration Acceptance #255: GREEN.
+- Browser E2E #65/#66: GREEN.
+- Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
+- Real HTTP Seller product/media acceptance: IMPLEMENTED.
+- Browser same-origin proxy to real backend: IMPLEMENTED.
+- Product Detail real API path: IMPLEMENTED; runtime verification pending.
+- Browser UI Acceptance infrastructure fix: COMMITTED; authoritative current-main runtime verification pending.
+
+### Remaining work
+1. Buyer real-backend browser acceptance: Browse → real Product Detail → authenticated session → purchase/checkout → Order/Library → protected Watch/Download.
+2. Seller/Admin real-backend browser acceptance.
+3. Payment provider integration/contract verification, including supported-provider scope.
+4. Refund-after-payout accounting policy and implementation.
+5. Release hardening: upgrade matrix, provider/secrets readiness, backup/restore drill, security review, final browser gate.
+
+### Anti-duplication rules
+- Read `PROJECT_STATE.md` and this log before every work cycle.
+- Check latest `main` and search commit history before implementing anything described by an old TODO.
+- If the feature already exists, do not recreate it.
+- Only make a code change when it advances a specific acceptance criterion.
+- Record exact implementation, verification result, remaining gap, and next action after meaningful work.
+- Never force-update a moved branch.
+- Never call a feature GREEN without runtime/CI evidence.
+
+### Exact next action for the next session
+**Start at current `main` → run/inspect the authoritative Browser Acceptance for Product Detail → if it passes, build the real-browser Buyer flow using the existing backend fixture → verify Watch/Download authorization → record the runtime result before moving to Seller/Admin.**
+
+### Checkpoint commit
+`dac637d4ca3950e3c4ed50ef6b554c62e1ad29c6`
+
+This checkpoint is the authoritative continuation source for the next session.
+
 ## 2026-08-31 — Milestone 475
 
 ### Work completed
