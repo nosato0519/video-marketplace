@@ -27,7 +27,7 @@ test.describe('seller upload browser acceptance', () => {
       expect(route.request().method()).toBe('POST');
       expect(route.request().headers()['content-type']).toBe('video/mp4');
       expect(route.request().headers()['x-original-filename']).toBe('sample.mp4');
-      expect((await route.request().body()).length).toBeGreaterThan(0);
+      expect(route.request().postDataBuffer()?.length || 0).toBeGreaterThan(0);
       uploaded = true;
       await fulfillJson(route, { mediaAsset: { id: 'media-1', status: 'ready' } });
     });
