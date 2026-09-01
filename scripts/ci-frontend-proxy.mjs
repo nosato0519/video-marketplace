@@ -23,7 +23,7 @@ function proxyApi(req, res) {
 http.createServer((req, res) => {
   if (req.url?.startsWith('/api/')) return proxyApi(req, res);
   const requestPath = decodeURIComponent((req.url || '/').split('?')[0]);
-  const relative = requestPath === '/' ? '/app/index.html' : requestPath;
+  const relative = requestPath === '/' ? '/app/index.html' : `/app${requestPath}`;
   const file = path.resolve(root, `.${relative}`);
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
     res.writeHead(404); res.end('Not found'); return;
