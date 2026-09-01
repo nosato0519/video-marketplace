@@ -1,9 +1,9 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 476 — End-of-day continuation checkpoint.**
+**Milestone 477 — Main browser E2E routed through the real-backend proxy; next gate is runtime verification.**
 
-## Latest checkpoint — 2026-08-31
+## Latest checkpoint — 2026-09-01
 ### Completed
 - Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization, payment/refund/failure handling.
 - Seller product/media, publishing, ownership isolation, profile, verification, earnings and payout UI/API foundations.
@@ -29,12 +29,15 @@
 - Backend already exposes real catalog listing at `/api/catalog/products` and real product detail at `/api/catalog/products/:productId`.
 - Added `app/catalog/product-detail-api.js` to consume the real product-detail endpoint.
 - Updated `app/main.js` Product Detail to load/render the real backend product and removed its demo-product lookup/fallback.
+- Updated `main` `.github/workflows/browser-e2e.yml` to run Browser E2E through the existing same-origin proxy with `BROWSER_BACKEND_URL=http://127.0.0.1:3000` instead of the Python static server.
 
 ### Important corrections / process
 - `main` is authoritative; stale PR branches and old TODOs are not the source of truth.
 - Catalog backend/listing work must not be recreated; commit history confirmed those pieces already exist.
 - Product Detail was the actual demo-backed gap found and addressed in Milestone 475.
-- The anti-duplication protocol is mandatory: inspect current main, search history, advance a concrete acceptance criterion, and record the result before moving on.
+- The earlier work contained unnecessary repeated marker/branch/duplicate-test activity. This is accepted as past history and is not to be repeated.
+- **Mandatory no-waste rule from 2026-09-01:** before every change, identify the exact acceptance criterion it advances; if it does not advance a criterion, do not make the change. Do not add marker commits, duplicate tests, fake fixtures, or repeated CI-trigger commits merely to appear to progress.
+- Prefer completing and verifying the current mainline over maintaining parallel stale PR work.
 
 ### Current verified status
 - Backend regression: GREEN (#644).
@@ -47,8 +50,8 @@
 - Real HTTP Seller product/media acceptance: IMPLEMENTED.
 - Browser proxy to real backend: IMPLEMENTED.
 - Browser E2E #65/#66: GREEN.
-- Browser UI Acceptance infrastructure fix: COMMITTED; authoritative current-main runtime verification remains required.
-- Real-backend Buyer Product Detail: IMPLEMENTED; runtime browser verification remains required.
+- Main Browser E2E workflow: **UPDATED; current-main runtime verification pending**.
+- Real-backend Buyer Product Detail: IMPLEMENTED; runtime browser verification pending.
 - Authenticated real-backend Buyer end-to-end browser acceptance: OUTSTANDING.
 - Authenticated real-backend Seller/Admin browser acceptance: OUTSTANDING.
 - Non-Stripe provider adapters/runtime: OUTSTANDING.
@@ -57,15 +60,16 @@
 
 ## Remaining work — priority order
 1. **Buyer real-backend browser acceptance — NEXT**
-   - Verify Browse loads API products without demo fallback in the acceptance environment.
+   - Run current-main Browser E2E through the real-backend proxy.
+   - Verify Browse loads API products without demo fallback.
    - Verify clicking an API product opens real Product Detail.
-   - Verify login/session → purchase intent → order → checkout → Library → protected Watch/Download using a deterministic DB fixture/product.
+   - Verify authenticated session → purchase/order → payment settlement → Library → protected Watch/Download using deterministic data.
    - Reuse existing backend Buyer HTTP E2E setup; do not rebuild existing purchase APIs.
 2. **Seller/Admin browser acceptance**
    - Exercise Seller application/product/media/dashboard/earnings/payout flows against the real backend where feasible.
    - Exercise Admin verification/moderation/payout review against the real backend.
 3. **Payment provider integration**
-   - Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
+   - Verify Checkout HTTP contract coverage for selected `providerId` passthrough.
    - Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
    - Implement real PayPal, Adyen, Paddle and PayPay adapters or explicitly narrow the supported-provider catalog before release.
 4. **Refund / payout accounting integrity**
@@ -88,7 +92,8 @@
 7. Never claim GREEN from implementation alone; require runtime/CI evidence.
 8. Never force-update a branch when the SHA has moved. Rebase/merge or create a new safe branch instead.
 9. If a previous task description conflicts with current code, current mainline code wins; correct the checkpoint rather than repeating the old task.
+10. Never create progress-marker commits, duplicate test implementations, fake catalog data, or repeated no-op CI-trigger changes solely to move the milestone number.
 
-**Exact next starting point:** Start from current `main` and verify the new Product Detail path once. Then extend the existing deterministic Buyer HTTP fixture into a real-browser flow. Do not revisit catalog API implementation unless the current acceptance test proves a defect.
+**Exact next starting point:** Run/inspect the current-main Browser E2E after the workflow proxy change. Fix only concrete failures. If GREEN, move directly to authenticated Buyer/Seller/Admin acceptance; then provider consistency, refund/payout accounting, and final release hardening.
 
 **These files and the latest repository state are the authoritative continuation source.**
