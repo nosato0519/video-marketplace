@@ -1,76 +1,28 @@
 # Development Progress Log
 
-## 2026-08-31 — Milestone 476
+## 2026-09-01 — Milestone 477
 
-### End-of-day checkpoint
-- No new feature implementation was made in this final session; the purpose was to establish a precise continuation point and prevent duplicate work.
-- `PROJECT_STATE.md` and this log now explicitly identify the next acceptance criterion: verify the real-backend Product Detail path, then extend the existing deterministic Buyer HTTP fixture into a real-browser Buyer flow.
-- The current mainline is authoritative. Older Browser E2E PR branches must not be treated as current state.
-- Existing catalog API/listing and backend Buyer purchase/media E2E are already implemented and must be reused, not rebuilt.
-- Product Detail real-backend integration was implemented in Milestone 475, but runtime browser verification remains pending.
+### Real-backend Buyer browser acceptance staged
+- Created isolated branch `ci/buyer-real-browser-acceptance` from current authoritative `main`.
+- Added `tests/browser-buyer-real-backend.spec.js` using deterministic PostgreSQL fixture data and a real buyer session cookie.
+- The browser flow now exercises real `/api/catalog/products`, real Product Detail, real `/api/orders`, payment settlement through the existing signed mock webhook contract, real Library, protected Watch, and protected Download.
+- Existing purchase/media backend implementation is reused; no purchase API was rebuilt.
+- Updated `.github/workflows/browser-e2e.yml` on the isolated branch to use the existing same-origin `tests/browser-server.js` through Playwright `webServer`, proxying `/api/*` to the real backend. This removes the conflicting Python static server setup and provides the required `BROWSER_BACKEND_URL`/webhook secret environment.
+- Opened draft PR #13; no merge attempted.
+- PR #13 head commit: `35649f84d6f8020b9a14c1bf2e59532337b1ae0d`.
+- CI triggered and currently queued: Backend Browser Acceptance #96, Browser UI Acceptance #91, Browser E2E #98, Clean Install #360.
 
-### Verified status carried forward
-- Backend Regression #644: GREEN.
-- Clean Install #229: GREEN.
-- PostgreSQL Migration Acceptance #255: GREEN.
-- Browser E2E #65/#66: GREEN.
-- Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
-- Real HTTP Seller product/media acceptance: IMPLEMENTED.
-- Browser same-origin proxy to real backend: IMPLEMENTED.
-- Product Detail real API path: IMPLEMENTED; runtime verification pending.
-- Browser UI Acceptance infrastructure fix: COMMITTED; authoritative current-main runtime verification pending.
-
-### Remaining work
-1. Buyer real-backend browser acceptance: Browse → real Product Detail → authenticated session → purchase/checkout → Order/Library → protected Watch/Download.
-2. Seller/Admin real-backend browser acceptance.
-3. Payment provider integration/contract verification, including supported-provider scope.
-4. Refund-after-payout accounting policy and implementation.
-5. Release hardening: upgrade matrix, provider/secrets readiness, backup/restore drill, security review, final browser gate.
-
-### Anti-duplication rules
-- Read `PROJECT_STATE.md` and this log before every work cycle.
-- Check latest `main` and search commit history before implementing anything described by an old TODO.
-- If the feature already exists, do not recreate it.
-- Only make a code change when it advances a specific acceptance criterion.
-- Record exact implementation, verification result, remaining gap, and next action after meaningful work.
-- Never force-update a moved branch.
-- Never call a feature GREEN without runtime/CI evidence.
-
-### Exact next action for the next session
-**Start at current `main` → run/inspect the authoritative Browser Acceptance for Product Detail → if it passes, build the real-browser Buyer flow using the existing backend fixture → verify Watch/Download authorization → record the runtime result before moving to Seller/Admin.**
-
-### Checkpoint commit
-`dac637d4ca3950e3c4ed50ef6b554c62e1ad29c6`
-
-This checkpoint is the authoritative continuation source for the next session.
-
-## 2026-08-31 — Milestone 475
-
-### Work completed
-- Verified the backend catalog listing endpoint already exists at `/api/catalog/products` and the product detail endpoint at `/api/catalog/products/:productId`.
-- Verified `app/catalog/catalog-view.js` already uses the real catalog API through `loadCatalog()`; therefore catalog listing did not need to be rebuilt.
-- Identified the actual remaining demo-backed Buyer path: `app/main.js` Product Detail still called the legacy `getProduct(id)` from `app/catalog/catalog.js`.
-- Added `app/catalog/product-detail-api.js` to fetch `/api/catalog/products/:productId` with locale support.
-- Updated `app/main.js` Product Detail to fetch the real backend product asynchronously, render the returned title/category/seller/description/price, enable checkout only after successful load, and show a not-found state on API failure.
-- Removed the Product Detail dependency on the legacy demo product lookup.
-- Recorded this checkpoint in both `PROJECT_STATE.md` and this log.
-
-### Verification status
-- Code path reviewed against existing backend route registration in `backend/src/app.js` and catalog route files.
-- Runtime browser verification of the new Product Detail path is still pending; implementation alone is not considered GREEN.
-- Existing Backend Regression #644, Clean Install #229, Migration Acceptance #255, and Browser E2E #65/#66 remain previously verified GREEN.
-
-### Anti-duplication correction
-The earlier plan to rebuild the entire catalog API was unnecessary. The backend catalog and catalog-view were already API-backed. Only the Product Detail renderer retained a direct demo-data dependency. Future work must target the exact remaining gap instead of recreating completed catalog functionality.
+### Safety / anti-duplication correction
+- A draft test was accidentally written to `main` during tool operations, then explicitly removed before the isolated branch work was created. Temporary anchor files were also removed. Do not treat those transient commits/files as completed product work.
+- The real implementation is isolated in PR #13 so CI can validate it without polluting mainline.
+- No force-update was used.
+- No runtime result is being called GREEN until CI completes.
 
 ### Exact next action
-Run/inspect the authoritative current-main Browser Acceptance gate for the new Product Detail path. If it passes, extend the same real-backend fixture into the full Buyer flow: Browse → Product Detail → authenticated checkout/order → Library → Watch/Download. If it fails, fix only the observed failure.
+1. Inspect PR #13 CI results.
+2. If a test fails, fix only the observed failure and rerun the relevant gate.
+3. If Buyer acceptance is GREEN, move directly to Seller/Admin real-backend browser acceptance.
+4. Do not recreate Catalog, Product Detail, purchase, Library, Watch, or Download backend functionality already present.
 
-## 2026-08-31 — Milestone 473
-
-### Process correction
-- Added explicit anti-duplication / continuation protocol.
-- Latest `main` is authoritative over stale PR branches and old TODOs.
-- Search commit history before recreating any supposedly missing feature.
-- Record exact implementation, verification, remaining gap and next action in both checkpoint files.
-- Never force-update a moved branch.
+### Continuation source
+`PROJECT_STATE.md` and this log are authoritative. The next session starts with PR #13 CI verification, not with rebuilding older work.
