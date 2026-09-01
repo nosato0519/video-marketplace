@@ -1,7 +1,29 @@
 import { test, expect } from '@playwright/test';
 
+async function mockDemoProduct(page) {
+  await page.route('**/api/catalog/products/demo-1?*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          id: 'demo-1',
+          title: 'Featured Video',
+          seller: 'Creator Studio',
+          category: 'Featured',
+          description: 'Demo product for browser acceptance.',
+          price_amount: 12.99,
+          price_currency: 'USD',
+        },
+      }),
+    });
+  });
+}
+
 test('buyer checkout flow calls the authenticated purchase APIs', async ({ page }) => {
   const calls = [];
+
+  await mockDemoProduct(page);
 
   await page.route('**/api/auth/me', async (route) => {
     calls.push('me');
@@ -49,6 +71,8 @@ test('buyer checkout flow calls the authenticated purchase APIs', async ({ page 
 });
 
 test('buyer is redirected to login when the session is missing', async ({ page }) => {
+  await mockDemoProduct(page);
+
   await page.route('**/api/auth/me', async (route) => {
     await route.fulfill({
       status: 401,
@@ -58,6 +82,7 @@ test('buyer is redirected to login when the session is missing', async ({ page }
   });
 
   await page.goto('/app/index.html#/product/demo-1');
+  await expect(page.getByRole('button', { name: 'Purchase' })).toBeVisible();
   await page.getByRole('button', { name: 'Purchase' }).click();
 
   await expect(page).toHaveURL(/#\/login\?return=\/product\/demo-1$/);
