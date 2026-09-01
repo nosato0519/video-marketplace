@@ -1,94 +1,58 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 476 — End-of-day continuation checkpoint.**
+**Milestone 477 — Real-backend Buyer browser acceptance staged for authoritative CI verification.**
 
-## Latest checkpoint — 2026-08-31
-### Completed
-- Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization, payment/refund/failure handling.
-- Seller product/media, publishing, ownership isolation, profile, verification, earnings and payout UI/API foundations.
-- Protected media streaming/download and hardened upload validation with route-level regression tests.
-- Reporting/moderation foundations and Admin moderation/payout/verification routes.
-- Buyer Account/Orders/Library pages and Seller Dashboard/Product Flow UI.
-- Deterministic PostgreSQL migration preflight/execution and legacy BIGINT purchase migration block.
-- Production configuration, backup/recovery and commercial package documentation.
-- Payout-to-earnings allocation ledger and payout-paid settlement wiring.
-- Corrected PostgreSQL payout row-locking and cancelled-payout allocation handling.
-- Checkout route passes selected `providerId` through to provider routing.
-- Successful payment settlement creates exactly one canonical `seller_earnings` row atomically with payment/order settlement.
-- Refund processing reverses the matching seller earning atomically with order refund and entitlement revocation; duplicate refund is idempotent.
-- Fresh Backend Regression #644 passed.
-- Fresh Clean Install #229 passed.
-- Fresh PostgreSQL Migration Acceptance #255 passed.
-- Existing real HTTP Buyer purchase/media acceptance is implemented.
-- Existing real HTTP Seller product/media acceptance is implemented.
-- Existing backend/browser CI provisions PostgreSQL, runs migrations, starts the real backend, and executes Playwright acceptance.
-- Same-origin browser server proxies `/api/*` to the real backend.
-- Playwright owns browser-server startup through `webServer`.
-- Browser E2E #65/#66 passed.
-- Backend already exposes real catalog listing at `/api/catalog/products` and real product detail at `/api/catalog/products/:productId`.
-- Added `app/catalog/product-detail-api.js` to consume the real product-detail endpoint.
-- Updated `app/main.js` Product Detail to load/render the real backend product and removed its demo-product lookup/fallback.
+## Latest checkpoint — 2026-09-01
+### Work completed in this milestone
+- Created isolated branch `ci/buyer-real-browser-acceptance` from the authoritative current `main`.
+- Added `tests/browser-buyer-real-backend.spec.js` with deterministic PostgreSQL fixtures, a real buyer session cookie, real catalog/product navigation, real order creation through the UI, mock-provider webhook settlement, Library verification, protected Watch verification, and protected Download verification.
+- Reused the existing backend purchase/media implementation rather than recreating purchase APIs.
+- Updated `.github/workflows/browser-e2e.yml` on the isolated branch so Playwright's existing `tests/browser-server.js` owns port 4173 and proxies `/api/*` to the real backend at port 3000; removed the conflicting plain Python static server path.
+- Added `PAYMENT_WEBHOOK_SECRET` to the browser acceptance CI environment so the deterministic settlement step can sign the test webhook.
+- Opened draft PR #13 for isolated CI verification; no merge has been attempted.
+- CI runs triggered for the PR head: Backend Browser Acceptance #96, Browser UI Acceptance #91, Browser E2E #98, Clean Install #360 are currently queued.
 
-### Important corrections / process
-- `main` is authoritative; stale PR branches and old TODOs are not the source of truth.
-- Catalog backend/listing work must not be recreated; commit history confirmed those pieces already exist.
-- Product Detail was the actual demo-backed gap found and addressed in Milestone 475.
-- The anti-duplication protocol is mandatory: inspect current main, search history, advance a concrete acceptance criterion, and record the result before moving on.
+### Important cleanup / safety correction
+- An unverified Buyer browser draft was briefly created on `main` during tool operation, then explicitly deleted before the isolated branch was created. Temporary anchor files were also deleted. The authoritative mainline has no Buyer browser draft from that attempt.
+- No force-update was used.
+- No feature is being marked GREEN until CI runtime evidence is available.
 
 ### Current verified status
 - Backend regression: GREEN (#644).
-- Clean install: GREEN (#229).
+- Clean install: GREEN (#229 previously verified; #360 newly queued on PR #13).
 - PostgreSQL migration acceptance: GREEN (#255).
-- Seller payout allocation/settlement runtime: GREEN in #644.
-- Admin payout concurrency runtime: GREEN in #644.
-- Media authorization/upload/access runtime: GREEN in #644.
 - Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
 - Real HTTP Seller product/media acceptance: IMPLEMENTED.
-- Browser proxy to real backend: IMPLEMENTED.
-- Browser E2E #65/#66: GREEN.
-- Browser UI Acceptance infrastructure fix: COMMITTED; authoritative current-main runtime verification remains required.
-- Real-backend Buyer Product Detail: IMPLEMENTED; runtime browser verification remains required.
-- Authenticated real-backend Buyer end-to-end browser acceptance: OUTSTANDING.
-- Authenticated real-backend Seller/Admin browser acceptance: OUTSTANDING.
+- Browser proxy to real backend: IMPLEMENTED and used by the isolated branch workflow.
+- Browser E2E #65/#66: GREEN (previously verified).
+- Product Detail real API path: IMPLEMENTED; isolated real-browser verification is now staged.
+- Real-backend Buyer browser acceptance: IMPLEMENTED in PR #13, CI VERIFICATION PENDING.
+- Seller/Admin real-backend browser acceptance: OUTSTANDING.
 - Non-Stripe provider adapters/runtime: OUTSTANDING.
 - Refund-after-payout accounting policy: OUTSTANDING.
 - Final commercial release readiness: NOT CLAIMED.
 
 ## Remaining work — priority order
-1. **Buyer real-backend browser acceptance — NEXT**
-   - Verify Browse loads API products without demo fallback in the acceptance environment.
-   - Verify clicking an API product opens real Product Detail.
-   - Verify login/session → purchase intent → order → checkout → Library → protected Watch/Download using a deterministic DB fixture/product.
-   - Reuse existing backend Buyer HTTP E2E setup; do not rebuild existing purchase APIs.
+1. **Buyer real-backend browser acceptance — CURRENT**
+   - Wait for PR #13 CI and inspect failures only if they occur.
+   - If GREEN, promote the acceptance coverage appropriately and move to Seller/Admin browser acceptance.
 2. **Seller/Admin browser acceptance**
-   - Exercise Seller application/product/media/dashboard/earnings/payout flows against the real backend where feasible.
-   - Exercise Admin verification/moderation/payout review against the real backend.
 3. **Payment provider integration**
-   - Add/verify Checkout HTTP contract coverage for selected `providerId` passthrough.
-   - Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
-   - Implement real PayPal, Adyen, Paddle and PayPay adapters or explicitly narrow the supported-provider catalog before release.
 4. **Refund / payout accounting integrity**
-   - Verify payout eligibility excludes refunded earnings, including after payout creation.
-   - Decide/implement recovery/receivable treatment when a previously paid-out earning is later refunded.
-5. **Release hardening**
-   - Fresh install and existing-install upgrade matrix.
-   - Production secrets/provider readiness checks.
-   - Backup/restore drill with verified artifacts.
-   - Final security/authorization review.
-   - Final browser regression and release gate.
+5. **Release hardening and final security/E2E gate**
 
 ## Anti-duplication / continuation protocol
-1. At the start of every work cycle, read this file and `PROGRESS_LOG.md`.
-2. Inspect the latest `main` commit before relying on any older branch or PR.
-3. Search commit history before implementing a feature named in an old TODO; an existing implementation is not to be recreated.
-4. Treat the latest `main` state plus these checkpoint files as authoritative; stale PR branches are evidence only.
-5. Before editing, identify the exact acceptance criterion being advanced. If no criterion advances, do not make a code change.
-6. After every meaningful change, record exact files/commit, verification result, remaining gap, and exact next action in both checkpoint files.
-7. Never claim GREEN from implementation alone; require runtime/CI evidence.
-8. Never force-update a branch when the SHA has moved. Rebase/merge or create a new safe branch instead.
-9. If a previous task description conflicts with current code, current mainline code wins; correct the checkpoint rather than repeating the old task.
+1. Read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before every work cycle.
+2. Inspect the latest `main` before relying on old PRs or TODOs.
+3. Search commit history before recreating a feature.
+4. Treat current `main` plus these checkpoint files as authoritative.
+5. Make a code change only when it advances a concrete acceptance criterion.
+6. After meaningful changes, record exact files/commit, verification result, remaining gap, and next action in both checkpoint files.
+7. Never call an implementation GREEN without runtime/CI evidence.
+8. Never force-update a moved branch.
+9. If an old task description conflicts with current code, current mainline code wins.
 
-**Exact next starting point:** Start from current `main` and verify the new Product Detail path once. Then extend the existing deterministic Buyer HTTP fixture into a real-browser flow. Do not revisit catalog API implementation unless the current acceptance test proves a defect.
+**Exact next starting point:** Inspect PR #13 CI results. Do not recreate catalog/product/purchase functionality. If Buyer browser CI fails, fix only the observed failure; if it passes, move directly to Seller/Admin real-backend browser acceptance.
 
 **These files and the latest repository state are the authoritative continuation source.**
