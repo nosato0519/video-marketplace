@@ -24,6 +24,13 @@ function sendStatic(req, res) {
   let requestPath = decodeURIComponent(new URL(req.url, `http://${req.headers.host}`).pathname);
   if (requestPath === '/') requestPath = '/app/index.html';
 
+  // Render serves the app directory as the static-site root, while the local
+  // browser acceptance server serves the repository root. Keep both layouts
+  // compatible after production asset paths were changed to /styles.css and
+  // /main.js.
+  if (requestPath === '/styles.css') requestPath = '/app/styles.css';
+  if (requestPath === '/main.js') requestPath = '/app/main.js';
+
   const filePath = path.resolve(root, `.${requestPath}`);
   if (!filePath.startsWith(root + path.sep) || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
