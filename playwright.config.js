@@ -10,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'line' : 'list',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173/app/index.html',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173/',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -18,7 +18,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'node tests/browser-server.js',
-    url: 'http://127.0.0.1:4173/app/index.html',
+    url: 'http://127.0.0.1:4173/',
     reuseExistingServer: true,
     timeout: 30_000,
   },
