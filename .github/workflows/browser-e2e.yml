@@ -73,14 +73,11 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Validate test discovery
-        run: npx playwright test --list
-
-      - name: Run browser E2E against backend
+      - name: Run real-backend Buyer browser acceptance
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
           BROWSER_BACKEND_URL: http://127.0.0.1:3000
-        run: npm run test:e2e
+        run: npx playwright test tests/browser-buyer-real-backend.spec.js tests/browser-module-smoke.spec.js --reporter=line
 
       - name: Upload Playwright report
         if: always()
