@@ -1,99 +1,85 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 477 — Main browser E2E routed through the real-backend proxy; next gate is runtime verification.**
+**Milestone 480 — Continuation checkpoint before chat handoff.**
 
 ## Latest checkpoint — 2026-09-01
-### Completed
+### Authoritative state
+- Repository: `nosato0519/video-marketplace`
+- Authoritative branch: `main`.
+- Stale PR #13 branch: `ci/buyer-real-browser-acceptance`; do not treat it as mainline state.
+- PR #13 currently remains OPEN/DRAFT and its head is `44356d44f041791b64e5a17bab661cc219c5ca48`.
+- Mainline Browser E2E workflow is already configured to use the existing same-origin Browser Proxy: `PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173/app/index.html` and `BROWSER_BACKEND_URL=http://127.0.0.1:3000`.
+- Playwright owns startup of the browser server through its existing `webServer`; do not add another frontend server.
+
+### Completed / verified previously
 - Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization, payment/refund/failure handling.
 - Seller product/media, publishing, ownership isolation, profile, verification, earnings and payout UI/API foundations.
-- Protected media streaming/download and hardened upload validation with route-level regression tests.
+- Protected media streaming/download and hardened upload validation.
 - Reporting/moderation foundations and Admin moderation/payout/verification routes.
 - Buyer Account/Orders/Library pages and Seller Dashboard/Product Flow UI.
-- Deterministic PostgreSQL migration preflight/execution and legacy BIGINT purchase migration block.
+- PostgreSQL migration preflight/execution and legacy BIGINT purchase migration block.
 - Production configuration, backup/recovery and commercial package documentation.
 - Payout-to-earnings allocation ledger and payout-paid settlement wiring.
-- Corrected PostgreSQL payout row-locking and cancelled-payout allocation handling.
-- Checkout route passes selected `providerId` through to provider routing.
-- Successful payment settlement creates exactly one canonical `seller_earnings` row atomically with payment/order settlement.
-- Refund processing reverses the matching seller earning atomically with order refund and entitlement revocation; duplicate refund is idempotent.
-- Fresh Backend Regression #644 passed.
-- Fresh Clean Install #229 passed.
-- Fresh PostgreSQL Migration Acceptance #255 passed.
-- Existing real HTTP Buyer purchase/media acceptance is implemented.
-- Existing real HTTP Seller product/media acceptance is implemented.
-- Existing backend/browser CI provisions PostgreSQL, runs migrations, starts the real backend, and executes Playwright acceptance.
-- Same-origin browser server proxies `/api/*` to the real backend.
-- Playwright owns browser-server startup through `webServer`.
-- Browser E2E #65/#66 passed.
-- Backend already exposes real catalog listing at `/api/catalog/products` and real product detail at `/api/catalog/products/:productId`.
-- Added `app/catalog/product-detail-api.js` to consume the real product-detail endpoint.
-- Updated `app/main.js` Product Detail to load/render the real backend product and removed its demo-product lookup/fallback.
-- Updated `main` `.github/workflows/browser-e2e.yml` to run Browser E2E through the existing same-origin proxy with `BROWSER_BACKEND_URL=http://127.0.0.1:3000` instead of the Python static server.
-
-### Important corrections / process
-- `main` is authoritative; stale PR branches and old TODOs are not the source of truth.
-- Catalog backend/listing work must not be recreated; commit history confirmed those pieces already exist.
-- Product Detail was the actual demo-backed gap found and addressed in Milestone 475.
-- The earlier work contained unnecessary repeated marker/branch/duplicate-test activity. This is accepted as past history and is not to be repeated.
-- **Mandatory no-waste rule from 2026-09-01:** before every change, identify the exact acceptance criterion it advances; if it does not advance a criterion, do not make the change. Do not add marker commits, duplicate tests, fake fixtures, or repeated CI-trigger commits merely to appear to progress.
-- Prefer completing and verifying the current mainline over maintaining parallel stale PR work.
-
-### Current verified status
-- Backend regression: GREEN (#644).
-- Clean install: GREEN (#229).
-- PostgreSQL migration acceptance: GREEN (#255).
-- Seller payout allocation/settlement runtime: GREEN in #644.
-- Admin payout concurrency runtime: GREEN in #644.
-- Media authorization/upload/access runtime: GREEN in #644.
+- PostgreSQL payout row-locking and cancelled-payout allocation fixes.
+- Checkout selected `providerId` passthrough.
+- Atomic canonical `seller_earnings` creation on successful payment settlement.
+- Atomic/idempotent refund reversal and entitlement revocation.
+- Backend Regression #644: GREEN.
+- Clean Install #229: GREEN.
+- PostgreSQL Migration Acceptance #255: GREEN.
+- Browser E2E #65/#66: GREEN previously.
 - Real HTTP Buyer purchase/media acceptance: IMPLEMENTED.
 - Real HTTP Seller product/media acceptance: IMPLEMENTED.
-- Browser proxy to real backend: IMPLEMENTED.
-- Browser E2E #65/#66: GREEN.
-- Main Browser E2E workflow: **UPDATED; current-main runtime verification pending**.
-- Real-backend Buyer Product Detail: IMPLEMENTED; runtime browser verification pending.
-- Authenticated real-backend Buyer end-to-end browser acceptance: OUTSTANDING.
-- Authenticated real-backend Seller/Admin browser acceptance: OUTSTANDING.
-- Non-Stripe provider adapters/runtime: OUTSTANDING.
-- Refund-after-payout accounting policy: OUTSTANDING.
-- Final commercial release readiness: NOT CLAIMED.
+- Real catalog listing and product-detail backend APIs exist.
+- Product Detail now consumes the real backend product-detail API and no longer relies on the legacy demo lookup/fallback.
+- Main Browser E2E workflow was changed from the Python static server to the existing same-origin proxy.
+- Duplicate frontend startup in Backend Browser Acceptance was removed after CI showed port 4173 was already owned by Playwright/browser-server startup.
+- Buyer browser acceptance was tightened so the Catalog API must return the seeded real product; API failure/fallback cannot make the gate pass.
+
+### Latest concrete Buyer CI fixes on stale PR #13
+- `d42984c24369226151e7e7cc2888286a0a52e2a1`: made Buyer browser test self-contained with CI-safe `DATABASE_URL` before importing backend DB/session modules; corrected teardown ordering so `seller_earnings` is deleted before referenced orders.
+- `44356d44f041791b64e5a17bab661cc219c5ca48`: tightened Buyer catalog acceptance to require the real catalog API response and seeded product.
+- These PR commits are evidence of the latest Buyer acceptance work, but they are NOT on `main` unless a future merge/implementation explicitly confirms that.
+
+### Current blocker / next verification
+- The authoritative current-main Browser E2E runtime result after the workflow proxy change has not been established in this session.
+- Do NOT claim Buyer Browser Acceptance GREEN without runtime/CI evidence.
+- The available GitHub integration does not provide a workflow-dispatch operation in the current toolset, so do NOT create dummy/no-op commits merely to trigger CI.
 
 ## Remaining work — priority order
-1. **Buyer real-backend browser acceptance — NEXT**
-   - Run current-main Browser E2E through the real-backend proxy.
-   - Verify Browse loads API products without demo fallback.
-   - Verify clicking an API product opens real Product Detail.
-   - Verify authenticated session → purchase/order → payment settlement → Library → protected Watch/Download using deterministic data.
-   - Reuse existing backend Buyer HTTP E2E setup; do not rebuild existing purchase APIs.
-2. **Seller/Admin browser acceptance**
-   - Exercise Seller application/product/media/dashboard/earnings/payout flows against the real backend where feasible.
-   - Exercise Admin verification/moderation/payout review against the real backend.
-3. **Payment provider integration**
-   - Verify Checkout HTTP contract coverage for selected `providerId` passthrough.
-   - Trace Stripe provider identity from Checkout metadata through webhook/event ledger and `completePayment`.
-   - Implement real PayPal, Adyen, Paddle and PayPay adapters or explicitly narrow the supported-provider catalog before release.
-4. **Refund / payout accounting integrity**
-   - Verify payout eligibility excludes refunded earnings, including after payout creation.
-   - Decide/implement recovery/receivable treatment when a previously paid-out earning is later refunded.
-5. **Release hardening**
-   - Fresh install and existing-install upgrade matrix.
-   - Production secrets/provider readiness checks.
-   - Backup/restore drill with verified artifacts.
-   - Final security/authorization review.
-   - Final browser regression and release gate.
+1. **Current-main Buyer browser runtime gate**
+   - Inspect the first authoritative current-main Browser E2E result after the proxy workflow change.
+   - If FAIL: fix only the concrete failure.
+   - If GREEN: immediately advance to authenticated Buyer/Seller/Admin browser acceptance.
+2. **Authenticated Buyer acceptance**
+   - Browse → real Product Detail → authenticated session → purchase/order → payment settlement → Library → protected Watch/Download.
+   - Reuse existing backend fixtures, APIs, and helpers.
+3. **Seller/Admin browser acceptance**
+   - Seller application/product/media/dashboard/earnings/payout flows against the real backend.
+   - Admin verification/moderation/payout review against the real backend.
+4. **Payment provider consistency**
+   - Verify provider identity/contract propagation and supported-provider scope.
+   - Implement real additional provider adapters or explicitly narrow supported-provider catalog before release.
+5. **Refund / payout accounting integrity**
+   - Verify refunded earnings cannot become payout-eligible.
+   - Decide and implement recovery/receivable treatment for refunds after payout.
+6. **Release hardening**
+   - Install/upgrade matrix, provider/secrets readiness, backup/restore drill, security review, final browser gate.
 
-## Anti-duplication / continuation protocol
-1. At the start of every work cycle, read this file and `PROGRESS_LOG.md`.
-2. Inspect the latest `main` commit before relying on any older branch or PR.
-3. Search commit history before implementing a feature named in an old TODO; an existing implementation is not to be recreated.
-4. Treat the latest `main` state plus these checkpoint files as authoritative; stale PR branches are evidence only.
-5. Before editing, identify the exact acceptance criterion being advanced. If no criterion advances, do not make a code change.
-6. After every meaningful change, record exact files/commit, verification result, remaining gap, and exact next action in both checkpoint files.
-7. Never claim GREEN from implementation alone; require runtime/CI evidence.
-8. Never force-update a branch when the SHA has moved. Rebase/merge or create a new safe branch instead.
-9. If a previous task description conflicts with current code, current mainline code wins; correct the checkpoint rather than repeating the old task.
-10. Never create progress-marker commits, duplicate test implementations, fake catalog data, or repeated no-op CI-trigger changes solely to move the milestone number.
+## Mandatory no-waste rule
+- The user's explicit instruction on 2026-09-01 is authoritative: from this point forward, work must be completed without unnecessary repetition.
+- Before every change, identify the exact acceptance criterion it advances.
+- If no acceptance criterion advances, do not make the change.
+- `main` plus this file and `PROGRESS_LOG.md` are the authoritative continuation source.
+- Search current code/history before recreating anything from an old TODO.
+- Reuse existing APIs, fixtures, helpers, and infrastructure.
+- Never create marker/no-op commits, duplicate tests, fake catalog data, or repeated CI-trigger commits solely to appear to progress.
+- Never claim GREEN without runtime/CI evidence.
+- Never force-update a moved branch.
+- Once a gate is GREEN, move directly to the next gate and do not revisit completed work.
 
-**Exact next starting point:** Run/inspect the current-main Browser E2E after the workflow proxy change. Fix only concrete failures. If GREEN, move directly to authenticated Buyer/Seller/Admin acceptance; then provider consistency, refund/payout accounting, and final release hardening.
+## Exact next starting point for the next chat
+**Start by reading this file and `PROGRESS_LOG.md`, inspect the latest `main` SHA, then inspect the authoritative Browser E2E runtime/CI result. Do not rebuild Buyer tests. If the gate is GREEN, move directly to authenticated Buyer/Seller/Admin acceptance. If it is FAIL, fix only the observed failure and record the result.**
 
-**These files and the latest repository state are the authoritative continuation source.**
+**These files and the latest `main` repository state are the authoritative continuation source.**
