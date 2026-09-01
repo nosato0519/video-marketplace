@@ -65,7 +65,7 @@ jobs:
         run: npx playwright test --list
       - name: Run browser E2E against backend
         env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/
           BROWSER_BACKEND_URL: http://127.0.0.1:3000
         run: npm run test:e2e
       - name: Upload Playwright report
