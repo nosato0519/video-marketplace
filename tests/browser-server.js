@@ -20,19 +20,31 @@ const mimeTypes = {
   '.ico': 'image/x-icon',
 };
 
+function resolveStaticPath(requestPath) {
+  if (requestPath === '/') return path.join(root, 'app', 'index.html');
+
+  const repositoryPath = path.resolve(root, `.${requestPath}`);
+  if (repositoryPath.startsWith(root + path.sep) && fs.existsSync(repositoryPath) && fs.statSync(repositoryPath).isFile()) {
+    return repositoryPath;
+  }
+
+  // Render serves app/ as the static-site root, so production asset imports
+  // such as /main.js and /i18n.js resolve directly under that root. The local
+  // acceptance server serves the repository root, so fall back to app/ for
+  // root-relative frontend assets and nested modules.
+  const appPath = path.resolve(root, 'app', `.${requestPath}`);
+  if (appPath.startsWith(path.join(root, 'app') + path.sep) && fs.existsSync(appPath) && fs.statSync(appPath).isFile()) {
+    return appPath;
+  }
+
+  return null;
+}
+
 function sendStatic(req, res) {
-  let requestPath = decodeURIComponent(new URL(req.url, `http://${req.headers.host}`).pathname);
-  if (requestPath === '/') requestPath = '/app/index.html';
+  const requestPath = decodeURIComponent(new URL(req.url, `http://${req.headers.host}`).pathname);
+  const filePath = resolveStaticPath(requestPath);
 
-  // Render serves the app directory as the static-site root, while the local
-  // browser acceptance server serves the repository root. Keep both layouts
-  // compatible after production asset paths were changed to /styles.css and
-  // /main.js.
-  if (requestPath === '/styles.css') requestPath = '/app/styles.css';
-  if (requestPath === '/main.js') requestPath = '/app/main.js';
-
-  const filePath = path.resolve(root, `.${requestPath}`);
-  if (!filePath.startsWith(root + path.sep) || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+  if (!filePath) {
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
     res.end('Not found');
     return;
