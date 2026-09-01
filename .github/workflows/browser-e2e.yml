@@ -36,52 +36,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install browser test dependencies
         run: npm install
-
       - name: Install backend dependencies
         working-directory: backend
         run: npm install
-
       - name: Run backend migrations
         working-directory: backend
         run: npm run migrate
-
       - name: Start backend API
         working-directory: backend
         run: nohup npm run start > /tmp/video-marketplace-api.log 2>&1 &
-
       - name: Wait for backend health
         run: |
           for i in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:3000/api/health; then
-              exit 0
-            fi
+            if curl --fail --silent http://127.0.0.1:3000/api/health; then exit 0; fi
             sleep 1
           done
           cat /tmp/video-marketplace-api.log
           exit 1
-
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-
       - name: Validate test discovery
         run: npx playwright test --list
-
       - name: Run browser E2E against backend
         env:
-          PLAYWRIGHT_EXTERNAL_SERVER: '1'
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
-        run: |
-          nohup python -m http.server 4173 --directory . > /tmp/video-marketplace-web.log 2>&1 &
-          npm run test:e2e
-
+          BROWSER_BACKEND_URL: http://127.0.0.1:3000
+        run: npm run test:e2e
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -89,7 +75,6 @@ jobs:
           name: playwright-report
           path: playwright-report/
           if-no-files-found: ignore
-
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,7 +82,6 @@ jobs:
           name: playwright-test-results
           path: test-results/
           if-no-files-found: ignore
-
       - name: Upload backend log
         if: always()
         uses: actions/upload-artifact@v4
