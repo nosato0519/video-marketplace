@@ -81,7 +81,13 @@ jobs:
       - name: Run real backend browser acceptance
         env:
           BACKEND_URL: http://127.0.0.1:3000
-        run: npx playwright test tests/browser-backend-seller-application.spec.js --reporter=line
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace
+          NODE_ENV: test
+          MEDIA_URL_SECRET: ci-test-media-url-secret-0123456789abcdef0123456789abcdef
+          MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+          MEDIA_STORAGE_PROVIDER: local
+          PAYMENT_WEBHOOK_SECRET: ci-test-payment-webhook-secret-0123456789abcdef0123456789abcdef
+        run: npx playwright test tests/browser-backend-seller-application.spec.js tests/browser-backend-buyer-purchase.spec.js --reporter=line
       - name: Dump backend logs on failure
         if: failure()
         run: cat /tmp/video-marketplace-api.log || true
