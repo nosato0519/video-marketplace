@@ -38,6 +38,13 @@ services:
     rootDir: app
     buildCommand: echo "Static frontend"
     staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://video-marketplace-api.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
 
 databases:
   - name: video-marketplace-db
