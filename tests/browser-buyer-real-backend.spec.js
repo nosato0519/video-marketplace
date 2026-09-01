@@ -58,7 +58,12 @@ test.describe('buyer real-backend browser acceptance', () => {
 
   test('browse, open real product, create real order, settle it, and access Library', async ({ page, context }) => {
     await context.addCookies([{ name:'video_marketplace_session', value:buyerToken, domain:'127.0.0.1', path:'/' }]);
+    const catalogResponse = page.waitForResponse(r => r.url().includes('/api/catalog/products') && r.request().method()==='GET');
     await page.goto('/app/index.html#/browse');
+    const catalog = await catalogResponse;
+    expect(catalog.status()).toBe(200);
+    const catalogPayload = await catalog.json();
+    expect(catalogPayload.data.some(product => product.id === ids.product)).toBe(true);
     const card = page.locator(`[data-product-id="${ids.product}"]`);
     await expect(card).toBeVisible();
     await card.click();
