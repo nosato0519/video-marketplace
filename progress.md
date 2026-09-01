@@ -6,7 +6,7 @@
 - リポジトリ: `nosato0519/video-marketplace`
 - 主要PR: #13
 - 作業ブランチ: `ci/buyer-real-browser-acceptance`
-- 最新コミット: `c9bb8ea64934ecdcafe7ea4fa2f18796c8b5fff3`
+- 最新コミット: `7e993b7c0edda70470970cd6a9a8c5c87b62cc6b`
 - 作業方針: 必要な修正のみ。既存テスト・実装を重複して作り直さない。
 
 ## Buyer実Backend Browser Acceptance
@@ -21,10 +21,10 @@
 ## CI
 - `.github/workflows/backend-browser-acceptance.yml` はBuyer実Backend Acceptanceを実行する構成。
 - 直近実測ではDB、migration、backend、health、commerce、entitlement等は通過し、BrowserのBrowse/Watchで失敗した。
-- 最新修正コミット `c9bb8ea...` に対するCI再実測が次の作業。
+- 最新修正後のCI再実測が次の作業。
 
 ## 次の作業
-1. `c9bb8ea...` のBuyer Browser Acceptance CI結果を確認。
+1. 最新Buyer修正のCI結果を確認。
 2. GREENならBuyer完了としてSeller/Adminへ移行。
 3. FAILなら新しい失敗ログだけを修正。
 4. Seller/Admin、決済・Refund/Payout、Security、Release Gateを確認。
