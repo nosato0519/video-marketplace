@@ -33,6 +33,23 @@ test.describe('buyer purchase browser acceptance', () => {
     let orderCreated = false;
     let checkoutStarted = false;
 
+    await page.route('**/api/catalog/products/demo-1?locale=en', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: {
+            id: 'demo-1',
+            title: 'Featured Video',
+            description: 'Purchased video product.',
+            price: 12.99,
+            currency: 'USD',
+            seller: { id: 'seller-1', display_name: 'Demo Seller' },
+          },
+        }),
+      });
+    });
+
     await page.route('**/api/catalog/products/demo-1/purchase-intent', async (route) => {
       expect(route.request().method()).toBe('POST');
       expect(route.request().postDataJSON().locale).toBe('en');
