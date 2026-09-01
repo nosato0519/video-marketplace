@@ -80,10 +80,15 @@ jobs:
         run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:3000/api/health',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>60){clearInterval(t);process.exit(1)}},1000)"
       - name: Run real buyer browser acceptance
         env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace
+          NODE_ENV: test
+          MEDIA_URL_SECRET: ci-test-media-url-secret-0123456789abcdef0123456789abcdef
+          MEDIA_STORAGE_DIR: /tmp/video-marketplace-media
+          MEDIA_STORAGE_PROVIDER: local
+          PAYMENT_WEBHOOK_SECRET: ci-test-payment-webhook-secret-0123456789abcdef0123456789abcdef
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
           BROWSER_BACKEND_URL: http://127.0.0.1:3000
           BACKEND_URL: http://127.0.0.1:3000
-          PAYMENT_WEBHOOK_SECRET: ci-test-payment-webhook-secret-0123456789abcdef0123456789abcdef
         run: npx playwright test tests/browser-buyer-real-backend.spec.js --reporter=line
       - name: Dump backend logs on failure
         if: failure()
