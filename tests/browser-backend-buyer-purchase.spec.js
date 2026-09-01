@@ -21,11 +21,10 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       seller: crypto.randomUUID(),
       media: crypto.randomUUID(),
       product: crypto.randomUUID(),
-      payment: crypto.randomUUID(),
+      payment: null,
     };
     const storageKey = `acceptance/${ids.media}.mp4`;
     const email = `buyer-${ids.product}@example.test`;
-    const password = 'TestPassword!123';
     let orderId = null;
     let providerPaymentId = null;
     let eventId = null;
@@ -59,7 +58,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
 
       await page.goto(`${appUrl}#/register`);
       await page.getByLabel('Email').fill(email);
-      await page.getByLabel('Password').fill(password);
+      await page.getByLabel('Password').fill('TestPassword!123');
       await page.getByRole('button', { name: /Register|Create account/i }).click();
       await expect(page).toHaveURL(/#\/browse/);
 
@@ -79,21 +78,24 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(order).toBeTruthy();
       orderId = order.id;
 
+      const paymentResult = await pool.query(
+        `SELECT id, provider FROM payments WHERE order_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1`,
+        [orderId]
+      );
+      expect(paymentResult.rows).toHaveLength(1);
+      ids.payment = paymentResult.rows[0].id;
+      expect(paymentResult.rows[0].provider).toBeTruthy();
+
       providerPaymentId = `pay_${crypto.randomUUID()}`;
       eventId = `evt_${crypto.randomUUID()}`;
       await pool.query(
-        `INSERT INTO payments
-          (id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key)
-         SELECT $1, $2, buyer.id, 'mock', $3, 1500, 'JPY', 'pending', $4
-         FROM orders o
-         JOIN users buyer ON buyer.id = o.buyer_id
-         WHERE o.id = $2`,
-        [ids.payment, orderId, providerPaymentId, `mock:${providerPaymentId}`]
+        `UPDATE payments SET provider_payment_id = $1 WHERE id = $2`,
+        [providerPaymentId, ids.payment]
       );
 
       const webhook = JSON.stringify({
         eventId,
-        provider: 'mock',
+        provider: paymentResult.rows[0].provider,
         eventType: 'payment_succeeded',
         paymentId: providerPaymentId,
         orderId,
@@ -122,9 +124,9 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(downloadResponse.status()).toBe(200);
       expect(await downloadResponse.body()).toEqual(mediaBytes);
     } finally {
-      if (eventId) await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id = $1`, [eventId]).catch(() => {});
+      if (eventId) await pool.query(`DELETE FROM payment_events WHERE event_id = $1`, [eventId]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]).catch(() => {});
-      if (orderId) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
+      if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
       await pool.query(`DELETE FROM user_sessions WHERE user_id IN (SELECT id FROM users WHERE email = $1)`, [email]).catch(() => {});
       await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
