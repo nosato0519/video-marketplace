@@ -6,7 +6,7 @@
 - リポジトリ: `nosato0519/video-marketplace`
 - 主要PR: #13
 - 作業ブランチ: `ci/buyer-real-browser-acceptance`
-- 最新コミット: `7e993b7c0edda70470970cd6a9a8c5c87b62cc6b`
+- 最新コミット: `662eed28f77649510b729a29f0f3c7715dd7c376`
 - 作業方針: 必要な修正のみ。既存テスト・実装を重複して作り直さない。
 
 ## Buyer実Backend Browser Acceptance
@@ -16,15 +16,16 @@
 - Library見出し期待値を修正済み。
 - 直近CIでBrowse/Watchが失敗。
 - 原因を特定: catalog/product detail のSQLが `product_translations` のfallback行を必須としているため、Acceptance seedに翻訳がないと実商品が一覧・詳細から消える。
-- 今回、英語 `product_translations` をAcceptance seedへ追加して修正。
+- 英語 `product_translations` をAcceptance seedへ追加して修正済み。
 
 ## CI
 - `.github/workflows/backend-browser-acceptance.yml` はBuyer実Backend Acceptanceを実行する構成。
 - 直近実測ではDB、migration、backend、health、commerce、entitlement等は通過し、BrowserのBrowse/Watchで失敗した。
 - 最新修正後のCI再実測が次の作業。
+- GitHub連携からPRをReady化する操作はGraphQLの `Repository.fullDatabaseId` エラーで利用できないため、同じ操作を繰り返さない。
 
 ## 次の作業
-1. 最新Buyer修正のCI結果を確認。
+1. 最新Buyer修正後のCI結果を確認。
 2. GREENならBuyer完了としてSeller/Adminへ移行。
 3. FAILなら新しい失敗ログだけを修正。
 4. Seller/Admin、決済・Refund/Payout、Security、Release Gateを確認。
