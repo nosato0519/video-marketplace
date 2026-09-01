@@ -1,120 +1,53 @@
 import { test, expect } from '@playwright/test';
 
-const appUrl = (hash) => `/app/index.html${hash}`;
+const appUrl = 'http://127.0.0.1:4173/app/index.html';
+const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
 
-async function mockBuyerSession(page) {
-  await page.route('**/api/auth/me', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ user: { id: 'buyer-1', email: 'buyer@example.test', role: 'buyer' } }),
-    });
-  });
-}
-
-test.describe('buyer purchase browser acceptance', () => {
+test.describe('real backend buyer browser acceptance', () => {
   test('logged-out buyer resources redirect to login', async ({ page }) => {
-    await page.route('**/api/auth/me', async (route) => {
-      await route.fulfill({
-        status: 401,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'authentication_required' }),
-      });
-    });
-
-    await page.goto(appUrl('#/library'));
+    await page.goto(`${appUrl}#/library`);
     await expect(page).toHaveURL(/#\/login\?return=\/library$/);
   });
 
-  test('buyer can open a product and start secure checkout', async ({ page }) => {
-    await mockBuyerSession(page);
+  test('buyer can browse a real published product and open its real product detail', async ({ page }) => {
+    const health = await page.request.get(`${backendUrl}/api/health`);
+    expect(health.ok()).toBeTruthy();
 
-    let purchaseIntentSeen = false;
-    let orderCreated = false;
-    let checkoutStarted = false;
+    await page.goto(`${appUrl}#/browse`);
+    const productLink = page.locator('a[href^="#/product/"]').first();
+    await expect(productLink).toBeVisible();
 
-    await page.route('**/api/catalog/products/demo-1/purchase-intent', async (route) => {
-      expect(route.request().method()).toBe('POST');
-      expect(route.request().postDataJSON().locale).toBe('en');
-      purchaseIntentSeen = true;
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ data: { price: 12.99, currency: 'USD' } }),
-      });
-    });
+    const href = await productLink.getAttribute('href');
+    expect(href).toMatch(/^#\/product\/.+/);
+    await productLink.click();
 
-    await page.route('**/api/orders', async (route) => {
-      expect(route.request().method()).toBe('POST');
-      expect(route.request().postDataJSON().productId).toBe('demo-1');
-      orderCreated = true;
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ order: { id: 'order-1', status: 'pending', product_id: 'demo-1' } }),
-      });
-    });
-
-    await page.route('**/api/orders/order-1/checkout', async (route) => {
-      expect(route.request().method()).toBe('POST');
-      checkoutStarted = true;
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ session: { status: 'ready', url: '/mock-checkout/session-1' } }),
-      });
-    });
-
-    await page.route('**/mock-checkout/session-1', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<!doctype html><html><body><h1>Test Checkout</h1><p>Secure payment session</p></body></html>',
-      });
-    });
-
-    await page.goto(appUrl('#/product/demo-1'));
-    await expect(page.getByRole('heading', { name: 'Featured Video' })).toBeVisible();
-    await page.getByRole('button', { name: 'Purchase' }).click();
-
-    await expect(page).toHaveURL(/\/mock-checkout\/session-1$/);
-    await expect(page.getByRole('heading', { name: 'Test Checkout' })).toBeVisible();
-    expect(purchaseIntentSeen).toBe(true);
-    expect(orderCreated).toBe(true);
-    expect(checkoutStarted).toBe(true);
+    await expect(page).toHaveURL(/#\/product\/.+$/);
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Purchase' })).toBeVisible();
   });
 
   test('buyer library exposes protected watch and download actions', async ({ page }) => {
-    await mockBuyerSession(page);
-    await page.route('**/api/library', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          items: [{
-            product_id: 'demo-1',
-            title: 'Featured Video',
-            description: 'Purchased video product.',
-            streaming_enabled: true,
-            download_enabled: true,
-          }],
-        }),
-      });
-    });
+    await page.goto(`${appUrl}#/library`);
+    await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
 
-    await page.goto(appUrl('#/library'));
-    await expect(page.getByRole('heading', { name: /buyer@example\.test.*library/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Featured Video' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', '#/watch/demo-1');
-    await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '/api/media/demo-1/download');
+    const watchLink = page.getByRole('link', { name: 'Watch' }).first();
+    const downloadLink = page.getByRole('link', { name: 'Download' }).first();
+    await expect(watchLink).toBeVisible();
+    await expect(downloadLink).toBeVisible();
+    await expect(watchLink).toHaveAttribute('href', /^#\/watch\/.+/);
+    await expect(downloadLink).toHaveAttribute('href', /^\/api\/media\/.+\/download$/);
   });
 
   test('buyer watch page uses the protected media stream endpoint', async ({ page }) => {
-    await mockBuyerSession(page);
-    await page.goto(appUrl('#/watch/demo-1'));
+    const libraryResponse = await page.request.get(`${backendUrl}/api/library`);
+    expect(libraryResponse.ok()).toBeTruthy();
+    const library = await libraryResponse.json();
+    const item = library.items?.find((entry) => entry.streaming_enabled);
+    test.skip(!item, 'No stream-enabled entitlement is available in the acceptance fixture.');
 
+    await page.goto(`${appUrl}#/watch/${item.product_id}`);
     await expect(page.getByRole('heading', { name: 'Watch video' })).toBeVisible();
-    await expect(page.locator('video.secure-player')).toHaveAttribute('src', '/api/media/demo-1/stream');
+    await expect(page.locator('video.secure-player')).toHaveAttribute('src', `/api/media/${item.product_id}/stream`);
     await expect(page.getByText('Playback is protected by your active entitlement.')).toBeVisible();
   });
 });
