@@ -57,7 +57,7 @@ test.describe('buyer real-backend browser acceptance', () => {
 
   test('browse, open real product, create real order, settle it, and access Library', async ({ page, context }) => {
     await context.addCookies([{ name:'video_marketplace_session', value:buyerToken, domain:'127.0.0.1', path:'/' }]);
-    await page.goto('/browse');
+    await page.goto('/app/index.html#/browse');
     const card = page.locator(`[data-product-id="${ids.product}"]`);
     await expect(card).toBeVisible();
     await card.click();
@@ -68,7 +68,7 @@ test.describe('buyer real-backend browser acceptance', () => {
     expect(response.status()).toBe(201);
     const order = await response.json();
     await settle(order.order.id);
-    await page.goto('/library');
+    await page.goto('/app/index.html#/library');
     await expect(page.getByRole('heading',{name:new RegExp(`${buyerEmail}.*library`,'i')})).toBeVisible();
     await expect(page.getByRole('heading',{name:'Browser E2E Product'})).toBeVisible();
     await expect(page.getByRole('link',{name:'Watch'})).toHaveAttribute('href',`#/watch/${ids.product}`);
@@ -77,7 +77,7 @@ test.describe('buyer real-backend browser acceptance', () => {
 
   test('real entitlement protects watch and download', async ({ page, context }) => {
     await context.addCookies([{ name:'video_marketplace_session', value:buyerToken, domain:'127.0.0.1', path:'/' }]);
-    await page.goto(`/watch/${ids.product}`);
+    await page.goto(`/app/index.html#/watch/${ids.product}`);
     await expect(page.getByRole('heading',{name:'Watch video'})).toBeVisible();
     await expect(page.locator('video.secure-player')).toHaveAttribute('src',`/api/media/${ids.product}/stream`);
     const download = await page.request.get(`/api/media/${ids.product}/download`, { headers:{ cookie:`video_marketplace_session=${encodeURIComponent(buyerToken)}` } });
