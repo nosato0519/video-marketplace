@@ -1,20 +1,19 @@
 # Development Progress Log
 
-## 2026-09-01 — Milestone 480 — Chat handoff checkpoint
+## 2026-09-01 — Milestone 481 — Chat handoff checkpoint
 
 ### Purpose
-This checkpoint exists so the next chat can continue from the exact current state without repeating work.
+This checkpoint records the exact state so the next session can continue without repeating investigation or implementation.
 
-### Authoritative repository state
+### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- The mainline Browser E2E workflow is configured to use the existing same-origin proxy and real backend: `PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173/app/index.html`, `BROWSER_BACKEND_URL=http://127.0.0.1:3000`.
-- Playwright already owns browser-server startup through its existing `webServer`. Do not add a second frontend server.
-- Latest known mainline checkpoint commit created in this handoff: `b47623c048761ff7240ce41c31cdcf8b01af06b2`.
+- The authoritative continuation files are `PROJECT_STATE.md` and this `PROGRESS_LOG.md`.
+- The mainline Playwright/browser-server path is the existing same-origin proxy using `/app/index.html`; do not introduce a second frontend server.
 
-### Existing completed work — do not recreate
+### Completed work that must NOT be recreated
 - Storefront/catalog and real catalog APIs.
-- Buyer purchase/order/Library/watch/download authorization.
+- Buyer purchase/order/Library/watch/download authorization foundations.
 - Seller product/media/publishing/profile/verification/earnings/payout foundations.
 - Admin verification/moderation/payout foundations.
 - Payment/refund/failure handling and seller earning settlement logic.
@@ -22,55 +21,44 @@ This checkpoint exists so the next chat can continue from the exact current stat
 - PostgreSQL migration/preflight and existing backend acceptance suites.
 - Product Detail real-backend API integration.
 - Existing same-origin browser proxy.
+- Previous GREEN gates: Backend Regression #644, Clean Install #229, PostgreSQL Migration Acceptance #255, Browser E2E #65/#66.
 
-Previously verified GREEN gates include Backend Regression #644, Clean Install #229, PostgreSQL Migration Acceptance #255, and Browser E2E #65/#66.
+### Buyer real-browser acceptance work
+- The existing real-backend Buyer browser acceptance test was recovered from the stale `ci/buyer-real-browser-acceptance` line rather than recreated from scratch.
+- A continuation branch was created from current main and the existing test was added as `tests/browser-buyer-real-backend.spec.js` in commit `d7618f01909b9e56cd66a5777a0fb0dd84aa3df0`.
+- That test covers real catalog listing, Product Detail, authenticated buyer session, real order creation, payment webhook settlement, Library, protected Watch, and protected Download.
+- This test has NOT yet been proven GREEN against authoritative current main. Do not claim it is GREEN without runtime/CI evidence.
 
-### Buyer browser acceptance work on stale PR #13 — evidence only
-PR #13 is `ci/buyer-real-browser-acceptance`, currently OPEN/DRAFT, head `44356d44f041791b64e5a17bab661cc219c5ca48`.
+### Important correction from this session
+- Do not create additional marker/checkpoint commits, duplicate tests, or dummy CI-trigger commits.
+- Do not keep changing Playwright URL/baseURL configuration unless an actual runtime failure proves it is necessary.
+- The stale PR/branch is evidence only until intentionally merged or its needed changes are verified against current main.
+- Earlier exploratory branches created during this session are not authoritative. Do not switch `main` to them or force-update anything.
 
-Relevant fixes already made on that branch:
-- `d42984c24369226151e7e7cc2888286a0a52e2a1`: Buyer real-browser test DB environment/import-order fix and teardown FK cleanup ordering.
-- `44356d44f041791b64e5a17bab661cc219c5ca48`: require the real catalog API and seeded product instead of allowing demo fallback to satisfy the acceptance.
-
-Important: **do not assume PR #13 is part of `main`**. It is a stale/parallel acceptance branch and must not be treated as authoritative until explicitly merged or its needed changes are intentionally reimplemented after checking current main.
-
-### CI issue already diagnosed
-A previous Backend Browser Acceptance run failed because the frontend proxy was started twice on port 4173. The Workflow was corrected so Playwright owns the browser server and the explicit duplicate startup was removed. A later run reached the Buyer browser test and exposed the missing `DATABASE_URL` in the Playwright process; that was fixed on stale PR #13 by `d42984c...`.
-
-### Current status
-- Mainline Browser E2E proxy configuration: IMPLEMENTED.
-- Mainline current runtime verification of the proxy change: **PENDING authoritative CI evidence**.
-- Buyer real-backend browser acceptance: **IMPLEMENTED on stale PR #13; not yet proven GREEN on current mainline**.
-- Seller/Admin real-backend browser acceptance: OUTSTANDING.
-- Additional payment provider scope/adapter verification: OUTSTANDING.
-- Refund-after-payout accounting policy and implementation: OUTSTANDING.
-- Final release hardening/security/release gate: OUTSTANDING.
-- Final commercial readiness: NOT CLAIMED.
-
-### Mandatory no-waste rule — user instruction
-The user explicitly instructed on 2026-09-01 to work efficiently and avoid unnecessary repetition. This must be followed in every future work cycle:
-1. Read `PROJECT_STATE.md` and this log first.
-2. Inspect the latest `main` before trusting an old branch, PR, or TODO.
-3. Search current code/history before recreating a supposedly missing feature.
-4. Identify the exact acceptance criterion advanced by every change.
-5. If a change does not advance a concrete acceptance criterion, do not make it.
-6. Reuse existing APIs, fixtures, helpers, and infrastructure.
-7. Do not create duplicate tests, fake fixtures, marker commits, no-op commits, or commits whose only purpose is to trigger CI.
-8. Do not repeatedly modify CI without a concrete observed failure.
-9. Never claim GREEN without runtime/CI evidence.
-10. Never force-update a moved branch.
-11. Once a gate is GREEN, move immediately to the next gate instead of revisiting completed work.
+### Current blocker
+The remaining authoritative gate is runtime verification of the current-main Browser E2E / real-backend Buyer acceptance. The current GitHub toolset does not expose workflow dispatch, so do not manufacture a CI run with a no-op commit.
 
 ### Remaining work — exact order
-1. Inspect authoritative current-main Browser E2E runtime result.
-2. If it fails, fix only the concrete failure and rerun/inspect the resulting gate.
-3. If it passes, complete/verify authenticated Buyer flow: Browse → Product Detail → session → purchase/order → settlement → Library → protected Watch/Download.
-4. Move immediately to Seller/Admin real-backend browser acceptance.
-5. Verify payment-provider identity/contract consistency and explicitly define supported provider scope.
-6. Finish refund-after-payout accounting behavior and runtime coverage.
-7. Perform release hardening: install/upgrade matrix, production secrets/provider readiness, backup/restore drill, security review, final browser regression and release gate.
+1. Inspect authoritative current-main Browser E2E runtime/CI result when available.
+2. If FAIL, fix only the concrete observed failure and record the result.
+3. If GREEN, immediately verify authenticated Buyer flow end-to-end using the existing real-backend test/fixtures.
+4. Move directly to Seller/Admin real-backend browser acceptance.
+5. Verify payment-provider identity/contract consistency and supported-provider scope.
+6. Verify refund-after-payout accounting integrity and runtime coverage.
+7. Perform final release hardening: install/upgrade matrix, secrets/provider readiness, backup/restore, security review, final browser regression, and release gate.
+8. Only after those gates pass, proceed to the requested demo-screen operation.
 
-### Exact next action
-**Next chat: read `PROJECT_STATE.md` and this log, inspect latest `main`, then inspect the authoritative current-main Browser E2E result. Do not create a new Buyer test unless current code proves the existing test is genuinely missing. Fix only observed failures.**
+### Mandatory no-waste rule
+1. Read `PROJECT_STATE.md` and this log first.
+2. Inspect latest `main` before trusting any old branch or PR.
+3. Search current code/history before recreating a feature.
+4. Every change must advance a concrete acceptance criterion.
+5. Reuse existing APIs, fixtures, helpers, and infrastructure.
+6. Never create duplicate tests, fake fixtures, marker/no-op commits, or CI-trigger-only commits.
+7. Never repeatedly modify CI without a concrete observed failure.
+8. Never claim GREEN without runtime/CI evidence.
+9. Never force-update a moved branch.
+10. Once a gate is GREEN, move immediately to the next gate.
 
-**This file and `PROJECT_STATE.md` are the authoritative continuation source.**
+### Exact continuation instruction
+**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then inspect the authoritative Browser E2E runtime/CI result. Do not rebuild the Buyer test. If the gate is GREEN, move to authenticated Buyer/Seller/Admin acceptance. If it FAILs, fix only the observed failure and record it.**
