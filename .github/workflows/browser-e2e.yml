@@ -31,8 +31,10 @@ jobs:
       MEDIA_STORAGE_PROVIDER: local
       MEDIA_STORAGE_DIR: ${{ github.workspace }}/backend/media-data
       MEDIA_URL_SECRET: ci-media-url-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+      PAYMENT_WEBHOOK_SECRET: ci-payment-webhook-secret-0123456789-abcdefghijklmnopqrstuvwxyz
       NODE_ENV: test
       PORT: 3000
+      BROWSER_BACKEND_URL: http://127.0.0.1:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,11 +78,9 @@ jobs:
 
       - name: Run browser E2E against backend
         env:
-          PLAYWRIGHT_EXTERNAL_SERVER: '1'
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173/app/index.html
-        run: |
-          nohup python -m http.server 4173 --directory . > /tmp/video-marketplace-web.log 2>&1 &
-          npm run test:e2e
+          BROWSER_BACKEND_URL: http://127.0.0.1:3000
+        run: npm run test:e2e
 
       - name: Upload Playwright report
         if: always()
