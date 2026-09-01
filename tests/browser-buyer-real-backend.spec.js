@@ -68,9 +68,12 @@ test.describe('buyer real-backend browser acceptance', () => {
     await expect(card).toBeVisible();
     await card.click();
     await expect(page.getByRole('heading',{name:'Browser E2E Product'})).toBeVisible();
-    const orderResponse = page.waitForResponse(r => r.url().endsWith('/api/orders') && r.request().method()==='POST');
-    await page.getByRole('button',{name:'Purchase'}).click();
-    const response = await orderResponse;
+    const orderResponsePromise = page.waitForResponse(r => r.url().endsWith('/api/orders') && r.request().method()==='POST');
+    await Promise.all([
+      orderResponsePromise,
+      page.getByRole('button',{name:'Purchase'}).click(),
+    ]);
+    const response = await orderResponsePromise;
     expect(response.status()).toBe(201);
     const order = await response.json();
     await settle(order.order.id);
@@ -83,6 +86,13 @@ test.describe('buyer real-backend browser acceptance', () => {
 
   test('real entitlement protects watch and download', async ({ page, context }) => {
     await context.addCookies([{ name:'video_marketplace_session', value:buyerToken, domain:'127.0.0.1', path:'/' }]);
+    const existingEntitlement = await pool.query(`SELECT 1 FROM entitlements WHERE user_id=$1 AND product_id=$2 AND status='active' LIMIT 1`, [ids.buyer, ids.product]);
+    if (existingEntitlement.rowCount === 0) {
+      const orderResponse = await page.request.post('http://127.0.0.1:3000/api/orders', { data:{ productId:ids.product }, headers:{ cookie:`video_marketplace_session=${encodeURIComponent(buyerToken)}` } });
+      expect(orderResponse.status()).toBe(201);
+      const order = await orderResponse.json();
+      await settle(order.order.id);
+    }
     await page.goto(`/app/index.html#/watch/${ids.product}`);
     await expect(page.getByRole('heading',{name:'Watch video'})).toBeVisible();
     await expect(page.locator('video.secure-player')).toHaveAttribute('src',`/api/media/${ids.product}/stream`);
