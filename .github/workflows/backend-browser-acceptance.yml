@@ -78,6 +78,13 @@ jobs:
         run: mkdir -p "$MEDIA_STORAGE_DIR" && node src/server.js > /tmp/video-marketplace-api.log 2>&1 &
       - name: Wait for backend
         run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:3000/api/health',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>60){clearInterval(t);process.exit(1)}},1000)"
+      - name: Start browser proxy
+        env:
+          BROWSER_SERVER_PORT: 4173
+          BROWSER_BACKEND_URL: http://127.0.0.1:3000
+        run: node tests/browser-server.js > /tmp/video-marketplace-browser.log 2>&1 &
+      - name: Wait for browser proxy
+        run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:4173/app/index.html',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>30){clearInterval(t);process.exit(1)}},500)"
       - name: Run real backend browser acceptance
         env:
           BACKEND_URL: http://127.0.0.1:3000
@@ -90,4 +97,6 @@ jobs:
         run: npx playwright test tests/browser-backend-seller-application.spec.js tests/browser-backend-buyer-purchase.spec.js --reporter=line
       - name: Dump backend logs on failure
         if: failure()
-        run: cat /tmp/video-marketplace-api.log || true
+        run: |
+          cat /tmp/video-marketplace-api.log || true
+          cat /tmp/video-marketplace-browser.log || true
