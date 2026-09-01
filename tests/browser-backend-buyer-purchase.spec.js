@@ -55,6 +55,11 @@ test.describe('real backend buyer purchase browser acceptance', () => {
                  'Real backend buyer browser acceptance product', TRUE, TRUE, NOW())`,
         [ids.product, ids.seller, ids.media]
       );
+      await pool.query(
+        `INSERT INTO product_translations (product_id, locale, title, description)
+         VALUES ($1, 'en', 'Browser E2E Product', 'Real backend buyer browser acceptance product')`,
+        [ids.product]
+      );
 
       await page.goto(`${appUrl}#/register`);
       await page.getByLabel('Email').fill(email);
