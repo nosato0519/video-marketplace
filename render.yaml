@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: video-marketplace-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: video-marketplace-db
+          property: connectionString
+      - key: SESSION_SECRET
+        sync: false
+      - key: MEDIA_STORAGE_PROVIDER
+        sync: false
+      - key: MEDIA_STORAGE_DIR
+        sync: false
+      - key: MEDIA_URL_SECRET
+        sync: false
+      - key: PAYMENT_PROVIDER
+        sync: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_SUCCESS_URL
+        sync: false
+      - key: STRIPE_CANCEL_URL
+        sync: false
+
+  - type: web
+    name: video-marketplace-frontend
+    runtime: static
+    rootDir: app
+    buildCommand: echo "Static frontend"
+    staticPublishPath: .
+
+databases:
+  - name: video-marketplace-db
+    databaseName: video_marketplace
+    user: video_marketplace
