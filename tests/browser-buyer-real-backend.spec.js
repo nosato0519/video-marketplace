@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
-import { getPool } from '../backend/src/db.js';
-import { createSessionToken, hashSessionToken, sessionExpiry } from '../backend/src/auth/session.js';
 
+process.env.DATABASE_URL ||= 'postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace';
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
 process.env.PAYMENT_WEBHOOK_SECRET ||= 'acceptance-only-payment-webhook-secret-0123456789abcdef';
+
+const { getPool } = await import('../backend/src/db.js');
+const { createSessionToken, hashSessionToken, sessionExpiry } = await import('../backend/src/auth/session.js');
 
 const pool = getPool();
 const mediaBytes = Buffer.from('browser-buyer-real-backend-video-fixture');
@@ -42,6 +44,7 @@ test.describe('buyer real-backend browser acceptance', () => {
     await pool.query(`DELETE FROM payment_events WHERE provider='mock' AND event_id=$1`, [eventId]).catch(()=>{});
     await pool.query(`DELETE FROM user_sessions WHERE user_id=$1`, [ids.buyer]).catch(()=>{});
     await pool.query(`DELETE FROM entitlements WHERE user_id=$1`, [ids.buyer]).catch(()=>{});
+    await pool.query(`DELETE FROM seller_earnings WHERE order_id IN (SELECT id FROM orders WHERE buyer_id=$1)`, [ids.buyer]).catch(()=>{});
     await pool.query(`DELETE FROM payments WHERE provider_payment_id=$1`, [providerPaymentId]).catch(()=>{});
     await pool.query(`DELETE FROM orders WHERE buyer_id=$1`, [ids.buyer]).catch(()=>{});
     await pool.query(`DELETE FROM products WHERE id=$1`, [ids.product]).catch(()=>{});
