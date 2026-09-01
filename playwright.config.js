@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: {
     command: 'node tests/browser-server.js',
     url: 'http://127.0.0.1:4173/app/index.html',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 30_000,
   },
 });
