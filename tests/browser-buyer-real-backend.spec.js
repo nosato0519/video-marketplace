@@ -27,6 +27,7 @@ async function seed() {
   await pool.query(`INSERT INTO seller_profiles (user_id,display_name) VALUES ($1,'Browser E2E Seller')`, [ids.seller]);
   await pool.query(`INSERT INTO media_assets (id,owner_user_id,storage_key,mime_type,byte_size,status) VALUES ($1,$2,$3,'video/mp4',$4,'ready')`, [ids.media,ids.seller,storageKey,mediaBytes.length]);
   await pool.query(`INSERT INTO products (id,seller_id,media_asset_id,status,price_amount,price_currency,title,description,streaming_enabled,download_enabled,published_at) VALUES ($1,$2,$3,'published',1500,'JPY','Browser E2E Product','Real backend browser acceptance product',TRUE,TRUE,NOW())`, [ids.product,ids.seller,ids.media]);
+  await pool.query(`INSERT INTO product_translations (product_id,locale,title,description) VALUES ($1,'en','Browser E2E Product','Real backend browser acceptance product')`, [ids.product]);
   await pool.query(`INSERT INTO user_sessions (user_id,token_hash,expires_at) VALUES ($1,$2,$3)`, [ids.buyer,hashSessionToken(buyerToken),sessionExpiry()]);
 }
 
