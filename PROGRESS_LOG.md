@@ -1,5 +1,45 @@
 # Development Progress Log
 
+## 2026-09-01 — Milestone 477
+
+### Work completed
+- Re-read `PROJECT_STATE.md` and `PROGRESS_LOG.md` before changing anything.
+- Confirmed the previous real-backend Browser E2E work already exists on stale PR branches and must not be recreated on `main`.
+- Confirmed current `main` still used the old Python static server in `.github/workflows/browser-e2e.yml`, which meant the authoritative mainline Browser E2E gate could not exercise `/api/*` through the same-origin proxy.
+- Updated `.github/workflows/browser-e2e.yml` on `main` to run the existing Playwright browser-server proxy and pass `BROWSER_BACKEND_URL=http://127.0.0.1:3000`.
+- Recorded the user's explicit process instruction: past repeated work is accepted as history, but from this point forward no unnecessary duplicate work, marker commits, fake fixtures, repeated CI-trigger commits, or rebuilding already-completed features.
+- Updated `PROJECT_STATE.md` with the same no-waste rule and the exact next acceptance gate.
+
+### Verification status
+- Workflow file update committed to `main`: `2dcfcc4ad9403bc896f9d7ccf98d92d5424ec8fc`.
+- Checkpoint update committed to `main`: `5067431cd1a8ebde6276a18fe557728014621d90`.
+- Runtime result for the newly updated current-main Browser E2E workflow is still pending; do not claim GREEN until CI provides runtime evidence.
+- Existing Backend Regression #644, Clean Install #229, PostgreSQL Migration Acceptance #255, and Browser E2E #65/#66 remain previously verified GREEN.
+
+### Mandatory no-waste protocol
+- `main` plus `PROJECT_STATE.md` and this log are authoritative.
+- Before every change, identify the exact acceptance criterion advanced by that change.
+- Search current code/history before implementing anything described by an old TODO.
+- Reuse existing backend APIs, fixtures, test helpers, and browser infrastructure whenever they already satisfy the requirement.
+- Do not create duplicate tests or fake data merely to make a gate pass.
+- Do not create marker/no-op commits merely to advance progress.
+- Do not repeatedly modify CI just to trigger another run; make one concrete correction, then inspect its runtime result.
+- Do not claim GREEN without runtime/CI evidence.
+- Do not force-update moved branches.
+- Once a gate is GREEN, move immediately to the next required gate instead of revisiting completed work.
+
+### Remaining work — priority order
+1. Run/inspect current-main Browser E2E through the real-backend proxy.
+2. Fix only concrete Browser E2E failures and rerun until GREEN.
+3. Verify authenticated Buyer browser flow: Browse → Product Detail → session → purchase/order → settlement → Library → Watch/Download.
+4. Verify authenticated Seller/Admin browser flows against the real backend.
+5. Verify payment-provider identity/contract consistency and supported-provider scope.
+6. Complete refund-after-payout accounting policy and runtime tests.
+7. Run release hardening: install/upgrade matrix, provider/secrets readiness, backup/restore drill, security review, final browser gate.
+
+### Exact next action
+**Use the current `main` only. Inspect the first Browser E2E run after commit `2dcfcc4...`. If it fails, fix only the observed failure. If it passes, immediately continue to authenticated Buyer/Seller/Admin acceptance.**
+
 ## 2026-08-31 — Milestone 476
 
 ### End-of-day checkpoint
@@ -35,42 +75,3 @@
 - Record exact implementation, verification result, remaining gap, and next action after meaningful work.
 - Never force-update a moved branch.
 - Never call a feature GREEN without runtime/CI evidence.
-
-### Exact next action for the next session
-**Start at current `main` → run/inspect the authoritative Browser Acceptance for Product Detail → if it passes, build the real-browser Buyer flow using the existing backend fixture → verify Watch/Download authorization → record the runtime result before moving to Seller/Admin.**
-
-### Checkpoint commit
-`dac637d4ca3950e3c4ed50ef6b554c62e1ad29c6`
-
-This checkpoint is the authoritative continuation source for the next session.
-
-## 2026-08-31 — Milestone 475
-
-### Work completed
-- Verified the backend catalog listing endpoint already exists at `/api/catalog/products` and the product detail endpoint at `/api/catalog/products/:productId`.
-- Verified `app/catalog/catalog-view.js` already uses the real catalog API through `loadCatalog()`; therefore catalog listing did not need to be rebuilt.
-- Identified the actual remaining demo-backed Buyer path: `app/main.js` Product Detail still called the legacy `getProduct(id)` from `app/catalog/catalog.js`.
-- Added `app/catalog/product-detail-api.js` to fetch `/api/catalog/products/:productId` with locale support.
-- Updated `app/main.js` Product Detail to fetch the real backend product asynchronously, render the returned title/category/seller/description/price, enable checkout only after successful load, and show a not-found state on API failure.
-- Removed the Product Detail dependency on the legacy demo product lookup.
-- Recorded this checkpoint in both `PROJECT_STATE.md` and this log.
-
-### Verification status
-- Code path reviewed against existing backend route registration in `backend/src/app.js` and catalog route files.
-- Runtime browser verification of the new Product Detail path is still pending; implementation alone is not considered GREEN.
-- Existing Backend Regression #644, Clean Install #229, Migration Acceptance #255, and Browser E2E #65/#66 remain previously verified GREEN.
-
-### Anti-duplication correction
-The earlier plan to rebuild the entire catalog API was unnecessary. The backend catalog and catalog-view were already API-backed. Only the Product Detail renderer retained a direct demo-data dependency. Future work must target the exact remaining gap instead of recreating completed catalog functionality.
-
-### Exact next action
-Run/inspect the authoritative current-main Browser Acceptance gate for the new Product Detail path. If it passes, extend the same real-backend fixture into the full Buyer flow: Browse → Product Detail → authenticated checkout/order → Library → Watch/Download. If it fails, fix only the observed failure.
-
-## 2026-08-31 — Milestone 473
-
-### Process correction
-- Added explicit anti-duplication / continuation protocol.
-- Latest `main` is authoritative over stale PR branches and old TODOs.
-- Search commit history before recreating any supposedly missing feature.
-- Record exact implementation, verification, remaining gap and next action in both checkpoint files.
-- Never force-update a moved branch.
