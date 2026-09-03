@@ -36,7 +36,7 @@ async function settle(orderId) {
   const payload = JSON.stringify({ eventId, provider:'mock', eventType:'payment_succeeded', paymentId:providerPaymentId, orderId, amount:1500, currency:'JPY', status:'succeeded' });
   const signature = crypto.createHmac('sha256', process.env.PAYMENT_WEBHOOK_SECRET).update(payload).digest('hex');
   const response = await fetch('http://127.0.0.1:3000/api/payments/webhook', { method:'POST', headers:{'content-type':'application/json','x-payment-signature':signature}, body:payload });
-  expect(response.status()).toBe(200);
+  expect(response.status).toBe(200);
 }
 
 test.describe('buyer real-backend browser acceptance', () => {
