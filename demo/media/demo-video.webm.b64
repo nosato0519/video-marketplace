@@ -1,0 +1,1 @@
+Generated locally from ffmpeg during demo validation. The runtime server expects demo/media/demo-video.webm. Convert this file with base64 -d if a binary upload is needed.
