@@ -36,7 +36,7 @@ try {
   const freshMedia = await request('/api/demo/media/1');
   if (![401, 404].includes(freshMedia.status)) throw new Error(`unauthorized media status ${freshMedia.status}`);
 
-  const loginBuyer = await request('/api/demo/login', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ role: 'buyer' }) });
+  const loginBuyer = await request('/api/demo/login', { method:'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ role: 'buyer' }) });
   if (!loginBuyer.ok) throw new Error('buyer login failed');
   const buyerCookie = cookieOf(loginBuyer);
   const purchase = await json('/api/demo/purchase', { method:'POST', headers:{'content-type':'application/json',cookie:buyerCookie}, body:JSON.stringify({productId:1}) });
@@ -64,7 +64,7 @@ try {
   const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
   if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
-  const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'MOD-1002',action:'approve'}) });
+  const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'MOD-1001',action:'approve'}) });
   const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'SEL-1001',action:'approve'}) });
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
 
