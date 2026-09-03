@@ -16,7 +16,7 @@ async function login(page, email, password) {
   await page.goto(`${appUrl}#/login`);
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: /Login|Sign in/i }).click();
+  await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
   await expect(page).toHaveURL(/#\/browse/);
 }
 
