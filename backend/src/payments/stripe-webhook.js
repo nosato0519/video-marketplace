@@ -23,7 +23,7 @@ export function createStripeWebhookHandler({
   secret = process.env.STRIPE_WEBHOOK_SECRET,
   stripe,
 } = {}) {
-  const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_webhook_verifier');
+  const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY);
 
   return async function handleStripeWebhook(req, res, next) {
     try {
@@ -78,52 +78,40 @@ export function createStripeWebhookHandler({
       });
       return res.status(200).json({ received: true, result });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   };
 }
 
 async function normalizeStripeEvent(event, eventType, stripe) {
   const object = event?.data?.object || {};
-  const metadata = object.metadata || {};
-  const paymentId = metadata.paymentId || object.payment_intent || object.id;
-  let orderId = metadata.orderId || object.client_reference_id;
-
-  if (eventType === 'payment_refunded' && object.payment_intent) {
-    if (!object.refunded) {
-      return {
-        eventId: event.id,
-        provider: 'stripe',
-        eventType,
-        paymentId: String(paymentId || ''),
-        orderId: String(orderId || ''),
-        amount: 0,
-        currency: String(object.currency || '').toUpperCase(),
-        status: 'failed',
-        fullRefund: false,
-      };
-    }
-
-    if (!orderId) {
-      const paymentIntent = await stripe.paymentIntents.retrieve(String(object.payment_intent));
-      orderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
-    }
+  if (eventType === 'payment_refunded') {
+    const paymentIntentId = typeof object.payment_intent === 'string' ? object.payment_intent : object.payment_intent?.id;
+    const paymentIntent = paymentIntentId ? await stripe.paymentIntents.retrieve(paymentIntentId) : null;
+    const orderId = object.metadata?.orderId || paymentIntent?.metadata?.orderId;
+    const paymentId = paymentIntentId || object.id;
+    const amount = paymentIntent?.amount_received ?? paymentIntent?.amount ?? object.amount;
+    const refunded = object.amount_refunded ?? object.amount;
+    return {
+      eventId: event.id,
+      eventType,
+      paymentId,
+      orderId,
+      amount: fromStripeMinorUnits(amount, paymentIntent?.currency || object.currency),
+      currency: String(paymentIntent?.currency || object.currency || '').toUpperCase(),
+      fullRefund: Number(refunded) >= Number(amount),
+    };
   }
 
-  const currency = String(object.currency || '').toUpperCase();
-  const amountMinor = eventType === 'payment_refunded'
-    ? object.amount
-    : object.amount_total ?? object.amount_received ?? object.amount;
-  const amount = typeof amountMinor === 'number' ? amountMinor : Number(amountMinor);
+  const paymentId = typeof object.payment_intent === 'string' ? object.payment_intent : object.payment_intent?.id;
+  const orderId = object.client_reference_id || object.metadata?.orderId;
+  const amountMinor = object.amount_total ?? object.amount_received ?? object.amount;
   return {
     eventId: event.id,
-    provider: 'stripe',
     eventType,
-    paymentId: String(paymentId || ''),
-    orderId: String(orderId || ''),
-    amount: fromStripeMinorUnits(amount, currency),
-    currency,
-    status: eventType === 'payment_succeeded' ? 'succeeded' : 'failed',
-    fullRefund: eventType !== 'payment_refunded' || object.refunded === true,
+    paymentId,
+    orderId,
+    amount: fromStripeMinorUnits(amountMinor, object.currency),
+    currency: String(object.currency || '').toUpperCase(),
   };
 }
