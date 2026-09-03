@@ -1,31 +1,35 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 488 — Functional demo launcher fix
+## 2026-09-03 — Milestone 489 — Demo completion polish
 
 ### Completed
-- Reviewed Milestone 487 and the failing CI job before making changes.
-- Identified the exact failure: `demo/launcher.mjs` prepended a second `const ROOT` declaration even though `demo/server.js` already declares `ROOT`.
-- Removed only the duplicate declaration from the launcher. No completed marketplace functionality was rebuilt.
-- Preserved the launcher injection that serves `/app.js`, `/boot.js`, and the browser root through the same demo server.
-- The previous CI run showed the full backend regression suite reaching the functional demo step with 191/191 unit/regression tests passing; only the launcher startup failed at the demo E2E boundary.
+- Confirmed the previous Functional Demo failure was fixed: the admin moderation fixture now targets the real demo queue item `MOD-1001`.
+- Functional Demo CI run #2 completed successfully.
+- Preserved the already verified marketplace/backend behavior instead of rebuilding it.
+- Polished the demo storefront UI so product cards use the intended marketplace card styling and remain readable/responsive.
+- Added working category cards backed by the live demo catalog, including explicit 18+ labeling for Adult.
+- Improved buyer library presentation to support multiple purchased videos rather than displaying only one item.
+- Hardened demo UI interactions with escaped dynamic text, clearer empty states, and user-friendly error toasts.
+- Fixed the role workspace visibility bug: Buyer/Seller/Admin workspaces are now explicitly revealed when opened.
+- Kept the server-side purchase, entitlement-protected media, seller upload lifecycle, payout, moderation, and seller-approval flows intact.
 
 ### Authoritative state
 - Branch: `main`.
-- Latest launcher fix commit: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
-- Failed predecessor: `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
-- Previous demo hardening: `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
-- Previous final hardening: `882d5879c23b349eb75337b82b7a67e4a3faf09d`.
+- Latest demo UX commit: `363f031ba704201870179e5a9da1080cd716dc35`.
+- Latest workspace visibility fix: `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
+- Functional Demo verification commit: `cd22f4aaf8bcc687e0ebe67c4027f36bb0423995`.
+- Previous launcher fix: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
 - Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 
 ### Verification boundary
-- `8733827...` must pass CI before being marked GREEN.
-- The failed run is not treated as a finished demo.
+- Functional Demo run #2 passed after the moderation fixture correction.
+- The latest UI/workspace commits must still pass the repository CI gates before being called fully GREEN.
 - No public demo URL is claimed until an actual execution environment is running.
 
 ### Resume point
-- Next action: inspect the CI result for `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
-- If the functional demo passes, inspect the remaining workflow gates and then continue only on genuine gaps.
-- If it fails, use the exact failing job/log and fix only that defect.
+- Run/inspect CI for `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
+- If CI is GREEN, perform a final regression check and treat the demo as the completed showcase checkpoint.
+- If CI fails, fix only the exact verified defect.
 
 ### No-waste rule
 - Always inspect the latest progress log and failing evidence before editing.
