@@ -24,8 +24,9 @@ const include = [
   'RELEASE_READINESS.md',
   'PROGRESS_LOG.md',
   'package.json',
-  'package-lock.json',
 ];
+
+if (fs.existsSync(path.join(root, 'package-lock.json'))) include.push('package-lock.json');
 
 const forbiddenNames = new Set([
   '.env', '.env.local', '.env.production', '.env.development',
