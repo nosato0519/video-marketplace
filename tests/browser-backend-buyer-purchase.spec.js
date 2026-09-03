@@ -89,9 +89,9 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       const ordersResponse = await page.request.get(`${backendUrl}/api/orders`);
       expect(ordersResponse.ok()).toBeTruthy();
       const ordersBody = await ordersResponse.json();
-      const order = ordersBody.items.find((item) => item.id === orderId);
+      const order = ordersBody.items.find((item) => item.orderId === orderId);
       expect(order).toBeTruthy();
-      expect(order.product_id).toBe(ids.product);
+      expect(order.productId).toBe(ids.product);
       expect(order.status).toBe('pending');
 
       const paymentResult = await pool.query(
