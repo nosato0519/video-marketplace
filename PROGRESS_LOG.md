@@ -1,33 +1,33 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 487 — Functional demo verifier alignment
+## 2026-09-03 — Milestone 488 — Functional demo launcher fix
 
 ### Completed
-- Reviewed Milestone 486 and current demo implementation before changing anything.
-- Found and fixed three verifier/implementation mismatches instead of duplicating completed functionality:
-  1. Health check now targets the launcher/server's actual `/api/health` endpoint.
-  2. Catalog verification now matches the server's `Adult` category, while the UI continues to display it as 18+.
-  3. Admin verification now approves the actual seeded moderation item `MOD-1002` and seller application `SEL-1001` used by the demo workflow.
-- Kept the strengthened Watch + Download byte-level verification and Seller authorization coverage.
+- Reviewed Milestone 487 and the failing CI job before making changes.
+- Identified the exact failure: `demo/launcher.mjs` prepended a second `const ROOT` declaration even though `demo/server.js` already declares `ROOT`.
+- Removed only the duplicate declaration from the launcher. No completed marketplace functionality was rebuilt.
+- Preserved the launcher injection that serves `/app.js`, `/boot.js`, and the browser root through the same demo server.
+- The previous CI run showed the full backend regression suite reaching the functional demo step with 191/191 unit/regression tests passing; only the launcher startup failed at the demo E2E boundary.
 
 ### Authoritative state
 - Branch: `main`.
-- Latest verifier fix commit: `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
-- Previous demo hardening commit: `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
-- Previous final hardening commit: `882d5879c23b349eb75337b82b7a67e4a3faf09d`.
+- Latest launcher fix commit: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
+- Failed predecessor: `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
+- Previous demo hardening: `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
+- Previous final hardening: `882d5879c23b349eb75337b82b7a67e4a3faf09d`.
 - Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 
 ### Verification boundary
-- The latest verifier fix has not yet produced an observable CI result through the current connector, so it is not marked GREEN without evidence.
-- Existing CI evidence on `882d5879` remains valid for that checkpoint only.
-- Public demo URL still requires an actual running execution environment; no fake URL is being claimed.
+- `8733827...` must pass CI before being marked GREEN.
+- The failed run is not treated as a finished demo.
+- No public demo URL is claimed until an actual execution environment is running.
 
 ### Resume point
-- Next action: inspect CI/status for `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
-- If CI is GREEN, move to the next real missing acceptance/release item only.
-- If CI is unavailable, continue only with a concrete defect or acceptance gap; do not manufacture a GREEN result.
+- Next action: inspect the CI result for `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
+- If the functional demo passes, inspect the remaining workflow gates and then continue only on genuine gaps.
+- If it fails, use the exact failing job/log and fix only that defect.
 
 ### No-waste rule
-- Read this log and current files before every change.
-- Do not rebuild completed Buyer/Seller/Admin functionality.
-- Every commit must fix a defect, add meaningful acceptance coverage, or provide verification evidence.
+- Always inspect the latest progress log and failing evidence before editing.
+- Never recreate completed Buyer/Seller/Admin functionality.
+- Every new commit must fix a verified defect, add meaningful acceptance coverage, or provide verification evidence.
