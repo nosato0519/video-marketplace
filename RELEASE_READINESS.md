@@ -1,91 +1,96 @@
-# Video Marketplace — Release Readiness
+# VIDORA — Commercial Release Readiness
 
-This checklist is the final release gate. It records verified automated coverage and the remaining production-environment checks without weakening the existing acceptance suites.
+This checklist is the release gate for selling the repository as a customer-installable video marketplace package.
 
-## 1. Runtime matrix
+## 1. Package integrity
 
-| Area | Supported / verified |
-| --- | --- |
-| Node.js | `>=20` (package engine requirement) |
-| CI regression runtime | Node.js 22 |
-| PostgreSQL acceptance runtime | PostgreSQL 16 |
-| Browser acceptance | Existing same-origin browser proxy + Playwright |
+- [x] `app/`, `backend/`, and `demo/` are included.
+- [x] `backend/.env.example` is included and real credentials are not committed.
+- [x] Local secrets, dependencies, logs and private media are excluded by `.gitignore`.
+- [x] `README.md` and `COMMERCIAL_PACKAGE.md` document installation and customer hand-off.
+- [ ] Final commercial license and redistribution terms are attached before delivery.
 
-The project declares Node.js `>=20`; the canonical backend regression runs on Node.js 22 and PostgreSQL 16. Do not lower the runtime requirement or introduce a second browser server for release validation.
+## 2. Automated release gates
 
-## 2. Automated gates already GREEN
+The latest main-branch documentation commit is being validated by the repository's push workflows. The release process keeps the existing gates intact:
 
-Latest implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73` (`ops: gracefully close HTTP server and PostgreSQL pool`).
+- Clean Install: dependency installation, migration preflight, migrations and core regression tests.
+- Browser UI Acceptance: Buyer browser acceptance and browser module smoke.
+- Backend acceptance: authentication, commerce/payment lifecycle, protected media, Seller, Admin, migration and security coverage.
 
-- Browser UI Acceptance: latest push run completed successfully.
-- Clean Install: latest push run completed successfully.
-- Browser E2E: latest push run completed successfully.
-- Backend Browser Acceptance: latest push run completed successfully.
-- Backend Regression: latest push run completed successfully.
-- Backend Regression includes migrations, backup/restore round-trip, unit/regression tests, authentication, payment webhook/failure/refund, Buyer purchase, Seller application/product/media/earnings/payout, payout concurrency, media authorization/upload/access, and security regression suites.
-- Browser acceptance includes Buyer browser acceptance and browser module smoke.
-- The latest implementation also includes graceful HTTP server and PostgreSQL pool shutdown handling, verified by the full five-workflow push gate.
+Do not declare the current commit GREEN until the corresponding workflow runs finish successfully.
 
-## 3. Production configuration gate
+## 3. Buyer acceptance
 
-Before enabling real checkout, verify all of the following in the deployment environment:
+- [x] Catalog search/category flow exists.
+- [x] Product detail consumes the real catalog API.
+- [x] Checkout creates the purchase intent/order and hands off to the configured payment provider.
+- [x] Payment completion is webhook-driven rather than success-URL-driven.
+- [x] My Library and protected Watch/Download flows exist.
+- [x] Unauthorized library/media access is rejected server-side.
+- [ ] Final real-deployment browser pass on desktop and mobile.
 
-- `DATABASE_URL` points to the production PostgreSQL database.
-- `SESSION_SECRET` is a strong production-only secret.
-- `MEDIA_STORAGE_PROVIDER` and production media storage are configured.
-- `MEDIA_URL_SECRET` is a strong production-only secret.
-- `PAYMENT_PROVIDER=stripe` for the currently implemented live checkout adapter.
-- `STRIPE_SECRET_KEY`, `STRIPE_SUCCESS_URL`, and `STRIPE_CANCEL_URL` are present.
-- `PAYMENT_WEBHOOK_SECRET` matches the deployed Stripe webhook endpoint.
-- No production credential is committed to Git or copied into application/database records.
+## 4. Seller acceptance
 
-## 4. Payment scope gate
+- [x] Seller application/verification flow exists.
+- [x] Seller product ownership boundaries are enforced server-side.
+- [x] Media upload validation/lifecycle exists.
+- [x] Publishing, earnings and payout request flows exist.
+- [ ] Final real-deployment browser pass on desktop and mobile.
 
-Stripe is the currently implemented live checkout adapter. PayPal, Adyen, Paddle and PayPay remain catalog entries marked `adapter_ready` and are intentionally unavailable at runtime until their adapters and webhook contracts are implemented and independently accepted. They must not be presented as working checkout methods in a production release.
+## 5. Admin acceptance
 
-Payment completion must continue to depend on a verified provider webhook, not a browser success redirect.
+- [x] Admin authorization is enforced server-side.
+- [x] Seller verification/review exists.
+- [x] Product moderation exists.
+- [x] Payout oversight exists.
+- [ ] Final real-deployment browser pass on desktop and mobile.
 
-## 5. Backup / recovery gate
+## 6. Showcase demo quality
 
-Before release:
+The separate `demo/` package is the commercial sales showcase. It must make the product understandable to a prospective customer without exposing developer-oriented test controls.
 
-1. Take a production database backup.
-2. Verify the backup is readable and stored outside the primary database host.
-3. Verify media backup/retention for protected media.
-4. Perform a restore drill in an isolated environment.
-5. Run migration preflight before any upgrade.
-6. After upgrade, run health checks and the established acceptance gates.
-7. Keep a rollback point until the release is accepted.
+Required presentation journey:
 
-## 6. Security gate
+1. Buyer storefront → search/category discovery.
+2. Product detail → clear value, price and purchase CTA.
+3. Simulated secure checkout → purchase confirmation.
+4. My Library → purchased item immediately available.
+5. Protected Watch + Download.
+6. Seller Studio → product/media/publishing/earnings/payout journey.
+7. Admin Console → verification/moderation/payout oversight.
+8. Desktop and mobile responsive presentation.
 
-Confirm in the actual deployment:
+The demo payment is simulated and must never be marketed as live payment processing.
 
-- HTTPS is enforced.
-- Production secrets are supplied by the deployment secret manager/environment, not source control.
-- Protected media remains inaccessible without an active entitlement.
-- Upload validation remains enabled.
-- Session/authentication protections and rate limits remain enabled.
-- Error responses do not expose internal implementation details.
-- Database backups and logs do not contain application secrets.
-- Storage paths cannot escape the configured media root.
+## 7. Production integration
 
-## 7. Refund / payout policy boundary
+Before a customer's site is opened to real users:
 
-A refund revokes the buyer entitlement and marks the related seller earning as refunded. Paid payout history remains preserved. The current schema has no payout-reversal/recovery-liability field, so the release does not invent an automatic recovery mechanism for funds already paid out. Any such recovery process requires an explicit business/accounting decision and a separate schema design.
+- [ ] Production PostgreSQL configured and migrations applied.
+- [ ] Production object/file storage configured.
+- [ ] Stripe live checkout credentials configured and webhook signature verified.
+- [ ] Strong production `SESSION_SECRET` and `MEDIA_URL_SECRET` configured.
+- [ ] HTTPS/reverse proxy configured.
+- [ ] Database backup/restore drill completed.
+- [ ] Media backup/restore/retention verified.
+- [ ] Customer-specific legal/privacy/terms pages installed.
+- [ ] Customer-specific support/contact information installed.
+- [ ] Final desktop/mobile browser acceptance completed.
 
-## 8. Final browser gate
+## 8. Commercial hand-off
 
-The automated browser gate is already GREEN. Before commercial launch, perform one real deployment-browser pass covering:
+- [ ] Build release archive from a clean checkout.
+- [ ] Verify no `.env`, private key, production credential, customer data or production media is present.
+- [ ] Include installation, configuration and deployment documentation.
+- [ ] Include the showcase demo and its launch instructions.
+- [ ] Attach the final commercial license and redistribution terms.
+- [ ] Deliver customer-specific secrets only through a secure channel.
 
-- Buyer: registration/login → catalog → product detail → checkout handoff → Library → watch → authorized download.
-- Seller: registration/application → product/media management → publishing → earnings → payout status.
-- Admin: seller review → moderation → payout review/status.
-- Unauthorized buyer/media access is rejected.
-- Responsive layout is usable on desktop and mobile widths.
+## Release rule
 
-Do not replace the existing browser acceptance infrastructure with a parallel frontend server.
+**Commercial source package:** may be sold once package integrity, clean installation, automated acceptance and the polished showcase demo are verified.
 
-## Release decision
+**Live-deployment-ready:** requires all customer-specific production integration and final browser checks above.
 
-The repository is at the final hardening stage. Automated acceptance is GREEN on the latest implementation checkpoint; production release remains conditional on the deployment-specific configuration, backup/restore, security and real-browser checks above.
+The repository is deliberately not labeled "live production ready" merely because the demo works. This prevents a simulated payment or unconfigured storage backend from being misrepresented to a customer.
