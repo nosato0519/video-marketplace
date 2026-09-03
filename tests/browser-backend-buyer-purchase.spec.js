@@ -71,6 +71,14 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await page.getByLabel('Password').fill('TestPassword!123');
       await page.getByRole('button', { name: /Register|Create account/i }).click();
       await expect(page).toHaveURL(/#\/browse/);
+
+      const buyerResult = await pool.query(
+        'SELECT id FROM users WHERE email_normalized = $1 LIMIT 1',
+        [email.toLowerCase()],
+      );
+      expect(buyerResult.rows).toHaveLength(1);
+      ids.buyer = buyerResult.rows[0].id;
+
       await page.goto(`${appUrl}#/browse`);
       await expect(page.getByText('Browser E2E Product', { exact: true })).toBeVisible();
       await page.getByText('Browser E2E Product', { exact: true }).click();
@@ -143,6 +151,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
       await pool.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]).catch(() => {});
       await pool.query(`DELETE FROM users WHERE id = $1`, [ids.seller]).catch(() => {});
+      await pool.query(`DELETE FROM users WHERE id = $1`, [ids.buyer]).catch(() => {});
       fs.rmSync(mediaPath, { force: true });
       await pool.end();
     }
