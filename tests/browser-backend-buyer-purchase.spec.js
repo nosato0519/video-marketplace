@@ -21,13 +21,13 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     const ids = {
       buyer: crypto.randomUUID(),
       seller: crypto.randomUUID(),
-      profile: crypto.randomUUID(),
       media: crypto.randomUUID(),
       product: crypto.randomUUID(),
       translation: crypto.randomUUID(),
       payment: null,
     };
     const email = `buyer-${ids.buyer}@example.com`;
+    const sellerEmail = `seller-${ids.seller}@example.com`;
     const mediaFilename = `${ids.media}.mp4`;
     const mediaPath = path.join(mediaDir, mediaFilename);
     const fixture = Buffer.from('browser-backend-buyer-fixture');
@@ -40,11 +40,31 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       fs.writeFileSync(mediaPath, fixture);
 
       await pool.query('BEGIN');
-      await pool.query(`INSERT INTO users (id, email, password_hash, role, status) VALUES ($1, $2, $3, 'seller', 'active')`, [ids.seller, `seller-${ids.seller}@example.com`, 'test-password-hash']);
-      await pool.query(`INSERT INTO seller_profiles (id, user_id, display_name, status) VALUES ($1, $2, 'Browser E2E Seller', 'approved')`, [ids.profile, ids.seller]);
-      await pool.query(`INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, size_bytes, status) VALUES ($1, $2, $3, $4, 'video/mp4', $5, 'ready')`, [ids.media, ids.seller, mediaFilename, mediaFilename, fixture.length]);
-      await pool.query(`INSERT INTO products (id, seller_id, media_asset_id, price_amount, price_currency, status) VALUES ($1, $2, $3, 1500, 'JPY', 'published')`, [ids.product, ids.seller, ids.media]);
-      await pool.query(`INSERT INTO product_translations (id, product_id, locale, title, description) VALUES ($1, $2, 'en', 'Browser E2E Product', 'Real backend browser acceptance product')`, [ids.translation, ids.product]);
+      await pool.query(
+        `INSERT INTO users (id, email, email_normalized, password_hash, role, status)
+         VALUES ($1, $2, $3, $4, 'seller', 'active')`,
+        [ids.seller, sellerEmail, sellerEmail.toLowerCase(), 'test-password-hash'],
+      );
+      await pool.query(
+        `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, verification_status)
+         VALUES ($1, 'Browser E2E Seller', 'Browser E2E Seller Legal', 'JP', 'verified')`,
+        [ids.seller],
+      );
+      await pool.query(
+        `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, size_bytes, status)
+         VALUES ($1, $2, $3, $4, 'video/mp4', $5, 'ready')`,
+        [ids.media, ids.seller, mediaFilename, mediaFilename, fixture.length],
+      );
+      await pool.query(
+        `INSERT INTO products (id, seller_id, media_asset_id, price_amount, price_currency, status)
+         VALUES ($1, $2, $3, 1500, 'JPY', 'published')`,
+        [ids.product, ids.seller, ids.media],
+      );
+      await pool.query(
+        `INSERT INTO product_translations (id, product_id, locale, title, description)
+         VALUES ($1, $2, 'en', 'Browser E2E Product', 'Real backend browser acceptance product')`,
+        [ids.translation, ids.product],
+      );
       await pool.query('COMMIT');
 
       await page.goto(`${appUrl}#/register`);
@@ -103,7 +123,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(downloadResponse.status()).toBe(200);
       expect(Buffer.from(await downloadResponse.body())).toEqual(fixture);
     } finally {
-      await pool.query(`DELETE FROM payment_events WHERE payment_id = $1 OR order_id = $2`, [ids.payment, orderId]).catch(() => {});
+      if (providerPaymentId) await pool.query(`DELETE FROM payment_events WHERE provider_payment_id = $1 OR order_id = $2`, [providerPaymentId, orderId]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM seller_earnings WHERE payment_id = $1`, [ids.payment]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM entitlements WHERE payment_id = $1`, [ids.payment]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
@@ -111,8 +131,8 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await pool.query(`DELETE FROM user_sessions WHERE user_id = $1`, [ids.buyer]).catch(() => {});
       await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
       await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
-      await pool.query(`DELETE FROM seller_profiles WHERE id = $1`, [ids.profile]).catch(() => {});
-      await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [ids.seller, ids.buyer]).catch(() => {});
+      await pool.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]).catch(() => {});
+      await pool.query(`DELETE FROM users WHERE id = $1`, [ids.seller]).catch(() => {});
       fs.rmSync(mediaPath, { force: true });
       await pool.end();
     }
