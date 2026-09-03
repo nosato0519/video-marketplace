@@ -27,3 +27,5 @@ jobs:
         run: node --test backend/src/payments/payment-provider.test.js
       - name: Run webhook regression tests
         run: node --test backend/src/payments/stripe-webhook.test.js
+      - name: Run protected S3 media adapter regression tests
+        run: node --test backend/src/media/s3-media-storage.test.js
