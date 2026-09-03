@@ -1,5 +1,21 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 497 — Commercial release archive validation hardened
+
+### What changed
+- Strengthened `.github/workflows/release-package-check.yml` so the generated commercial ZIP is tested with `unzip -t` before artifact upload.
+- Added assertions for required package entries: `package.json`, `README.md`, and `RELEASE_MANIFEST.txt`.
+- Added archive-level rejection checks for `.env` files, `node_modules`, `dist`, `.git`, `.DS_Store`, and credential/key extensions (`.pem`, `.key`, `.p12`, `.pfx`).
+- Preserved the existing release safety check and clean Node 20 packaging flow.
+
+### Acceptance boundary
+- The workflow is now stricter, but a successful run for this latest commit still needs independent confirmation before the release gate can be called GREEN.
+- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Customer/live deployment gates remain separate: production infrastructure, live payment credentials/webhooks, protected media storage, HTTPS/secrets, backup/restore, legal pages, final production browser acceptance, and final commercial license review.
+
+### Commits
+- `703f94d9e63faf7e31dcd90a6d1cd1c2cba6e8a6` — hardened release archive validation.
+
 ## 2026-09-03 — Milestone 496 — Commercial release packaging hardening
 
 ### What changed
