@@ -9,10 +9,12 @@
 - Added the reusable `Demo Functional Regression` workflow definition and documented the verification command in `demo/LAUNCH.md`.
 - Hardened verifier session-cookie handling for Node's `getSetCookie()` API with a fallback.
 
-### Verification work in progress
-- A temporary PR #17 was created solely to execute the verifier through the existing GitHub Actions environment without altering the authoritative mainline product behavior.
-- Its Backend Regression run `33723997514` is currently executing and includes the new `Run functional sales demo verifier` step.
-- Do not mark the demo verifier GREEN until that step completes successfully.
+### Verification result
+- Temporary PR #17 executed the verifier inside the existing GitHub Actions regression environment.
+- Backend Regression run `33723997514` completed successfully.
+- The `Run functional sales demo verifier` step completed successfully.
+- The same run also completed the existing migration, backup/restore, core regression, buyer purchase, seller product/media/earnings/payout, admin concurrency, media authorization/upload/access, and security regression steps successfully.
+- The verified demo path therefore has an observed CI PASS for the functional buyer/seller/admin demo backend flow.
 
 ### Authoritative mainline
 - Branch: `main`.
@@ -32,14 +34,15 @@
 - Seller payment-provider settings persistence without credential storage.
 - Media upload write/delete lifecycle through the storage abstraction.
 - Graceful HTTP server and PostgreSQL pool shutdown handling.
+- Functional demo backend and end-to-end demo verifier.
 
 ### Release gate status
 - Core automated implementation/release-hardening gates were previously GREEN on the verified checkpoint.
-- The new demo-specific verifier is an additional gate and is intentionally not called GREEN until its actual CI result is observed.
+- The demo-specific backend verifier is now also observed GREEN in CI.
 - A public demo URL still requires a running execution environment; GitHub Codespaces forwards the configured port for browser access when a Codespace is running.
+- Production deployment remains conditional on deployment-specific hosting, database, media storage, secrets, HTTPS, payment credentials, backup/restore, and final real-browser production acceptance.
 
 ### No-waste rule
 - Do not recreate completed feature or acceptance work.
-- Do not call the product 100% complete solely because code exists.
-- Do not claim demo verification success without an observed successful verifier result.
+- Do not call production deployment complete without infrastructure-specific verification.
 - Do not configure production hosting or credentials without an explicit authorized provider choice.
