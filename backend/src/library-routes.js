@@ -9,8 +9,8 @@ export function registerLibraryRoutes(app) {
                 e.product_id,
                 e.order_id,
                 e.status AS entitlement_status,
-                p.title,
-                p.description,
+                translation.title,
+                translation.description,
                 p.price_amount,
                 p.price_currency,
                 p.streaming_enabled,
@@ -18,6 +18,13 @@ export function registerLibraryRoutes(app) {
                 e.created_at AS purchased_at
            FROM entitlements e
            JOIN products p ON p.id = e.product_id
+           LEFT JOIN LATERAL (
+             SELECT pt.title, pt.description
+               FROM product_translations pt
+              WHERE pt.product_id = p.id
+              ORDER BY CASE WHEN pt.locale = 'en' THEN 0 ELSE 1 END, pt.locale
+              LIMIT 1
+           ) translation ON TRUE
           WHERE e.user_id = $1
             AND e.status = 'active'
             AND e.revoked_at IS NULL
