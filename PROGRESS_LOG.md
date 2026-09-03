@@ -1,5 +1,23 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 514 — Seller product media unlink contract
+
+### What changed
+- Re-read the current seller product API before changing the media-link update contract.
+- Made `mediaAssetId` PATCH semantics explicit: omitted means keep the current media, while an explicit `null` clears the product's media attachment.
+- Preserved seller ownership validation for any newly attached media asset.
+- Preserved the published-product edit lock and backend publish validation.
+- This closes an ambiguity that could otherwise prevent a seller from intentionally removing a video from a draft product.
+
+### Acceptance boundary
+- Source change is committed.
+- No new GitHub Actions run has been independently confirmed for this milestone.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Fresh seller product acceptance is still required for the current API/UI state.
+
+### Commit
+- `6b35538cbb0d04422d44c0aaf05026b2ab5a33ac` — make seller media unlink semantics explicit.
+
 ## 2026-09-03 — Milestone 513 — Seller media readiness in catalog
 
 ### What changed
