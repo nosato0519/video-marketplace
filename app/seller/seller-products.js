@@ -36,12 +36,12 @@ function mediaSummary(product) {
   const status = String(product.media_status || '').toLowerCase();
   const ready = status === 'ready';
   if (ready) {
-    const filename = product.media_original_filename ? escapeHtml(product.media_original_filename) : 'Protected video';
+    const filename = product.media_original_filename || 'Protected video';
     const size = formatBytes(product.media_byte_size);
     return { label: 'Video ready', detail: `${filename}${size ? ` · ${size}` : ''}`, ready: true };
   }
   if (status === 'processing') return { label: 'Video processing', detail: 'Wait until validation finishes before publishing.', ready: false };
-  if (status === 'deleted') return { label: 'Video unavailable', detail: 'Upload a new video to create a fresh product draft.', ready: false };
+  if (status === 'deleted') return { label: 'Video unavailable', detail: 'Choose another uploaded video before publishing.', ready: false };
   return { label: 'Video unavailable', detail: 'Check the uploaded media before publishing.', ready: false };
 }
 
@@ -56,11 +56,7 @@ function productRow(product) {
   const publishAction = published
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
     : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
-  const videoAction = !product.media_asset_id
-    ? '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Add video</button>'
-    : !media.ready
-      ? '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Change video</button>'
-      : '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Change video</button>';
+  const videoAction = '<button class="button secondary" data-action="edit" data-id="' + escapeHtml(product.id) + '">' + (product.media_asset_id ? 'Change video' : 'Add video') + '</button>';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
@@ -71,7 +67,6 @@ function productRow(product) {
 
 function editorMarkup(product = null) {
   const editing = Boolean(product);
-  const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
   return `<section class="seller-editor" aria-labelledby="seller-editor-title">
     <div class="seller-editor__heading"><div><p class="eyebrow">${editing ? 'Edit product' : 'New product'}</p><h2 id="seller-editor-title">${editing ? 'Product details' : 'Create a product'}</h2></div><button type="button" class="button secondary" data-editor-action="close">Cancel</button></div>
     <form id="seller-product-form" class="seller-form">
@@ -108,9 +103,7 @@ export async function renderSellerProducts(root) {
       mediaSelect.innerHTML = `<option value="">No video attached</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
       const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
       if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
-      else if (currentMediaId) {
-        mediaSelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(currentMediaId)}" selected>Current video (unavailable)</option>`);
-      }
+      else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', `<option value="" selected>Current video unavailable — choose another</option>`);
     } catch (error) {
       mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
       formMessage.textContent = 'Your product details can still be edited, but available videos could not be loaded.';
@@ -133,8 +126,7 @@ export async function renderSellerProducts(root) {
       formMessage.textContent = 'Saving…';
       try {
         const payload = { title, description, priceAmount, priceCurrency };
-        if (mediaSelect.options.length > 1 && mediaValue) payload.mediaAssetId = mediaValue;
-        else if (id && mediaSelect.options.length > 0) payload.mediaAssetId = mediaValue || null;
+        if (mediaSelect.options.length > 1) payload.mediaAssetId = mediaValue || null;
         await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
         closeEditor();
         await load();
