@@ -1,4 +1,5 @@
 import { listCatalog } from './catalog.js';
+import { registerPurchaseIntentRoutes } from './catalog/purchase-intent-routes.js';
 
 export function registerCatalogRoutes(app) {
   app.get('/api/catalog/products', async (req, res, next) => {
@@ -15,4 +16,6 @@ export function registerCatalogRoutes(app) {
       next(error);
     }
   });
+
+  registerPurchaseIntentRoutes(app);
 }
