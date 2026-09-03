@@ -1,6 +1,7 @@
 name: Demo Functional Regression
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'demo/**'
