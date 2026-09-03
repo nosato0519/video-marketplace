@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "release:check": "node scripts/build-release.mjs --check",
+    "release:package": "node scripts/build-release.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
