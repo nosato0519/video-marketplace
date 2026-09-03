@@ -1,5 +1,21 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 501 — Payment regression CI gate
+
+### What changed
+- Added a dedicated GitHub Actions workflow for the payment regression suite.
+- The workflow runs on pushes and pull requests targeting `main`.
+- It uses a clean Node 20 environment with `npm ci`.
+- It executes the Stripe payment-provider regression tests and Stripe webhook regression tests independently from the broader acceptance suite.
+
+### Acceptance boundary
+- The workflow is now wired to validate the latest payment implementation automatically, but a successful run for the new workflow has not yet been independently confirmed.
+- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Live Stripe and object-storage integration are still required before production-GREEN.
+
+### Commits
+- `d18e59d1de4119048e6ee05ccf7d1504ba7521dc` — added payment regression CI workflow.
+
 ## 2026-09-03 — Milestone 500 — Stripe settlement amount-unit hardening
 
 ### What changed
