@@ -39,5 +39,9 @@ export function createLocalMediaStorage({ rootDir = process.env.MEDIA_STORAGE_DI
       const stat = await fs.promises.stat(filePath);
       return { size: stat.size };
     },
+    async deleteObject({ storageKey } = {}) {
+      const filePath = resolveStoragePath(storageKey, rootDir);
+      await fs.promises.rm(filePath, { force: true });
+    },
   };
 }
