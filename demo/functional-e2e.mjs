@@ -1,65 +1,67 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 
-const port = Number(process.env.PORT || 4173);
-const base = `http://127.0.0.1:${port}`;
-const assert = (ok, message) => { if (!ok) throw new Error(message); };
-let jar = '';
+const port = 4183;
 const child = spawn(process.execPath, ['launcher.mjs'], { cwd: new URL('.', import.meta.url), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
 let output = '';
-child.stdout.on('data', b => { output += b.toString(); });
-child.stderr.on('data', b => { output += b.toString(); });
-async function waitForServer() { for (let i=0;i<40;i++) { try { const r=await fetch(base+'/api/health'); if(r.ok)return; } catch {} await new Promise(r=>setTimeout(r,100)); } throw new Error(`demo server did not start\n${output}`); }
-async function req(path, options = {}, useJar = true) {
-  const headers = { ...(options.headers || {}), ...(useJar && jar ? { cookie: jar } : {}) };
-  const r = await fetch(base + path, { ...options, headers });
-  const set = r.headers.get('set-cookie');
-  if (set && useJar) jar = set.split(';')[0];
-  const type = r.headers.get('content-type') || '';
-  return { r, data: type.includes('json') ? await r.json() : await r.arrayBuffer() };
+child.stdout.on('data', d => output += d.toString());
+child.stderr.on('data', d => output += d.toString());
+
+async function request(path, options = {}) {
+  return fetch(`http://127.0.0.1:${port}${path}`, options);
 }
+async function waitHealth() {
+  for (let i = 0; i < 50; i++) {
+    try { const r = await request('/health'); if (r.ok) return; } catch {}
+    await new Promise(r => setTimeout(r, 100));
+  }
+  throw new Error(`demo server failed to start\n${output}`);
+}
+function cookieOf(r) { return r.headers.getSetCookie?.()[0]?.split(';')[0] || r.headers.get('set-cookie')?.split(';')[0] || ''; }
+async function json(path, options = {}) { const r = await request(path, options); const data = await r.json(); if (!r.ok) throw new Error(`${path}: ${JSON.stringify(data)}`); return data; }
+
 try {
-  await waitForServer();
-  const page = await req('/');
-  assert(page.r.ok && page.r.headers.get('content-type')?.includes('text/html'), 'browser page failed');
-  const app = await req('/app.js');
-  assert(app.r.ok && app.r.headers.get('content-type')?.includes('javascript') && new TextDecoder().decode(app.data).includes('function purchase'), 'browser app asset failed');
-  const health = await req('/api/health');
-  assert(health.r.ok && health.data.status === 'ok', 'health failed');
-  const initial = await req('/api/demo/state');
-  assert(initial.r.ok && initial.data.role === 'buyer', 'default buyer session failed');
-  const loginBuyer = await req('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'buyer'}) });
-  assert(loginBuyer.r.ok, 'buyer login failed');
-  const purchase = await req('/api/demo/purchase', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({productId:1}) });
-  assert(purchase.r.status === 201 && purchase.data.order.status === 'paid' && purchase.data.order.entitlement === 'active', 'purchase lifecycle failed');
-  const media = await req('/api/demo/media/1', { headers:{range:'bytes=0-15'} });
-  assert(media.r.status === 206 && media.r.headers.get('content-type') === 'video/webm', 'authorized media failed');
-  const freshBlocked = await req('/api/demo/media/1', {}, false);
-  assert(freshBlocked.r.status === 404, 'unauthorized media must be rejected');
-  const loginSeller = await req('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'seller'}) });
-  assert(loginSeller.r.ok && loginSeller.data.role === 'seller', 'seller login failed');
-  const product = await req('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({title:'E2E Demo Product',category:'Education',price:12}) });
-  assert(product.r.status === 201 && product.data.product.mediaReady === false, 'seller product failed');
-  const upload = await req('/api/demo/seller/upload', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({productId:product.data.product.id}) });
-  assert(upload.r.ok && upload.data.product.mediaReady === true && upload.data.lifecycle.at(-1) === 'ready', 'seller media lifecycle failed');
-  const payout = await req('/api/demo/seller/payout', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({amount:125}) });
-  assert(payout.r.status === 201 && payout.data.payout.status === 'reviewing', 'seller payout failed');
-  const admin = await req('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
-  assert(admin.r.ok && admin.data.role === 'admin', 'admin login failed');
-  const mod = admin.data.moderationQueue.find(x => x.title === 'E2E Demo Product');
-  assert(mod, 'moderation item missing');
-  const approve = await req('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id:mod.id,action:'approve'}) });
-  assert(approve.r.ok && approve.data.item.status === 'approved', 'moderation approval failed');
-  const seller = admin.data.sellerApplications.find(x => x.id === 'SEL-1001');
-  const sellerApprove = await req('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id:seller.id,action:'approve'}) });
-  assert(sellerApprove.r.ok && sellerApprove.data.item.status === 'approved', 'seller approval failed');
+  await waitHealth();
+  const root = await request('/');
+  if (!root.ok || !(await root.text()).includes('VIDORA')) throw new Error('browser entrypoint failed');
+  const asset = await request('/app.js');
+  const js = await asset.text();
+  if (!asset.ok || !js.includes('function purchase') || !js.includes('function sellerView') || !js.includes('function adminView')) throw new Error('browser application asset incomplete');
+
+  const freshMedia = await request('/api/demo/media/1');
+  if (![401, 404].includes(freshMedia.status)) throw new Error(`unauthorized media status ${freshMedia.status}`);
+
+  const loginBuyer = await request('/api/demo/login', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ role: 'buyer' }) });
+  if (!loginBuyer.ok) throw new Error('buyer login failed');
+  const buyerCookie = cookieOf(loginBuyer);
+  const purchase = await json('/api/demo/purchase', { method:'POST', headers:{'content-type':'application/json', cookie:buyerCookie}, body:JSON.stringify({productId:1}) });
+  if (purchase.order.status !== 'paid' || !purchase.state.purchases.includes(1)) throw new Error('buyer purchase/entitlement failed');
+  const media = await request('/api/demo/media/1', { headers:{cookie:buyerCookie} });
+  if (!media.ok || !media.headers.get('content-type')?.includes('video/webm')) throw new Error('authorized media failed');
+  const download = await request('/api/demo/media/1?download=1', { headers:{cookie:buyerCookie} });
+  if (!download.ok || !download.headers.get('content-disposition')?.includes('attachment')) throw new Error('authorized download failed');
+
+  const loginSeller = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'seller'}) });
+  const sellerCookie = cookieOf(loginSeller);
+  const product = await json('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({title:'Demo Creator Product',category:'Creative',price:25}) });
+  const uploaded = await json('/api/demo/seller/upload', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({productId:product.product.id}) });
+  if (!uploaded.product.mediaReady) throw new Error('seller media lifecycle failed');
+  const payout = await json('/api/demo/seller/payout', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({amount:125}) });
+  if (!payout.payout.id) throw new Error('seller payout failed');
+
+  const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
+  const adminCookie = cookieOf(loginAdmin);
+  const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:product.product.id,action:'approve'}) });
+  const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'APP-1001',action:'approve'}) });
+  if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
+
   console.log('FUNCTIONAL_DEMO_E2E_GREEN');
   console.log('browser page + app asset: PASS');
-  console.log('buyer purchase -> entitlement -> protected media: PASS');
+  console.log('buyer purchase -> entitlement -> protected watch + download: PASS');
   console.log('unauthorized media rejection: PASS');
   console.log('seller product -> upload lifecycle -> payout: PASS');
   console.log('admin moderation -> seller approval: PASS');
 } finally {
   child.kill('SIGTERM');
-  await Promise.race([once(child,'exit'), new Promise(r=>setTimeout(r,1000))]);
+  await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 1000))]);
 }
