@@ -13,15 +13,19 @@ export async function renderCatalog({ root, locale, t, query = '', category = ''
   const results = root.querySelector('#catalog-results');
   const status = root.querySelector('#catalog-status');
   try {
-    const payload = await loadCatalog({ locale, search: query, category, page: 1, limit: 24 });
+    // The real application must render the backend catalog only. Demo fixture
+    // fallback remains available to the lightweight demo harness, but must not
+    // silently make the production storefront look healthy when the API fails.
+    const payload = await loadCatalog({ locale, search: query, category, page: 1, limit: 24, allowFallback: false });
     const products = payload.data || [];
-    status.textContent = payload.source === 'api' ? `${products.length} results` : 'Preview data';
+    status.textContent = `${products.length} results`;
     results.innerHTML = products.length ? products.map((product) => `<button class="product-card product-card-button" data-product-id="${escapeHtml(product.id)}" type="button">
-      <div class="product-thumb" aria-hidden="true"><span>▶</span></div><div class="product-body"><h3>${escapeHtml(product.title)}</h3><div class="product-meta">${escapeHtml(product.seller)} · ${escapeHtml(product.category || '')}</div><div class="product-price">${new Intl.NumberFormat(locale, { style: 'currency', currency: product.price_currency || product.currency || 'USD' }).format(Number(product.price_amount ?? product.price ?? 0))}</div></div></button>`).join('') : `<div class="empty-state">No products found.</div>`;
+      <div class="product-thumb" aria-hidden="true"><span>▶</span></div><div class="product-body"><h3>${escapeHtml(product.title)}</h3><div class="product-meta">${escapeHtml(product.seller)} · ${escapeHtml(product.category || '')}</div><div class="product-price">${new Intl.NumberFormat(locale, { style: 'currency', currency: product.price_currency || product.currency || 'USD' }).format(Number(product.price_amount ?? product.price ?? 0))}</div></div></button>`).join('') : `<div class="empty-state"><h2>No videos found</h2><p>Try a different search or category.</p></div>`;
     results.querySelectorAll('[data-product-id]').forEach((button) => button.addEventListener('click', () => onNavigate(`/product/${encodeURIComponent(button.dataset.productId)}`)));
   } catch (error) {
     status.textContent = 'Unable to load';
-    results.innerHTML = `<div class="error-state"><strong>Something went wrong.</strong><p>Please try again.</p></div>`;
+    results.innerHTML = `<div class="error-state"><strong>Catalog is temporarily unavailable.</strong><p>We could not reach the marketplace catalog. Please try again.</p><button class="button secondary" id="catalog-retry" type="button">Retry</button></div>`;
+    root.querySelector('#catalog-retry')?.addEventListener('click', () => renderCatalog({ root, locale, t, query, category, onNavigate }));
   }
 
   root.querySelector('#catalog-search').addEventListener('keydown', (event) => {
