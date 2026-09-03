@@ -73,15 +73,26 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
       await expect(page.getByRole('heading', { name: 'Browser E2E Product' })).toBeVisible();
 
+      const orderResponsePromise = page.waitForResponse((response) =>
+        response.url() === `${backendUrl}/api/orders` && response.request().method() === 'POST'
+      );
       await page.getByRole('button', { name: 'Purchase' }).click();
+      const orderResponse = await orderResponsePromise;
+      expect(orderResponse.status()).toBe(201);
+      const orderBody = await orderResponse.json();
+      expect(orderBody.order).toBeTruthy();
+      expect(orderBody.order.product_id).toBe(ids.product);
+      expect(orderBody.order.status).toBe('pending');
+      orderId = orderBody.order.id;
       await expect(page.locator('#checkout-message')).toContainText(/Checkout|payment/i);
 
       const ordersResponse = await page.request.get(`${backendUrl}/api/orders`);
       expect(ordersResponse.ok()).toBeTruthy();
       const ordersBody = await ordersResponse.json();
-      const order = ordersBody.items.find((item) => item.product_id === ids.product && item.status === 'pending');
+      const order = ordersBody.items.find((item) => item.id === orderId);
       expect(order).toBeTruthy();
-      orderId = order.id;
+      expect(order.product_id).toBe(ids.product);
+      expect(order.status).toBe('pending');
 
       const paymentResult = await pool.query(
         `SELECT id, provider FROM payments WHERE order_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1`,
