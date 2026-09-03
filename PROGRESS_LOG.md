@@ -41,7 +41,9 @@ This checkpoint records the exact state so the next session can continue without
 - The upload path has now been moved onto the existing storage abstraction: write, bounded-prefix read for signature validation, and cleanup are storage operations.
 - The local provider now implements the corresponding write/delete lifecycle with the existing path-confinement protection.
 - Existing media storage tests were extended only for the new write/cleanup contract; no duplicate acceptance suite was created.
-- The new media-storage changes have not yet received a new CI result; do not claim them GREEN until a workflow run for the resulting main commit completes successfully.
+- The first post-change browser backend run exposed an existing acceptance-test selector mismatch: the UI uses `Log in`, while the test matched only `Login|Sign in`.
+- Corrected only that selector in `tests/browser-backend-seller-application.spec.js` (commit `b21fdcac8b6ae83c03f390247490bb7bfeb51959`).
+- The corrected commit must be verified by the existing CI gates before the media-storage change is considered GREEN.
 
 ### Refund-after-payout boundary
 - Existing regression coverage confirms a paid seller earning becomes `refunded` while paid payout history and allocation history remain intact.
@@ -61,4 +63,4 @@ This checkpoint records the exact state so the next session can continue without
 10. Once a gate is GREEN, move immediately to the next gate.
 
 ### Exact continuation instruction
-**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then verify the media-storage abstraction change through the existing backend/browser gates. If GREEN, move directly to deployment-specific production configuration and real-browser release validation. Do not recreate completed acceptance suites or provider persistence work.**
+**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then verify commit `b21fdcac8b6ae83c03f390247490bb7bfeb51959` through the existing backend/browser gates. If GREEN, move directly to deployment-specific production configuration and real-browser release validation. Do not recreate completed acceptance suites or provider persistence work.**
