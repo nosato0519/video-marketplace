@@ -5,8 +5,8 @@ import http from 'node:http';
 import Stripe from 'stripe';
 import { createStripeWebhookHandler } from './stripe-webhook.js';
 
-const secret = 'whsec_test_secret';
-const stripe = new Stripe('sk_test_webhook_verifier');
+const secret = 'test-webhook-signing-secret';
+const stripe = new Stripe('test-webhook-verifier-key');
 
 async function withServer(handler, run) {
   const app = express();
