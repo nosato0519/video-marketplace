@@ -2,8 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateMediaSecurityConfig } from './media-security-check.js';
 
-const validSecret = '0123456789abcdef0123456789abcdef';
-
 test('requires a private media storage directory for local development', () => {
   assert.throws(
     () => validateMediaSecurityConfig({ MEDIA_STORAGE_PROVIDER: 'local' }),
@@ -42,6 +40,13 @@ test('requires S3 credentials for production storage', () => {
 test('requires an S3 region for production storage', () => {
   assert.throws(
     () => validateMediaSecurityConfig({ NODE_ENV: 'production', MEDIA_STORAGE_PROVIDER: 's3', MEDIA_S3_BUCKET: 'bucket', MEDIA_S3_ACCESS_KEY_ID: 'access', MEDIA_S3_SECRET_ACCESS_KEY: 'secret' }),
+    /media_s3_region_missing/
+  );
+});
+
+test('rejects a blank S3 region for production storage', () => {
+  assert.throws(
+    () => validateMediaSecurityConfig({ NODE_ENV: 'production', MEDIA_STORAGE_PROVIDER: 's3', MEDIA_S3_BUCKET: 'bucket', MEDIA_S3_REGION: '   ', MEDIA_S3_ACCESS_KEY_ID: 'access', MEDIA_S3_SECRET_ACCESS_KEY: 'secret' }),
     /media_s3_region_missing/
   );
 });
