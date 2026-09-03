@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
 import { getPaymentProviderConfig } from './payment-provider-catalog.js';
-
-const ZERO_DECIMAL_CURRENCIES = new Set(['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF']);
+import { toStripeMinorUnits } from './stripe-money.js';
 
 export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
   const selected = provider || 'pending';
@@ -35,7 +34,7 @@ function createStripeProvider() {
     async createCheckout({ orderId, amount, currency, metadata, idempotencyKey }) {
       validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey });
       const normalizedCurrency = String(currency).toUpperCase();
-      const unitAmount = toMinorUnits(amount, normalizedCurrency);
+      const unitAmount = toStripeMinorUnits(amount, normalizedCurrency);
       const session = await stripe.checkout.sessions.create({
         mode: 'payment', client_reference_id: orderId,
         line_items: [{ price_data: { currency: normalizedCurrency.toLowerCase(), product_data: { name: 'Video Marketplace purchase' }, unit_amount: unitAmount }, quantity: 1 }],
@@ -55,12 +54,6 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   if (!metadata || typeof metadata !== 'object') throw new Error('checkout_metadata_required');
   if (metadata.orderId && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
   if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
-}
-
-function toMinorUnits(amount, currency) {
-  const value = Number(amount);
-  if (!Number.isFinite(value) || value <= 0) throw new Error('checkout_amount_invalid');
-  return ZERO_DECIMAL_CURRENCIES.has(currency) ? Math.round(value) : Math.round(value * 100);
 }
 
 function withStripeSessionId(url) {
