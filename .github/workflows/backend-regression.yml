@@ -80,3 +80,6 @@ jobs:
         run: npm run test:http-media-access-e2e
       - name: Run security regression suites
         run: npm run test:security-regression
+      - name: Run functional sales demo verifier
+        working-directory: demo
+        run: npm run verify
