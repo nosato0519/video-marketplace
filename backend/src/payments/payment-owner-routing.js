@@ -1,10 +1,12 @@
-import { getPaymentProviderSettings } from './payment-provider-settings.js';
+import { getPaymentProviderSettings, getPersistedPaymentProviderSettings } from './payment-provider-settings.js';
 import { createPaymentProvider } from './payment-provider.js';
 
-export function resolveOwnerPaymentProvider({ ownerId, providerId, region, currency } = {}) {
+export async function resolveOwnerPaymentProvider({ ownerId, providerId, region, currency } = {}) {
   if (!ownerId) throw new Error('payment_owner_required');
 
-  const settings = getPaymentProviderSettings(ownerId);
+  const settings = process.env.DATABASE_URL
+    ? await getPersistedPaymentProviderSettings(ownerId)
+    : getPaymentProviderSettings(ownerId);
   const selected = settings.find((setting) =>
     (!providerId || setting.providerId === providerId) &&
     (!region || setting.region === region) &&
@@ -27,7 +29,7 @@ export function resolveOwnerPaymentProvider({ ownerId, providerId, region, curre
   };
 }
 
-export function resolveProviderForOrder({ order, product, providerId } = {}) {
+export async function resolveProviderForOrder({ order, product, providerId } = {}) {
   if (!order) throw new Error('order_required');
   if (!product) throw new Error('product_required');
   if (String(order.product_id) !== String(product.id)) throw new Error('order_product_mismatch');
