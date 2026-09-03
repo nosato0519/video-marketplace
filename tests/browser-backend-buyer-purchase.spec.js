@@ -145,6 +145,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
       if (orderId) {
         await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]).catch(() => {});
+        await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [orderId]).catch(() => {});
         await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
       }
       await pool.query(`DELETE FROM user_sessions WHERE user_id = $1`, [ids.buyer]).catch(() => {});
