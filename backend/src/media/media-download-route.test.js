@@ -56,6 +56,7 @@ test('download route authorizes the purchaser and returns attachment headers', a
   assert.equal(response.headers['content-type'], 'video/mp4');
   assert.match(response.headers['content-disposition'], /^attachment; filename="video-product_1\.mp4"$/);
   assert.equal(response.headers['cache-control'], 'private, no-store');
+  assert.equal(response.headers['accept-ranges'], 'bytes');
   assert.equal(response.body.toString(), 'secret');
 });
 
@@ -89,4 +90,49 @@ test('download route supports a purchaser byte range for resumable downloads', a
   assert.deepEqual(requestedRange, { start: 2, end: 6 });
   assert.equal(response.headers['content-range'], 'bytes 2-6/10');
   assert.equal(response.headers['content-length'], '5');
+});
+
+test('download route rejects malformed ranges before storage access', async () => {
+  const app = express();
+  app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
+  let storageCalled = false;
+  registerMediaDownloadRoutes(app, {
+    getContext: async () => activeContext(10),
+    storage: { getStream: async () => { storageCalled = true; return { stream: Readable.from(['secret']) }; } },
+  });
+  const server = await listen(app);
+  const response = await request(server, '/api/media/product_1/download', { Range: 'bytes=10-12' });
+  server.close();
+  assert.equal(response.status, 416);
+  assert.equal(response.headers['content-range'], 'bytes */10');
+  assert.equal(storageCalled, false);
+});
+
+test('download route rejects invalid media size before storage access', async () => {
+  const app = express();
+  app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
+  let storageCalled = false;
+  registerMediaDownloadRoutes(app, {
+    getContext: async () => activeContext(Number.MAX_SAFE_INTEGER + 1),
+    storage: { getStream: async () => { storageCalled = true; return { stream: Readable.from(['secret']) }; } },
+  });
+  const server = await listen(app);
+  const response = await request(server, '/api/media/product_1/download');
+  server.close();
+  assert.equal(response.status, 500);
+  assert.equal(storageCalled, false);
+});
+
+test('download route sanitizes the attachment filename', async () => {
+  const app = express();
+  app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
+  registerMediaDownloadRoutes(app, {
+    getContext: async () => ({ ...activeContext(), product: { ...activeContext().product, id: 'product_1' } }),
+    storage: { getStream: async () => ({ stream: Readable.from(['secret']) }) },
+  });
+  const server = await listen(app);
+  const response = await request(server, '/api/media/a%2Fb/download');
+  server.close();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers['content-disposition'], 'attachment; filename="video-a_b.mp4"');
 });
