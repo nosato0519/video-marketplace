@@ -77,10 +77,12 @@ test.describe('real backend seller application acceptance', () => {
     await login(page, adminEmail, password);
     await page.goto(`${appUrl}#/admin/seller-applications`);
     await expect(page.getByRole('heading', { name: /Seller applications/i })).toBeVisible();
-    await expect(page.getByText(sellerEmail, { exact: true })).toBeVisible();
-    const actionSelect = page.locator('select[data-action]').first();
+    const applicationRow = page.locator('tbody tr').filter({ hasText: 'Real Backend Admin Review Seller' }).first();
+    await expect(applicationRow).toBeVisible();
+    await expect(applicationRow).toContainText(sellerEmail);
+    const actionSelect = applicationRow.locator('select[data-action]');
     await actionSelect.selectOption('approve');
-    await page.getByRole('button', { name: 'Apply' }).click();
+    await applicationRow.getByRole('button', { name: 'Apply' }).click();
     const applications = await page.request.get(`${backendUrl}/api/admin/seller-applications?status=approved`);
     expect(applications.ok()).toBeTruthy();
     const approvedBody = await applications.json();
