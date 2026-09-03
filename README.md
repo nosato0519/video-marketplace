@@ -1,31 +1,67 @@
-# Video Marketplace
+# VIDORA — Video Marketplace
 
-A production-oriented video marketplace with buyer, seller, payment, entitlement, media-access, and admin workflows.
+A production-oriented video marketplace with buyer, seller, payment, entitlement, protected-media, and admin workflows.
+
+## What this system demonstrates
+
+VIDORA is built around a complete marketplace journey rather than a static storefront:
+
+**Buyer** — discover → search/filter → compare → product detail → checkout → paid order → My Library → protected watch/download
+
+**Seller** — creator workspace → create product → media lifecycle → moderation → publish → earnings → payout request
+
+**Admin** — seller verification → product moderation → payout oversight
+
+## Project layout
+
+- `app/` — production-oriented browser frontend
+- `backend/` — Node.js API, PostgreSQL access and migrations
+- `demo/` — polished, self-contained commercial showcase demo
+- `.github/workflows/` — regression CI
+- `COMMERCIAL_PACKAGE.md` — commercial packaging and customer hand-off checklist
 
 ## Requirements
 
 - Node.js 20+
 - PostgreSQL
-- A payment provider when real checkout is enabled
-- Object/file storage for production media
+- Payment provider for real checkout
+- Production object/file storage for media
+- HTTPS in production
 
-## Project layout
+## Showcase demo
 
-- `app/` — browser frontend
-- `backend/` — Node.js API and database migrations
-- `.github/workflows/` — regression CI
+The demo is designed to be the first thing a prospective customer sees. It is isolated from production credentials and uses simulated payments.
 
-## Local setup
+```bash
+cd demo
+npm install
+npm start
+```
+
+Open `http://localhost:4173/`.
+
+Recommended presentation order:
+
+1. Buyer storefront and category/search experience
+2. Product details and secure checkout
+3. Purchased library
+4. Protected Watch + Download
+5. Seller Creator Studio
+6. Product/media lifecycle
+7. Admin moderation and seller verification
+8. Responsive/mobile presentation
+
+## Production setup
 
 1. Create a PostgreSQL database.
 2. Copy `backend/.env.example` to `backend/.env`.
-3. Fill in `DATABASE_URL` and a strong `SESSION_SECRET`.
-4. Configure storage and payment settings only when those services are ready.
-5. From `backend/`, install dependencies with `npm install`.
-6. Run `npm run migrate:preflight`, then `npm run migrate`.
-7. Start the API with `npm run dev`.
-
-The frontend is currently a static browser application under `app/`; serve it with your preferred static web server during local development or deploy it behind the production web server/reverse proxy.
+3. Configure `DATABASE_URL` and a strong `SESSION_SECRET`.
+4. Configure production storage.
+5. Configure payment credentials and webhook signing secret.
+6. From `backend/`, run `npm install`.
+7. Run `npm run migrate:preflight` and `npm run migrate`.
+8. Deploy the API and frontend behind HTTPS/reverse proxy.
+9. Run the final browser acceptance checklist before opening sales.
 
 ## Verification
 
@@ -41,36 +77,25 @@ npm run test:http-buyer-order-report-e2e
 npm run test:http-seller-profile-earnings-payout-e2e
 ```
 
-Payment webhook acceptance tests require the payment test configuration described by the environment used by CI.
+CI and HTTP tests are necessary but do not replace final browser acceptance.
 
-## Production secrets
+## Security principles
 
-Never commit real credentials. At minimum, configure:
-
-- `DATABASE_URL`
-- `SESSION_SECRET`
-- payment-provider credentials/secrets
-- webhook signing secret
-- production storage credentials
-
-Use separate credentials for development, staging, and production.
-
-## Media security
-
-Media access is authorization-controlled. A buyer must have an active entitlement before protected streaming/download endpoints should return purchased content. Uploads are streamed to storage and validated before becoming ready for sale.
+- Authentication and role authorization are enforced server-side.
+- Media delivery requires an active buyer entitlement.
+- Watch/download endpoints must not rely on browser-side purchase state.
+- Protected media uses private/no-store delivery and supports range streaming.
+- Uploads are validated through the media lifecycle before sale.
+- Real credentials and production customer data must never be committed.
 
 ## Payment lifecycle
 
-A successful provider webhook is the source of truth for completing payment. The expected lifecycle is:
-
 `checkout → provider payment → verified webhook → paid order → entitlement → buyer library`
 
-Do not grant media access merely because a browser returned to a success URL.
+A browser return URL is not sufficient to grant media access; verified payment state is the source of truth.
 
-## Browser acceptance
+## Commercial distribution
 
-CI and HTTP acceptance tests do not replace browser acceptance. Before a commercial release, manually verify buyer, seller, and admin journeys in a real browser, including responsive layouts and protected media access.
+See `COMMERCIAL_PACKAGE.md` for the ZIP contents, customer hand-off process, production requirements, and final release checklist.
 
-## License / commercial packaging
-
-Review and set the final commercial license, deployment terms, third-party service requirements, and privacy/compliance documents before distributing a paid ZIP package.
+**Important:** the source is structured for commercial deployment, but a live customer installation still requires customer-specific hosting, PostgreSQL, storage, payment credentials, HTTPS, legal pages, privacy/compliance configuration, and final browser acceptance. Do not market the demo's simulated payment as live payment processing.
