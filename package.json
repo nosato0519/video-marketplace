@@ -8,6 +8,9 @@
     "release:check": "node scripts/build-release.mjs --check",
     "release:package": "node scripts/build-release.mjs"
   },
+  "dependencies": {
+    "stripe": "^22.6.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "pg": "^8.16.3"
