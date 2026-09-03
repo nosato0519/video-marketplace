@@ -1,5 +1,23 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 493 — Production application storefront build
+
+### What changed
+- Confirmed the earlier `demo/` correction was a showcase-only correction; the real application shell under `app/` was still visually minimal.
+- Upgraded the real production-facing application home in `app/main.js` from a developer-style shell into a customer-facing marketplace landing experience.
+- Added a real home-page search entry point wired to the existing catalog route, a clear buyer journey, creator CTA, trust/benefit messaging, featured catalog section using the existing backend/demo catalog loader, and a commercial-style footer.
+- Upgraded `app/styles.css` with the corresponding responsive marketplace visual system: stronger hierarchy, hero artwork treatment, search UI, benefit strip, creator banner, catalog presentation, mobile layouts, focus states and interaction polish.
+- Preserved existing checkout, authentication, library, watch/download, seller and admin routes; no completed backend acceptance work was recreated.
+
+### Acceptance boundary
+- This milestone establishes the customer-facing production application home as the next concrete release criterion.
+- The new UI has not yet been declared browser-GREEN. It requires the existing Codespaces/runtime browser acceptance gate after the new commits are loaded.
+- Backend completeness remains evidenced separately by the previously green production-oriented acceptance suites.
+
+### Commits
+- `d648ddcdf4ded960fbc0abd154afdd32a063ea41` — production customer-facing marketplace home structure.
+- `ec73bfc953f9dab4f0e61ae6a60759e39f7377d1` — production marketplace visual polish.
+
 ## 2026-09-03 — Milestone 492 — Customer-facing showcase correction
 
 ### What changed
@@ -17,14 +35,3 @@
 ### Acceptance requirement added from manual inspection
 - A new viewer must immediately understand: what the service is, how to find a video, how to buy it, where purchased videos appear, and how a creator can sell.
 - The demo must feel like a sellable marketplace showcase, not like a developer test dashboard.
-
-### Current checkpoint
-- Latest showcase UI commit: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
-- Existing verified core implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
-- Do not recreate completed backend acceptance work.
-- Next work: verify the corrected showcase in the real Codespaces browser, then continue release/deployment readiness and fix only concrete defects discovered by acceptance.
-
-### No-waste rule
-- Inspect this log, `PROJECT_STATE.md`, `PRODUCT_VISION.md`, and the relevant source before editing.
-- Never equate a green mock/demo test with production readiness.
-- Every new commit must fix a verified defect, satisfy an explicit acceptance requirement, or provide meaningful verification evidence.
