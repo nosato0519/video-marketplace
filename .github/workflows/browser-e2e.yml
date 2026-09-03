@@ -28,6 +28,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/video_marketplace_test
       SESSION_SECRET: ci-session-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+      PAYMENT_WEBHOOK_SECRET: ci-payment-webhook-secret
       MEDIA_STORAGE_PROVIDER: local
       MEDIA_STORAGE_DIR: ${{ github.workspace }}/backend/media-data
       MEDIA_URL_SECRET: ci-media-url-secret-0123456789-abcdefghijklmnopqrstuvwxyz
