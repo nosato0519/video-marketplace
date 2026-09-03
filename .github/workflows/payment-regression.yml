@@ -1,0 +1,29 @@
+name: Payment Regression
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  payment-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run payment regression tests
+        run: node --test backend/src/payments/payment-provider.test.js
+      - name: Run webhook regression tests
+        run: node --test backend/src/payments/stripe-webhook.test.js
