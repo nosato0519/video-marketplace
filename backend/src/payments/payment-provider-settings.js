@@ -90,11 +90,15 @@ export async function getPersistedPaymentProviderSettings(ownerId = null) {
       ORDER BY configured_at DESC`,
     [ownerId]
   );
-  const records = result.rows.map(mapRecord);
-  for (const record of records) {
+  const persisted = result.rows.map(mapRecord);
+  const persistedKeys = new Set(persisted.map((record) => `${record.ownerId}:${record.providerId}`));
+  const cached = getPaymentProviderSettings(ownerId)
+    .filter((record) => !persistedKeys.has(`${record.ownerId}:${record.providerId}`));
+
+  for (const record of persisted) {
     CONFIGURED_PROVIDERS.set(`${record.ownerId}:${record.providerId}`, record);
   }
-  return records.map((record) => ({ ...record }));
+  return [...persisted, ...cached].map((record) => ({ ...record }));
 }
 
 export function clearPaymentProviderSettings({ ownerId, providerId } = {}) {
