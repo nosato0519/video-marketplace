@@ -1,6 +1,5 @@
 import express from 'express';
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
@@ -31,9 +30,14 @@ router.get('/assets', async (req, res, next) => {
 router.post('/upload', async (req, res, next) => {
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
   const filename = String(req.headers['x-original-filename'] || 'video');
-  const declaredLength = Number(req.headers['content-length'] || 0);
+  const rawLength = req.headers['content-length'];
+  const declaredLength = rawLength == null ? null : Number(rawLength);
+
   if (!ALLOWED_MIME.has(mime)) return res.status(415).json({ error: 'unsupported_media_type' });
-  if (declaredLength > MAX_BYTES) return res.status(413).json({ error: 'media_too_large' });
+  if (declaredLength !== null && (!Number.isSafeInteger(declaredLength) || declaredLength < 0)) {
+    return res.status(400).json({ error: 'invalid_content_length' });
+  }
+  if (declaredLength !== null && declaredLength > MAX_BYTES) return res.status(413).json({ error: 'media_too_large' });
   if (!req.readable) return res.status(400).json({ error: 'upload_body_required' });
 
   const id = crypto.randomUUID();
@@ -49,6 +53,10 @@ router.post('/upload', async (req, res, next) => {
 
   try {
     await mediaStorage.putStream({ storageKey, stream: Readable.from(limiter()) });
+
+    if (declaredLength !== null && bytes !== declaredLength) {
+      throw Object.assign(new Error('content_length_mismatch'), { statusCode: 400 });
+    }
 
     const signatureLength = requiredSignatureBytes(mime);
     const inspected = await mediaStorage.getStream({ storageKey, range: { start: 0, end: signatureLength - 1 } });
