@@ -36,6 +36,12 @@ function endpointFor({ endpoint, bucket, region }) {
   return `https://${bucket}.s3.${region}.amazonaws.com`;
 }
 
+function objectUrl({ endpoint, bucket, region, storageKey }) {
+  const base = endpointFor({ endpoint, bucket, region });
+  const path = endpoint ? `${encodeURIComponent(bucket)}/${encodeKey(storageKey)}` : encodeKey(storageKey);
+  return new URL(`${base}/${path}`);
+}
+
 function validateKey(storageKey) {
   if (!storageKey || storageKey.includes('\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
     throw new Error('media_storage_key_invalid');
@@ -55,8 +61,7 @@ export function createS3MediaStorage({
 
   async function request(method, storageKey, { range, body } = {}) {
     validateKey(storageKey);
-    const hostEndpoint = endpointFor({ endpoint, bucket, region });
-    const url = new URL(`${hostEndpoint}/${encodeKey(storageKey)}`);
+    const url = objectUrl({ endpoint, bucket, region, storageKey });
     const now = new Date();
     const timestamp = amzDate(now);
     const date = timestamp.slice(0, 8);
