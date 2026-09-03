@@ -1,5 +1,22 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 518 — Seller video selector hardening
+
+### What changed
+- Re-read the seller product editor after wiring the existing-video selector.
+- Hardened media filename rendering so filenames are escaped exactly once in product-card HTML.
+- Kept unavailable current media from being submitted back to the API; the seller is prompted to choose another video or clear the attachment.
+- Kept the selector restricted to ready assets returned from the seller-owned media endpoint.
+
+### Acceptance boundary
+- Source hardening is committed.
+- The seller attachment acceptance test is present and covers attach/clear behavior.
+- No new GitHub Actions run has been independently confirmed for this milestone.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+
+### Commit
+- `b973a8bcd861837f2dab3c28f98e497b6265362c` — harden seller video selector rendering.
+
 ## 2026-09-03 — Milestone 517 — Seller existing video attachment workflow
 
 ### What changed
