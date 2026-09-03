@@ -1,5 +1,42 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 520 — End-of-day checkpoint / exact resume point
+
+### What changed / verified today
+- Continued from Milestone 519 without repeating completed implementation work.
+- Re-checked main-branch GitHub Actions after the Stripe runtime dependency correction.
+- Latest observed main commit at the end of today's work: `5d3b673cf6eda3f1e5d67c9edab16918c8071142` (`fix: add canonical product moderation flags`).
+- The latest Payment Regression run for that commit was queued when last checked (`33744244369`), so the current tree must NOT yet be described as fully GREEN.
+- Browser E2E and Browser UI Acceptance for the preceding security commit were also still in progress when observed.
+- No demo UI changes were made in this final checkpoint; the demo remains the next customer-facing workstream.
+
+### Exact resume point for next session
+1. First inspect the latest GitHub Actions runs for `main` and check conclusions for commit `5d3b673cf6eda3f1e5d67c9edab16918c8071142` before making further code changes.
+2. If current CI fails, diagnose and fix only the concrete failure; do not redo completed payment/media/seller work.
+3. Once current verification is clean enough, return to `demo/` only.
+4. Re-read current `demo/index.html`, `demo/app.js`, and `demo/server.js` before editing.
+5. Continue customer-facing demo acceptance: buyer browse → detail → purchase → library → watch/download, then seller and admin journeys.
+6. Known demo candidate to inspect first: category filter value mismatch around `All categories` versus the internal `All` check. Inspect Japanese-first pricing/currency consistency only after confirming current demo source.
+7. Keep backend untouched unless a concrete CI/demo contract/security failure requires it.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest observed commit: `5d3b673cf6eda3f1e5d67c9edab16918c8071142`
+- Core production-oriented application: substantially implemented; final production deployment/configuration remains outstanding.
+- `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app/` + `backend/` system.
+- Do not claim 100% completion merely from green tests; demo visual/behavioral acceptance is still required.
+- Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
+
+### Important recent fixes already completed — do not repeat
+- Stripe runtime dependency declared in root `package.json`: `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- Payment regression dependency/lifecycle investigation already performed; continue from current CI evidence.
+- Canonical product moderation flags migration was added in the current mainline before this checkpoint.
+- Seller existing-video attachment/selector workflow and hardening were already implemented in Milestones 517–518.
+
+### Next milestone
+- CI conclusion for `5d3b673cf6eda3f1e5d67c9edab16918c8071142` → concrete fixes if required → demo customer-facing acceptance/polish.
+
 ## 2026-09-03 — Milestone 519 — Payment regression dependency correction
 
 ### What changed
@@ -36,78 +73,3 @@
 
 ### Commit
 - `b973a8bcd861837f2dab3c28f98e497b6265362c` — harden seller video selector rendering.
-
-## 2026-09-03 — Milestone 517 — Seller existing video attachment workflow
-
-### What changed
-- Added an existing-video selector to the seller product editor.
-- The editor loads only the seller's ready media assets from `/api/seller/media/assets`.
-- Sellers can attach a ready protected video to a draft product through the existing `mediaAssetId` PATCH contract.
-- Sellers can explicitly choose `No video attached`, which sends `mediaAssetId: null` for an existing draft.
-- Processing media is intentionally excluded from the selectable list, so the seller cannot publish a product against media that is not ready.
-- Added a browser acceptance case covering attach and clear operations.
-- Changed the product-card video action to open the editor, keeping the workflow inside the Creator Studio instead of forcing a separate upload route.
-
-### Acceptance boundary
-- Seller product UI and browser acceptance coverage are now aligned with the existing backend ownership/update contract.
-- The implementation is committed, but no new GitHub Actions run had been independently confirmed for this milestone at the time.
-- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Fresh execution is still required before claiming the current seller attachment flow is CI-verified.
-
-### Commits
-- `b71fdd03ae5afd8838250f5d3a9543bab3ba048a` — let sellers attach existing protected videos.
-- `de27f228d4b7382fb0a981bbac415a490d0f446e` — cover seller video attachment workflow.
-
-## 2026-09-03 — Milestone 516 — Seller product workflow copy alignment
-
-### What changed
-- Re-read the current seller product UI and acceptance contract before editing.
-- Corrected the new-product editor guidance so it no longer implies that a separately uploaded media asset can be attached to an arbitrary existing product.
-- The UI now accurately explains the current supported workflow: create the product first, or use Upload video to create a video-backed draft.
-- No backend behavior was changed.
-
-### Acceptance boundary
-- Source change is committed.
-- No new GitHub Actions run had been independently confirmed for this milestone at the time.
-- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Fresh seller product acceptance remains required for the current UI/API state.
-
-### Commit
-- `eae2ae3da1637d7c251c55a2c92774959ebcedc9` — clarify seller product video workflow.
-
-## 2026-09-03 — Milestone 515 — Seller product browser acceptance
-
-### What changed
-- Added a dedicated Playwright acceptance spec for the creator's My videos page.
-- Verifies that attached media readiness is surfaced to the seller.
-- Verifies publishing is disabled while media is processing.
-- Verifies publishing is enabled for ready media and calls the publish endpoint.
-- Verifies a seller can create a draft product without a video and is left with the expected catalog state.
-- Keeps the test at the browser contract level, while the backend remains responsible for ownership and publish validation.
-
-### Acceptance boundary
-- Acceptance coverage is now present for the seller product page.
-- The new spec had been committed but had not yet been independently executed in a newly confirmed GitHub Actions run.
-- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Current seller UI/API changes therefore remain pending fresh execution.
-
-### Commit
-- `cc0e3957b83b9ffd26f1e504097695ced928bc88` — add seller product browser acceptance.
-
-## 2026-09-03 — Milestone 514 — Seller product media unlink contract
-
-### What changed
-- Re-read the current seller product API before changing the media-link update contract.
-- Made `mediaAssetId` PATCH semantics explicit: omitted means keep the current media, while an explicit `null` clears the product's media attachment.
-- Preserved seller ownership validation for any newly attached media asset.
-- Preserved the published-product edit lock and backend publish validation.
-- This closes an ambiguity that could otherwise prevent a seller from intentionally removing a video from a draft product.
-
-### Acceptance boundary
-- Source change is committed.
-- No new GitHub Actions run had been independently confirmed for this milestone at the time.
-- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Fresh seller product acceptance is still required for the current API/UI state.
-
-### Commit
-- `6b35538cbb0d04422d44c0aaf05026b2ab5a33ac` — make seller media unlink semantics explicit.
