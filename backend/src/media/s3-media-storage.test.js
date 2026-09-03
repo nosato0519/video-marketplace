@@ -64,3 +64,34 @@ test('S3 adapter rejects traversal keys before making a network request', async 
   await assert.rejects(storage.getStream({ storageKey: '/absolute.mp4' }), /media_storage_key_invalid/);
   assert.equal(called, false);
 });
+
+test('S3 adapter rejects non-success responses for reads, metadata, and writes', async () => {
+  const storage = createS3MediaStorage({
+    bucket: 'private-media',
+    region: 'us-east-1',
+    accessKeyId: 'ACCESS',
+    secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async () => response({ ok: false, status: 500 }),
+  });
+
+  await assert.rejects(storage.getStream({ storageKey: 'private/a.mp4' }), /media_storage_get_failed:500/);
+  await assert.rejects(storage.getMetadata({ storageKey: 'private/a.mp4' }), /media_storage_metadata_failed:500/);
+  await assert.rejects(storage.putStream({ storageKey: 'private/a.mp4', stream: Readable.from(['x']) }), /media_storage_put_failed:500/);
+  await assert.rejects(storage.deleteObject({ storageKey: 'private/a.mp4' }), /media_storage_delete_failed:500/);
+});
+
+test('S3 adapter treats a missing object as a successful idempotent delete', async () => {
+  const storage = createS3MediaStorage({
+    bucket: 'private-media', region: 'us-east-1', accessKeyId: 'ACCESS', secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async () => response({ ok: false, status: 404 }),
+  });
+
+  await storage.deleteObject({ storageKey: 'private/missing.mp4' });
+});
+
+test('S3 adapter requires credentials and a fetch implementation', () => {
+  assert.throws(() => createS3MediaStorage({ bucket: 'bucket', region: 'auto', secretAccessKey: 'secret' }), /media_s3_configuration_missing/);
+  assert.throws(() => createS3MediaStorage({ bucket: 'bucket', region: 'auto', accessKeyId: 'access', secretAccessKey: 'secret', fetchImpl: null }), /media_s3_fetch_missing/);
+});
