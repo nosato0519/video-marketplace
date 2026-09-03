@@ -1,14 +1,15 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 482 — Release hardening continuation
+## 2026-09-03 — Milestone 483 — Release readiness state sync
 
 ### Latest verified checkpoint
 - Authoritative branch: `main`.
 - Latest implementation commit: `581cc444063bbecbbafd4cb62e51ab82bfc08d73` (`ops: gracefully close HTTP server and PostgreSQL pool`).
-- Production shutdown handling now closes the HTTP server and PostgreSQL pool cleanly, with a guarded graceful-shutdown path and forced-exit fallback.
+- Latest documentation/mainline sync: `244137209173a837948a80f3a8b3488834395344` (`docs: sync release readiness with latest verified checkpoint`).
+- Production shutdown handling closes the HTTP server and PostgreSQL pool cleanly, with a guarded graceful-shutdown path and forced-exit fallback.
 
 ### CI verification for latest implementation
-- The latest `581cc444063bbecbbafd4cb62e51ab82bfc08d73` push triggered all five release-hardening workflows.
+- The `581cc444063bbecbbafd4cb62e51ab82bfc08d73` push triggered all five release-hardening workflows.
 - All five completed successfully: Browser UI Acceptance, Clean Install, Browser E2E, Backend Browser Acceptance, and Backend Regression.
 - Backend Regression and Browser UI Acceptance were independently inspected at job level and all steps completed successfully.
 
@@ -26,13 +27,17 @@
 - Media upload write/delete lifecycle through the storage abstraction.
 - Graceful HTTP server and PostgreSQL pool shutdown handling.
 
+### Stale PR cleanup
+- Closed PR #12, #13, #15 and #16 as `not_planned` because their work is already represented in the current authoritative `main` and re-integrating them would duplicate/diverge from verified mainline work.
+- These PRs must not be reopened or reused as implementation sources unless a new concrete gap is identified.
+
 ### Refund-after-payout boundary
 - Existing regression coverage confirms a paid seller earning becomes `refunded` while paid payout history and allocation history remain intact.
 - The schema still has no payout reversal/recovery-liability field.
 - Do not invent recovery accounting until an explicit business/accounting requirement exists.
 
 ### Release gate status
-The automated implementation/release-hardening gates are GREEN on the latest mainline commit. Remaining release work is deployment-specific rather than another round of feature reconstruction:
+The automated implementation/release-hardening gates are GREEN on the latest implementation checkpoint. Remaining release work is deployment-specific rather than another round of feature reconstruction:
 1. Production hosting/runtime configuration.
 2. PostgreSQL production instance and migration/backup/restore drill.
 3. Protected media production storage and backup.
@@ -42,7 +47,12 @@ The automated implementation/release-hardening gates are GREEN on the latest mai
 
 No public demo or production deployment is claimed until those deployment-specific prerequisites are actually configured and verified.
 
+### Resume point
+- On interruption, resume from **Milestone 483 / Release readiness state sync**.
+- Do not redo completed feature, acceptance, media, payment-provider persistence, shutdown, or stale-PR cleanup work.
+- The next actionable gate is deployment-specific configuration; no hosting provider should be selected or configured without an explicit authorized choice.
+
 ### No-waste rule
 - Do not recreate completed acceptance suites or provider persistence work.
-- Do not create marker/no-op commits or CI-trigger-only commits.
+- Do not create marker/no-op or CI-trigger-only commits.
 - Only change code when a concrete release criterion or observed failure requires it.
