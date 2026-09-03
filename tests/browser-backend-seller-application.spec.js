@@ -24,23 +24,18 @@ test.describe('real backend seller application acceptance', () => {
   test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
     const email = `buyer-${Date.now()}@example.test`;
     const password = 'TestPassword!123';
-
     const health = await page.request.get(`${backendUrl}/api/health`);
     expect(health.ok()).toBeTruthy();
-
     await registerAndLogin(page, email, password);
     await page.goto(`${appUrl}#/seller/register`);
     await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
-
     await page.getByLabel('Display name').fill('Real Backend Creator');
     await page.getByLabel('Legal name').fill('Real Backend Creator Legal');
     await page.getByLabel('Country code').fill('JP');
     await page.getByLabel(/Message/).fill('Real backend browser acceptance.');
     await page.getByRole('button', { name: 'Submit application' }).click();
-
     await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
     await expect(page.getByText('Real Backend Creator', { exact: true })).toBeVisible();
-
     const me = await page.request.get(`${backendUrl}/api/auth/me`);
     expect(me.ok()).toBeTruthy();
     const meBody = await me.json();
@@ -53,10 +48,8 @@ test.describe('real backend seller application acceptance', () => {
     const sellerEmail = `seller-${suffix}@example.test`;
     const adminEmail = `admin-${suffix}@example.test`;
     const password = 'TestPassword!123';
-
     const health = await page.request.get(`${backendUrl}/api/health`);
     expect(health.ok()).toBeTruthy();
-
     await registerAndLogin(page, sellerEmail, password);
     await page.goto(`${appUrl}#/seller/register`);
     await page.getByLabel('Display name').fill('Real Backend Admin Review Seller');
@@ -65,30 +58,29 @@ test.describe('real backend seller application acceptance', () => {
     await page.getByLabel(/Message/).fill('Real backend admin review acceptance.');
     await page.getByRole('button', { name: 'Submit application' }).click();
     await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
-
     const sellerMe = await page.request.get(`${backendUrl}/api/auth/me`);
     expect(sellerMe.ok()).toBeTruthy();
     const sellerBody = await sellerMe.json();
     expect(sellerBody.user.email).toBe(sellerEmail);
     expect(sellerBody.user.role).toBe('buyer');
 
-    const adminRegister = await page.request.post(`${backendUrl}/api/auth/register`, {
-      data: { email: adminEmail, password },
-    });
-    expect(adminRegister.status()).toBe(201);
-    const adminBody = await adminRegister.json();
-    const adminId = adminBody.user.id;
-    await query(`UPDATE users SET role = 'admin' WHERE id = $1`, [adminId]);
+    const sellerRow = await query(`SELECT password_hash FROM users WHERE email_normalized = $1 LIMIT 1`, [sellerEmail]);
+    expect(sellerRow.rows).toHaveLength(1);
+    const adminInsert = await query(
+      `INSERT INTO users (email, email_normalized, password_hash, role, status)
+       VALUES ($1, $1, $2, 'admin', 'active')
+       RETURNING id, email, role, status`,
+      [adminEmail, sellerRow.rows[0].password_hash]
+    );
+    expect(adminInsert.rows[0].role).toBe('admin');
 
     await login(page, adminEmail, password);
     await page.goto(`${appUrl}#/admin/seller-applications`);
     await expect(page.getByRole('heading', { name: /Seller applications/i })).toBeVisible();
     await expect(page.getByText(sellerEmail, { exact: true })).toBeVisible();
-
     const actionSelect = page.locator('select[data-action]').first();
     await actionSelect.selectOption('approve');
     await page.getByRole('button', { name: 'Apply' }).click();
-
     const applications = await page.request.get(`${backendUrl}/api/admin/seller-applications?status=approved`);
     expect(applications.ok()).toBeTruthy();
     const approvedBody = await applications.json();
