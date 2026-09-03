@@ -1,5 +1,21 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 505 — Buyer browser acceptance alignment
+
+### What changed
+- Re-read the latest buyer progress checkpoint and inspected the real backend buyer browser acceptance test before editing.
+- Found a concrete test/UI contract drift: the current library UI exposes `Watch now`, while the acceptance test was still looking for `Watch`.
+- Updated the acceptance test to assert the current `Watch now` action and the visible `Ready to watch` state.
+- Kept the end-to-end assertions for registration → browse → product → order → payment settlement → library → protected watch URL → protected download intact.
+
+### Acceptance boundary
+- The test correction is committed but has not yet been independently executed in GitHub Actions after this change.
+- The existing application/browser acceptance checkpoint remains the previously recorded GREEN checkpoint; this commit should be re-run through the browser acceptance workflow before treating it as newly GREEN.
+- No production deployment or live Stripe/object-storage claim is made.
+
+### Commit
+- `23ccaffc843b8ce5075938102d13582c5d9ef2ec` — align buyer browser acceptance with current library UX.
+
 ## 2026-09-03 — Milestone 504 — Buyer library responsive polish
 
 ### What changed
@@ -34,60 +50,3 @@
 
 ### Commit
 - `988627831549d9aa8e07e061b8f590a83847c0e2` — improved buyer library and secure player experience.
-
-## 2026-09-03 — Milestone 502 — Protected S3 media regression coverage
-
-### What changed
-- Added dedicated unit/regression coverage for the S3-compatible protected-media adapter.
-- Verified signed GET requests preserve byte-range headers for resumable video delivery.
-- Verified HEAD metadata, PUT upload, and DELETE operations all pass through the signed storage boundary.
-- Verified traversal and absolute-path storage keys are rejected before any network request.
-- Extended the payment regression workflow to execute the S3 media adapter suite alongside payment and webhook tests.
-
-### Acceptance boundary
-- The new tests validate request construction and storage-boundary behavior without requiring production credentials or a live object store.
-- A live S3/R2/MinIO integration test is still required before declaring the adapter production-GREEN.
-- The latest workflow execution has not yet been independently confirmed through GitHub Actions.
-- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-
-### Commits
-- `d2dcaab4658d68da08c8ef8b7a1876a368476ea2` — added S3 media adapter regression tests.
-- `dd279943c61fcd859f674185ef6a47533dc8a3d0` — added the S3 suite to payment regression CI.
-
-## 2026-09-03 — Milestone 501 — Payment regression CI gate
-
-### What changed
-- Added a dedicated GitHub Actions workflow for the payment regression suite.
-- The workflow runs on pushes and pull requests targeting `main`.
-- It uses a clean Node 20 environment with `npm ci`.
-- It executes the Stripe payment-provider regression tests and Stripe webhook regression tests independently from the broader acceptance suite.
-
-### Acceptance boundary
-- The workflow is now wired to validate the latest payment implementation automatically, but a successful run for the new workflow has not yet been independently confirmed.
-- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Live Stripe and object-storage integration are still required before production-GREEN.
-
-### Commits
-- `d18e59d1de4119048e6ee05ccf7d1504ba7521dc` — added payment regression CI workflow.
-
-## 2026-09-03 — Milestone 500 — Stripe settlement amount-unit hardening
-
-### What changed
-- Inspected the actual checkout and webhook payment path instead of changing payment code speculatively.
-- Found and fixed a production-critical currency-unit mismatch: Stripe Checkout sends monetary amounts in the currency's smallest unit, while the order/payment ledger stores the marketplace amount in normal currency units.
-- Added a shared Stripe money conversion module for zero-decimal and three-decimal currencies.
-- Checkout now uses the shared conversion logic, and Stripe webhook normalization converts provider amounts back before payment-vs-order verification.
-- Added regression coverage for USD, JPY and KWD conversion boundaries.
-
-### Acceptance boundary
-- The code-level fix is committed, but this latest commit has not yet been independently confirmed by GitHub Actions.
-- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Live Stripe and object-storage integration are still required before production-GREEN.
-
-### Commits
-- `a1e830a66758fdeb20c0b6b0d6e2fb2fe2cf813f` — centralized checkout conversion.
-- `a587ff1c5200a98a9246551626736ba5098a6b95` — added shared Stripe money conversion module.
-- `4eeb12311836dc84c97da99a641d37d1b6756a57` — normalized webhook amounts before settlement verification.
-- `fbcb97ab1d0141ce2f938a895801424ed6f96b06` — added conversion regression tests.
-
-Previous milestone: 498 — Production protected media storage adapter.
