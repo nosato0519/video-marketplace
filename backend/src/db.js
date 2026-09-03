@@ -37,3 +37,11 @@ export async function withTransaction(fn) {
     client.release();
   }
 }
+
+export async function closePool() {
+  if (pool) {
+    const currentPool = pool;
+    pool = undefined;
+    await currentPool.end();
+  }
+}
