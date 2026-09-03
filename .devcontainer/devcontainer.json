@@ -12,5 +12,5 @@
     }
   },
   "postCreateCommand": "cd demo && npm install",
-  "postStartCommand": "nohup node demo/server.js >/tmp/vidora-demo.log 2>&1 &"
+  "postStartCommand": "pkill -f 'demo/(server|launcher)\\.mjs' || true; nohup node demo/launcher.mjs >/tmp/vidora-demo.log 2>&1 &"
 }
