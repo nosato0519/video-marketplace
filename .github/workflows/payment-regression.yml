@@ -13,6 +13,9 @@ jobs:
   payment-regression:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,11 +23,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
+          cache: npm
+          cache-dependency-path: backend/package.json
+      - name: Install backend dependencies
+        run: npm install --no-package-lock
       - name: Run payment regression tests
-        run: node --test backend/src/payments/payment-provider.test.js
+        run: node --test src/payments/payment-provider.test.js
       - name: Run webhook regression tests
-        run: node --test backend/src/payments/stripe-webhook.test.js
+        run: node --test src/payments/stripe-webhook.test.js
       - name: Run protected S3 media adapter regression tests
-        run: node --test backend/src/media/s3-media-storage.test.js
+        run: node --test src/media/s3-media-storage.test.js
