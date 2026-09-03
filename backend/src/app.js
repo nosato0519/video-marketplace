@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
 import { registerPurchaseIntentRoutes } from './catalog/purchase-intent-routes.js';
@@ -48,6 +49,16 @@ export function createApp() {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
+  });
+
+  app.get('/api/ready', async (_req, res) => {
+    try {
+      await query('SELECT 1');
+      res.json({ status: 'ready', service: 'video-marketplace-api' });
+    } catch (error) {
+      console.error('Readiness check failed', error);
+      res.status(503).json({ status: 'not_ready', service: 'video-marketplace-api' });
+    }
   });
 
   registerAuthRoutes(app);
