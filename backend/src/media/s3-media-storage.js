@@ -17,7 +17,11 @@ function encodeQuery(value) {
 }
 
 function encodePath(pathname) {
-  return pathname.split('/').map((part) => encodeURIComponent(decodeURIComponent(part))).join('/');
+  return pathname.split('/').map((part) => {
+    const slashToken = '__S3_ENCODED_SLASH__';
+    const protectedPart = part.replace(/%2F/gi, slashToken);
+    return encodeURIComponent(decodeURIComponent(protectedPart)).replaceAll(slashToken, '%2F');
+  }).join('/');
 }
 
 function amzDate(date = new Date()) {
