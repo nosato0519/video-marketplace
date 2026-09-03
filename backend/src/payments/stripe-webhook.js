@@ -23,11 +23,10 @@ export function createStripeWebhookHandler({
   secret = process.env.STRIPE_WEBHOOK_SECRET,
   stripe,
 } = {}) {
-  const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY);
-
   return async function handleStripeWebhook(req, res, next) {
     try {
       if (!secret) return res.status(503).json({ error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED' } });
+      const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY);
       const signature = req.get('stripe-signature');
       const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
       let event;
