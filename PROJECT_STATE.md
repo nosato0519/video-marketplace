@@ -7,7 +7,8 @@
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- Current `main` release-hardening checkpoint: `b586cda2266ffe6de7daa42d0d550f465e59b7f5`.
+- Latest implementation checkpoint: `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`.
+- Latest documentation checkpoint: `00c6a112016878e8f15a0db01b047182de8bd6ad`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified
@@ -25,35 +26,43 @@
 - Atomic/idempotent refund reversal and entitlement revocation.
 - Real HTTP Buyer purchase/media acceptance implemented.
 - Real HTTP Seller product/media acceptance implemented.
-- Real HTTP Seller profile/earnings/payout acceptance implemented, including payout contention, admin status transitions, cancellation, full settlement and audit persistence.
+- Real HTTP Seller profile/earnings/payout acceptance implemented.
 - Real-backend Admin seller-application browser acceptance implemented in the existing seller-application browser suite.
-- Product Detail consumes the real backend product-detail API and no longer relies on legacy demo lookup/fallback.
+- Product Detail consumes the real backend product-detail API.
 - Seller payment-provider settings persistence implemented without storing provider credentials in the database.
-- Browser UI Acceptance run `33710004553`: GREEN; buyer browser acceptance and browser module smoke completed successfully.
-- Backend Regression run `33710004552`: GREEN; migrations, backup/restore, unit/regression suites, payment acceptance, Buyer/Seller/Admin acceptance, media/security suites all completed successfully.
+- Media upload write/delete lifecycle is routed through the storage abstraction.
 
-### Payment-provider release scope verified
-- The catalog currently identifies Stripe as `available` and PayPal/Adyen/Paddle/PayPay as `adapter_ready`.
-- The actual runtime payment-provider factory implements Stripe; non-Stripe catalog entries resolve to an unavailable adapter and cannot be used for checkout.
-- Therefore the supported live checkout provider at this checkpoint is Stripe only. Future adapters remain explicitly non-live and are not represented as working checkout providers.
-- Provider selection/configuration persists non-secret identity/settings across restart/deploy; credentials remain environment-secret based.
+### Latest automated release-hardening gate
+For implementation commit `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`, all five push gates completed GREEN:
+- Browser UI Acceptance: `33712744718`.
+- Clean Install: `33712744945`.
+- Browser E2E: `33712744717`.
+- Backend Browser Acceptance: `33712744741`.
+- Backend Regression: `33712744691`.
 
-### Important no-waste rules
-- Do not create duplicate tests, fake fixtures, marker/no-op commits, or CI-trigger-only commits.
-- Do not rebuild Buyer/Seller acceptance that is already implemented and verified.
-- Do not repeatedly modify CI without a concrete observed failure.
-- Before every change, identify the exact acceptance criterion it advances.
-- Reuse existing APIs, fixtures, helpers and infrastructure.
+### Payment-provider release scope
+- Stripe is the implemented live checkout adapter.
+- PayPal, Adyen, Paddle and PayPay remain explicitly `adapter_ready` and unavailable for checkout until independently implemented and accepted.
+- Provider identity/settings persist without storing provider credentials in the database.
+
+### Refund-after-payout policy boundary
+- A refunded seller earning may transition to `refunded` while paid payout history/allocation history remains preserved.
+- The current schema intentionally has no payout reversal/recovery-liability field.
+- No automatic recovery accounting is invented without an explicit business/accounting requirement.
+
+## Remaining work — deployment-specific only
+1. Select and configure production hosting/runtime.
+2. Provision production PostgreSQL and perform migration plus backup/restore drill.
+3. Configure protected production media storage and media backup.
+4. Configure production secrets, secure sessions and HTTPS.
+5. Configure Stripe live credentials and webhook endpoint.
+6. Run final real-browser production smoke/acceptance.
+
+These are deployment prerequisites, not missing core application features. No public demo or production deployment is claimed until the corresponding infrastructure is actually configured and verified.
+
+## No-waste rules
+- Do not recreate completed Buyer/Seller/Admin acceptance or provider persistence work.
+- Do not create marker/no-op or CI-trigger-only commits.
+- Only modify code for a concrete release criterion or observed failure.
 - Never claim GREEN without runtime/CI evidence.
 - Once a gate is GREEN, move directly to the next gate.
-
-## Remaining work — exact order
-1. Verify/document the refund-after-payout accounting policy boundary; do not invent recovery accounting without an explicit business requirement.
-2. Perform final release hardening: install/upgrade matrix, provider/secrets readiness, backup/restore, security review and final browser regression/release gate.
-3. Only after those gates pass, proceed to the requested demo-screen operation.
-
-## Known design boundary requiring explicit release decision
-The current payout ledger preserves paid payout history and marks the underlying seller earning refunded, but the schema does not contain a payout reversal/recovery-liability field. The release scope currently preserves this boundary rather than inventing a recovery mechanism.
-
-## Authoritative continuation source
-This file plus `PROGRESS_LOG.md` and the latest `main` repository state are authoritative. Older checkpoint text must not be used to resurrect already-completed Buyer/Seller/Admin acceptance work.
