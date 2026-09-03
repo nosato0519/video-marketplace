@@ -23,10 +23,15 @@ async function json(path, options = {}) { const r = await request(path, options)
 try {
   await waitHealth();
   const root = await request('/');
-  if (!root.ok || !(await root.text()).includes('VIDORA')) throw new Error('browser entrypoint failed');
+  const html = await root.text();
+  if (!root.ok || !html.includes('VIDORA') || !html.includes('All categories')) throw new Error('browser entrypoint failed');
   const asset = await request('/app.js');
   const js = await asset.text();
   if (!asset.ok || !js.includes('function purchase') || !js.includes('function sellerView') || !js.includes('function adminView')) throw new Error('browser application asset incomplete');
+
+  const initialState = await json('/api/demo/state');
+  if (!Array.isArray(initialState.products) || initialState.products.length < 5) throw new Error('catalog state incomplete');
+  if (!initialState.products.some(p => p.category === 'Adult 18+')) throw new Error('18+ catalog category missing');
 
   const freshMedia = await request('/api/demo/media/1');
   if (![401, 404].includes(freshMedia.status)) throw new Error(`unauthorized media status ${freshMedia.status}`);
@@ -38,11 +43,18 @@ try {
   if (purchase.order.status !== 'paid' || !purchase.state.purchases.includes(1)) throw new Error('buyer purchase/entitlement failed');
   const media = await request('/api/demo/media/1', { headers:{cookie:buyerCookie} });
   if (!media.ok || !media.headers.get('content-type')?.includes('video/webm')) throw new Error('authorized media failed');
+  const mediaBytes = await media.arrayBuffer();
+  if (mediaBytes.byteLength < 32) throw new Error('authorized media body is empty');
   const download = await request('/api/demo/media/1?download=1', { headers:{cookie:buyerCookie} });
   if (!download.ok || !download.headers.get('content-disposition')?.includes('attachment')) throw new Error('authorized download failed');
+  const downloadBytes = await download.arrayBuffer();
+  if (downloadBytes.byteLength !== mediaBytes.byteLength) throw new Error('download body differs from watch media');
 
   const loginSeller = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'seller'}) });
+  if (!loginSeller.ok) throw new Error('seller login failed');
   const sellerCookie = cookieOf(loginSeller);
+  const sellerOnly = await request('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({title:'Unauthorized Seller Call',category:'Creative',price:10}) });
+  if (![401,403].includes(sellerOnly.status)) throw new Error(`seller authorization status ${sellerOnly.status}`);
   const product = await json('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({title:'Demo Creator Product',category:'Creative',price:25}) });
   const uploaded = await json('/api/demo/seller/upload', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({productId:product.product.id}) });
   if (!uploaded.product.mediaReady) throw new Error('seller media lifecycle failed');
@@ -50,16 +62,17 @@ try {
   if (!payout.payout.id) throw new Error('seller payout failed');
 
   const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
+  if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
   const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:product.product.id,action:'approve'}) });
   const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'APP-1001',action:'approve'}) });
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
 
   console.log('FUNCTIONAL_DEMO_E2E_GREEN');
-  console.log('browser page + app asset: PASS');
+  console.log('browser page + catalog + app asset: PASS');
   console.log('buyer purchase -> entitlement -> protected watch + download: PASS');
   console.log('unauthorized media rejection: PASS');
-  console.log('seller product -> upload lifecycle -> payout: PASS');
+  console.log('seller authorization -> product -> upload lifecycle -> payout: PASS');
   console.log('admin moderation -> seller approval: PASS');
 } finally {
   child.kill('SIGTERM');
