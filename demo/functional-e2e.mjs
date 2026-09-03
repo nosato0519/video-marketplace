@@ -12,7 +12,7 @@ async function request(path, options = {}) {
 }
 async function waitHealth() {
   for (let i = 0; i < 50; i++) {
-    try { const r = await request('/health'); if (r.ok) return; } catch {}
+    try { const r = await request('/api/health'); if (r.ok) return; } catch {}
     await new Promise(r => setTimeout(r, 100));
   }
   throw new Error(`demo server failed to start\n${output}`);
@@ -31,7 +31,7 @@ try {
 
   const initialState = await json('/api/demo/state');
   if (!Array.isArray(initialState.products) || initialState.products.length < 5) throw new Error('catalog state incomplete');
-  if (!initialState.products.some(p => p.category === 'Adult 18+')) throw new Error('18+ catalog category missing');
+  if (!initialState.products.some(p => p.category === 'Adult')) throw new Error('18+ catalog category missing');
 
   const freshMedia = await request('/api/demo/media/1');
   if (![401, 404].includes(freshMedia.status)) throw new Error(`unauthorized media status ${freshMedia.status}`);
@@ -39,7 +39,7 @@ try {
   const loginBuyer = await request('/api/demo/login', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ role: 'buyer' }) });
   if (!loginBuyer.ok) throw new Error('buyer login failed');
   const buyerCookie = cookieOf(loginBuyer);
-  const purchase = await json('/api/demo/purchase', { method:'POST', headers:{'content-type':'application/json', cookie:buyerCookie}, body:JSON.stringify({productId:1}) });
+  const purchase = await json('/api/demo/purchase', { method:'POST', headers:{'content-type':'application/json',cookie:buyerCookie}, body:JSON.stringify({productId:1}) });
   if (purchase.order.status !== 'paid' || !purchase.state.purchases.includes(1)) throw new Error('buyer purchase/entitlement failed');
   const media = await request('/api/demo/media/1', { headers:{cookie:buyerCookie} });
   if (!media.ok || !media.headers.get('content-type')?.includes('video/webm')) throw new Error('authorized media failed');
@@ -64,8 +64,8 @@ try {
   const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
   if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
-  const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:product.product.id,action:'approve'}) });
-  const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'APP-1001',action:'approve'}) });
+  const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'MOD-1002',action:'approve'}) });
+  const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'SEL-1001',action:'approve'}) });
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
 
   console.log('FUNCTIONAL_DEMO_E2E_GREEN');
