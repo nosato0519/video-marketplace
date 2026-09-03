@@ -1,5 +1,40 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 521 — Stripe webhook startup hardening / CI resume
+
+### What changed / verified
+- Resumed exactly from Milestone 520 by checking the latest `main` GitHub Actions runs before touching the demo.
+- The latest checkpoint commit `c710967523427fc37eb8143af0bdc53f2104c940` was not green: Browser E2E and Backend Browser Acceptance failed during backend health startup.
+- Inspected the Browser E2E job log. Database migration completed successfully, but the API process crashed while constructing the Stripe webhook handler because `STRIPE_SECRET_KEY` is intentionally absent in the CI environment.
+- Root cause: `backend/src/payments/stripe-webhook.js` instantiated `new Stripe(process.env.STRIPE_SECRET_KEY)` before checking whether `STRIPE_WEBHOOK_SECRET` was configured. This made an otherwise payment-provider-disabled CI environment fail at application startup.
+- Fixed the concrete startup issue by deferring Stripe client construction until after the webhook configuration guard. When the webhook secret is absent, the handler now returns the existing `PAYMENT_PROVIDER_NOT_CONFIGURED` response without constructing a Stripe client.
+- Commit: `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14` — `fix: defer Stripe client construction until webhook is configured`.
+- Fresh post-fix workflows have started for the new commit. At the time of this checkpoint they were queued, so the tree must NOT yet be described as GREEN.
+
+### Exact resume point
+1. Check the newly queued `main` workflow runs for `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14` and inspect conclusions.
+2. If any run fails, diagnose only that concrete failure and make the smallest required fix.
+3. Once CI is sufficiently clean, return to `demo/` only.
+4. Re-read `demo/index.html`, `demo/app.js`, and `demo/server.js` before editing.
+5. Continue customer-facing demo acceptance: buyer browse → detail → purchase → library → watch/download, then seller and admin journeys.
+6. Inspect the known demo candidate first: category filter value mismatch around `All categories` versus the internal `All` check. Inspect Japanese-first pricing/currency consistency only after confirming current demo source.
+7. Keep backend untouched unless a concrete CI/demo contract/security failure requires it.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest commit: `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14`
+- Core production-oriented application: substantially implemented; final production deployment/configuration remains outstanding.
+- `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app/` + `backend/` system.
+- Do not claim 100% completion merely from green tests; demo visual/behavioral acceptance is still required.
+- Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
+
+### Important recent fixes already completed — do not repeat
+- Stripe runtime dependency declared in root `package.json`: `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- Stripe webhook startup guard hardening: `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14`.
+- Canonical product moderation flags migration was added before Milestone 520.
+- Seller existing-video attachment/selector workflow and hardening were already implemented in Milestones 517–518.
+
 ## 2026-09-03 — Milestone 520 — End-of-day checkpoint / exact resume point
 
 ### What changed / verified today
@@ -22,7 +57,7 @@
 ### Current state / boundaries
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest observed commit: `5d3b673cf6eda3f1e5d67c9edab16918c8071142`
+- Latest observed commit: `5d3b673cf6eda3f1e5d67c9edab16918c8071142` at that checkpoint.
 - Core production-oriented application: substantially implemented; final production deployment/configuration remains outstanding.
 - `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app/` + `backend/` system.
 - Do not claim 100% completion merely from green tests; demo visual/behavioral acceptance is still required.
@@ -35,7 +70,7 @@
 - Seller existing-video attachment/selector workflow and hardening were already implemented in Milestones 517–518.
 
 ### Next milestone
-- CI conclusion for `5d3b673cf6eda3f1e5d67c9edab16918c8071142` → concrete fixes if required → demo customer-facing acceptance/polish.
+- CI conclusion for `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14` → concrete fixes if required → demo customer-facing acceptance/polish.
 
 ## 2026-09-03 — Milestone 519 — Payment regression dependency correction
 
