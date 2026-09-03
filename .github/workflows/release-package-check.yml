@@ -30,8 +30,23 @@ jobs:
       - name: Build release archive
         run: npm run release:package
 
-      - name: Verify archive exists
-        run: test -s dist/vidora-commercial.zip
+      - name: Verify archive integrity and contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/vidora-commercial.zip
+          unzip -t dist/vidora-commercial.zip
+          unzip -Z1 dist/vidora-commercial.zip | grep -qx 'vidora-commercial/package.json'
+          unzip -Z1 dist/vidora-commercial.zip | grep -qx 'vidora-commercial/README.md'
+          unzip -Z1 dist/vidora-commercial.zip | grep -qx 'vidora-commercial/RELEASE_MANIFEST.txt'
+          if unzip -Z1 dist/vidora-commercial.zip | grep -E '(^|/)(\.env(\.|$)|node_modules|dist|\.git|\.DS_Store)(/|$)'; then
+            echo 'Forbidden release path detected'
+            exit 1
+          fi
+          if unzip -Z1 dist/vidora-commercial.zip | grep -Ei '\.(pem|key|p12|pfx)$'; then
+            echo 'Credential/key file detected'
+            exit 1
+          fi
 
       - name: Upload release-package artifact
         uses: actions/upload-artifact@v4
