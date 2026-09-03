@@ -11,7 +11,7 @@ This checkpoint records the exact state so the next session can continue without
 - The authoritative continuation files are `PROJECT_STATE.md` and this `PROGRESS_LOG.md`.
 - The mainline Playwright/browser-server path is the existing same-origin proxy using `/app/index.html`; do not introduce a second frontend server.
 - Latest implementation checkpoint before this documentation update: `b586cda2266ffe6de7daa42d0d550f465e59b7f5`.
-- Documentation checkpoint created by this update: `1ae14343b2aa866487767eb2b48fbbdb15b8bb83`.
+- Documentation checkpoint created by the prior release-readiness work: `1ae14343b2aa866487767eb2b48fbbdb15b8bb83`.
 
 ### Completed work that must NOT be recreated
 - Storefront/catalog and real catalog APIs.
@@ -26,17 +26,27 @@ This checkpoint records the exact state so the next session can continue without
 - Seller payment-provider settings persistence without credential storage.
 - Browser UI Acceptance run `33710004553`: GREEN.
 - Backend Regression run `33710004552`: GREEN.
+- Clean Install run `33710566953`: GREEN on Node 20/22 matrix.
 
 ### Release-hardening verification completed
 - Backend Regression `33710004552` completed GREEN after the UUID fixture correction on `b586cda...`.
 - Browser UI Acceptance `33710004553` completed GREEN.
+- Clean Install `33710566953` completed GREEN on supported Node 20 and Node 22 runtimes.
 - Payment-provider identity/contract scope was verified against the actual runtime: Stripe is the implemented live adapter; non-Stripe catalog entries are `adapter_ready` but intentionally return unavailable adapters and cannot perform checkout.
-- Seller provider configuration persistence is now covered by the latest implementation while credentials remain environment-secret based.
+- Seller provider configuration persistence is covered while credentials remain environment-secret based.
+
+### Media storage release-hardening checkpoint
+- Existing media reads already use the storage abstraction and local provider.
+- The seller upload path previously wrote directly to `MEDIA_STORAGE_DIR`.
+- The upload path has now been moved onto the existing storage abstraction: write, bounded-prefix read for signature validation, and cleanup are storage operations.
+- The local provider now implements the corresponding write/delete lifecycle with the existing path-confinement protection.
+- Existing media storage tests were extended only for the new write/cleanup contract; no duplicate acceptance suite was created.
+- The new media-storage changes have not yet received a new CI result; do not claim them GREEN until a workflow run for the resulting main commit completes successfully.
 
 ### Refund-after-payout boundary
 - Existing regression coverage confirms a paid seller earning becomes `refunded` while paid payout history and allocation history remain intact.
 - The schema still has no payout reversal/recovery-liability field.
-- Do not invent recovery accounting until an explicit business/accounting requirement exists. The next release-hardening task is to document this as an intentional policy boundary and then proceed to final release hardening.
+- Do not invent recovery accounting until an explicit business/accounting requirement exists. This is an intentional release policy boundary.
 
 ### Important no-waste rule
 1. Read `PROJECT_STATE.md` and this log first.
@@ -51,4 +61,4 @@ This checkpoint records the exact state so the next session can continue without
 10. Once a gate is GREEN, move immediately to the next gate.
 
 ### Exact continuation instruction
-**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then handle only the refund-after-payout policy boundary followed by final release hardening. Do not recreate completed acceptance suites or provider persistence work.**
+**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then verify the media-storage abstraction change through the existing backend/browser gates. If GREEN, move directly to deployment-specific production configuration and real-browser release validation. Do not recreate completed acceptance suites or provider persistence work.**
