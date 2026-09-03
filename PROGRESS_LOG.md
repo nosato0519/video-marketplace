@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 502 — Protected S3 media regression coverage
+
+### What changed
+- Added dedicated unit/regression coverage for the S3-compatible protected-media adapter.
+- Verified signed GET requests preserve byte-range headers for resumable video delivery.
+- Verified HEAD metadata, PUT upload, and DELETE operations all pass through the signed storage boundary.
+- Verified traversal and absolute-path storage keys are rejected before any network request.
+- Extended the payment regression workflow to execute the S3 media adapter suite alongside payment and webhook tests.
+
+### Acceptance boundary
+- The new tests validate request construction and storage-boundary behavior without requiring production credentials or a live object store.
+- A live S3/R2/MinIO integration test is still required before declaring the adapter production-GREEN.
+- The latest workflow execution has not yet been independently confirmed through GitHub Actions.
+- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+
+### Commits
+- `d2dcaab4658d68da08c8ef8b7a1876a368476ea2` — added S3 media adapter regression tests.
+- `dd279943c61fcd859f674185ef6a47533dc8a3d0` — added the S3 suite to payment regression CI.
+
 ## 2026-09-03 — Milestone 501 — Payment regression CI gate
 
 ### What changed
@@ -35,14 +54,5 @@
 - `a587ff1c5200a98a9246551626736ba5098a6b95` — added shared Stripe money conversion module.
 - `4eeb12311836dc84c97da99a641d37d1b6756a57` — normalized webhook amounts before settlement verification.
 - `fbcb97ab1d0141ce2f938a895801424ed6f96b06` — added conversion regression tests.
-
-## 2026-09-03 — Milestone 499 — Production-readiness gate: payment and storage verification
-
-- Re-checked the repository state after the protected-media storage milestone.
-- Confirmed the release-package workflow and the existing buyer/seller/admin acceptance workflow set remain present.
-- Kept the production payment path unchanged until the exact provider implementation can be inspected and verified; no speculative payment changes were introduced.
-- Kept the S3-compatible media adapter unchanged pending provider-specific integration testing.
-- Production-GREEN is still intentionally withheld for payment and real object-storage integration.
-- Next implementation gate: verify provider configuration/webhook handling, then add only targeted regression coverage before production acceptance.
 
 Previous milestone: 498 — Production protected media storage adapter.
