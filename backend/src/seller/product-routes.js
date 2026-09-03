@@ -1,16 +1,11 @@
 import express from 'express';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
-import { requireRole, requireOwner } from '../auth/authorize.js';
+import { requireRole } from '../auth/authorize.js';
 import { validateProductForPublishing } from '../catalog/publish-guard.js';
 
 const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
-
-const productOwner = (productId) => async () => {
-  const result = await query('SELECT seller_id FROM products WHERE id = $1', [productId]);
-  return result.rows[0]?.seller_id;
-};
 
 async function verifyMediaAssetOwnership(mediaAssetId, userId) {
   if (mediaAssetId == null) return true;
@@ -30,10 +25,9 @@ router.get('/products', async (req, res, next) => {
 
 router.get('/products/:productId', async (req, res, next) => {
   try {
-    const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE id = $1`, [req.params.productId]);
+    const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE id = $1 AND seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
-    const ownerMiddleware = requireOwner(productOwner(req.params.productId));
-    return ownerMiddleware(req, res, () => res.json({ product: result.rows[0] }));
+    return res.json({ product: result.rows[0] });
   } catch (error) { return next(error); }
 });
 
@@ -50,13 +44,9 @@ router.post('/products', async (req, res, next) => {
 
 router.patch('/products/:productId', async (req, res, next) => {
   try {
-    const current = await query('SELECT * FROM products WHERE id = $1', [req.params.productId]);
+    const current = await query('SELECT * FROM products WHERE id = $1 AND seller_id = $2', [req.params.productId, req.user.id]);
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const product = current.rows[0];
-    const ownerMiddleware = requireOwner(productOwner(req.params.productId));
-    let authorized = false;
-    await ownerMiddleware(req, { ...res, status: res.status.bind(res), json: (body) => { authorized = body?.error !== 'not_found'; return res.json(body); }, headersSent: res.headersSent }, () => { authorized = true; });
-    if (!authorized || res.headersSent) return;
     const { title, description, priceAmount, priceCurrency, mediaAssetId } = req.body || {};
     if (product.status === 'published') return res.status(409).json({ error: 'published_product_locked' });
     if (mediaAssetId != null && !(await verifyMediaAssetOwnership(mediaAssetId, req.user.id))) {
