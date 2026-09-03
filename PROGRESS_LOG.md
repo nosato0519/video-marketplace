@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 503 — Buyer library and secure-player UX
+
+### What changed
+- Reviewed the existing buyer library/watch implementation before making changes to avoid repeating completed backend work.
+- Improved the buyer library presentation around purchased videos, purchase count, purchase date, media readiness and unavailable states.
+- The Watch action is now shown only when the protected media asset is ready and streaming is enabled.
+- The Download action is now shown only when the protected media asset is ready and downloads are enabled.
+- Added clearer secure-player presentation and a protected-playback explanation.
+- Kept media URLs server-derived; the UI does not expose storage keys or object-storage credentials.
+
+### Acceptance boundary
+- This is a frontend UX improvement committed on `main`.
+- It has not yet been independently verified by GitHub Actions/browser acceptance after this change.
+- Backend protected-media authorization and range handling were already implemented and tested in prior milestones; they were not duplicated here.
+- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+
+### Commit
+- `988627831549d9aa8e07e061b8f590a83847c0e2` — improved buyer library and secure player experience.
+
 ## 2026-09-03 — Milestone 502 — Protected S3 media regression coverage
 
 ### What changed
