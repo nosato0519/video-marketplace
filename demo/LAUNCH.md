@@ -1,22 +1,23 @@
 # VIDORA Functional Demo
 
-This is the real demo entrypoint. Do not open `index.html` as a static file; the demo needs its Node.js demo backend.
+This is the real functional demo entrypoint. Do not open `index.html` as a static file; the demo requires its Node.js HTTP backend and launcher.
 
 ## GitHub Codespaces
 
 1. Open the repository in GitHub Codespaces.
-2. Wait for the dev container to finish creating.
-3. `demo/server.js` starts automatically on port `4173`.
+2. Let the dev container finish creating.
+3. The dev-container starts `demo/launcher.mjs` automatically on port `4173`.
 4. Open the forwarded **VIDORA functional demo** port.
 
-The repository dev-container configuration installs the demo dependencies and starts the demo server automatically.
+The launcher serves the production-style HTML and JavaScript assets from the same origin as the demo API, so the browser exercises the actual demo backend rather than a static mock.
 
 ## Demo journeys
 
-- Buyer: catalog → product → login → purchase → paid order → entitlement → protected watch/download.
-- Seller: seller application → product creation → media upload → publishing → earnings → payout request.
-- Admin: seller application review → product moderation → payout review/approval.
-- Media: protected WebM streaming and download are authorization checked by the demo backend.
+- Buyer: catalog → search/filter → product details → login → purchase → paid order → entitlement → protected Watch + Download.
+- Seller: seller mode → product creation → media upload lifecycle → publishing state → earnings → payout request.
+- Admin: seller application review → product moderation → payout oversight.
+- Media: protected WebM streaming/download with authorization checks; an unauthenticated request is rejected.
+- Categories: Education, Film, Business, Creative, and an explicitly labeled 18+ Adult category using non-explicit imagery.
 
 ## Automated verification
 
@@ -26,8 +27,6 @@ From the repository root:
 npm --prefix demo run verify
 ```
 
-The verifier starts an isolated demo server and checks the buyer purchase/entitlement/watch/download flow, seller product/media/payout flow, admin moderation/seller approval flow, and unauthorized media rejection.
+The verifier starts an isolated launcher-backed demo server and checks the browser entrypoint/assets, buyer purchase → entitlement → protected media flow, unauthorized media rejection, seller product/media/payout flow, and admin moderation/seller approval flow.
 
-The verifier has an observed CI PASS in Backend Regression run `33723997514`.
-
-All money movement is simulated. The demo backend keeps state for the current demo session so the journeys can be tested end-to-end without production credentials.
+All money movement is simulated. Demo state is session-scoped and does not use production credentials.
