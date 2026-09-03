@@ -1,1 +1,3 @@
-Functional demo backend and UI are now wired together. The server expects a generated demo/media/demo-video.webm asset; production media remains in the real protected media subsystem. The next verification step is to run the demo server and exercise Buyer → purchase → watch/download plus Seller/Admin flows.
+Functional sales demo is now wired to a real Node.js HTTP backend. Buyer purchase creates a paid order and entitlement; protected media supports Watch and Download; Seller product/media/payout actions and Admin moderation/seller approval actions change server state. The demo media is embedded in the server, so no external media file is required.
+
+Local validation completed: health endpoint, purchase state transition, authorized WebM media response, unauthorized media rejection, seller product creation, payout request, and admin moderation approval.
