@@ -143,7 +143,10 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     } finally {
       if (providerPaymentId) await pool.query(`DELETE FROM payment_events WHERE provider_payment_id = $1 OR order_id = $2`, [providerPaymentId, orderId]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
-      if (orderId) await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
+      if (orderId) {
+        await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]).catch(() => {});
+        await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
+      }
       await pool.query(`DELETE FROM user_sessions WHERE user_id = $1`, [ids.buyer]).catch(() => {});
       await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
       await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
