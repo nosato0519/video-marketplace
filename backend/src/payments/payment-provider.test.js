@@ -56,7 +56,7 @@ test('Stripe checkout validates its payment metadata and currency before the API
   const previous = process.env.STRIPE_SECRET_KEY;
   const previousSuccess = process.env.STRIPE_SUCCESS_URL;
   const previousCancel = process.env.STRIPE_CANCEL_URL;
-  process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+  process.env.STRIPE_SECRET_KEY = 'test-stripe-key';
   process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
   process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
   try {
