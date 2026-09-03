@@ -80,6 +80,11 @@ test.describe('seller products browser acceptance', () => {
   test('seller can create a product from the products page without a video and gets a clear next step', async ({ page }) => {
     await mockSellerSession(page);
 
+    await page.route('**/api/seller/media/assets', async (route) => {
+      expect(route.request().method()).toBe('GET');
+      await fulfillJson(route, { mediaAssets: [{ id: 'media-ready', original_filename: 'ready.mp4', mime_type: 'video/mp4', byte_size: 5242880, status: 'ready' }] });
+    });
+
     await page.route('**/api/seller/products', async (route) => {
       if (route.request().method() === 'GET') {
         await fulfillJson(route, { products: [] });
@@ -90,16 +95,64 @@ test.describe('seller products browser acceptance', () => {
       expect(body.title).toBe('Draft Product');
       expect(body.priceAmount).toBe(1000);
       expect(body.priceCurrency).toBe('JPY');
-      expect(body).not.toHaveProperty('mediaAssetId');
+      expect(body.mediaAssetId).toBeUndefined();
       await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft' } });
     });
 
     await page.goto(appUrl('#/seller/products'));
     await page.getByRole('button', { name: 'Create product' }).click();
+    await expect(page.getByLabel('Protected video')).toBeVisible();
     await page.getByLabel('Title').fill('Draft Product');
     await page.getByLabel('Price').fill('1000');
     await page.getByRole('button', { name: 'Create product', exact: true }).last().click();
 
     await expect(page.getByText('1 product')).toBeVisible();
+  });
+
+  test('seller can attach an existing ready video and clear the attachment on a draft', async ({ page }) => {
+    await mockSellerSession(page);
+    let patchBodies = [];
+
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, {
+        mediaAssets: [
+          { id: 'media-one', original_filename: 'first.mp4', mime_type: 'video/mp4', byte_size: 10485760, status: 'ready' },
+          { id: 'media-processing', original_filename: 'processing.mp4', mime_type: 'video/mp4', byte_size: 2097152, status: 'processing' },
+        ],
+      });
+    });
+
+    await page.route('**/api/seller/products', async (route) => {
+      await fulfillJson(route, {
+        products: [{ id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: null }],
+      });
+    });
+
+    await page.route('**/api/seller/products/product-draft', async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: null } });
+        return;
+      }
+      expect(route.request().method()).toBe('PATCH');
+      patchBodies.push(route.request().postDataJSON());
+      await fulfillJson(route, { product: { id: 'product-draft', status: 'draft' } });
+    });
+
+    await page.goto(appUrl('#/seller/products'));
+    await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Add video' }).click();
+    const mediaSelect = page.getByLabel('Protected video');
+    await expect(mediaSelect).toBeVisible();
+    await expect(mediaSelect.locator('option')).toHaveCount(2);
+    await mediaSelect.selectOption('media-one');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect.poll(() => patchBodies.length).toBe(1);
+    expect(patchBodies[0].mediaAssetId).toBe('media-one');
+
+    await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Edit details' }).click();
+    const secondMediaSelect = page.getByLabel('Protected video');
+    await secondMediaSelect.selectOption('');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect.poll(() => patchBodies.length).toBe(2);
+    expect(patchBodies[1].mediaAssetId).toBeNull();
   });
 });
