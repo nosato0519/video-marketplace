@@ -11,6 +11,7 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
     `SELECT
        p.id,
        p.seller_id,
+       p.status,
        p.price_amount,
        p.price_currency,
        p.streaming_enabled,
