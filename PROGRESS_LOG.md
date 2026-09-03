@@ -1,35 +1,40 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 489 — Demo completion polish
+## 2026-09-03 — Milestone 490 — Demo completion checkpoint
 
 ### Completed
-- Confirmed the previous Functional Demo failure was fixed: the admin moderation fixture now targets the real demo queue item `MOD-1001`.
-- Functional Demo CI run #2 completed successfully.
-- Preserved the already verified marketplace/backend behavior instead of rebuilding it.
-- Polished the demo storefront UI so product cards use the intended marketplace card styling and remain readable/responsive.
-- Added working category cards backed by the live demo catalog, including explicit 18+ labeling for Adult.
-- Improved buyer library presentation to support multiple purchased videos rather than displaying only one item.
-- Hardened demo UI interactions with escaped dynamic text, clearer empty states, and user-friendly error toasts.
-- Fixed the role workspace visibility bug: Buyer/Seller/Admin workspaces are now explicitly revealed when opened.
-- Kept the server-side purchase, entitlement-protected media, seller upload lifecycle, payout, moderation, and seller-approval flows intact.
+- Re-read this progress log before continuing; no completed Buyer/Seller/Admin functionality was rebuilt.
+- Confirmed the previous Functional Demo fixture defect was fixed: moderation now targets the real demo queue item `MOD-1001`.
+- Confirmed Functional Demo CI run #2 passed.
+- Confirmed the latest workspace visibility fix is passing in both repository demo verification workflows.
+- Confirmed the demo storefront polish is preserved: marketplace product cards, catalog-backed category cards, explicit 18+ labeling for Adult, responsive presentation, multiple purchased items, order history, protected watch/download actions, seller workflow, and admin workflow.
+- Confirmed dynamic demo text is escaped and empty/error states are handled with user-facing feedback.
+- Confirmed the role workspace visibility fix is present so Buyer/Seller/Admin workspaces are revealed when opened.
 
 ### Authoritative state
 - Branch: `main`.
-- Latest demo UX commit: `363f031ba704201870179e5a9da1080cd716dc35`.
-- Latest workspace visibility fix: `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
-- Functional Demo verification commit: `cd22f4aaf8bcc687e0ebe67c4027f36bb0423995`.
+- Workspace visibility fix: `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
+- Functional Demo verification fix: `cd22f4aaf8bcc687e0ebe67c4027f36bb0423995`.
 - Previous launcher fix: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
 - Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 
-### Verification boundary
-- Functional Demo run #2 passed after the moderation fixture correction.
-- The latest UI/workspace commits must still pass the repository CI gates before being called fully GREEN.
-- No public demo URL is claimed until an actual execution environment is running.
+### Verification
+- Functional Demo run `33728586551` (run #4): **success**.
+- Demo Functional Regression run `33728586550` (run #34): **success**.
+- Both latest CI jobs completed with all verification steps successful.
+- The combined commit-status endpoint reports no legacy status entries; workflow job results above are the authoritative verification evidence.
+- No public demo URL is claimed because no deployment/execution host has been established in the repository.
+
+### Current checkpoint
+- The repository-backed demo is at the **completed showcase checkpoint**: the implemented demo flows are CI-green and the known UI/workspace defect is fixed.
+- Buyer: browse/search/filter → product view → purchase → library → protected watch/download → order history.
+- Seller: dashboard → product creation → media upload lifecycle → payout request.
+- Admin: moderation queue → seller approval.
 
 ### Resume point
-- Run/inspect CI for `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
-- If CI is GREEN, perform a final regression check and treat the demo as the completed showcase checkpoint.
-- If CI fails, fix only the exact verified defect.
+- Do not redo completed demo work.
+- Any next change must be driven by a newly observed defect, an explicit acceptance requirement, or deployment work.
+- If a public demo is requested next, establish an actual execution/deployment environment before claiming a live URL.
 
 ### No-waste rule
 - Always inspect the latest progress log and failing evidence before editing.
