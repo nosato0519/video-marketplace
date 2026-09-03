@@ -41,7 +41,7 @@ function mediaSummary(product) {
     return { label: 'Video ready', detail: `${filename}${size ? ` · ${size}` : ''}`, ready: true };
   }
   if (status === 'processing') return { label: 'Video processing', detail: 'Wait until validation finishes before publishing.', ready: false };
-  if (status === 'deleted') return { label: 'Video unavailable', detail: 'Attach a new video before publishing.', ready: false };
+  if (status === 'deleted') return { label: 'Video unavailable', detail: 'Upload a new video to create a fresh product draft.', ready: false };
   return { label: 'Video unavailable', detail: 'Check the uploaded media before publishing.', ready: false };
 }
 
@@ -56,9 +56,11 @@ function productRow(product) {
   const publishAction = published
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
     : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
-  const videoAction = product.media_asset_id && !media.ready
-    ? '<a class="button secondary" href="#/seller/upload">Replace video</a>'
-    : !product.media_asset_id ? '<a class="button secondary" href="#/seller/upload">Add video</a>' : '';
+  const videoAction = !product.media_asset_id
+    ? '<a class="button secondary" href="#/seller/upload">Add video</a>'
+    : !media.ready
+      ? '<a class="button secondary" href="#/seller/upload">Upload new video</a>'
+      : '';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
@@ -76,7 +78,7 @@ function editorMarkup(product = null) {
       <label>Title<input name="title" type="text" maxlength="255" value="${escapeHtml(product?.title || '')}" placeholder="Give your video a clear title" required></label>
       <label>Description<textarea name="description" maxlength="5000" rows="6" placeholder="Explain what buyers will get and what makes this video useful.">${escapeHtml(product?.description || '')}</textarea></label>
       <div class="seller-form__row"><label>Price<input name="priceAmount" type="number" min="1" step="1" value="${escapeHtml(product?.price_amount ?? 1000)}" required></label><label>Currency<select name="priceCurrency"><option value="JPY" ${product?.price_currency === 'JPY' || !product ? 'selected' : ''}>JPY — Japanese Yen</option><option value="USD" ${product?.price_currency === 'USD' ? 'selected' : ''}>USD — US Dollar</option><option value="EUR" ${product?.price_currency === 'EUR' ? 'selected' : ''}>EUR — Euro</option></select></label></div>
-      <p class="seller-form__hint">${editing ? 'Published products are locked. Unpublish the product before changing its details.' : 'You can upload the protected video separately, then attach it to this product.'}</p>
+      <p class="seller-form__hint">${editing ? 'Published products are locked. Unpublish the product before changing its details.' : 'You can upload a protected video separately, then attach it to this product.'}</p>
       <div class="seller-form__actions"><button class="button" type="submit">${editing ? 'Save changes' : 'Create product'}</button>${!editing ? '<a class="button secondary" href="#/seller/upload">Upload a video instead</a>' : ''}</div>
       <p id="seller-product-form-message" class="microcopy" aria-live="polite"></p>
     </form>
