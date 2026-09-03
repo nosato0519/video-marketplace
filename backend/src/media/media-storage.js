@@ -1,6 +1,7 @@
-export function createMediaStorage({ getObjectStream, getObjectMetadata } = {}) {
+export function createMediaStorage({ getObjectStream, getObjectMetadata, putObjectStream } = {}) {
   if (typeof getObjectStream !== 'function') throw new Error('media_storage_stream_reader_missing');
   if (typeof getObjectMetadata !== 'function') throw new Error('media_storage_metadata_reader_missing');
+  if (typeof putObjectStream !== 'function') throw new Error('media_storage_stream_writer_missing');
 
   return {
     async getStream({ storageKey, range } = {}) {
@@ -13,6 +14,11 @@ export function createMediaStorage({ getObjectStream, getObjectMetadata } = {}) 
     async getMetadata({ storageKey } = {}) {
       if (!storageKey) throw new Error('media_storage_key_missing');
       return getObjectMetadata({ storageKey });
+    },
+    async putStream({ storageKey, stream } = {}) {
+      if (!storageKey) throw new Error('media_storage_key_missing');
+      if (!stream) throw new Error('media_storage_stream_missing');
+      return putObjectStream({ storageKey, stream });
     },
   };
 }
