@@ -16,6 +16,13 @@ function contentDisposition(productId, mimeType) {
   return `attachment; filename="video-${safeId}.${extension}"`;
 }
 
+function getRequestedRange(header, size) {
+  if (header == null || String(header).trim() === '') return { range: null };
+  const range = parseRangeHeader(header, size);
+  if (!range) return { error: true };
+  return { range };
+}
+
 export function registerMediaDownloadRoutes(app, {
   storage,
   getContext = getProtectedMediaContext,
@@ -54,7 +61,12 @@ export function registerMediaDownloadRoutes(app, {
         return res.status(500).json({ error: { code: 'MEDIA_SIZE_INVALID', message: 'Media size is invalid' } });
       }
 
-      const range = parseRangeHeader(req.headers.range, size);
+      const requested = getRequestedRange(req.headers.range, size);
+      if (requested.error) {
+        res.setHeader('Content-Range', `bytes */${size}`);
+        return res.status(416).json({ error: { code: 'RANGE_NOT_SATISFIABLE', message: 'Requested range is not satisfiable' } });
+      }
+      const range = requested.range;
       const object = await storage.getStream({
         storageKey: context.asset.storage_key,
         range: range ? { start: range.start, end: range.end } : undefined,
