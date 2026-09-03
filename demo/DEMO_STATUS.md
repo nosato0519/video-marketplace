@@ -1,0 +1,1 @@
+Functional demo backend and UI are now wired together. The server expects a generated demo/media/demo-video.webm asset; production media remains in the real protected media subsystem. The next verification step is to run the demo server and exercise Buyer → purchase → watch/download plus Seller/Admin flows.
