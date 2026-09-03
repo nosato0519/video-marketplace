@@ -1,1 +1,1 @@
-{"name":"vidora-functional-demo","private":true,"version":"1.0.0","type":"module","scripts":{"start":"node server.js"},"engines":{"node":">=20"}}
+{"name":"vidora-functional-demo","private":true,"version":"1.0.0","type":"module","scripts":{"start":"node server.js","verify":"node verify.mjs"},"engines":{"node":">=20"}}
