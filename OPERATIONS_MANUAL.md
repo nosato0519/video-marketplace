@@ -38,6 +38,13 @@ This is the operator-facing manual that should be completed alongside the softwa
 - Authorized download failure.
 - Refund/cancellation process.
 
+### Refund after seller payout
+- A valid payment refund revokes the buyer entitlement and marks the related seller earning as `refunded`.
+- If that earning was already included in a payout marked `paid`, the paid payout record and allocation history are retained for audit/reconciliation.
+- The current release does **not** automatically reverse or claw back a paid payout. There is no recovery-liability field in the payout ledger.
+- Such cases must therefore be handled as a finance/reconciliation exception under the operator's external accounting and seller-agreement policy until a dedicated recovery workflow is explicitly designed and implemented.
+- Do not edit payout or earning rows manually as a routine workaround.
+
 ## 5. Moderation
 - Review content against operator policy.
 - Approve/reject products.
@@ -51,6 +58,7 @@ This is the operator-facing manual that should be completed alongside the softwa
 - Review seller earnings.
 - Review refunds/chargebacks.
 - Review payout queue.
+- Reconcile paid-payout refund exceptions against the external accounting record.
 - Export accounting records where supported.
 
 ## 7. Incident response
