@@ -17,5 +17,16 @@ export async function getOrderHistory(userId) {
       JOIN products p ON p.id = o.product_id
      WHERE o.buyer_id = $1
      ORDER BY o.created_at DESC`, [userId]);
-  return result.rows;
+
+  return result.rows.map((order) => ({
+    orderId: order.id,
+    productId: order.product_id,
+    title: order.title,
+    amount: order.amount,
+    currency: order.currency,
+    status: order.status,
+    createdAt: order.created_at,
+    paidAt: order.paid_at ?? null,
+    refundedAt: order.refunded_at ?? null,
+  }));
 }
