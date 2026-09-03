@@ -57,10 +57,10 @@ function productRow(product) {
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
     : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
   const videoAction = !product.media_asset_id
-    ? '<a class="button secondary" href="#/seller/upload">Add video</a>'
+    ? '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Add video</button>'
     : !media.ready
-      ? '<a class="button secondary" href="#/seller/upload">Upload new video</a>'
-      : '';
+      ? '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Change video</button>'
+      : '<button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Change video</button>';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
@@ -71,6 +71,7 @@ function productRow(product) {
 
 function editorMarkup(product = null) {
   const editing = Boolean(product);
+  const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
   return `<section class="seller-editor" aria-labelledby="seller-editor-title">
     <div class="seller-editor__heading"><div><p class="eyebrow">${editing ? 'Edit product' : 'New product'}</p><h2 id="seller-editor-title">${editing ? 'Product details' : 'Create a product'}</h2></div><button type="button" class="button secondary" data-editor-action="close">Cancel</button></div>
     <form id="seller-product-form" class="seller-form">
@@ -78,7 +79,8 @@ function editorMarkup(product = null) {
       <label>Title<input name="title" type="text" maxlength="255" value="${escapeHtml(product?.title || '')}" placeholder="Give your video a clear title" required></label>
       <label>Description<textarea name="description" maxlength="5000" rows="6" placeholder="Explain what buyers will get and what makes this video useful.">${escapeHtml(product?.description || '')}</textarea></label>
       <div class="seller-form__row"><label>Price<input name="priceAmount" type="number" min="1" step="1" value="${escapeHtml(product?.price_amount ?? 1000)}" required></label><label>Currency<select name="priceCurrency"><option value="JPY" ${product?.price_currency === 'JPY' || !product ? 'selected' : ''}>JPY — Japanese Yen</option><option value="USD" ${product?.price_currency === 'USD' ? 'selected' : ''}>USD — US Dollar</option><option value="EUR" ${product?.price_currency === 'EUR' ? 'selected' : ''}>EUR — Euro</option></select></label></div>
-      <p class="seller-form__hint">${editing ? 'Published products are locked. Unpublish the product before changing its details.' : 'Create the product first, then upload a protected video from Upload video to create a video-backed draft.'}</p>
+      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint"><option value="">No video attached</option></select></label>
+      <p id="seller-media-hint" class="seller-form__hint">${editing ? 'Choose one of your uploaded videos, or select No video attached. Published products are locked.' : 'You can create a product without a video, then attach one of your uploaded videos before publishing.'}</p>
       <div class="seller-form__actions"><button class="button" type="submit">${editing ? 'Save changes' : 'Create product'}</button>${!editing ? '<a class="button secondary" href="#/seller/upload">Upload a video instead</a>' : ''}</div>
       <p id="seller-product-form-message" class="microcopy" aria-live="polite"></p>
     </form>
@@ -94,26 +96,46 @@ export async function renderSellerProducts(root) {
 
   function closeEditor() { editorRoot.innerHTML = ''; }
 
-  function showEditor(product = null) {
+  async function showEditor(product = null) {
     editorRoot.innerHTML = editorMarkup(product);
+    const form = editorRoot.querySelector('#seller-product-form');
+    const mediaSelect = form.querySelector('select[name="mediaAssetId"]');
+    const formMessage = form.querySelector('#seller-product-form-message');
+    try {
+      const data = await request('/api/seller/media/assets');
+      const assets = Array.isArray(data.mediaAssets) ? data.mediaAssets : [];
+      const selectable = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'ready');
+      mediaSelect.innerHTML = `<option value="">No video attached</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
+      const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
+      if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
+      else if (currentMediaId) {
+        mediaSelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(currentMediaId)}" selected>Current video (unavailable)</option>`);
+      }
+    } catch (error) {
+      mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
+      formMessage.textContent = 'Your product details can still be edited, but available videos could not be loaded.';
+    }
+
     editorRoot.querySelector('[data-editor-action="close"]')?.addEventListener('click', closeEditor);
     editorRoot.querySelector('input[name="title"]')?.focus();
-    editorRoot.querySelector('#seller-product-form').addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const form = event.currentTarget;
-      const formMessage = form.querySelector('#seller-product-form-message');
       const data = new FormData(form);
       const id = String(data.get('id') || '').trim();
       const title = String(data.get('title') || '').trim();
       const description = String(data.get('description') || '').trim();
       const priceAmount = Number(data.get('priceAmount'));
       const priceCurrency = String(data.get('priceCurrency') || 'JPY').toUpperCase();
+      const mediaValue = String(data.get('mediaAssetId') || '').trim();
       if (!title || !Number.isFinite(priceAmount) || priceAmount <= 0) { formMessage.textContent = 'Enter a title and a valid price.'; return; }
       const submit = form.querySelector('button[type="submit"]');
       submit.disabled = true;
       formMessage.textContent = 'Saving…';
       try {
-        await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount, priceCurrency }) });
+        const payload = { title, description, priceAmount, priceCurrency };
+        if (mediaSelect.options.length > 1 && mediaValue) payload.mediaAssetId = mediaValue;
+        else if (id && mediaSelect.options.length > 0) payload.mediaAssetId = mediaValue || null;
+        await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
         closeEditor();
         await load();
       } catch (error) {
@@ -136,16 +158,16 @@ export async function renderSellerProducts(root) {
     }
   }
 
-  root.querySelector('#new-product').addEventListener('click', () => showEditor());
+  root.querySelector('#new-product').addEventListener('click', () => { void showEditor(); });
   list.addEventListener('click', async (event) => {
     const emptyAction = event.target.closest('[data-empty-action]');
-    if (emptyAction?.dataset.emptyAction === 'create') { showEditor(); return; }
+    if (emptyAction?.dataset.emptyAction === 'create') { void showEditor(); return; }
     const button = event.target.closest('[data-action]');
     if (!button) return;
     const id = button.dataset.id;
     const action = button.dataset.action;
     try {
-      if (action === 'edit') { const current = await request(`/api/seller/products/${encodeURIComponent(id)}`); showEditor(current.product); return; }
+      if (action === 'edit') { const current = await request(`/api/seller/products/${encodeURIComponent(id)}`); await showEditor(current.product); return; }
       button.disabled = true;
       await request(`/api/seller/products/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
       await load();
