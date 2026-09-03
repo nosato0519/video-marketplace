@@ -79,7 +79,8 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       const ordersResponse = await page.request.get(`${backendUrl}/api/orders`);
       expect(ordersResponse.ok()).toBeTruthy();
       const ordersBody = await ordersResponse.json();
-      const order = ordersBody.items.find((item) => item.product_id === ids.product && item.status === 'pending');
+      const orders = ordersBody.items || ordersBody.data || [];
+      const order = orders.find((item) => item.product_id === ids.product && item.status === 'pending');
       expect(order).toBeTruthy();
       orderId = order.id;
 
@@ -131,6 +132,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     } finally {
       if (eventId) await pool.query(`DELETE FROM payment_events WHERE event_id = $1`, [eventId]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]).catch(() => {});
+      if (orderId) await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [orderId]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
       await pool.query(`DELETE FROM user_sessions WHERE user_id IN (SELECT id FROM users WHERE email = $1)`, [email]).catch(() => {});
