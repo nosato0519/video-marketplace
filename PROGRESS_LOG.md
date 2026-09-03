@@ -1,5 +1,20 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 494 — Production catalog backend-only hardening
+
+### What changed
+- Hardened the real application catalog renderer in `app/catalog/catalog-view.js` so the production-facing storefront explicitly requests `allowFallback: false`.
+- Removed the silent demo-fixture fallback from the real application catalog path. If the marketplace API is unavailable, the storefront now clearly reports that the catalog is temporarily unavailable and offers Retry instead of presenting fake/demo inventory as if it were live.
+- Kept the demo fixture fallback available to the separate lightweight `demo/` harness; the production application and showcase remain intentionally separated.
+- Preserved existing catalog search, category filtering, product navigation and backend API behavior.
+
+### Acceptance boundary
+- This is a concrete production-release hardening change: the customer-facing application can no longer silently mask a backend/catalog outage with demo data.
+- Browser/CI acceptance for this new commit is still required before declaring GREEN.
+
+### Commits
+- `3fc3230affb3bb6ef0aaa0cd1d39388f7c130f0d` — require real backend catalog data in production application.
+
 ## 2026-09-03 — Milestone 493 — Production application storefront build
 
 ### What changed
