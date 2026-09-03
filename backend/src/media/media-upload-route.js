@@ -8,7 +8,9 @@ import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-va
 import { createConfiguredMediaStorage } from './media-storage-factory.js';
 
 const router = express.Router();
-const MAX_BYTES = Number(process.env.MEDIA_MAX_UPLOAD_BYTES || 5 * 1024 * 1024 * 1024);
+const DEFAULT_MAX_BYTES = 5 * 1024 * 1024 * 1024;
+const configuredMaxBytes = Number(process.env.MEDIA_MAX_UPLOAD_BYTES);
+const MAX_BYTES = Number.isSafeInteger(configuredMaxBytes) && configuredMaxBytes > 0 ? configuredMaxBytes : DEFAULT_MAX_BYTES;
 const ALLOWED_MIME = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 const mediaStorage = createConfiguredMediaStorage();
 
@@ -16,6 +18,11 @@ function safeExtension(filename, mime) {
   const ext = filename ? filename.toLowerCase().match(/\.[a-z0-9]{1,8}$/)?.[0] : null;
   if (ext) return ext;
   return mime === 'video/webm' ? '.webm' : mime === 'video/quicktime' ? '.mov' : mime === 'video/x-matroska' ? '.mkv' : '.mp4';
+}
+
+function safeOriginalFilename(value) {
+  const normalized = String(value || 'video').replace(/[\u0000-\u001f\u007f]/g, '_').trim();
+  return (normalized || 'video').slice(0, 512);
 }
 
 router.use(requireAuth, requireRole('seller'));
@@ -29,7 +36,7 @@ router.get('/assets', async (req, res, next) => {
 
 router.post('/upload', async (req, res, next) => {
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
-  const filename = String(req.headers['x-original-filename'] || 'video');
+  const filename = safeOriginalFilename(req.headers['x-original-filename']);
   const rawLength = req.headers['content-length'];
   const declaredLength = rawLength == null ? null : Number(rawLength);
 
@@ -71,7 +78,7 @@ router.post('/upload', async (req, res, next) => {
       `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
        VALUES ($1, $2, $3, $4, $5, $6, 'ready')
        RETURNING id, original_filename, mime_type, byte_size, status, created_at`,
-      [id, req.user.id, storageKey, filename.slice(0, 512), mime, bytes]
+      [id, req.user.id, storageKey, filename, mime, bytes]
     );
     return res.status(201).json({ mediaAsset: result.rows[0] });
   } catch (error) {
