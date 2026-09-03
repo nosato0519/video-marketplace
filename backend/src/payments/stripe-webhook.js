@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import crypto from 'node:crypto';
 import { validateWebhookPayload } from './webhook-payload.js';
+import { fromStripeMinorUnits } from './stripe-money.js';
 import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment as defaultCompletePayment } from './complete-payment.js';
 import { failPayment as defaultFailPayment } from './fail-payment.js';
@@ -109,18 +110,19 @@ async function normalizeStripeEvent(event, eventType, stripe) {
     }
   }
 
-  const amount = eventType === 'payment_refunded'
+  const currency = String(object.currency || '').toUpperCase();
+  const amountMinor = eventType === 'payment_refunded'
     ? object.amount
     : object.amount_total ?? object.amount_received ?? object.amount;
-  const currency = object.currency;
+  const amount = typeof amountMinor === 'number' ? amountMinor : Number(amountMinor);
   return {
     eventId: event.id,
     provider: 'stripe',
     eventType,
     paymentId: String(paymentId || ''),
     orderId: String(orderId || ''),
-    amount: typeof amount === 'number' ? amount : Number(amount),
-    currency: String(currency || '').toUpperCase(),
+    amount: fromStripeMinorUnits(amount, currency),
+    currency,
     status: eventType === 'payment_succeeded' ? 'succeeded' : 'failed',
     fullRefund: eventType !== 'payment_refunded' || object.refunded === true,
   };
