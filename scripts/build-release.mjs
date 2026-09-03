@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const root = path.resolve(new URL('..', import.meta.url).pathname, '..');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(scriptDir, '..');
 const distRoot = path.join(root, 'dist');
 const staging = path.join(distRoot, 'vidora-commercial');
 const archive = path.join(distRoot, 'vidora-commercial.zip');
@@ -60,10 +62,13 @@ function copyEntry(entry) {
   if (!fs.existsSync(source)) throw new Error(`Required release entry is missing: ${entry}`);
   const target = path.join(staging, entry);
   fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.cpSync(source, target, { recursive: true, filter: (src) => {
-    const relative = path.relative(root, src);
-    return !relative.split(path.sep).some((part) => forbiddenNames.has(part));
-  }});
+  fs.cpSync(source, target, {
+    recursive: true,
+    filter: (src) => {
+      const relative = path.relative(root, src);
+      return !relative.split(path.sep).some((part) => forbiddenNames.has(part));
+    },
+  });
 }
 
 function gitSha() {
@@ -75,7 +80,8 @@ function gitSha() {
 }
 
 if (!fs.existsSync(distRoot)) fs.mkdirSync(distRoot, { recursive: true });
-if (!checkOnly) fs.rmSync(staging, { recursive: true, force: true });
+fs.rmSync(staging, { recursive: true, force: true });
+fs.rmSync(archive, { force: true });
 fs.mkdirSync(staging, { recursive: true });
 
 for (const entry of include) copyEntry(entry);
@@ -96,28 +102,30 @@ for (const file of files) {
   }
 }
 
+if (violations.length) {
+  for (const violation of violations) console.error(`- ${violation}`);
+  fail(`${violations.length} release safety issue(s) detected`);
+  process.exit(1);
+}
+
+const manifestPath = path.join(staging, 'RELEASE_MANIFEST.txt');
 const manifest = [
   'VIDORA Commercial Package Manifest',
   `Source commit: ${gitSha()}`,
   `Generated: ${new Date().toISOString()}`,
-  `Files: ${files.length}`,
+  `Files: ${files.length + 1}`,
   '',
   ...files.map((file) => path.relative(staging, file).replaceAll(path.sep, '/')),
+  'RELEASE_MANIFEST.txt',
   '',
 ].join('\n');
-fs.writeFileSync(path.join(staging, 'RELEASE_MANIFEST.txt'), manifest);
+fs.writeFileSync(manifestPath, manifest);
 
-if (violations.length) {
-  for (const violation of violations) console.error(`- ${violation}`);
-  fail(`${violations.length} release safety issue(s) detected`);
-} else {
-  console.log(`Release safety check passed: ${files.length} files`);
-}
+console.log(`Release safety check passed: ${files.length + 1} files`);
 
-if (checkOnly || process.exitCode) process.exit(process.exitCode || 0);
+if (checkOnly) process.exit(0);
 
 try {
-  fs.rmSync(archive, { force: true });
   execFileSync('zip', ['-qr', archive, path.basename(staging)], { cwd: distRoot, stdio: 'inherit' });
   console.log(`Release archive created: ${archive}`);
 } catch (error) {
