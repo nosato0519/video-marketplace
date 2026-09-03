@@ -16,6 +16,12 @@ async function request(path, options = {}) {
   try { data = JSON.parse(text); } catch {}
   return { response, data, text };
 }
+function cookieFrom(response) {
+  const values = typeof response.headers.getSetCookie === 'function' ? response.headers.getSetCookie() : [];
+  const fallback = response.headers.get('set-cookie');
+  const value = values[0] || fallback;
+  return value?.split(';')[0];
+}
 function assert(ok, message) { if (!ok) throw new Error(message); }
 
 try {
@@ -38,9 +44,8 @@ try {
   const purchase = await request('/api/demo/purchase', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ productId: 1 }) });
   assert(purchase.response.status === 201 && purchase.data.order.status === 'paid' && purchase.data.order.entitlement === 'active', 'buyer purchase flow failed');
 
-  const cookie = purchase.response.headers.get('set-cookie');
-  assert(cookie, 'demo session cookie was not issued');
-  const sessionCookie = cookie.split(';')[0];
+  const sessionCookie = cookieFrom(purchase.response);
+  assert(sessionCookie, 'demo session cookie was not issued');
 
   const authorized = await request('/api/demo/media/1', { headers: { cookie: sessionCookie } });
   assert(authorized.response.ok && authorized.response.headers.get('content-type')?.startsWith('video/webm'), 'authorized media access failed');
@@ -50,7 +55,7 @@ try {
 
   const sellerLogin = await request('/api/demo/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role: 'seller' }) });
   assert(sellerLogin.response.ok, 'seller login failed');
-  const sellerCookie = sellerLogin.response.headers.get('set-cookie')?.split(';')[0];
+  const sellerCookie = cookieFrom(sellerLogin.response);
   assert(sellerCookie, 'seller session cookie was not issued');
 
   const created = await request('/api/demo/seller/product', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'application/json' }, body: JSON.stringify({ title: 'Demo Creator Course', category: 'Education', price: 18 }) });
@@ -64,7 +69,7 @@ try {
 
   const adminLogin = await request('/api/demo/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role: 'admin' }) });
   assert(adminLogin.response.ok, 'admin login failed');
-  const adminCookie = adminLogin.response.headers.get('set-cookie')?.split(';')[0];
+  const adminCookie = cookieFrom(adminLogin.response);
   assert(adminCookie, 'admin session cookie was not issued');
 
   const adminState = await request('/api/demo/state', { headers: { cookie: adminCookie } });
