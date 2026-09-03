@@ -1,0 +1,24 @@
+name: Demo Functional Regression
+
+on:
+  pull_request:
+    paths:
+      - 'demo/**'
+      - '.github/workflows/demo-functional-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'demo/**'
+      - '.github/workflows/demo-functional-regression.yml'
+
+jobs:
+  demo-functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify functional demo
+        run: npm --prefix demo run verify
