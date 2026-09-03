@@ -3,6 +3,13 @@ import { getProtectedMediaContext } from './protected-media-repository.js';
 import { authorizeProtectedMedia } from './protected-access.js';
 import { parseRangeHeader } from './range-request.js';
 
+function getRequestedRange(header, size) {
+  if (header == null || String(header).trim() === '') return { range: null };
+  const range = parseRangeHeader(header, size);
+  if (!range) return { error: true };
+  return { range };
+}
+
 export function registerMediaStreamRoutes(app, { storage }) {
   if (!storage || typeof storage.getStream !== 'function') throw new Error('media_storage_stream_reader_missing');
 
@@ -15,7 +22,12 @@ export function registerMediaStreamRoutes(app, { storage }) {
       if (!decision?.allowed) return res.status(decision?.status === 401 ? 401 : 404).json({ error: { code: decision?.error || 'NOT_FOUND', message: 'Resource not found' } });
 
       const size = Number(context.asset.byte_size);
-      const range = parseRangeHeader(req.headers.range, size);
+      const requested = getRequestedRange(req.headers.range, size);
+      if (requested.error) {
+        res.setHeader('Content-Range', `bytes */${size}`);
+        return res.status(416).json({ error: { code: 'RANGE_NOT_SATISFIABLE', message: 'Requested range is not satisfiable' } });
+      }
+      const range = requested.range;
       const object = await storage.getStream({ storageKey: context.asset.storage_key, range: range ? { start: range.start, end: range.end } : undefined });
       if (!object?.stream) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found' } });
 
