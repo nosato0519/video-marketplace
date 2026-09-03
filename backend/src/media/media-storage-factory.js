@@ -10,6 +10,7 @@ export function createConfiguredMediaStorage(env = process.env) {
       getObjectStream: storage.getStream,
       getObjectMetadata: storage.getMetadata,
       putObjectStream: storage.putStream,
+      deleteObject: storage.deleteObject,
     });
   }
 
