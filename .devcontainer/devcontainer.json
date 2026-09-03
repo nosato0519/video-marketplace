@@ -1,0 +1,16 @@
+{
+  "name": "Video Marketplace Demo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "forwardPorts": [4173, 3000],
+  "portsAttributes": {
+    "4173": {
+      "label": "VIDORA functional demo",
+      "onAutoForward": "openBrowser"
+    },
+    "3000": {
+      "label": "Video Marketplace API"
+    }
+  },
+  "postCreateCommand": "cd demo && npm install",
+  "postStartCommand": "nohup node demo/server.js >/tmp/vidora-demo.log 2>&1 &"
+}
