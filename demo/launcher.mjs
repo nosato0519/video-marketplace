@@ -28,7 +28,7 @@ const injected = `${marker}
   }
 `;
 if (!source.includes(marker)) throw new Error('server injection marker not found');
-const patched = `const ROOT = ${JSON.stringify(root)};\n` + source.replace(marker, injected);
+const patched = source.replace(marker, injected);
 const temp = join(root, `.server-${randomUUID()}.mjs`);
 await writeFile(temp, patched, 'utf8');
 try { await import(`file://${temp}`); } finally { try { await unlink(temp); } catch {} }
