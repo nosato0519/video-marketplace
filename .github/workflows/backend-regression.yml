@@ -5,10 +5,14 @@ on:
   push:
     paths:
       - 'backend/**'
+      - 'demo/**'
+      - '.devcontainer/**'
       - '.github/workflows/backend-regression.yml'
   pull_request:
     paths:
       - 'backend/**'
+      - 'demo/**'
+      - '.devcontainer/**'
       - '.github/workflows/backend-regression.yml'
   workflow_dispatch:
 
@@ -80,3 +84,6 @@ jobs:
         run: npm run test:http-media-access-e2e
       - name: Run security regression suites
         run: npm run test:security-regression
+      - name: Run functional sales demo E2E
+        working-directory: demo
+        run: node functional-e2e.mjs
