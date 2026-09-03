@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 515 — Seller product browser acceptance
+
+### What changed
+- Added a dedicated Playwright acceptance spec for the creator's My videos page.
+- Verifies that attached media readiness is surfaced to the seller.
+- Verifies publishing is disabled while media is processing.
+- Verifies publishing is enabled for ready media and calls the publish endpoint.
+- Verifies a seller can create a draft product without a video and is left with the expected catalog state.
+- Keeps the test at the browser contract level, while the backend remains responsible for ownership and publish validation.
+
+### Acceptance boundary
+- Acceptance coverage is now present for the seller product page.
+- The new spec has been committed but has not yet been independently executed in a newly confirmed GitHub Actions run.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Current seller UI/API changes therefore remain pending fresh execution.
+
+### Commit
+- `cc0e3957b83b9ffd26f1e504097695ced928bc88` — add seller product browser acceptance.
+
 ## 2026-09-03 — Milestone 514 — Seller product media unlink contract
 
 ### What changed
