@@ -1,0 +1,1 @@
+The demo server is intentionally configured for a generated local WebM asset. Use ffmpeg to create demo/media/demo-video.webm before starting the functional demo if the binary asset is not present.
