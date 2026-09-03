@@ -18,4 +18,16 @@ The repository dev-container configuration installs the demo dependencies and st
 - Admin: seller application review → product moderation → payout review/approval.
 - Media: protected WebM streaming and download are authorization checked by the demo backend.
 
+## Automated verification
+
+From the repository root:
+
+```bash
+npm --prefix demo run verify
+```
+
+The verifier starts an isolated demo server and checks the buyer purchase/entitlement/watch/download flow, seller product/media/payout flow, admin moderation/seller approval flow, and unauthorized media rejection.
+
+The verifier has an observed CI PASS in Backend Regression run `33723997514`.
+
 All money movement is simulated. The demo backend keeps state for the current demo session so the journeys can be tested end-to-end without production credentials.
