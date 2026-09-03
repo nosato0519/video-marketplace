@@ -1,14 +1,14 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 481 — Release hardening continuation.**
+**Milestone 482 — Release hardening continuation.**
 
 ## Latest checkpoint — 2026-09-03
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- Latest implementation checkpoint: `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`.
-- Latest documentation checkpoint: `00c6a112016878e8f15a0db01b047182de8bd6ad`.
+- Latest implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
+- Latest documentation checkpoint: `6fcdd5f8d51801a3e0f07b4b881514189711442d`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified
@@ -31,14 +31,15 @@
 - Product Detail consumes the real backend product-detail API.
 - Seller payment-provider settings persistence implemented without storing provider credentials in the database.
 - Media upload write/delete lifecycle is routed through the storage abstraction.
+- Graceful HTTP server and PostgreSQL pool shutdown handling implemented.
 
 ### Latest automated release-hardening gate
-For implementation commit `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`, all five push gates completed GREEN:
-- Browser UI Acceptance: `33712744718`.
-- Clean Install: `33712744945`.
-- Browser E2E: `33712744717`.
-- Backend Browser Acceptance: `33712744741`.
-- Backend Regression: `33712744691`.
+For implementation commit `581cc444063bbecbbafd4cb62e51ab82bfc08d73`, all five push gates completed GREEN:
+- Browser UI Acceptance: successful.
+- Clean Install: successful.
+- Browser E2E: successful.
+- Backend Browser Acceptance: successful.
+- Backend Regression: successful.
 
 ### Payment-provider release scope
 - Stripe is the implemented live checkout adapter.
