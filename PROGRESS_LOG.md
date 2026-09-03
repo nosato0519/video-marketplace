@@ -10,7 +10,8 @@ This checkpoint records the exact state so the next session can continue without
 - Authoritative branch: `main`.
 - The authoritative continuation files are `PROJECT_STATE.md` and this `PROGRESS_LOG.md`.
 - The mainline Playwright/browser-server path is the existing same-origin proxy using `/app/index.html`; do not introduce a second frontend server.
-- Current main checkpoint: `a0e0da1cb4875ab23e30c7c3580041c52a1b038c` before this documentation-only checkpoint.
+- Latest implementation checkpoint before this documentation update: `b586cda2266ffe6de7daa42d0d550f465e59b7f5`.
+- Documentation checkpoint created by this update: `1ae14343b2aa866487767eb2b48fbbdb15b8bb83`.
 
 ### Completed work that must NOT be recreated
 - Storefront/catalog and real catalog APIs.
@@ -22,17 +23,20 @@ This checkpoint records the exact state so the next session can continue without
 - PostgreSQL migration/preflight and existing backend acceptance suites.
 - Product Detail real-backend API integration.
 - Existing same-origin browser proxy.
-- Browser UI Acceptance run `33708126681` on current main: GREEN.
-- Clean Install run `33708126711` on current main: GREEN.
+- Seller payment-provider settings persistence without credential storage.
+- Browser UI Acceptance run `33710004553`: GREEN.
+- Backend Regression run `33710004552`: GREEN.
 
-### Current release-hardening investigation — payment provider persistence
-- Previous work already implemented Seller payment-provider selection/configuration and Checkout `providerId` routing. Do not recreate those features.
-- `backend/src/payments/payment-provider-settings.js` currently stores Seller provider settings in an in-memory `Map`; credentials are intentionally not retained there.
-- `backend/src/payments/payment-owner-routing.js` already resolves the configured Seller provider for Checkout and rejects providers whose runtime adapter is not configured.
-- `backend/src/payments/payment-provider.js` currently has a real Stripe adapter; non-Stripe catalog providers return unavailable adapters rather than pretending to be implemented.
-- The existing migrations directory was inspected. No existing migration/table for persistent Seller payment-provider settings was identified. Do not add a duplicate table without rechecking current main if the schema changes later.
-- Therefore the concrete remaining criterion is: persist Seller payment-provider configuration across restart/deploy while preserving the existing secret-handling boundary. This is the only reason to touch this area.
-- Do not add arbitrary recovery accounting for paid-out refunds. `PROJECT_STATE.md` records that as a separate business/accounting decision.
+### Release-hardening verification completed
+- Backend Regression `33710004552` completed GREEN after the UUID fixture correction on `b586cda...`.
+- Browser UI Acceptance `33710004553` completed GREEN.
+- Payment-provider identity/contract scope was verified against the actual runtime: Stripe is the implemented live adapter; non-Stripe catalog entries are `adapter_ready` but intentionally return unavailable adapters and cannot perform checkout.
+- Seller provider configuration persistence is now covered by the latest implementation while credentials remain environment-secret based.
+
+### Refund-after-payout boundary
+- Existing regression coverage confirms a paid seller earning becomes `refunded` while paid payout history and allocation history remain intact.
+- The schema still has no payout reversal/recovery-liability field.
+- Do not invent recovery accounting until an explicit business/accounting requirement exists. The next release-hardening task is to document this as an intentional policy boundary and then proceed to final release hardening.
 
 ### Important no-waste rule
 1. Read `PROJECT_STATE.md` and this log first.
@@ -47,4 +51,4 @@ This checkpoint records the exact state so the next session can continue without
 10. Once a gate is GREEN, move immediately to the next gate.
 
 ### Exact continuation instruction
-**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then implement only the Seller payment-provider persistence criterion if the current schema still has no equivalent. Reuse existing provider settings APIs and secret-handling rules. After implementation, run the smallest relevant regression first, then the established release gates.**
+**Next session: read `PROJECT_STATE.md` and this log, inspect latest `main`, then handle only the refund-after-payout policy boundary followed by final release hardening. Do not recreate completed acceptance suites or provider persistence work.**
