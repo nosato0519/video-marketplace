@@ -1,0 +1,41 @@
+name: Release Package Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  release-package-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify release package safety
+        run: npm run release:check
+
+      - name: Build release archive
+        run: npm run release:package
+
+      - name: Verify archive exists
+        run: test -s dist/vidora-commercial.zip
+
+      - name: Upload release-package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vidora-commercial-package
+          path: dist/vidora-commercial.zip
+          if-no-files-found: error
