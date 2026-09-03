@@ -51,7 +51,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
         [ids.seller],
       );
       await pool.query(
-        `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, size_bytes, status)
+        `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
          VALUES ($1, $2, $3, $4, 'video/mp4', $5, 'ready')`,
         [ids.media, ids.seller, mediaFilename, mediaFilename, fixture.length],
       );
