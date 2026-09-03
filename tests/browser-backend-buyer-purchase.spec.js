@@ -23,7 +23,6 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       seller: crypto.randomUUID(),
       media: crypto.randomUUID(),
       product: crypto.randomUUID(),
-      translation: crypto.randomUUID(),
       payment: null,
     };
     const email = `buyer-${ids.buyer}@example.com`;
@@ -61,9 +60,9 @@ test.describe('real backend buyer purchase browser acceptance', () => {
         [ids.product, ids.seller, ids.media],
       );
       await pool.query(
-        `INSERT INTO product_translations (id, product_id, locale, title, description)
-         VALUES ($1, $2, 'en', 'Browser E2E Product', 'Real backend browser acceptance product')`,
-        [ids.translation, ids.product],
+        `INSERT INTO product_translations (product_id, locale, title, description)
+         VALUES ($1, 'en', 'Browser E2E Product', 'Real backend browser acceptance product')`,
+        [ids.product],
       );
       await pool.query('COMMIT');
 
