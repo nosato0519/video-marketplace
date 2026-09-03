@@ -10,18 +10,26 @@ function getRequestedRange(header, size) {
   return { range };
 }
 
-export function registerMediaStreamRoutes(app, { storage }) {
+export function registerMediaStreamRoutes(app, {
+  storage,
+  getContext = getProtectedMediaContext,
+  authMiddleware = requireAuth,
+} = {}) {
   if (!storage || typeof storage.getStream !== 'function') throw new Error('media_storage_stream_reader_missing');
 
-  app.get('/api/media/:productId/stream', requireAuth, async (req, res, next) => {
+  app.get('/api/media/:productId/stream', authMiddleware, async (req, res, next) => {
     try {
-      const context = await getProtectedMediaContext({ userId: req.user.id, productId: req.params.productId });
+      const context = await getContext({ userId: req.user.id, productId: req.params.productId });
       const decision = context && authorizeProtectedMedia({
         user: req.user, entitlement: context.entitlement, product: context.product, asset: context.asset,
       });
       if (!decision?.allowed) return res.status(decision?.status === 401 ? 401 : 404).json({ error: { code: decision?.error || 'NOT_FOUND', message: 'Resource not found' } });
 
       const size = Number(context.asset.byte_size);
+      if (!Number.isSafeInteger(size) || size < 0) {
+        return res.status(500).json({ error: { code: 'MEDIA_SIZE_INVALID', message: 'Media size is invalid' } });
+      }
+
       const requested = getRequestedRange(req.headers.range, size);
       if (requested.error) {
         res.setHeader('Content-Range', `bytes */${size}`);
@@ -40,7 +48,9 @@ export function registerMediaStreamRoutes(app, { storage }) {
         res.status(206);
         res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${size}`);
         res.setHeader('Content-Length', String(range.length));
-      } else if (Number.isInteger(size) && size >= 0) res.setHeader('Content-Length', String(size));
+      } else {
+        res.setHeader('Content-Length', String(size));
+      }
       return object.stream.pipe(res);
     } catch (error) { return next(error); }
   });
