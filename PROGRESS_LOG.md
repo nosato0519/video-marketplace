@@ -1,40 +1,35 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 491 — Final demo acceptance
+## 2026-09-03 — Milestone 492 — Customer-facing demo polish
 
 ### Completed
-- Re-read the prior progress checkpoint before making changes; no completed marketplace functionality was rebuilt.
-- Re-verified the completed showcase scope: Buyer browse/search/filter → product details → purchase → library → protected watch/download → order history.
-- Re-verified Seller: dashboard → product creation → media upload lifecycle → payout request.
-- Re-verified Admin: moderation queue → seller approval.
-- Re-verified storefront polish: responsive marketplace cards, catalog-backed categories, explicit 18+ labeling for Adult, escaped dynamic text, empty states, and user-facing error toasts.
-- Re-verified the workspace visibility fix in `demo/boot.js` and the server-backed role switching flow.
-- Re-verified that demo verification runs are GREEN after the latest workspace fix.
-- Recorded this acceptance checkpoint so the next session resumes from the finished demo rather than repeating prior work.
+- Re-read the prior acceptance checkpoint before editing; existing Buyer/Seller/Admin functionality was preserved.
+- Confirmed the previously accepted functional demo was technically working, but the live screen was too developer-oriented and did not clearly communicate the product journey to a first-time visitor.
+- Updated `demo/boot.js` to apply a customer-facing storefront presentation without rebuilding the underlying flows.
+- Reworked visible navigation and hero copy into a clear Japanese video-marketplace experience: 動画を探す → 購入 → マイページ → 視聴・ダウンロード, plus 動画を販売する.
+- Hid the Admin navigation entry and removed the Admin hero CTA from the normal customer-facing presentation; Admin remains available through the existing demo workspace flow.
+- Added a visible three-step “使い方は、かんたん3ステップ” section explaining discovery, purchase, and protected watch/download.
+- Reworded marketplace/category/search/footer copy for first-time users and clarified the 18+ Adult category notice.
+- Kept the existing server-backed purchase, entitlement, watch/download, seller, payout, moderation, and verification behavior unchanged.
 
 ### Authoritative state
 - Branch: `main`.
-- Current acceptance basis: workspace visibility fix `93d4f2b30ab513b75dc48176b1db1d0c3943fad8` plus the verified prior demo implementation.
+- Latest UI polish commit: `c067a452c35b9c101fc93ec431581a6b9977a666`.
+- Prior workspace visibility fix: `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
 - Functional Demo verification fix: `cd22f4aaf8bcc687e0ebe67c4027f36bb0423995`.
 - Previous launcher fix: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
 - Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 
-### Verification evidence
-- Functional Demo run `33728586551` (run #4): **success**.
-- Demo Functional Regression run `33728586550` (run #34): **success**.
-- Both latest verification jobs completed successfully, including server startup/health and functional E2E verification.
-- No public demo URL is claimed because no deployment/execution host has been established in the repository.
-
-### Current checkpoint
-- The repository-backed demo is the **100-point completed showcase checkpoint** for the current demo scope.
-- The demo is ready for the next distinct phase: actual deployment/hosting, production integration, or a newly observed defect/acceptance requirement.
+### Verification required
+- Refresh the active Codespaces 4173 demo to load the latest `boot.js`.
+- Run `npm --prefix demo run verify` and the existing CI workflows after the UI polish.
+- Manually acceptance-check the customer journey: home → video discovery → product details → purchase → purchased videos → watch/download, then creator selling flow.
 
 ### Resume point
-- Do not redo completed demo work.
-- Start from this checkpoint.
-- Any next code change must be driven by a newly observed defect, an explicit acceptance requirement, or deployment work.
+- Do not recreate completed backend/demo functionality.
+- Continue from Milestone 492.
+- The remaining work is visual/customer-facing acceptance and any defects found during that acceptance, followed by a final sellable-demo checkpoint.
 
 ### No-waste rule
-- Always inspect this log and failing evidence before editing.
-- Never recreate completed Buyer/Seller/Admin functionality.
-- Every new commit must fix a verified defect, add meaningful acceptance coverage, or provide verification evidence.
+- Inspect this log and the latest evidence before editing.
+- Every new commit must address a verified customer-facing defect, explicit acceptance requirement, deployment work, or verification evidence.
