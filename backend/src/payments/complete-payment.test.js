@@ -130,6 +130,121 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
   }
 });
 
+test('completePayment settles a pending order and creates the buyer entitlement', { skip: !hasDatabase }, async () => {
+  const { getPool } = await import('../db.js');
+  const { completePayment } = await import('./complete-payment.js');
+  const pool = getPool();
+
+  const suffix = crypto.randomUUID();
+  const provider = 'test';
+  const providerPaymentId = `pay_success_${suffix}`;
+  const eventId = `evt_success_${suffix}`;
+  const payloadHash = `hash_success_${suffix}`;
+  let sellerId;
+  let buyerId;
+  let productId;
+  let orderId;
+
+  try {
+    const seller = await pool.query(
+      `INSERT INTO users (email, email_normalized, role)
+       VALUES ($1, $2, 'seller') RETURNING id`,
+      [`seller-${suffix}@acceptance.test`, `seller-${suffix}@acceptance.test`]
+    );
+    sellerId = seller.rows[0].id;
+
+    const buyer = await pool.query(
+      `INSERT INTO users (email, email_normalized, role)
+       VALUES ($1, $2, 'buyer') RETURNING id`,
+      [`buyer-success-${suffix}@acceptance.test`, `buyer-success-${suffix}@acceptance.test`]
+    );
+    buyerId = buyer.rows[0].id;
+
+    const product = await pool.query(
+      `INSERT INTO products (seller_id, status, price_amount, price_currency, title, description)
+       VALUES ($1, 'published', 2500, 'JPY', $2, 'first payment settlement fixture') RETURNING id`,
+      [sellerId, `Settlement fixture ${suffix}`]
+    );
+    productId = product.rows[0].id;
+
+    const order = await pool.query(
+      `INSERT INTO orders (buyer_id, product_id, amount, currency, status)
+       VALUES ($1, $2, 2500, 'JPY', 'pending') RETURNING id`,
+      [buyerId, productId]
+    );
+    orderId = order.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO payments
+        (order_id, user_id, provider, amount, currency, status, idempotency_key)
+       VALUES ($1, $2, $3, 2500, 'JPY', 'pending', $4)`,
+      [orderId, buyerId, provider, `${provider}:${providerPaymentId}`]
+    );
+
+    await pool.query(
+      `INSERT INTO payment_events
+        (provider, event_id, event_type, provider_payment_id, payload_hash, status)
+       VALUES ($1, $2, 'payment_succeeded', $3, $4, 'received')`,
+      [provider, eventId, providerPaymentId, payloadHash]
+    );
+
+    const result = await completePayment({
+      eventId,
+      provider,
+      providerPaymentId,
+      orderId,
+      payloadHash,
+      payment: { orderId, amount: 2500, currency: 'JPY', status: 'succeeded' },
+    });
+
+    assert.equal(result.duplicate, false);
+    assert.equal(result.order.status, 'paid');
+    assert.equal(result.payment.status, 'succeeded');
+    assert.equal(result.entitlement.user_id, buyerId);
+    assert.equal(result.entitlement.product_id, productId);
+    assert.equal(result.entitlement.order_id, orderId);
+    assert.equal(result.entitlement.status, 'active');
+
+    const persisted = await pool.query(
+      `SELECT status, provider_payment_id FROM orders WHERE id = $1`,
+      [orderId]
+    );
+    assert.equal(persisted.rows[0].status, 'paid');
+    assert.equal(persisted.rows[0].provider_payment_id, providerPaymentId);
+
+    const entitlement = await pool.query(
+      `SELECT user_id, product_id, order_id, status FROM entitlements WHERE order_id = $1`,
+      [orderId]
+    );
+    assert.equal(entitlement.rowCount, 1);
+    assert.equal(entitlement.rows[0].user_id, buyerId);
+    assert.equal(entitlement.rows[0].product_id, productId);
+    assert.equal(entitlement.rows[0].status, 'active');
+
+    const earnings = await pool.query(
+      `SELECT seller_id, gross_amount, net_amount, status FROM seller_earnings WHERE order_id = $1`,
+      [orderId]
+    );
+    assert.equal(earnings.rowCount, 1);
+    assert.equal(earnings.rows[0].seller_id, sellerId);
+    assert.equal(earnings.rows[0].gross_amount, '2500.00');
+    assert.equal(earnings.rows[0].net_amount, '2500.00');
+    assert.equal(earnings.rows[0].status, 'available');
+  } finally {
+    if (orderId) {
+      await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [orderId]).catch(() => {});
+      await pool.query('DELETE FROM entitlements WHERE order_id = $1', [orderId]).catch(() => {});
+      await pool.query('DELETE FROM payments WHERE order_id = $1', [orderId]).catch(() => {});
+      await pool.query('DELETE FROM payment_events WHERE order_id = $1 OR event_id = $2', [orderId, eventId]).catch(() => {});
+      await pool.query('DELETE FROM orders WHERE id = $1', [orderId]).catch(() => {});
+    }
+    if (productId) await pool.query('DELETE FROM products WHERE id = $1', [productId]).catch(() => {});
+    if (buyerId) await pool.query('DELETE FROM users WHERE id = $1', [buyerId]).catch(() => {});
+    if (sellerId) await pool.query('DELETE FROM users WHERE id = $1', [sellerId]).catch(() => {});
+    await pool.end();
+  }
+});
+
 test('completePayment exposes an explicit already-paid idempotency result contract', () => {
   const result = { duplicate: true, alreadyPaid: true };
   assert.deepEqual(result, { duplicate: true, alreadyPaid: true });
