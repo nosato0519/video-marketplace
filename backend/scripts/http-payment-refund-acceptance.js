@@ -27,7 +27,7 @@ async function postWebhook(baseUrl, raw, signature) {
 const sign = (raw) => crypto.createHmac('sha256', secret).update(raw).digest('hex');
 const ids = {
   seller: crypto.randomUUID(), buyer: crypto.randomUUID(), product: crypto.randomUUID(),
-  order: crypto.randomUUID(), payment: crypto.randomUUID(),
+  order: crypto.randomUUID(), payment: crypto.randomUUID(), payout: crypto.randomUUID(),
 };
 const providerPaymentId = `pay_${crypto.randomUUID()}`;
 const successEventId = `evt_${crypto.randomUUID()}`;
@@ -74,6 +74,20 @@ try {
   assert.equal(state.rows[0].status, 'available');
   assert.equal(state.rows[0].refunded_at, null);
 
+  // Simulate a payout that has already settled this earning. The payout and
+  // allocation are immutable financial history and must survive a later refund.
+  await pool.query(`INSERT INTO payouts (id, seller_id, amount, currency, status, paid_at)
+    VALUES ($1, $2, 1500, 'JPY', 'paid', NOW())`, [ids.payout, ids.seller]);
+  await pool.query(`INSERT INTO payout_earnings_allocations (payout_id, seller_earning_id, amount)
+    SELECT $1, id, 1500 FROM seller_earnings WHERE order_id = $2`, [ids.payout, ids.order]);
+  await pool.query(`UPDATE seller_earnings SET status = 'paid', paid_at = NOW()
+    WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
+
+  state = await pool.query(`SELECT status, paid_at, refunded_at FROM seller_earnings WHERE order_id = $1`, [ids.order]);
+  assert.equal(state.rows[0].status, 'paid');
+  assert.notEqual(state.rows[0].paid_at, null);
+  assert.equal(state.rows[0].refunded_at, null);
+
   const refund = JSON.stringify({
     eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded',
     paymentId: providerPaymentId, orderId: ids.order
@@ -87,26 +101,27 @@ try {
   state = await pool.query(`SELECT status, revoked_at FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'revoked');
   assert.notEqual(state.rows[0].revoked_at, null);
-  state = await pool.query(`SELECT COUNT(*)::int AS total,
-      COUNT(*) FILTER (WHERE status = 'available')::int AS available,
-      COUNT(*) FILTER (WHERE status = 'refunded')::int AS refunded,
-      MIN(refunded_at) AS refunded_at
-    FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
-  assert.equal(state.rows[0].total, 1);
-  assert.equal(state.rows[0].available, 0);
-  assert.equal(state.rows[0].refunded, 1);
+  state = await pool.query(`SELECT status, paid_at, refunded_at FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
+  assert.equal(state.rows[0].status, 'refunded');
+  assert.notEqual(state.rows[0].paid_at, null);
   assert.notEqual(state.rows[0].refunded_at, null);
+
+  state = await pool.query(`SELECT status, amount, paid_at FROM payouts WHERE id = $1`, [ids.payout]);
+  assert.equal(state.rows[0].status, 'paid');
+  assert.equal(Number(state.rows[0].amount), 1500);
+  assert.notEqual(state.rows[0].paid_at, null);
+  state = await pool.query(`SELECT amount FROM payout_earnings_allocations WHERE payout_id = $1`, [ids.payout]);
+  assert.equal(state.rowCount, 1);
+  assert.equal(Number(state.rows[0].amount), 1500);
 
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.duplicate, true);
 
   state = await pool.query(`SELECT COUNT(*)::int AS total,
-      COUNT(*) FILTER (WHERE status = 'available')::int AS available,
       COUNT(*) FILTER (WHERE status = 'refunded')::int AS refunded
     FROM seller_earnings WHERE order_id = $1 AND product_id = $2`, [ids.order, ids.product]);
   assert.equal(state.rows[0].total, 1);
-  assert.equal(state.rows[0].available, 0);
   assert.equal(state.rows[0].refunded, 1);
 
   const eventRow = await pool.query(`SELECT status, event_type, provider_payment_id FROM payment_events
@@ -119,6 +134,8 @@ try {
   console.log('HTTP payment refund acceptance: PASS');
 } finally {
   await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2)`, [successEventId, refundEventId]).catch(() => {});
+  await pool.query(`DELETE FROM payout_earnings_allocations WHERE payout_id = $1`, [ids.payout]).catch(() => {});
+  await pool.query(`DELETE FROM payouts WHERE id = $1`, [ids.payout]).catch(() => {});
   await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [ids.order]).catch(() => {});
   await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
