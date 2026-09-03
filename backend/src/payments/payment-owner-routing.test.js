@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { configurePaymentProvider, clearPaymentProviderSettings } from './payment-provider-settings.js';
 import { resolveOwnerPaymentProvider } from './payment-owner-routing.js';
 
-test('keeps payment routing isolated by owner', () => {
+test('keeps payment routing isolated by owner', async () => {
   const previousKey = process.env.STRIPE_SECRET_KEY;
   const previousSuccess = process.env.STRIPE_SUCCESS_URL;
   const previousCancel = process.env.STRIPE_CANCEL_URL;
@@ -14,8 +14,8 @@ test('keeps payment routing isolated by owner', () => {
     configurePaymentProvider({ ownerId: 'owner-a', providerId: 'stripe', region: 'global', currency: 'USD', credentials: { secret: 'owner-a-secret' } });
     configurePaymentProvider({ ownerId: 'owner-b', providerId: 'stripe', region: 'global', currency: 'USD', credentials: { secret: 'owner-b-secret' } });
 
-    assert.equal(resolveOwnerPaymentProvider({ ownerId: 'owner-a' }).ownerId, 'owner-a');
-    assert.equal(resolveOwnerPaymentProvider({ ownerId: 'owner-b' }).ownerId, 'owner-b');
+    assert.equal((await resolveOwnerPaymentProvider({ ownerId: 'owner-a' })).ownerId, 'owner-a');
+    assert.equal((await resolveOwnerPaymentProvider({ ownerId: 'owner-b' })).ownerId, 'owner-b');
   } finally {
     clearPaymentProviderSettings({ ownerId: 'owner-a', providerId: 'stripe' });
     clearPaymentProviderSettings({ ownerId: 'owner-b', providerId: 'stripe' });
@@ -25,6 +25,9 @@ test('keeps payment routing isolated by owner', () => {
   }
 });
 
-test('does not route an owner through another owner\'s provider configuration', () => {
-  assert.throws(() => resolveOwnerPaymentProvider({ ownerId: 'unknown-owner', providerId: 'stripe' }), /payment_provider_not_configured_for_owner/);
+test('does not route an owner through another owner\'s provider configuration', async () => {
+  await assert.rejects(
+    resolveOwnerPaymentProvider({ ownerId: 'unknown-owner', providerId: 'stripe' }),
+    /payment_provider_not_configured_for_owner/
+  );
 });
