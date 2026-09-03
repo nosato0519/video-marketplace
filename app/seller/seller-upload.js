@@ -23,7 +23,7 @@ export async function renderSellerUpload(root) {
         <div class="seller-upload-dropzone"><span class="seller-upload-icon">↑</span><strong>Select your video</strong><span>MP4, WebM, MOV or MKV · up to 5 GB</span><input id="video-file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" required></div>
         <p id="selected-file" class="seller-form__hint">No file selected yet.</p>
         <div class="seller-form__divider"></div>
-        <label>Product title<input id="video-title" type="text" maxlength="255" placeholder="Give your video a clear title" required></label>
+        <label>Product title<input id="video-title" aria-label="Title" type="text" maxlength="255" placeholder="Give your video a clear title" required></label>
         <label>Description<textarea id="video-description" maxlength="5000" rows="6" placeholder="Tell buyers what they will receive."></textarea></label>
         <div class="seller-form__row"><label>Price (JPY)<input id="video-price" type="number" min="1" step="1" value="1000" required></label><div class="seller-field-note"><span>Currency</span><strong>JPY</strong><small>Japanese Yen</small></div></div>
         <button class="button seller-upload-submit" id="upload-submit" type="submit">Upload and create draft</button>
@@ -59,7 +59,7 @@ export async function renderSellerUpload(root) {
     try {
       const media = await request('/api/seller/media/upload', { method: 'POST', headers: { 'content-type': file.type, 'x-original-filename': file.name }, body: file });
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: media.mediaAsset.id }) });
-      message.innerHTML = `Draft <strong>${escapeHtml(product.product.title)}</strong> created successfully. <a href="#/seller/products">Open My videos</a>`;
+      message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
       form.reset();
       selectedFile.textContent = 'No file selected yet.';
       form.querySelector('#video-price').value = '1000';
