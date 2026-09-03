@@ -123,7 +123,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       ids.payment = paymentResult.rows[0].id;
       expect(paymentResult.rows[0].provider).toBe('browser-test');
 
-      const webhook = JSON.stringify({ eventId, provider: 'browser-test', eventType: 'payment_succeeded', paymentId: ids.payment, orderId, amount: 1500, currency: 'JPY', status: 'succeeded' });
+      const webhook = JSON.stringify({ eventId, provider: 'browser-test', eventType: 'payment_succeeded', paymentId: providerPaymentId, orderId, amount: 1500, currency: 'JPY', status: 'succeeded' });
       const paymentResponse = await page.request.post(`${backendUrl}/api/payments/webhook`, { headers: { 'content-type': 'application/json', 'x-payment-signature': signedPayload(webhook) }, data: webhook });
       expect(paymentResponse.ok()).toBeTruthy();
 
@@ -142,8 +142,6 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(Buffer.from(await downloadResponse.body())).toEqual(fixture);
     } finally {
       if (providerPaymentId) await pool.query(`DELETE FROM payment_events WHERE provider_payment_id = $1 OR order_id = $2`, [providerPaymentId, orderId]).catch(() => {});
-      if (ids.payment) await pool.query(`DELETE FROM seller_earnings WHERE payment_id = $1`, [ids.payment]).catch(() => {});
-      if (ids.payment) await pool.query(`DELETE FROM entitlements WHERE payment_id = $1`, [ids.payment]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
       await pool.query(`DELETE FROM user_sessions WHERE user_id = $1`, [ids.buyer]).catch(() => {});
