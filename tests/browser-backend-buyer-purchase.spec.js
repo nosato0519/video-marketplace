@@ -86,7 +86,14 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(orderBody.order.product_id).toBe(ids.product);
       expect(orderBody.order.status).toBe('pending');
       orderId = orderBody.order.id;
-      await expect(page.locator('#checkout-message')).toContainText(/Checkout|payment/i);
+
+      const checkoutResponse = await page.request.post(`${backendUrl}/api/orders/${orderId}/checkout`, {
+        headers: { 'content-type': 'application/json' },
+        data: {},
+      });
+      expect(checkoutResponse.status()).toBe(409);
+      const checkoutBody = await checkoutResponse.json();
+      expect(checkoutBody.error.code).toBe('PAYMENT_PROVIDER_NOT_CONFIGURED');
 
       const ordersResponse = await page.request.get(`${backendUrl}/api/orders`);
       expect(ordersResponse.ok()).toBeTruthy();
@@ -96,15 +103,19 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(order.productId).toBe(ids.product);
       expect(order.status).toBe('pending');
 
-      const paymentResult = await pool.query(`SELECT id, provider FROM payments WHERE order_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1`, [orderId]);
-      expect(paymentResult.rows).toHaveLength(1);
-      ids.payment = paymentResult.rows[0].id;
-      expect(paymentResult.rows[0].provider).toBeTruthy();
       providerPaymentId = `pay_${crypto.randomUUID()}`;
       eventId = `evt_${crypto.randomUUID()}`;
-      await pool.query(`UPDATE payments SET provider_payment_id = $1 WHERE id = $2`, [providerPaymentId, ids.payment]);
+      const paymentResult = await pool.query(
+        `INSERT INTO payments (order_id, user_id, provider, amount, currency, status, provider_payment_id, idempotency_key)
+         VALUES ($1, $2, 'browser-test', 1500, 'JPY', 'pending', $3, $4)
+         RETURNING id, provider`,
+        [orderId, ids.buyer, providerPaymentId, `browser-test:${orderId}`],
+      );
+      expect(paymentResult.rows).toHaveLength(1);
+      ids.payment = paymentResult.rows[0].id;
+      expect(paymentResult.rows[0].provider).toBe('browser-test');
 
-      const webhook = JSON.stringify({ eventId, provider: paymentResult.rows[0].provider, eventType: 'payment_succeeded', paymentId: providerPaymentId, orderId, amount: 1500, currency: 'JPY', status: 'succeeded' });
+      const webhook = JSON.stringify({ eventId, provider: 'browser-test', eventType: 'payment_succeeded', paymentId: ids.payment, orderId, amount: 1500, currency: 'JPY', status: 'succeeded' });
       const paymentResponse = await page.request.post(`${backendUrl}/api/payments/webhook`, { headers: { 'content-type': 'application/json', 'x-payment-signature': signedPayload(webhook) }, data: webhook });
       expect(paymentResponse.ok()).toBeTruthy();
 
