@@ -1,5 +1,26 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 509 — Seller product-management UI polish
+
+### What changed
+- Re-read the current seller routing, product API and seller upload flow before editing to avoid duplicating existing backend work.
+- Replaced the seller product page's browser `prompt()` workflow with an in-page product editor form.
+- Added structured title, description, price and currency fields for product creation/editing.
+- Added clearer product status, video-attached state, marketplace visibility state and contextual actions.
+- Added direct navigation from products to the secure video upload flow when a product has no video attached.
+- Added responsive seller product cards/editor styling without changing the existing seller API contract.
+- Preserved the existing server-side seller ownership and publish validation; this milestone is a frontend UX improvement, not a replacement for backend authorization.
+
+### Acceptance boundary
+- Source changes are committed.
+- No new GitHub Actions run has been independently confirmed for this milestone.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- The seller UI now has a production-style form instead of prompt dialogs, but full browser acceptance of the new product-management interactions still needs to be executed.
+
+### Commits
+- `05f3e1cc27b0fae5c9971d6027554d0a726b266a` — replaced seller product prompts with an in-page editor.
+- `86cb9c0e7ec5736c4fd31f9b1ffcbaf21a8b8647` — added seller product-management styling.
+
 ## 2026-09-03 — Milestone 508 — S3 canonical-path hardening
 
 ### What changed
@@ -47,19 +68,3 @@
 
 ### Commit
 - `09e71f3697053fd09c5107fdc3d177c84ed3a44a` — fixed payment regression workflow installation.
-
-## 2026-09-03 — Milestone 505 — Buyer browser acceptance alignment
-
-### What changed
-- Re-read the latest buyer progress checkpoint and inspected the real backend buyer browser acceptance test before editing.
-- Found a concrete test/UI contract drift: the current library UI exposes `Watch now`, while the acceptance test was still looking for `Watch`.
-- Updated the acceptance test to assert the current `Watch now` action and the visible `Ready to watch` state.
-- Kept the end-to-end assertions for registration → browse → product → order → payment settlement → library → protected watch URL → protected download intact.
-
-### Acceptance boundary
-- The test correction is committed but had not yet been independently executed in GitHub Actions at the time of this milestone.
-- The existing application/browser acceptance checkpoint remains the previously recorded GREEN checkpoint; this commit must be re-run through the browser acceptance workflow before treating it as newly GREEN.
-- No production deployment or live Stripe/object-storage claim is made.
-
-### Commit
-- `23ccaffc843b8ce5075938102d13582c5d9ef2ec` — aligned buyer browser acceptance with current library UX.
