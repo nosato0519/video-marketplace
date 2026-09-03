@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPaymentProvider } from './payment-provider.js';
+import { fromStripeMinorUnits, stripeCurrencyMinorUnitFactor, toStripeMinorUnits } from './stripe-money.js';
 
 test('uses an explicit pending provider when no provider is configured', () => {
   const provider = createPaymentProvider({ provider: 'pending' });
@@ -78,4 +79,16 @@ test('Stripe checkout validates its payment metadata and currency before the API
     if (previousCancel === undefined) delete process.env.STRIPE_CANCEL_URL;
     else process.env.STRIPE_CANCEL_URL = previousCancel;
   }
+});
+
+test('Stripe currency conversion matches checkout and webhook units', () => {
+  assert.equal(stripeCurrencyMinorUnitFactor('USD'), 100);
+  assert.equal(toStripeMinorUnits('12.34', 'USD'), 1234);
+  assert.equal(fromStripeMinorUnits(1234, 'USD'), 12.34);
+  assert.equal(stripeCurrencyMinorUnitFactor('JPY'), 1);
+  assert.equal(toStripeMinorUnits(1500, 'JPY'), 1500);
+  assert.equal(fromStripeMinorUnits(1500, 'JPY'), 1500);
+  assert.equal(stripeCurrencyMinorUnitFactor('KWD'), 1000);
+  assert.equal(toStripeMinorUnits('1.234', 'KWD'), 1234);
+  assert.equal(fromStripeMinorUnits(1234, 'KWD'), 1.234);
 });
