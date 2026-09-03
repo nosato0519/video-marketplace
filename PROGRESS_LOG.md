@@ -1,5 +1,26 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 513 — Seller media readiness in catalog
+
+### What changed
+- Re-read the current seller product UI and upload/backend contracts before editing.
+- Extended the seller product catalog API to include the attached media asset's readiness status, filename and byte size without exposing the protected storage key.
+- Updated the creator's My videos workspace to show actionable media states: Video ready, Video processing, Video unavailable, or Video not attached.
+- Publishing is now disabled in the creator UI until the attached video is ready, while the backend remains the final authority for publish validation.
+- Added clearer media details and a Replace video / Add video path when the product cannot yet be published.
+- Preserved the existing ownership checks and protected-media storage flow.
+
+### Acceptance boundary
+- Source changes are committed.
+- No new GitHub Actions run has been independently confirmed for this milestone.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Fresh browser acceptance is still required for the current seller UI.
+- Live object-storage integration is still not claimed as production-verified.
+
+### Commits
+- `25242307639ac036fb2774fe1b14c26cfea68580` — expose seller media readiness metadata.
+- `c3fec1fdbca49f9c10f9dcfc70c8b5d042eee7d3` — surface media readiness and actions in My videos.
+
 ## 2026-09-03 — Milestone 512 — Creator workspace navigation
 
 ### What changed
