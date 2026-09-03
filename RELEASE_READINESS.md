@@ -15,10 +15,16 @@ The project declares Node.js `>=20`; the canonical backend regression runs on No
 
 ## 2. Automated gates already GREEN
 
-- Backend Regression: run `33710004552` — GREEN.
-- Browser UI Acceptance: run `33710004553` — GREEN.
-- Backend regression includes migrations, backup/restore round-trip, unit/regression tests, authentication, payment webhook/failure/refund, Buyer purchase, Seller application/product/media/earnings/payout, payout concurrency, media authorization/upload/access, and security regression suites.
+Latest implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73` (`ops: gracefully close HTTP server and PostgreSQL pool`).
+
+- Browser UI Acceptance: latest push run completed successfully.
+- Clean Install: latest push run completed successfully.
+- Browser E2E: latest push run completed successfully.
+- Backend Browser Acceptance: latest push run completed successfully.
+- Backend Regression: latest push run completed successfully.
+- Backend Regression includes migrations, backup/restore round-trip, unit/regression tests, authentication, payment webhook/failure/refund, Buyer purchase, Seller application/product/media/earnings/payout, payout concurrency, media authorization/upload/access, and security regression suites.
 - Browser acceptance includes Buyer browser acceptance and browser module smoke.
+- The latest implementation also includes graceful HTTP server and PostgreSQL pool shutdown handling, verified by the full five-workflow push gate.
 
 ## 3. Production configuration gate
 
@@ -82,4 +88,4 @@ Do not replace the existing browser acceptance infrastructure with a parallel fr
 
 ## Release decision
 
-The repository is at the final hardening stage. Automated acceptance is GREEN; production release remains conditional on the deployment-specific configuration, backup/restore, security and real-browser checks above.
+The repository is at the final hardening stage. Automated acceptance is GREEN on the latest implementation checkpoint; production release remains conditional on the deployment-specific configuration, backup/restore, security and real-browser checks above.
