@@ -20,7 +20,9 @@ const injected = `${marker}
   }
   if (req.method === 'GET' && url.pathname === '/') {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
-    const safeHtml = html.replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>');
+    const safeHtml = html
+      .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
+      .replace('<option>All categories</option>', '<option value="All">All categories</option>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(safeHtml); return;
   }
