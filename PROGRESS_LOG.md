@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 498 — Production protected media storage adapter
+
+### What changed
+- Added an S3-compatible protected media storage adapter using AWS Signature V4 request signing with Node's built-in crypto/fetch APIs, avoiding an additional runtime SDK dependency.
+- Added support for authenticated GET/HEAD/PUT/DELETE operations and HTTP Range reads through the storage abstraction.
+- Added `MEDIA_STORAGE_PROVIDER=s3` configuration with bucket, region, access key, secret key and optional custom endpoint for S3-compatible services such as Cloudflare R2 or MinIO.
+- Added a production safety guard: `MEDIA_STORAGE_PROVIDER=local` is rejected when `NODE_ENV=production`, preventing accidental deployment with local filesystem media storage.
+- Updated `backend/.env.example` with the production storage settings and explicit local-development-only guidance.
+
+### Acceptance boundary
+- The production storage path is implemented but requires provider-specific integration testing against the chosen production object-storage service before it can be called production-GREEN.
+- Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Live deployment gates still include provider integration test, production PostgreSQL, payment/webhooks, HTTPS/secrets, backup/restore, legal pages, final browser acceptance and commercial license review.
+
+### Commits
+- `d6862c3440e2ab94e5f7e8f1fd5833d651b5e74e` — added S3-compatible storage adapter.
+- `af8f8fd0797922e1791487e3c447f36e173ff9c3` — wired S3 provider and production local-storage guard.
+- `210ffd44943d0f1e96c464a43b6f054ac617ec07` — documented S3 production configuration.
+
 ## 2026-09-03 — Milestone 497 — Commercial release archive validation hardened
 
 ### What changed
@@ -11,7 +30,7 @@
 ### Acceptance boundary
 - The workflow is now stricter, but a successful run for this latest commit still needs independent confirmation before the release gate can be called GREEN.
 - Existing application acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
-- Customer/live deployment gates remain separate: production infrastructure, live payment credentials/webhooks, protected media storage, HTTPS/secrets, backup/restore, legal pages, final production browser acceptance, and final commercial license review.
+- Customer/live deployment gates remain separate: production infrastructure, live payment credentials/webhooks, protected media storage, HTTPS/secrets, backup/restore, final production browser acceptance, and final commercial license review.
 
 ### Commits
 - `703f94d9e63faf7e31dcd90a6d1cd1c2cba6e8a6` — hardened release archive validation.
@@ -41,28 +60,3 @@
 - Browser UI Acceptance passed with Playwright/Chromium Buyer browser acceptance and browser module smoke.
 - Updated `RELEASE_READINESS.md` so the repository records this exact GREEN checkpoint without incorrectly claiming that later documentation commits were independently browser-tested.
 - Added `COMMERCIAL_LICENSE_TEMPLATE.md` as the starting point for customer-specific commercial licensing and redistribution terms.
-
-### Acceptance boundary
-- Automated application validation is GREEN at the recorded application commit.
-- This does not make a customer deployment live-ready: production infrastructure, live payment credentials/webhooks, storage, HTTPS, backup/restore, customer legal pages and final desktop/mobile production browser acceptance remain deployment-specific gates.
-- The commercial license template is not a final legal agreement and must be completed/reviewed before paid delivery.
-
-### Commits
-- `4085a201d53c17ffcfbc88f222bb046380118661` — verified application checkpoint.
-- `93a267f7b868a52011443dc0fd0c836f46ae43fe` — commercial license template.
-- `4089cb46a7e73d6692213167d820bb2672f959da` — release readiness documentation update.
-
-## 2026-09-03 — Milestone 494 — Production catalog backend-only hardening
-
-### What changed
-- Hardened the real application catalog renderer in `app/catalog/catalog-view.js` so the production-facing storefront explicitly requests `allowFallback: false`.
-- Removed the silent demo-fixture fallback from the real application catalog path. If the marketplace API is unavailable, the storefront now clearly reports that the catalog is temporarily unavailable and offers Retry instead of presenting fake/demo inventory as if it were live.
-- Kept the demo fixture fallback available to the separate lightweight `demo/` harness; the production application and showcase remain intentionally separated.
-- Preserved existing catalog search, category filtering, product navigation and backend API behavior.
-
-### Acceptance boundary
-- This is a concrete production-release hardening change: the customer-facing application can no longer silently mask a backend/catalog outage with demo data.
-- Browser/CI acceptance for this new commit is still required before declaring GREEN.
-
-### Commits
-- `3fc3230affb3bb6ef0aaa0cd1d39388f7c130f0d` — require real backend catalog data in production application.
