@@ -16,16 +16,25 @@ async function verifyMediaAssetOwnership(mediaAssetId, userId) {
   return result.rows.length > 0;
 }
 
+const PRODUCT_SELECT = `
+  SELECT p.id, p.seller_id, p.media_asset_id, p.status, p.price_amount, p.price_currency,
+         p.title, p.description, p.created_at, p.updated_at, p.published_at,
+         m.status AS media_status, m.mime_type AS media_mime_type, m.byte_size AS media_byte_size,
+         m.original_filename AS media_original_filename
+  FROM products p
+  LEFT JOIN media_assets m ON m.id = p.media_asset_id
+`;
+
 router.get('/products', async (req, res, next) => {
   try {
-    const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE seller_id = $1 ORDER BY created_at DESC`, [req.user.id]);
+    const result = await query(`${PRODUCT_SELECT} WHERE p.seller_id = $1 ORDER BY p.created_at DESC`, [req.user.id]);
     return res.json({ products: result.rows });
   } catch (error) { return next(error); }
 });
 
 router.get('/products/:productId', async (req, res, next) => {
   try {
-    const result = await query(`SELECT id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at FROM products WHERE id = $1 AND seller_id = $2`, [req.params.productId, req.user.id]);
+    const result = await query(`${PRODUCT_SELECT} WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
     return res.json({ product: result.rows[0] });
   } catch (error) { return next(error); }
