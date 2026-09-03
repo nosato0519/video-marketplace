@@ -4,17 +4,20 @@ import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
 import { completePayment as defaultCompletePayment } from './complete-payment.js';
 import { failPayment as defaultFailPayment } from './fail-payment.js';
+import { refundPayment as defaultRefundPayment } from './refund-payment.js';
 
 const STRIPE_EVENTS = new Map([
   ['checkout.session.completed', 'payment_succeeded'],
   ['checkout.session.async_payment_succeeded', 'payment_succeeded'],
   ['checkout.session.async_payment_failed', 'payment_failed'],
   ['payment_intent.payment_failed', 'payment_failed'],
+  ['charge.refunded', 'payment_refunded'],
 ]);
 
 export function createStripeWebhookHandler({
   completePayment = defaultCompletePayment,
   failPayment = defaultFailPayment,
+  refundPayment = defaultRefundPayment,
   recordPaymentEvent = defaultRecordPaymentEvent,
   secret = process.env.STRIPE_WEBHOOK_SECRET,
   stripe,
@@ -36,7 +39,11 @@ export function createStripeWebhookHandler({
       const eventType = STRIPE_EVENTS.get(event.type);
       if (!eventType) return res.status(200).json({ received: true, ignored: true });
 
-      const payload = normalizeStripeEvent(event, eventType);
+      const payload = await normalizeStripeEvent(event, eventType, verifier);
+      if (eventType === 'payment_refunded' && !payload.fullRefund) {
+        return res.status(200).json({ received: true, ignored: true, reason: 'partial_refund_not_supported' });
+      }
+
       validateWebhookPayload(payload);
       const payloadHash = crypto.createHash('sha256').update(rawBody).digest('hex');
       const recorded = await recordPaymentEvent({
@@ -60,6 +67,10 @@ export function createStripeWebhookHandler({
         const result = await failPayment(input);
         return res.status(200).json({ received: true, result });
       }
+      if (eventType === 'payment_refunded') {
+        const result = await refundPayment(input);
+        return res.status(200).json({ received: true, result });
+      }
       const result = await completePayment({
         ...input,
         payment: { ...payload, order_id: payload.orderId, provider_payment_id: payload.paymentId },
@@ -71,12 +82,36 @@ export function createStripeWebhookHandler({
   };
 }
 
-function normalizeStripeEvent(event, eventType) {
+async function normalizeStripeEvent(event, eventType, stripe) {
   const object = event?.data?.object || {};
   const metadata = object.metadata || {};
-  const orderId = metadata.orderId || object.client_reference_id;
   const paymentId = metadata.paymentId || object.payment_intent || object.id;
-  const amount = object.amount_total ?? object.amount_received ?? object.amount;
+  let orderId = metadata.orderId || object.client_reference_id;
+
+  if (eventType === 'payment_refunded' && object.payment_intent) {
+    if (!object.refunded) {
+      return {
+        eventId: event.id,
+        provider: 'stripe',
+        eventType,
+        paymentId: String(paymentId || ''),
+        orderId: String(orderId || ''),
+        amount: 0,
+        currency: String(object.currency || '').toUpperCase(),
+        status: 'failed',
+        fullRefund: false,
+      };
+    }
+
+    if (!orderId) {
+      const paymentIntent = await stripe.paymentIntents.retrieve(String(object.payment_intent));
+      orderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
+    }
+  }
+
+  const amount = eventType === 'payment_refunded'
+    ? object.amount
+    : object.amount_total ?? object.amount_received ?? object.amount;
   const currency = object.currency;
   return {
     eventId: event.id,
@@ -87,5 +122,6 @@ function normalizeStripeEvent(event, eventType) {
     amount: typeof amount === 'number' ? amount : Number(amount),
     currency: String(currency || '').toUpperCase(),
     status: eventType === 'payment_succeeded' ? 'succeeded' : 'failed',
+    fullRefund: eventType !== 'payment_refunded' || object.refunded === true,
   };
 }
