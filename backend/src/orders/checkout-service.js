@@ -31,7 +31,7 @@ export async function createCheckoutSession({ orderId, userId, providerId = null
   const order = await getPendingOrderForCheckout({ orderId, userId });
   if (!order) throw new Error('order_not_found');
 
-  const paymentRoute = resolveProviderForOrder({
+  const paymentRoute = await resolveProviderForOrder({
     order,
     product: { id: order.product_id, seller_id: order.seller_id },
     providerId,
