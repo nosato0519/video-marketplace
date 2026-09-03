@@ -112,6 +112,9 @@ test.describe('buyer purchase browser acceptance', () => {
             product_id: 'demo-1',
             title: 'Featured Video',
             description: 'Purchased video product.',
+            purchased_at: '2026-09-03T12:00:00Z',
+            media_asset_id: 'asset-1',
+            media_status: 'ready',
             streaming_enabled: true,
             download_enabled: true,
           }],
@@ -120,9 +123,10 @@ test.describe('buyer purchase browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/library'));
-    await expect(page.getByRole('heading', { name: /buyer@example\.test.*library/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your purchased videos' })).toBeVisible();
+    await expect(page.getByText('buyer@example.test')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Featured Video' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', '#/watch/demo-1');
+    await expect(page.getByRole('link', { name: 'Watch now' })).toHaveAttribute('href', '#/watch/demo-1');
     await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '/api/media/demo-1/download');
   });
 
@@ -130,8 +134,8 @@ test.describe('buyer purchase browser acceptance', () => {
     await mockBuyerSession(page);
     await page.goto(appUrl('#/watch/demo-1'));
 
-    await expect(page.getByRole('heading', { name: 'Watch video' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your video' })).toBeVisible();
     await expect(page.locator('video.secure-player')).toHaveAttribute('src', '/api/media/demo-1/stream');
-    await expect(page.getByText('Playback is protected by your active entitlement.')).toBeVisible();
+    await expect(page.getByText('Playback is protected by your active purchase entitlement.')).toBeVisible();
   });
 });
