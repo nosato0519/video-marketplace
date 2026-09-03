@@ -1,35 +1,30 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 492 — Customer-facing demo polish
+## 2026-09-03 — Milestone 492 — Customer-facing showcase correction
 
-### Completed
-- Re-read the prior acceptance checkpoint before editing; existing Buyer/Seller/Admin functionality was preserved.
-- Confirmed the previously accepted functional demo was technically working, but the live screen was too developer-oriented and did not clearly communicate the product journey to a first-time visitor.
-- Updated `demo/boot.js` to apply a customer-facing storefront presentation without rebuilding the underlying flows.
-- Reworked visible navigation and hero copy into a clear Japanese video-marketplace experience: 動画を探す → 購入 → マイページ → 視聴・ダウンロード, plus 動画を販売する.
-- Hid the Admin navigation entry and removed the Admin hero CTA from the normal customer-facing presentation; Admin remains available through the existing demo workspace flow.
-- Added a visible three-step “使い方は、かんたん3ステップ” section explaining discovery, purchase, and protected watch/download.
-- Reworded marketplace/category/search/footer copy for first-time users and clarified the 18+ Adult category notice.
-- Kept the existing server-backed purchase, entitlement, watch/download, seller, payout, moderation, and verification behavior unchanged.
+### What changed
+- Re-read the prior progress checkpoint and product vision before editing; completed core Buyer/Seller/Admin implementation was not rebuilt.
+- Corrected the customer-facing demo after manual browser inspection showed that the previous showcase looked like an internal functional test console rather than a convincing marketplace product.
+- Reworked `demo/index.html` into a Japanese-first storefront presentation: clear buyer journey, prominent search/browse CTA, creator selling CTA, understandable navigation, marketplace-oriented copy, category browsing, and cleaner visual hierarchy.
+- Preserved the existing server-backed demo API and existing Buyer/Seller/Admin workflows underneath the presentation layer.
 
-### Authoritative state
-- Branch: `main`.
-- Latest UI polish commit: `c067a452c35b9c101fc93ec431581a6b9977a666`.
-- Prior workspace visibility fix: `93d4f2b30ab513b75dc48176b1db1d0c3943fad8`.
-- Functional Demo verification fix: `cd22f4aaf8bcc687e0ebe67c4027f36bb0423995`.
-- Previous launcher fix: `8733827ec0f90e2c3324073743cb2fc37ffdc703`.
-- Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
+### Important architecture distinction
+- `demo/` is a lightweight showcase harness with simulated demo state; it is not the production application database/backend.
+- The actual application is under `app/` + `backend/` and is backed by the production-oriented architecture described in `PRODUCT_VISION.md` and `PROJECT_STATE.md`.
+- The actual project already contains PostgreSQL-backed catalog/order/checkout/entitlement/media/seller/admin foundations and automated HTTP/browser acceptance coverage; the remaining production work is deployment-specific.
+- Therefore, a polished demo must not be used as the sole proof of backend completeness. Production backend evidence and the demo UI are tracked separately.
 
-### Verification required
-- Refresh the active Codespaces 4173 demo to load the latest `boot.js`.
-- Run `npm --prefix demo run verify` and the existing CI workflows after the UI polish.
-- Manually acceptance-check the customer journey: home → video discovery → product details → purchase → purchased videos → watch/download, then creator selling flow.
+### Acceptance requirement added from manual inspection
+- A new viewer must immediately understand: what the service is, how to find a video, how to buy it, where purchased videos appear, and how a creator can sell.
+- The demo must feel like a sellable marketplace showcase, not like a developer test dashboard.
 
-### Resume point
-- Do not recreate completed backend/demo functionality.
-- Continue from Milestone 492.
-- The remaining work is visual/customer-facing acceptance and any defects found during that acceptance, followed by a final sellable-demo checkpoint.
+### Current checkpoint
+- Latest showcase UI commit: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
+- Existing verified core implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
+- Do not recreate completed backend acceptance work.
+- Next work: verify the corrected showcase in the real Codespaces browser, then continue release/deployment readiness and fix only concrete defects discovered by acceptance.
 
 ### No-waste rule
-- Inspect this log and the latest evidence before editing.
-- Every new commit must address a verified customer-facing defect, explicit acceptance requirement, deployment work, or verification evidence.
+- Inspect this log, `PROJECT_STATE.md`, `PRODUCT_VISION.md`, and the relevant source before editing.
+- Never equate a green mock/demo test with production readiness.
+- Every new commit must fix a verified defect, satisfy an explicit acceptance requirement, or provide meaningful verification evidence.
