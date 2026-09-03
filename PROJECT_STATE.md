@@ -7,7 +7,7 @@
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- Current `main` SHA: `a0e0da1cb4875ab23e30c7c3580041c52a1b038c`.
+- Current `main` release-hardening checkpoint: `b586cda2266ffe6de7daa42d0d550f465e59b7f5`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified
@@ -28,9 +28,15 @@
 - Real HTTP Seller profile/earnings/payout acceptance implemented, including payout contention, admin status transitions, cancellation, full settlement and audit persistence.
 - Real-backend Admin seller-application browser acceptance implemented in the existing seller-application browser suite.
 - Product Detail consumes the real backend product-detail API and no longer relies on legacy demo lookup/fallback.
-- Browser UI Acceptance run `33708126681` on current `main`: GREEN; buyer browser acceptance and browser module smoke completed successfully.
-- Clean Install run `33708126711` on current `main`: GREEN; migration preflight, migrations, migration state and core regression all completed successfully.
-- The 429 auth-rate-limit failure in the Admin browser acceptance was fixed in `a0e0da1`; the replacement setup reuses the existing test user's password hash instead of performing a second registration.
+- Seller payment-provider settings persistence implemented without storing provider credentials in the database.
+- Browser UI Acceptance run `33710004553`: GREEN; buyer browser acceptance and browser module smoke completed successfully.
+- Backend Regression run `33710004552`: GREEN; migrations, backup/restore, unit/regression suites, payment acceptance, Buyer/Seller/Admin acceptance, media/security suites all completed successfully.
+
+### Payment-provider release scope verified
+- The catalog currently identifies Stripe as `available` and PayPal/Adyen/Paddle/PayPay as `adapter_ready`.
+- The actual runtime payment-provider factory implements Stripe; non-Stripe catalog entries resolve to an unavailable adapter and cannot be used for checkout.
+- Therefore the supported live checkout provider at this checkpoint is Stripe only. Future adapters remain explicitly non-live and are not represented as working checkout providers.
+- Provider selection/configuration persists non-secret identity/settings across restart/deploy; credentials remain environment-secret based.
 
 ### Important no-waste rules
 - Do not create duplicate tests, fake fixtures, marker/no-op commits, or CI-trigger-only commits.
@@ -42,13 +48,12 @@
 - Once a gate is GREEN, move directly to the next gate.
 
 ## Remaining work — exact order
-1. Verify payment-provider identity/contract consistency and supported-provider scope against the actual checkout/webhook implementation.
-2. Verify refund-after-payout accounting integrity and determine whether the current business model explicitly supports or rejects recovery after funds have already been paid out.
-3. Perform final release hardening: install/upgrade matrix, provider/secrets readiness, backup/restore, security review and final browser regression/release gate.
-4. Only after those gates pass, proceed to the requested demo-screen operation.
+1. Verify/document the refund-after-payout accounting policy boundary; do not invent recovery accounting without an explicit business requirement.
+2. Perform final release hardening: install/upgrade matrix, provider/secrets readiness, backup/restore, security review and final browser regression/release gate.
+3. Only after those gates pass, proceed to the requested demo-screen operation.
 
 ## Known design boundary requiring explicit release decision
-The current payout ledger preserves paid payout history and marks the underlying seller earning refunded, but the schema does not contain a payout reversal/recovery-liability field. Do not invent a recovery mechanism during release hardening without a concrete business/accounting requirement and schema design.
+The current payout ledger preserves paid payout history and marks the underlying seller earning refunded, but the schema does not contain a payout reversal/recovery-liability field. The release scope currently preserves this boundary rather than inventing a recovery mechanism.
 
 ## Authoritative continuation source
-This file plus `PROGRESS_LOG.md` and the latest `main` repository state are authoritative. If a later session reads older checkpoint text saying Buyer/Seller/Admin acceptance is still unverified, prefer the current `main` SHA and the CI evidence recorded above.
+This file plus `PROGRESS_LOG.md` and the latest `main` repository state are authoritative. Older checkpoint text must not be used to resurrect already-completed Buyer/Seller/Admin acceptance work.
