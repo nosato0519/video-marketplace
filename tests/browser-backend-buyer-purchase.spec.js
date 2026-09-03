@@ -129,13 +129,14 @@ test.describe('real backend buyer purchase browser acceptance', () => {
 
       await page.goto(`${appUrl}#/library`);
       await expect(page.getByRole('heading', { name: 'Browser E2E Product' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', `#/watch/${ids.product}`);
+      await expect(page.getByRole('link', { name: 'Watch now' })).toHaveAttribute('href', `#/watch/${ids.product}`);
       await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', `/api/media/${ids.product}/download`);
+      await expect(page.getByText('Ready to watch', { exact: true })).toBeVisible();
 
       await page.goto(`${appUrl}#/watch/${ids.product}`);
       const video = page.locator('video');
       await expect(video).toHaveAttribute('src', `/api/media/${ids.product}/stream`);
-      await expect(page.getByText('Playback is protected by your active entitlement.')).toBeVisible();
+      await expect(page.getByText('Playback is protected by your active purchase entitlement.')).toBeVisible();
 
       const downloadResponse = await page.request.get(`${backendUrl}/api/media/${ids.product}/download`);
       expect(downloadResponse.status()).toBe(200);
