@@ -1,35 +1,33 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 486 — Functional demo acceptance hardening
+## 2026-09-03 — Milestone 487 — Functional demo verifier alignment
 
-### Completed in this milestone
-- Reviewed the existing Milestone 485 state before changing anything; no completed feature work was recreated.
-- Deepened `demo/functional-e2e.mjs` acceptance coverage for the real functional demo.
-- Verified the browser entrypoint contains the VIDORA shell and expected category UI.
-- Added catalog-state checks, including the Adult 18+ category.
-- Added verification that authorized Watch media returns a non-empty WebM body.
-- Added verification that Download returns the same media bytes with attachment disposition.
-- Added explicit seller-role authorization coverage before the valid seller workflow.
-- Kept the existing Buyer purchase → entitlement → Watch → Download, Seller product → upload → payout, and Admin moderation → seller approval journeys intact.
+### Completed
+- Reviewed Milestone 486 and current demo implementation before changing anything.
+- Found and fixed three verifier/implementation mismatches instead of duplicating completed functionality:
+  1. Health check now targets the launcher/server's actual `/api/health` endpoint.
+  2. Catalog verification now matches the server's `Adult` category, while the UI continues to display it as 18+.
+  3. Admin verification now approves the actual seeded moderation item `MOD-1002` and seller application `SEL-1001` used by the demo workflow.
+- Kept the strengthened Watch + Download byte-level verification and Seller authorization coverage.
 
-### Current authoritative state
+### Authoritative state
 - Branch: `main`.
-- Core verified implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
-- Latest demo hardening commit: `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
-- Previous final hardening milestone: `882d5879c23b349eb75337b82b7a67e4a3faf09d`.
-- Existing CI evidence on `882d5879` showed Browser UI Acceptance, Clean Install Node 20, Clean Install Node 22, Backend Browser Acceptance, and Browser E2E all successful.
+- Latest verifier fix commit: `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
+- Previous demo hardening commit: `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
+- Previous final hardening commit: `882d5879c23b349eb75337b82b7a67e4a3faf09d`.
+- Core verified implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 
 ### Verification boundary
-- The new Milestone 486 acceptance changes must receive their own CI result before being marked fully verified.
-- No public demo URL is claimed until an actual execution environment is running.
-- Production release is not claimed; deployment-specific database, media storage, secrets, HTTPS, payment, backup/restore, and final production browser acceptance remain separate release gates.
+- The latest verifier fix has not yet produced an observable CI result through the current connector, so it is not marked GREEN without evidence.
+- Existing CI evidence on `882d5879` remains valid for that checkpoint only.
+- Public demo URL still requires an actual running execution environment; no fake URL is being claimed.
 
 ### Resume point
-- Next action: inspect the CI result for `635d1b02138192429f1e42ced25d1c6560ae7cb0`.
-- If CI is GREEN, continue only with any newly exposed defect or missing acceptance path; do not recreate completed work.
-- If CI fails, inspect the exact failing job/log and fix only that failure.
+- Next action: inspect CI/status for `6fade30e1793200f5eb06310482ad1c8fe5d4e31`.
+- If CI is GREEN, move to the next real missing acceptance/release item only.
+- If CI is unavailable, continue only with a concrete defect or acceptance gap; do not manufacture a GREEN result.
 
 ### No-waste rule
-- Always read this log and the current implementation before changing the repository.
-- Never recreate completed features, tests, or documentation.
-- Every new commit must fix a verified defect, add meaningful acceptance coverage, or provide verification evidence.
+- Read this log and current files before every change.
+- Do not rebuild completed Buyer/Seller/Admin functionality.
+- Every commit must fix a defect, add meaningful acceptance coverage, or provide verification evidence.
