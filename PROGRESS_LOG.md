@@ -1,5 +1,22 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 496 — Commercial release packaging hardening
+
+### What changed
+- Added reproducible commercial release packaging commands: `npm run release:check` and `npm run release:package`.
+- Added GitHub Actions release-package validation to run from a clean Node 20 environment, perform the safety check, build the ZIP and upload the resulting archive as an artifact.
+- Corrected the release script's repository-root resolution so it reliably targets the repository containing `scripts/build-release.mjs` rather than its parent filesystem directory.
+- The release script now cleans stale staging/archive output before each run, blocks packaging when safety violations are detected, and includes `RELEASE_MANIFEST.txt` in the package manifest.
+
+### Acceptance boundary
+- The release workflow is committed and configured, but no successful workflow run for the new release workflow has been independently confirmed yet.
+- Existing application acceptance remains GREEN at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Customer/live deployment gates remain separate: production infrastructure, live payment credentials/webhooks, protected media storage, HTTPS/secrets, backup/restore, legal pages, final production browser acceptance, and final commercial license review.
+
+### Commits
+- `8d604e0beccfcf6ac999d49d2a0118e64297b046` — corrected release package root resolution.
+- `9ef3f10bec643a510cdf2218821cec3507f2111b` — added release-package CI validation.
+
 ## 2026-09-03 — Milestone 495 — Automated release gates recorded GREEN
 
 ### What changed
