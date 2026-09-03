@@ -43,3 +43,43 @@ test('blocked product denies protected media access even with active entitlement
   assert.equal(result.allowed, false);
   assert.equal(result.status, 404);
 });
+
+test('unpublished product denies protected media access', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    product: { ...context.product, status: 'draft' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
+
+test('processing media denies protected media access', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    asset: { ...context.asset, status: 'processing' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
+
+test('entitlement for a different product cannot access the requested media', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    entitlement: { ...context.entitlement, product_id: 'product-2' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
+
+test('asset from another product cannot satisfy the entitlement', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    asset: { ...context.asset, id: 'asset-2' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
