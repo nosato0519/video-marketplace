@@ -1,0 +1,1 @@
+The functional demo server serves a generated WebM test asset from /api/demo/media/:id after a demo purchase. The binary test asset is intentionally kept out of the source tree in this checkpoint because the sales demo can run with the generated asset locally.
