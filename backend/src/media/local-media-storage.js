@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Readable } from 'node:stream';
 
 function resolveStoragePath(storageKey, rootDir) {
   if (!storageKey || storageKey.includes('\0')) throw new Error('media_storage_key_invalid');
@@ -24,6 +23,19 @@ export function createLocalMediaStorage({ rootDir = process.env.MEDIA_STORAGE_DI
     },
     async getMetadata({ storageKey } = {}) {
       const filePath = resolveStoragePath(storageKey, rootDir);
+      const stat = await fs.promises.stat(filePath);
+      return { size: stat.size };
+    },
+    async putStream({ storageKey, stream } = {}) {
+      const filePath = resolveStoragePath(storageKey, rootDir);
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+      await new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(filePath, { flags: 'wx' });
+        output.on('finish', resolve);
+        output.on('error', reject);
+        stream.on('error', reject);
+        stream.pipe(output);
+      });
       const stat = await fs.promises.stat(filePath);
       return { size: stat.size };
     },
