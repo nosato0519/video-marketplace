@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 495 — Automated release gates recorded GREEN
+
+### What changed
+- Verified the major automated release gates for application commit `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Clean Install passed on Node 20 and Node 22, including dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
+- Browser UI Acceptance passed with Playwright/Chromium Buyer browser acceptance and browser module smoke.
+- Updated `RELEASE_READINESS.md` so the repository records this exact GREEN checkpoint without incorrectly claiming that later documentation commits were independently browser-tested.
+- Added `COMMERCIAL_LICENSE_TEMPLATE.md` as the starting point for customer-specific commercial licensing and redistribution terms.
+
+### Acceptance boundary
+- Automated application validation is GREEN at the recorded application commit.
+- This does not make a customer deployment live-ready: production infrastructure, live payment credentials/webhooks, storage, HTTPS, backup/restore, customer legal pages and final desktop/mobile production browser acceptance remain deployment-specific gates.
+- The commercial license template is not a final legal agreement and must be completed/reviewed before paid delivery.
+
+### Commits
+- `4085a201d53c17ffcfbc88f222bb046380118661` — verified application checkpoint.
+- `93a267f7b868a52011443dc0fd0c836f46ae43fe` — commercial license template.
+- `4089cb46a7e73d6692213167d820bb2672f959da` — release readiness documentation update.
+
 ## 2026-09-03 — Milestone 494 — Production catalog backend-only hardening
 
 ### What changed
@@ -14,39 +33,3 @@
 
 ### Commits
 - `3fc3230affb3bb6ef0aaa0cd1d39388f7c130f0d` — require real backend catalog data in production application.
-
-## 2026-09-03 — Milestone 493 — Production application storefront build
-
-### What changed
-- Confirmed the earlier `demo/` correction was a showcase-only correction; the real application shell under `app/` was still visually minimal.
-- Upgraded the real production-facing application home in `app/main.js` from a developer-style shell into a customer-facing marketplace landing experience.
-- Added a real home-page search entry point wired to the existing catalog route, a clear buyer journey, creator CTA, trust/benefit messaging, featured catalog section using the existing backend/demo catalog loader, and a commercial-style footer.
-- Upgraded `app/styles.css` with the corresponding responsive marketplace visual system: stronger hierarchy, hero artwork treatment, search UI, benefit strip, creator banner, catalog presentation, mobile layouts, focus states and interaction polish.
-- Preserved existing checkout, authentication, library, watch/download, seller and admin routes; no completed backend acceptance work was recreated.
-
-### Acceptance boundary
-- This milestone establishes the customer-facing production application home as the next concrete release criterion.
-- The new UI has not yet been declared browser-GREEN. It requires the existing Codespaces/runtime browser acceptance gate after the new commits are loaded.
-- Backend completeness remains evidenced separately by the previously green production-oriented acceptance suites.
-
-### Commits
-- `d648ddcdf4ded960fbc0abd154afdd32a063ea41` — production customer-facing marketplace home structure.
-- `ec73bfc953f9dab4f0e61ae6a60759e39f7377d1` — production marketplace visual polish.
-
-## 2026-09-03 — Milestone 492 — Customer-facing showcase correction
-
-### What changed
-- Re-read the prior progress checkpoint and product vision before editing; completed core Buyer/Seller/Admin implementation was not rebuilt.
-- Corrected the customer-facing demo after manual browser inspection showed that the previous showcase looked like an internal functional test console rather than a convincing marketplace product.
-- Reworked `demo/index.html` into a Japanese-first storefront presentation: clear buyer journey, prominent search/browse CTA, creator selling CTA, understandable navigation, marketplace-oriented copy, category browsing, and cleaner visual hierarchy.
-- Preserved the existing server-backed demo API and existing Buyer/Seller/Admin workflows underneath the presentation layer.
-
-### Important architecture distinction
-- `demo/` is a lightweight showcase harness with simulated demo state; it is not the production application database/backend.
-- The actual application is under `app/` + `backend/` and is backed by the production-oriented architecture described in `PRODUCT_VISION.md` and `PROJECT_STATE.md`.
-- The actual project already contains PostgreSQL-backed catalog/order/checkout/entitlement/media/seller/admin foundations and automated HTTP/browser acceptance coverage; the remaining production work is deployment-specific.
-- Therefore, a polished demo must not be used as the sole proof of backend completeness. Production backend evidence and the demo UI are tracked separately.
-
-### Acceptance requirement added from manual inspection
-- A new viewer must immediately understand: what the service is, how to find a video, how to buy it, where purchased videos appear, and how a creator can sell.
-- The demo must feel like a sellable marketplace showcase, not like a developer test dashboard.
