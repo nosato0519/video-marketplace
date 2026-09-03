@@ -23,6 +23,28 @@ function formatPrice(product) {
   }
 }
 
+function formatBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return '';
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function mediaSummary(product) {
+  if (!product.media_asset_id) return { label: 'Video not attached', detail: 'Add a protected video before publishing.', ready: false };
+  const status = String(product.media_status || '').toLowerCase();
+  const ready = status === 'ready';
+  if (ready) {
+    const filename = product.media_original_filename ? escapeHtml(product.media_original_filename) : 'Protected video';
+    const size = formatBytes(product.media_byte_size);
+    return { label: 'Video ready', detail: `${filename}${size ? ` · ${size}` : ''}`, ready: true };
+  }
+  if (status === 'processing') return { label: 'Video processing', detail: 'Wait until validation finishes before publishing.', ready: false };
+  if (status === 'deleted') return { label: 'Video unavailable', detail: 'Attach a new video before publishing.', ready: false };
+  return { label: 'Video unavailable', detail: 'Check the uploaded media before publishing.', ready: false };
+}
+
 function statusLabel(status) {
   const labels = { draft: 'Draft', processing: 'Processing', submitted: 'Submitted', under_review: 'Under review', approved: 'Approved', published: 'Published' };
   return labels[status] || String(status || 'Draft');
@@ -30,15 +52,18 @@ function statusLabel(status) {
 
 function productRow(product) {
   const published = product.status === 'published';
-  const hasVideo = Boolean(product.media_asset_id);
+  const media = mediaSummary(product);
   const publishAction = published
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
-    : `<button class="button" data-action="publish" data-id="${escapeHtml(product.id)}">Publish</button>`;
+    : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
+  const videoAction = product.media_asset_id && !media.ready
+    ? '<a class="button secondary" href="#/seller/upload">Replace video</a>'
+    : !product.media_asset_id ? '<a class="button secondary" href="#/seller/upload">Add video</a>' : '';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
-    <div class="seller-product-card__meta"><span>${hasVideo ? 'Video attached' : 'Video not attached'}</span><span>${published ? 'Visible in marketplace' : 'Not visible to buyers'}</span></div>
-    <div class="seller-product-card__actions"><button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Edit details</button>${!hasVideo ? '<a class="button secondary" href="#/seller/upload">Add video</a>' : ''}${publishAction}</div>
+    <div class="seller-product-card__meta"><span>${escapeHtml(media.label)}</span><span>${escapeHtml(media.detail)}</span><span>${published ? 'Visible in marketplace' : 'Not visible to buyers'}</span></div>
+    <div class="seller-product-card__actions"><button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Edit details</button>${videoAction}${publishAction}</div>
   </article>`;
 }
 
