@@ -1,26 +1,21 @@
 import express from 'express';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
+import fs from 'node:fs/promises';
+import { Readable } from 'node:stream';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-validation.js';
+import { createConfiguredMediaStorage } from './media-storage-factory.js';
 
 const router = express.Router();
 const MAX_BYTES = Number(process.env.MEDIA_MAX_UPLOAD_BYTES || 5 * 1024 * 1024 * 1024);
 const ALLOWED_MIME = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
-
-function storageRoot() {
-  const root = process.env.MEDIA_STORAGE_DIR;
-  if (!root) throw new Error('media_storage_dir_missing');
-  return path.resolve(root);
-}
+const mediaStorage = createConfiguredMediaStorage();
 
 function safeExtension(filename, mime) {
-  const ext = path.extname(filename || '').toLowerCase();
-  if (/^\.[a-z0-9]{1,8}$/.test(ext)) return ext;
+  const ext = filename ? filename.toLowerCase().match(/\.[a-z0-9]{1,8}$/)?.[0] : null;
+  if (ext) return ext;
   return mime === 'video/webm' ? '.webm' : mime === 'video/quicktime' ? '.mov' : mime === 'video/x-matroska' ? '.mkv' : '.mp4';
 }
 
@@ -43,11 +38,6 @@ router.post('/upload', async (req, res, next) => {
 
   const id = crypto.randomUUID();
   const storageKey = `${req.user.id}/${id}${safeExtension(filename, mime)}`;
-  const root = storageRoot();
-  const filePath = path.resolve(root, storageKey);
-  if (!filePath.startsWith(`${root}${path.sep}`)) return res.status(400).json({ error: 'media_storage_key_invalid' });
-  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-
   let bytes = 0;
   const limiter = async function* () {
     for await (const chunk of req) {
@@ -58,19 +48,15 @@ router.post('/upload', async (req, res, next) => {
   };
 
   try {
-    await pipeline(limiter(), fs.createWriteStream(filePath, { flags: 'wx' }));
+    await mediaStorage.putStream({ storageKey, stream: Readable.from(limiter()) });
 
     const signatureLength = requiredSignatureBytes(mime);
-    const handle = await fs.promises.open(filePath, 'r');
-    let signature;
-    try {
-      signature = Buffer.alloc(signatureLength);
-      const { bytesRead } = await handle.read(signature, 0, signatureLength, 0);
-      if (bytesRead !== signatureLength || !mediaSignatureMatches(mime, signature)) {
-        throw Object.assign(new Error('invalid_media_signature'), { statusCode: 415 });
-      }
-    } finally {
-      await handle.close();
+    const inspected = await mediaStorage.getStream({ storageKey, range: { start: 0, end: signatureLength - 1 } });
+    const chunks = [];
+    for await (const chunk of inspected.stream) chunks.push(chunk);
+    const signature = Buffer.concat(chunks);
+    if (signature.length !== signatureLength || !mediaSignatureMatches(mime, signature)) {
+      throw Object.assign(new Error('invalid_media_signature'), { statusCode: 415 });
     }
 
     const result = await query(
@@ -81,7 +67,7 @@ router.post('/upload', async (req, res, next) => {
     );
     return res.status(201).json({ mediaAsset: result.rows[0] });
   } catch (error) {
-    await fs.promises.rm(filePath, { force: true }).catch(() => {});
+    await mediaStorage.deleteObject({ storageKey }).catch(() => {});
     return next(error);
   }
 });
