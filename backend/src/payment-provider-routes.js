@@ -4,8 +4,9 @@ import {
 } from './payments/payment-provider-config.js';
 import {
   configurePaymentProvider,
-  getPaymentProviderSettings,
-  clearPaymentProviderSettings,
+  getPersistedPaymentProviderSettings,
+  persistPaymentProviderSettings,
+  deletePersistedPaymentProviderSettings,
 } from './payments/payment-provider-settings.js';
 
 export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
@@ -15,8 +16,12 @@ export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
     res.json({ providers: getConfigurablePaymentProviders() });
   });
 
-  app.get('/api/admin/payment-providers/settings', guard, (_req, res) => {
-    res.json({ settings: getPaymentProviderSettings() });
+  app.get('/api/admin/payment-providers/settings', guard, async (req, res, next) => {
+    try {
+      res.json({ settings: await getPersistedPaymentProviderSettings(req.query.ownerId ?? null) });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.post('/api/admin/payment-providers/validate', guard, (req, res, next) => {
@@ -34,17 +39,26 @@ export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
     }
   });
 
-  app.post('/api/admin/payment-providers/configure', guard, (req, res, next) => {
+  app.post('/api/admin/payment-providers/configure', guard, async (req, res, next) => {
     try {
       const result = configurePaymentProvider(req.body ?? {});
-      res.json({ setting: result });
+      const persisted = await persistPaymentProviderSettings(result);
+      res.json({ setting: persisted });
     } catch (error) {
       next(error);
     }
   });
 
-  app.delete('/api/admin/payment-providers/:providerId', guard, (req, res) => {
-    const removed = clearPaymentProviderSettings(req.params.providerId);
-    res.json({ removed });
+  app.delete('/api/admin/payment-providers/:providerId', guard, async (req, res, next) => {
+    try {
+      const ownerId = req.query.ownerId ?? req.body?.ownerId;
+      const removed = await deletePersistedPaymentProviderSettings({
+        ownerId,
+        providerId: req.params.providerId,
+      });
+      res.json({ removed });
+    } catch (error) {
+      next(error);
+    }
   });
 }
