@@ -1,5 +1,21 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 504 — Buyer library responsive polish
+
+### What changed
+- Continued from Milestone 503 after re-reading the current buyer library, router, media URL helper and existing progress log.
+- Added dedicated responsive styling for the purchased-library cards and secure video player.
+- Added ready/processing/unavailable visual states, responsive two-column-to-single-column behavior, and a clearer player shell without changing the protected media URL contract.
+- Confirmed the frontend continues to use server-side `/api/media/:productId/stream` and `/api/media/:productId/download` endpoints rather than exposing storage locations.
+
+### Acceptance boundary
+- Frontend changes are committed, but no post-change GitHub Actions/browser acceptance run has been independently confirmed yet.
+- The existing application acceptance checkpoint remains `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Live Stripe and object-storage integration remain required before production-GREEN.
+
+### Commits
+- `5823f022c40e83cf10dcbf5ffc2d9d608ec1a26b` — polished buyer library and secure player responsive layouts.
+
 ## 2026-09-03 — Milestone 503 — Buyer library and secure-player UX
 
 ### What changed
