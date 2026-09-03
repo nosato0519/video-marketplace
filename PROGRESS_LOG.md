@@ -1,19 +1,16 @@
 # Development Progress Log
 
-## 2026-09-03 — Milestone 481 — Release hardening continuation
+## 2026-09-03 — Milestone 482 — Release hardening continuation
 
 ### Latest verified checkpoint
 - Authoritative branch: `main`.
-- Latest implementation commit: `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`.
-- The media-storage range test fixtures were updated to satisfy the lifecycle contract (`putObjectStream` / `deleteObject`).
+- Latest implementation commit: `581cc444063bbecbbafd4cb62e51ab82bfc08d73` (`ops: gracefully close HTTP server and PostgreSQL pool`).
+- Production shutdown handling now closes the HTTP server and PostgreSQL pool cleanly, with a guarded graceful-shutdown path and forced-exit fallback.
 
 ### CI verification for latest implementation
-- Browser UI Acceptance run `33712744718`: GREEN.
-- Clean Install run `33712744945`: GREEN.
-- Browser E2E run `33712744717`: GREEN.
-- Backend Browser Acceptance run `33712744741`: GREEN.
-- Backend Regression run `33712744691`: GREEN.
-- All five release-hardening push gates completed successfully for `a2f74f5f738b14e821e521fc8fde1c92269bc9c8`.
+- The latest `581cc444063bbecbbafd4cb62e51ab82bfc08d73` push triggered all five release-hardening workflows.
+- All five completed successfully: Browser UI Acceptance, Clean Install, Browser E2E, Backend Browser Acceptance, and Backend Regression.
+- Backend Regression and Browser UI Acceptance were independently inspected at job level and all steps completed successfully.
 
 ### Completed work that must NOT be recreated
 - Storefront/catalog and real catalog APIs.
@@ -27,6 +24,7 @@
 - Existing same-origin browser proxy.
 - Seller payment-provider settings persistence without credential storage.
 - Media upload write/delete lifecycle through the storage abstraction.
+- Graceful HTTP server and PostgreSQL pool shutdown handling.
 
 ### Refund-after-payout boundary
 - Existing regression coverage confirms a paid seller earning becomes `refunded` while paid payout history and allocation history remain intact.
@@ -34,7 +32,7 @@
 - Do not invent recovery accounting until an explicit business/accounting requirement exists.
 
 ### Release gate status
-The automated implementation/release-hardening gates are now GREEN on the latest mainline commit. Remaining release work is deployment-specific rather than another round of feature reconstruction:
+The automated implementation/release-hardening gates are GREEN on the latest mainline commit. Remaining release work is deployment-specific rather than another round of feature reconstruction:
 1. Production hosting/runtime configuration.
 2. PostgreSQL production instance and migration/backup/restore drill.
 3. Protected media production storage and backup.
