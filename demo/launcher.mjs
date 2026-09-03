@@ -5,8 +5,8 @@ import { randomUUID } from 'node:crypto';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const source = await readFile(join(root, 'server.js'), 'utf8');
-const marker = "const server = createServer(async (req, res) => {";
-const injected = `const server = createServer(async (req, res) => {
+const marker = "  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`); const s = session(req, res);";
+const injected = `${marker}
   if (req.method === 'GET' && url.pathname === '/app.js') {
     const [app, boot] = await Promise.all([readFile(join(ROOT, 'app.js'), 'utf8'), readFile(join(ROOT, 'boot.js'), 'utf8')]);
     res.writeHead(200, {'content-type':'application/javascript; charset=utf-8','cache-control':'no-store'}); res.end(app + '\\n' + boot); return;
@@ -20,5 +20,4 @@ if (!source.includes(marker)) throw new Error('server injection marker not found
 const patched = source.replace(marker, injected);
 const temp = join(root, `.server-${randomUUID()}.mjs`);
 await writeFile(temp, patched, 'utf8');
-process.on('exit', async () => { try { await import('node:fs/promises').then(fs => fs.unlink(temp)); } catch {} });
 await import(`file://${temp}`);
