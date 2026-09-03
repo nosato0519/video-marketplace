@@ -1,5 +1,26 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 517 — Seller existing video attachment workflow
+
+### What changed
+- Added an existing-video selector to the seller product editor.
+- The editor loads only the seller's ready media assets from `/api/seller/media/assets`.
+- Sellers can attach a ready protected video to a draft product through the existing `mediaAssetId` PATCH contract.
+- Sellers can explicitly choose `No video attached`, which sends `mediaAssetId: null` for an existing draft.
+- Processing media is intentionally excluded from the selectable list, so the seller cannot publish a product against media that is not ready.
+- Added a browser acceptance case covering attach and clear operations.
+- Changed the product-card video action to open the editor, keeping the workflow inside the Creator Studio instead of forcing a separate upload route.
+
+### Acceptance boundary
+- Seller product UI and browser acceptance coverage are now aligned with the existing backend ownership/update contract.
+- The implementation is committed, but no new GitHub Actions run has been independently confirmed for this milestone.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+- Fresh execution is still required before claiming the current seller attachment flow is CI-verified.
+
+### Commits
+- `b71fdd03ae5afd8838250f5d3a9543bab3ba048a` — let sellers attach existing protected videos.
+- `de27f228d4b7382fb0a981bbac415a490d0f446e` — cover seller video attachment workflow.
+
 ## 2026-09-03 — Milestone 516 — Seller product workflow copy alignment
 
 ### What changed
