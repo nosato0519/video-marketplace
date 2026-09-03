@@ -1,5 +1,22 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 511 — Seller upload acceptance alignment
+
+### What changed
+- Re-read the current seller upload implementation and its browser acceptance test before making the next change.
+- Found two UI/test contract mismatches introduced by the previous visual polish: the title field's accessible name changed from `Title`, and the success message no longer had the exact text expected by the existing acceptance test because the navigation link was embedded in the same text node.
+- Restored the accessible name `Title` while keeping the visible label `Product title`.
+- Separated the success message text from the `Open My videos` navigation link so the existing acceptance assertion can continue to target the success message precisely.
+- No backend behavior was changed.
+
+### Acceptance boundary
+- Source fix committed.
+- The existing seller upload acceptance test has not been executed in a newly confirmed GitHub Actions run yet.
+- Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
+
+### Commit
+- `44a8494bae70d33b8470afc3616d7fca705e3768` — align seller upload UI with the existing acceptance contract.
+
 ## 2026-09-03 — Milestone 510 — Seller upload UI polish
 
 ### What changed
