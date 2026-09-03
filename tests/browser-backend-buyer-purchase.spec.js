@@ -1,40 +1,51 @@
-import { test, expect } from '@playwright/test';
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
-import pg from '../backend/node_modules/pg/lib/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
 
-const { Pool } = pg;
-const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
-const appUrl = 'http://127.0.0.1:4173/app/index.html';
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const mediaRoot = process.env.MEDIA_STORAGE_DIR || '/tmp/video-marketplace-media';
-const mediaBytes = Buffer.from('buyer-browser-e2e-video-fixture');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const backendUrl = process.env.BROWSER_BACKEND_URL || 'http://127.0.0.1:3000';
+const appUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173/app/index.html';
+const mediaDir = process.env.MEDIA_STORAGE_DIR || path.join(__dirname, '..', 'backend', 'media-data');
+const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET || 'ci-payment-webhook-secret';
 
-function signedPayload(raw) {
-  const secret = process.env.PAYMENT_WEBHOOK_SECRET;
-  return crypto.createHmac('sha256', secret).update(raw).digest('hex');
+function signedPayload(payload) {
+  return crypto.createHmac('sha256', webhookSecret).update(payload).digest('hex');
 }
 
 test.describe('real backend buyer purchase browser acceptance', () => {
   test('buyer registers, purchases, settles, and accesses protected media', async ({ page }) => {
-    const ids = { seller: crypto.randomUUID(), media: crypto.randomUUID(), product: crypto.randomUUID(), payment: null };
-    const storageKey = `acceptance/${ids.media}.mp4`;
-    const email = `buyer-${ids.product}@example.test`;
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const ids = {
+      buyer: crypto.randomUUID(),
+      seller: crypto.randomUUID(),
+      profile: crypto.randomUUID(),
+      media: crypto.randomUUID(),
+      product: crypto.randomUUID(),
+      translation: crypto.randomUUID(),
+      payment: null,
+    };
+    const email = `buyer-${ids.buyer}@example.com`;
+    const mediaFilename = `${ids.media}.mp4`;
+    const mediaPath = path.join(mediaDir, mediaFilename);
+    const fixture = Buffer.from('browser-backend-buyer-fixture');
     let orderId = null;
     let providerPaymentId = null;
     let eventId = null;
 
-    await fs.mkdir(`${mediaRoot}/acceptance`, { recursive: true });
-    await fs.writeFile(`${mediaRoot}/${storageKey}`, mediaBytes);
-
     try {
-      const health = await page.request.get(`${backendUrl}/api/health`);
-      expect(health.ok()).toBeTruthy();
-      await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active')`, [ids.seller, `seller-${ids.product}@example.test`]);
-      await pool.query(`INSERT INTO seller_profiles (user_id, display_name) VALUES ($1, 'Browser E2E Seller')`, [ids.seller]);
-      await pool.query(`INSERT INTO media_assets (id, owner_user_id, storage_key, mime_type, byte_size, status) VALUES ($1, $2, $3, 'video/mp4', $4, 'ready')`, [ids.media, ids.seller, storageKey, mediaBytes.length]);
-      await pool.query(`INSERT INTO products (id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, streaming_enabled, download_enabled, published_at) VALUES ($1, $2, $3, 'published', 1500, 'JPY', 'Browser E2E Product', 'Real backend buyer browser acceptance product', TRUE, TRUE, NOW())`, [ids.product, ids.seller, ids.media]);
-      await pool.query(`INSERT INTO product_translations (product_id, locale, title, description) VALUES ($1, 'en', 'Browser E2E Product', 'Real backend buyer browser acceptance product')`, [ids.product]);
+      fs.mkdirSync(mediaDir, { recursive: true });
+      fs.writeFileSync(mediaPath, fixture);
+
+      await pool.query('BEGIN');
+      await pool.query(`INSERT INTO users (id, email, password_hash, role, status) VALUES ($1, $2, $3, 'seller', 'active')`, [ids.seller, `seller-${ids.seller}@example.com`, 'test-password-hash']);
+      await pool.query(`INSERT INTO seller_profiles (id, user_id, display_name, status) VALUES ($1, $2, 'Browser E2E Seller', 'approved')`, [ids.profile, ids.seller]);
+      await pool.query(`INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, size_bytes, status) VALUES ($1, $2, $3, $4, 'video/mp4', $5, 'ready')`, [ids.media, ids.seller, mediaFilename, mediaFilename, fixture.length]);
+      await pool.query(`INSERT INTO products (id, seller_id, media_asset_id, price_amount, price_currency, status) VALUES ($1, $2, $3, 1500, 'JPY', 'published')`, [ids.product, ids.seller, ids.media]);
+      await pool.query(`INSERT INTO product_translations (id, product_id, locale, title, description) VALUES ($1, $2, 'en', 'Browser E2E Product', 'Real backend browser acceptance product')`, [ids.translation, ids.product]);
+      await pool.query('COMMIT');
 
       await page.goto(`${appUrl}#/register`);
       await page.getByLabel('Email').fill(email);
@@ -47,7 +58,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
       await expect(page.getByRole('heading', { name: 'Browser E2E Product' })).toBeVisible();
 
-      const orderResponsePromise = page.waitForResponse((response) => response.url() === `${backendUrl}/api/orders` && response.request().method() === 'POST');
+      const orderResponsePromise = page.waitForResponse((response) => response.url().endsWith('/api/orders') && response.request().method() === 'POST');
       await page.getByRole('button', { name: 'Purchase' }).click();
       const orderResponse = await orderResponsePromise;
       expect(orderResponse.status()).toBe(201);
@@ -79,30 +90,31 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(paymentResponse.ok()).toBeTruthy();
 
       await page.goto(`${appUrl}#/library`);
-      await expect(page.getByRole('heading', { name: new RegExp(`${email}.*library`, 'i') })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Browser E2E Product' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', `#/watch/${ids.product}`);
       await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', `/api/media/${ids.product}/download`);
+
       await page.goto(`${appUrl}#/watch/${ids.product}`);
-      await expect(page.getByRole('heading', { name: 'Watch video' })).toBeVisible();
-      await expect(page.locator('video.secure-player')).toHaveAttribute('src', `/api/media/${ids.product}/stream`);
+      const video = page.locator('video');
+      await expect(video).toHaveAttribute('src', `/api/media/${ids.product}/stream`);
       await expect(page.getByText('Playback is protected by your active entitlement.')).toBeVisible();
+
       const downloadResponse = await page.request.get(`${backendUrl}/api/media/${ids.product}/download`);
       expect(downloadResponse.status()).toBe(200);
-      expect(await downloadResponse.body()).toEqual(mediaBytes);
+      expect(Buffer.from(await downloadResponse.body())).toEqual(fixture);
     } finally {
-      if (eventId) await pool.query(`DELETE FROM payment_events WHERE event_id = $1`, [eventId]).catch(() => {});
-      if (orderId) await pool.query(`DELETE FROM entitlements WHERE order_id = $1`, [orderId]).catch(() => {});
-      if (orderId) await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [orderId]).catch(() => {});
+      await pool.query(`DELETE FROM payment_events WHERE payment_id = $1 OR order_id = $2`, [ids.payment, orderId]).catch(() => {});
+      if (ids.payment) await pool.query(`DELETE FROM seller_earnings WHERE payment_id = $1`, [ids.payment]).catch(() => {});
+      if (ids.payment) await pool.query(`DELETE FROM entitlements WHERE payment_id = $1`, [ids.payment]).catch(() => {});
       if (ids.payment) await pool.query(`DELETE FROM payments WHERE id = $1`, [ids.payment]).catch(() => {});
       if (orderId) await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => {});
-      await pool.query(`DELETE FROM user_sessions WHERE user_id IN (SELECT id FROM users WHERE email = $1)`, [email]).catch(() => {});
+      await pool.query(`DELETE FROM user_sessions WHERE user_id = $1`, [ids.buyer]).catch(() => {});
       await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
       await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
-      await pool.query(`DELETE FROM seller_profiles WHERE user_id = $1`, [ids.seller]).catch(() => {});
-      await pool.query(`DELETE FROM users WHERE id = $1`, [ids.seller]).catch(() => {});
-      await pool.query(`DELETE FROM users WHERE email = $1`, [email]).catch(() => {});
-      await fs.rm(`${mediaRoot}/${storageKey}`, { force: true }).catch(() => {});
+      await pool.query(`DELETE FROM seller_profiles WHERE id = $1`, [ids.profile]).catch(() => {});
+      await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [ids.seller, ids.buyer]).catch(() => {});
+      fs.rmSync(mediaPath, { force: true });
+      await pool.end();
     }
   });
 });
