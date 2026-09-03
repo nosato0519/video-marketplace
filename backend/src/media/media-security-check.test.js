@@ -34,8 +34,15 @@ test('forbids local storage in production', () => {
 
 test('requires S3 credentials for production storage', () => {
   assert.throws(
-    () => validateMediaSecurityConfig({ NODE_ENV: 'production', MEDIA_STORAGE_PROVIDER: 's3', MEDIA_S3_BUCKET: 'bucket', MEDIA_S3_ACCESS_KEY_ID: 'access' }),
+    () => validateMediaSecurityConfig({ NODE_ENV: 'production', MEDIA_STORAGE_PROVIDER: 's3', MEDIA_S3_BUCKET: 'bucket', MEDIA_S3_REGION: 'auto', MEDIA_S3_ACCESS_KEY_ID: 'access' }),
     /media_s3_secret_key_missing/
+  );
+});
+
+test('requires an S3 region for production storage', () => {
+  assert.throws(
+    () => validateMediaSecurityConfig({ NODE_ENV: 'production', MEDIA_STORAGE_PROVIDER: 's3', MEDIA_S3_BUCKET: 'bucket', MEDIA_S3_ACCESS_KEY_ID: 'access', MEDIA_S3_SECRET_ACCESS_KEY: 'secret' }),
+    /media_s3_region_missing/
   );
 });
 
@@ -45,6 +52,7 @@ test('accepts configured S3 storage', () => {
       NODE_ENV: 'production',
       MEDIA_STORAGE_PROVIDER: 's3',
       MEDIA_S3_BUCKET: 'bucket',
+      MEDIA_S3_REGION: 'auto',
       MEDIA_S3_ACCESS_KEY_ID: 'access',
       MEDIA_S3_SECRET_ACCESS_KEY: 'secret',
     }),
