@@ -1,5 +1,25 @@
 # Development Progress Log
 
+## 2026-09-03 — Milestone 519 — Payment regression dependency correction
+
+### What changed
+- Checked the latest main-branch GitHub Actions runs instead of assuming the current tree was green.
+- Found the latest `Payment Regression` run failed before executing payment tests because `backend/src/payments/payment-provider.js` imports the `stripe` package while the root `package.json` did not declare it.
+- Added `stripe` as an explicit runtime dependency (`^22.6.1`) to the root package manifest.
+- This is a necessary system-level correction discovered by verification; it does not change the demo/showcase scope.
+
+### Verification evidence
+- Failed run: `33741995413` (`Payment Regression`) on commit `cef06ee7659685c7f9c440eb3bb15d71a3cbe670`.
+- Failure: `ERR_MODULE_NOT_FOUND: Cannot find package 'stripe'` during `payment-provider.test.js` startup.
+- Browser E2E run `33741995330` for the same commit was still `in_progress` when checked.
+- The dependency fix is committed as `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- Fresh post-fix CI verification is still required; no GREEN claim is made for the fixed tree yet.
+
+### Next gate
+- Re-check the new main-branch workflow runs after the dependency fix.
+- Continue the demo acceptance pass only after recording the verification result.
+- Do not modify backend code unless a concrete verification failure requires it.
+
 ## 2026-09-03 — Milestone 518 — Seller video selector hardening
 
 ### What changed
@@ -11,7 +31,7 @@
 ### Acceptance boundary
 - Source hardening is committed.
 - The seller attachment acceptance test is present and covers attach/clear behavior.
-- No new GitHub Actions run has been independently confirmed for this milestone.
+- No new GitHub Actions run had been independently confirmed for this milestone at the time.
 - Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
 
 ### Commit
@@ -30,7 +50,7 @@
 
 ### Acceptance boundary
 - Seller product UI and browser acceptance coverage are now aligned with the existing backend ownership/update contract.
-- The implementation is committed, but no new GitHub Actions run has been independently confirmed for this milestone.
+- The implementation is committed, but no new GitHub Actions run had been independently confirmed for this milestone at the time.
 - Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
 - Fresh execution is still required before claiming the current seller attachment flow is CI-verified.
 
@@ -48,7 +68,7 @@
 
 ### Acceptance boundary
 - Source change is committed.
-- No new GitHub Actions run has been independently confirmed for this milestone.
+- No new GitHub Actions run had been independently confirmed for this milestone at the time.
 - Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
 - Fresh seller product acceptance remains required for the current UI/API state.
 
@@ -67,7 +87,7 @@
 
 ### Acceptance boundary
 - Acceptance coverage is now present for the seller product page.
-- The new spec has been committed but has not yet been independently executed in a newly confirmed GitHub Actions run.
+- The new spec had been committed but had not yet been independently executed in a newly confirmed GitHub Actions run.
 - Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
 - Current seller UI/API changes therefore remain pending fresh execution.
 
@@ -85,7 +105,7 @@
 
 ### Acceptance boundary
 - Source change is committed.
-- No new GitHub Actions run has been independently confirmed for this milestone.
+- No new GitHub Actions run had been independently confirmed for this milestone at the time.
 - Existing application/browser acceptance remains GREEN only at the recorded checkpoint `4085a201d53c17ffcfbc88f222bb046380118661`.
 - Fresh seller product acceptance is still required for the current API/UI state.
 
