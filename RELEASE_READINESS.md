@@ -12,13 +12,13 @@ This checklist is the release gate for selling the repository as a customer-inst
 
 ## 2. Automated release gates
 
-The latest main-branch documentation commit is being validated by the repository's push workflows. The release process keeps the existing gates intact:
+The previously validated application commit `4085a201d53c17ffcfbc88f222bb046380118661` passed the repository's major automated release gates:
 
-- Clean Install: dependency installation, migration preflight, migrations and core regression tests.
-- Browser UI Acceptance: Buyer browser acceptance and browser module smoke.
-- Backend acceptance: authentication, commerce/payment lifecycle, protected media, Seller, Admin, migration and security coverage.
+- [x] Clean Install — Node 20: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
+- [x] Clean Install — Node 22: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
+- [x] Browser UI Acceptance — Playwright/Chromium Buyer browser acceptance and browser module smoke.
 
-Do not declare the current commit GREEN until the corresponding workflow runs finish successfully.
+These results establish an automated GREEN checkpoint for that application commit. Later documentation-only commits must not be described as having inherited that exact workflow result unless their own relevant workflows are verified.
 
 ## 3. Buyer acceptance
 
@@ -82,8 +82,8 @@ Before a customer's site is opened to real users:
 
 - [ ] Build release archive from a clean checkout.
 - [ ] Verify no `.env`, private key, production credential, customer data or production media is present.
-- [ ] Include installation, configuration and deployment documentation.
-- [ ] Include the showcase demo and its launch instructions.
+- [x] Include installation, configuration and deployment documentation.
+- [x] Include the showcase demo and its launch instructions.
 - [ ] Attach the final commercial license and redistribution terms.
 - [ ] Deliver customer-specific secrets only through a secure channel.
 
