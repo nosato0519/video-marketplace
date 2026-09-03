@@ -23,7 +23,7 @@ test('S3 adapter signs requests and forwards byte ranges', async () => {
 
   const result = await storage.getStream({ storageKey: 'private/video file.mp4', range: { start: 10, end: 19 } });
   assert.equal(result.size, 100);
-  assert.match(captured.url, /^https:\/\/s3\.example\.test\/private\/video%20file\.mp4$/);
+  assert.match(captured.url, /^https:\/\/s3\.example\.test\/private-media\/private\/video%20file\.mp4$/);
   assert.equal(captured.options.method, 'GET');
   assert.equal(captured.options.headers.range, 'bytes=10-19');
   assert.equal(captured.options.headers['x-amz-content-sha256'], 'UNSIGNED-PAYLOAD');
@@ -32,13 +32,15 @@ test('S3 adapter signs requests and forwards byte ranges', async () => {
 
 test('S3 adapter supports metadata, upload, and delete through the same signed boundary', async () => {
   const calls = [];
+  const urls = [];
   const storage = createS3MediaStorage({
     bucket: 'private-media',
     region: 'auto',
     accessKeyId: 'ACCESS',
     secretAccessKey: 'SECRET',
     endpoint: 'https://objects.example.test',
-    fetchImpl: async (_url, options) => {
+    fetchImpl: async (url, options) => {
+      urls.push(String(url));
       calls.push(options);
       return response({ status: 200, length: options.method === 'HEAD' ? '42' : '0' });
     },
@@ -51,6 +53,11 @@ test('S3 adapter supports metadata, upload, and delete through the same signed b
 
   assert.deepEqual(calls.map((call) => call.method), ['HEAD', 'PUT', 'DELETE']);
   assert.equal(calls[1].duplex, 'half');
+  assert.deepEqual(urls, [
+    'https://objects.example.test/private-media/private/a.mp4',
+    'https://objects.example.test/private-media/private/a.mp4',
+    'https://objects.example.test/private-media/private/a.mp4',
+  ]);
 });
 
 test('S3 adapter rejects traversal keys before making a network request', async () => {
