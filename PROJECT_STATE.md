@@ -1,14 +1,17 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 492 — Customer-facing showcase correction and release hardening continuation.**
+**Milestone 555 — Release-hardening state synchronized after all major CI gates passed.**
 
-## Latest checkpoint — 2026-09-03
+## Latest checkpoint — 2026-09-04
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
 - Latest production-oriented implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 - Latest customer-facing showcase UI checkpoint: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
+- Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
+- Latest demo acceptance strengthening: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
+- Latest progress-state synchronization commit: `dd10d7b1d5ce66c8259bcd5a0f461dcc98c752a9`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified core application
@@ -35,17 +38,23 @@
 
 ### Demo/showcase distinction
 - `demo/` is a lightweight showcase harness with simulated demo state. It is intentionally separate from the production-oriented `app/` + `backend/` system.
-- The previous demo was too developer-console-like for a sales/demo presentation even though its functional test journeys were green.
-- `demo/index.html` was therefore corrected into a Japanese-first, customer-facing marketplace presentation with a clear buyer journey and creator selling CTA while preserving the existing demo API/workflows.
+- The showcase was corrected into a Japanese-first, customer-facing marketplace presentation with a clear buyer journey and creator selling CTA while preserving the existing demo API/workflows.
+- The launcher now explicitly preserves the default `All categories` filter option, with a regression assertion covering that wiring.
 - The demo must never be treated as the only evidence of backend completeness.
 
-### Latest core verification evidence
-- Previous release-hardening gate for `581cc444063bbecbbafd4cb62e51ab82bfc08d73`: Browser UI Acceptance, Clean Install, Browser E2E, Backend Browser Acceptance, and Backend Regression all GREEN.
-- New showcase UI commit requires real-browser verification after Codespaces refresh; do not claim GREEN for that new UI until evidence exists.
+### Latest verification evidence — 2026-09-04
+All major automated release-hardening gates are GREEN on the latest CI set:
+- Browser UI Acceptance: run `33843376544`, job `100930038320` — success.
+- Payment Regression: run `33843376547`, job `100930038407` — success.
+- Functional Demo: run `33843376578`, job `100930038477` — success.
+- Browser E2E: run `33843376600`, job `100930038472` — success.
+- Clean Install: run `33843376615` — Node 22 job `100930038729` success; Node 20 job `100930039376` success.
+- The successful gates cover the backend payment/webhook/protected-media regressions, functional demo verification and showcase acceptance, real-browser UI/E2E coverage, and clean-install/migration/core regression coverage.
+- These results validate the current repository/CI state. They do **not** constitute production deployment or live Stripe acceptance.
 
 ## Remaining work
 ### Demo acceptance
-1. Refresh Codespaces and inspect the corrected customer-facing showcase.
+1. Refresh Codespaces and visually inspect the corrected customer-facing showcase.
 2. Walk the buyer journey end-to-end in the demo: browse → detail → purchase → library → watch/download.
 3. Walk seller and admin demo journeys and fix concrete UI defects only.
 
