@@ -1,5 +1,36 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 539 — Completion directive and continuity rule recorded
+
+### User completion directive
+- 「すぐに完成させて」
+- 「売れるレベルじゃなくて感動するレベルにしてほしい」
+- 「いつでも続きから始められるように進捗状況はこまめに記録して」
+- 「同じ作業はしないように過去の作業を確認しながら作業して」
+
+### Working rule from this point forward
+- Before changing anything, inspect `PROGRESS_LOG.md` and the current `main` state.
+- Do not repeat a completed task or previously fixed defect unless verification proves it regressed.
+- After each meaningful milestone, record what changed, what was verified, and the exact remaining work.
+- Never mark the commercial package final merely because code was changed; final delivery requires current-main verification and exact clean-checkout archive verification.
+- Keep the target at a polished, impressive, commercially credible product experience rather than stopping at "technically works".
+
+### Current mainline checkpoint
+- `main`: `37584b5622eef7c7d0d97ad7e90c249f7c255722` before this documentation-only checkpoint.
+- Showcase acceptance is integrated into the demo CI workflow.
+- Existing functional buyer/seller/admin verification remains in place.
+- The polished storefront baseline and dedicated showcase gate are preserved.
+
+### Immediate next work
+1. Verify the CI result produced by the showcase-gate integration.
+2. Fix only genuine failures, without redoing completed work.
+3. Build the exact commercial archive from a clean checkout of the final mainline.
+4. Inspect archive contents and checksum.
+5. Record final artifact details in this log before delivery.
+
+### Production boundary
+Live-production-ready remains separate from the commercial source-package completion: customer-specific PostgreSQL, object storage, payment/webhook credentials, secrets, HTTPS, backups, legal/support requirements, and final desktop/mobile acceptance must be completed in the actual deployment environment.
+
 ## 2026-09-04 — Milestone 538 — Showcase acceptance integrated into CI
 
 ### What changed / verified
@@ -63,61 +94,7 @@ The demo is being treated as a commercial product showcase, not a developer test
 
 ### Remaining final-delivery work
 1. Let CI execute the new showcase acceptance gate on the latest mainline changes.
-2. Review the resulting CI state and fix only actual failures.
-3. Generate the final commercial archive from a clean checkout of the resulting mainline.
-4. Inspect and checksum that exact archive.
-5. Live production still requires customer-specific PostgreSQL, object storage, payment provider/webhook, secrets, HTTPS, backups, legal/support information, and final desktop/mobile acceptance.
-
-### Release boundary
-The commercial source package can only be called final after the exact current-main archive has been generated and verified. Live-production-ready remains a separate boundary requiring real infrastructure and deployment acceptance.
-
-## 2026-09-04 — Milestone 536 — Polished showcase demo upgraded
-
-### What changed / verified
-- Reworked `demo/index.html` into a polished, product-facing marketplace showcase rather than a bare functional test screen.
-- Added a stronger premium marketplace hero, clearer buyer journey, curated marketplace presentation, trust/value sections, marketplace statistics, category discovery area, and structured footer navigation.
-- Preserved the existing functional demo entry points and DOM IDs used by `demo/app.js`, so buyer, seller and admin flows remain connected to the server-backed demo.
-- Kept the demo's explicit distinction between simulated checkout and real production payment infrastructure.
-- No production backend security or payment logic was weakened or replaced.
-
-### Current state
-- Showcase demo presentation: upgraded to a more credible finished-form marketplace UI.
-- Buyer journey: browse/search → detail → simulated purchase → library → watch/download remains connected.
-- Seller journey: Creator Studio and product/media/payout flows remain connected.
-- Admin journey: moderation, seller verification and payout oversight remain connected.
-- Automated functional demo coverage remains the verification gate for behavior; this UI-only showcase change does not replace production deployment requirements.
-
-### Remaining final-delivery work
-1. Verify the upgraded showcase through the existing demo functional regression.
-2. Generate the final commercial archive from a clean checkout of the current main line.
-3. Inspect and checksum that exact archive.
-4. For live deployment, configure customer-specific PostgreSQL, object storage, payment provider/webhook, secrets, HTTPS, backups, legal/support information, and complete final desktop/mobile acceptance.
-
-### Release boundary
-This milestone improves the customer-facing showcase and does not change the previously established commercial source-package boundary. The system must still not be called live-production-ready until a real production environment is configured and accepted.
-
-## 2026-09-04 — Milestone 535 — Final release archive boundary confirmed
-
-### What changed / verified
-- Confirmed the current `main` branch is the intended commercial release line.
-- Confirmed the last application/demo implementation checkpoint remains `6ffd53195a06858dc745b6181602340b2de12a9c`.
-- Confirmed later commits only synchronize release documentation and do not change application behavior.
-- Confirmed the Release Package Check artifact is non-expired and tied to the application checkpoint.
-- Confirmed release packaging contains explicit safety checks for forbidden paths, credential/key files, secret patterns and oversized files.
-- Confirmed the remaining open PR #17 is a temporary verification PR and is not required for the final mainline release path.
-
-### Current state
-- Commercial source-package implementation: complete at the recorded application checkpoint.
-- Automated release/showcase gates: GREEN at the recorded checkpoint.
-- Commercial license and release documentation: present and synchronized.
-- No production feature work is justified before final customer-specific requirements are known.
-
-### Final delivery work still required
-1. Clean-checkout the current release line.
-2. Run the release safety check and generate the archive from that clean checkout.
-3. Inspect the exact archive and record its checksum.
-4. Deliver only that verified archive.
-5. For a live customer deployment, configure PostgreSQL, object storage, payment provider/webhook, secrets, HTTPS, backups, legal/support information, then run final desktop/mobile acceptance.
-
-### Release boundary
-This is the final **commercial source-package release boundary**. The repository should not be called live-production-ready until the customer-specific production environment and final deployment acceptance are actually completed.
+2. Review CI and fix failures.
+3. Generate the final commercial archive from a clean checkout.
+4. Inspect and checksum the exact archive.
+5. Live production still requires customer-specific infrastructure and deployment acceptance.
