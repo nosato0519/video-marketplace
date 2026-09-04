@@ -4,8 +4,8 @@ function goCategories(){hideWorkspace();setTimeout(()=>document.getElementById('
 function showBuyer(){activeTab='library';login('buyer').then(()=>{renderRole();document.getElementById('workspace').scrollIntoView({behavior:'smooth'});}).catch(e=>toast(e.message));}
 function showSeller(){activeTab='overview';login('seller').then(()=>sellerView()).catch(e=>toast(e.message));}
 function showAdmin(){activeTab='overview';login('admin').then(()=>adminView()).catch(e=>toast(e.message));}
-function loginModal(){openModal(`<span class="eyebrow">Demo access</span><h2>Choose a workspace</h2><p class="muted">No real credentials are required. This switches the server-backed demo session.</p><div class="actions"><button class="btn primary" onclick="closeModal();login('buyer')">Buyer</button><button class="btn" onclick="closeModal();showSeller()">Seller</button><button class="btn" onclick="closeModal();showAdmin()">Admin</button></div>`);}
-function openModal(html){document.getElementById('modal').innerHTML=`<div class="modal"><button class="x" onclick="closeModal()" aria-label="Close">×</button>${html}</div>`;showModal();}
+function loginModal(){openModal(`<span class="eyebrow">Demo access</span><h2>ワークスペースを選択</h2><p class="muted">実際の認証情報は不要です。購入者・クリエイター・管理者の完成イメージを切り替えて確認できます。</p><div class="actions"><button class="btn primary" onclick="closeModal();login('buyer')">購入者</button><button class="btn" onclick="closeModal();showSeller()">クリエイター</button><button class="btn" onclick="closeModal();showAdmin()">管理者</button></div>`);}
+function openModal(html){document.getElementById('modal').innerHTML=`<div class="modal"><button class="x" onclick="closeModal()" aria-label="閉じる">×</button>${html}</div>`;showModal();}
 function renderRole(){const workspace=document.getElementById('workspace');workspace.classList.add('show');if(state.role==='buyer')workspace.innerHTML=buyerView();else if(state.role==='seller')sellerView();else adminView();}
 
 function polishCustomerExperience(){
@@ -26,9 +26,9 @@ function polishCustomerExperience(){
   const eyebrow=document.querySelector('#hero .eyebrow');
   if(eyebrow)eyebrow.textContent='VIDEO MARKETPLACE';
   const heroTitle=document.querySelector('#hero h1');
-  if(heroTitle)heroTitle.innerHTML='好きな動画を、<br><span>見つける。買う。売る。</span>';
+  if(heroTitle)heroTitle.innerHTML='好きな動画を、<br><span>見つける。買う。楽しむ。</span>';
   const heroP=document.querySelector('#hero p');
-  if(heroP)heroP.textContent='見たい動画を探して、安心して購入。購入した動画はマイページからいつでも視聴・ダウンロードできます。クリエイターは動画を登録して販売できます。';
+  if(heroP)heroP.textContent='見たい動画を探して、作品の内容と価値を確認して、安心して購入。購入した動画はマイページからいつでも視聴・ダウンロードできます。クリエイターは動画を登録して販売できます。';
   const heroActions=document.querySelectorAll('#hero .actions .btn');
   if(heroActions[0])heroActions[0].textContent='動画を探す →';
   if(heroActions[1])heroActions[1].textContent='動画を販売する';
@@ -47,7 +47,7 @@ function polishCustomerExperience(){
   const catEy=document.querySelector('#categorySection .eyebrow'); if(catEy)catEy.textContent='カテゴリー';
   const catH=document.querySelector('#categorySection h2'); if(catH)catH.textContent='目的から動画を探す';
   const catP=document.querySelector('#categorySection .head p'); if(catP)catP.textContent='Adultは18歳以上の方のみご利用ください';
-  const footer=document.querySelector('.footer'); if(footer)footer.textContent='VIDORA — 動画を探す・購入する・販売するためのマーケットプレイス。これは購入・視聴・販売の流れを確認できるデモです。';
+  const footer=document.querySelector('.footer'); if(footer)footer.textContent='VIDORA — 動画を探す・購入する・販売するためのマーケットプレイス。購入・視聴・販売までの体験を確認できる販売用ショーケースです。';
   if(!document.getElementById('howItWorks')){
     const section=document.createElement('section');
     section.id='howItWorks';
