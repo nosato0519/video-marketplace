@@ -97,3 +97,25 @@
 - Latest code commit: `62ddbd01ec37c72c3b98316263965aee2383e65e`
 - Production application logic was not changed in this milestone.
 - Completion is not yet declared; fresh CI and final acceptance remain outstanding.
+
+## 2026-09-04 — Milestone 526 — Buyer auth fixture response contract corrected
+
+### What changed / verified
+- Inspected the current Buyer auth/library acceptance test after the latest browser acceptance corrections.
+- Found one concrete stale fixture: `/api/auth/me` returned `{ data: { ... } }`, while the current production `authApi.me()` contract is consumed as `me.user.email` by the library view.
+- Corrected only the mocked `/api/auth/me` success response to `{ user: { ... } }` in `tests/buyer-auth-library.spec.js`.
+- Production authentication and library code were not changed.
+- Commit: `df363bdee3cfaa53915b6ef3626f4de776f3604b` — `test: align buyer auth fixture with current response contract`.
+
+### Exact resume point
+1. Re-check workflows triggered by `df363bdee3cfaa53915b6ef3626f4de776f3604b`.
+2. Inspect only fresh CI failures and apply the smallest evidence-backed correction.
+3. Once browser gates are green, continue final Buyer/Seller/Admin acceptance and release/package verification.
+4. Do not weaken protected media access or seller media-readiness controls to satisfy tests.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest code commit: `df363bdee3cfaa53915b6ef3626f4de776f3604b`
+- Production application logic remains unchanged by this milestone.
+- Completion is not yet declared; fresh CI and final customer-facing acceptance remain outstanding.
