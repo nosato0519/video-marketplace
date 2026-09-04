@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 557 — Release-hardening state synchronized with the latest mainline checkpoint.**
+**Milestone 558 — Demo showcase scope clarified; production deployment remains out of current demo-completion path.**
 
 ## Latest checkpoint — 2026-09-04
 ### Authoritative state
@@ -36,11 +36,13 @@
 - Media upload write/delete lifecycle through the storage abstraction.
 - Graceful HTTP server and PostgreSQL pool shutdown handling.
 
-### Demo/showcase distinction
+### Demo/showcase distinction and scope
 - `demo/` is a lightweight showcase harness with simulated demo state. It is intentionally separate from the production-oriented `app/` + `backend/` system.
+- The demo exists to **show prospective buyers what the completed video marketplace system looks and feels like**; it is not the production service being operated from this repository milestone.
 - The showcase was corrected into a Japanese-first, customer-facing marketplace presentation with a clear buyer journey and creator selling CTA while preserving the existing demo API/workflows.
 - The launcher now explicitly preserves the default `All categories` filter option, with a regression assertion covering that wiring.
 - The demo must never be treated as the only evidence of backend completeness.
+- Do not spend current demo-completion work on production hosting, production PostgreSQL, live storage, live Stripe credentials, or production domain setup. Those belong to a later customer deployment/operation phase.
 
 ### Latest verification evidence — 2026-09-04
 All major automated release-hardening gates are GREEN on the latest CI set:
@@ -53,12 +55,13 @@ All major automated release-hardening gates are GREEN on the latest CI set:
 - These results validate the current repository/CI state. They do **not** constitute production deployment or live Stripe acceptance.
 
 ## Remaining work
-### Demo acceptance
+### Demo acceptance / sales-demo readiness
 1. Refresh Codespaces and visually inspect the corrected customer-facing showcase.
-2. Walk the buyer journey end-to-end in the demo: browse → detail → purchase → library → watch/download.
+2. Walk the buyer demo end-to-end: browse → detail → purchase → library → watch/download.
 3. Walk seller and admin demo journeys and fix concrete UI defects only.
+4. Confirm the demo presents the system clearly as a product/showcase, without implying that live production infrastructure is already configured.
 
-### Production release/deployment
+### Later customer deployment/operation (not required for current demo completion)
 1. Select and configure production hosting/runtime.
 2. Provision production PostgreSQL and perform migration plus backup/restore drill.
 3. Configure protected production media storage and media backup.
@@ -72,4 +75,5 @@ All major automated release-hardening gates are GREEN on the latest CI set:
 - Only modify code for a concrete release criterion or observed failure.
 - Never claim GREEN without runtime/CI evidence.
 - Keep demo/showcase evidence separate from production-backend evidence.
+- Do not treat production infrastructure as a prerequisite for the current sales-demo milestone.
 - Once a gate is GREEN, move directly to the next gate.
