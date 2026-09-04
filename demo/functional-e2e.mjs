@@ -64,6 +64,8 @@ try {
   const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
   if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
+  const adminState = await json('/api/demo/state', { headers:{cookie:adminCookie} });
+  if (!adminState.payouts.some(p => p.id === payout.payout.id)) throw new Error('admin payout oversight visibility failed');
   const moderation = await json('/api/demo/admin/moderation', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'MOD-1001',action:'approve'}) });
   const approval = await json('/api/demo/admin/seller-approval', { method:'POST', headers:{'content-type':'application/json',cookie:adminCookie}, body:JSON.stringify({id:'SEL-1001',action:'approve'}) });
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
@@ -73,7 +75,7 @@ try {
   console.log('buyer purchase -> entitlement -> protected watch + download: PASS');
   console.log('unauthorized media rejection: PASS');
   console.log('seller authorization -> product -> upload lifecycle -> payout: PASS');
-  console.log('admin moderation -> seller approval: PASS');
+  console.log('admin payout oversight -> moderation -> seller approval: PASS');
 } finally {
   child.kill('SIGTERM');
   await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 1000))]);
