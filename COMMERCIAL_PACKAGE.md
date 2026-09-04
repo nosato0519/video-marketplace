@@ -60,21 +60,22 @@ The system must not be represented as live-payment-ready until the buyer has sup
 
 ## Commercial hand-off checklist
 
-The repository has already passed the automated commercial-package and showcase gates recorded in `RELEASE_READINESS.md`. The remaining unchecked items are intentionally customer-specific or final-delivery actions:
+The repository has passed the recorded automated commercial-package and showcase gates. The following repository-level checks are complete; final delivery and customer-production steps remain intentionally separate.
 
 - [x] No real credentials are committed; release packaging blocks `.env` files and known secret patterns.
 - [x] Database migrations are included in the commercial package.
-- [x] Automated release and acceptance gates pass at the recorded release checkpoint.
-- [x] The showcase demo starts from a clean install and its functional regression is GREEN.
+- [x] Automated release and acceptance gates passed at the recorded release checkpoint.
+- [x] Showcase demo clean-install and functional regression passed.
 - [x] Buyer watch/download authorization is covered by automated regression.
 - [x] Seller ownership boundaries are covered by automated regression.
 - [x] Admin-only operations are covered by automated regression.
 - [x] Production storage and payment configuration requirements are documented.
 - [x] Current commercial license and redistribution terms are present in `LICENSE.md`.
-- [ ] Build the final release archive from a clean checkout immediately before customer delivery.
-- [ ] Verify the exact delivered archive contains no customer data, production media, real credentials or private keys.
-- [ ] Replace demo branding, legal pages, support contacts and service credentials for the specific customer when a customer is identified.
-- [ ] Perform final real-deployment browser acceptance on desktop and mobile for the specific customer environment.
+- [ ] Build the final release archive from the current clean checkout immediately before customer delivery.
+- [ ] Verify the exact delivered archive contains no `.env`, private key, production credential, customer data or production media.
+- [ ] Replace demo branding, legal pages and support contacts for the specific customer when applicable.
+- [ ] Provision customer-specific production secrets through a secure channel.
+- [ ] Perform final real-deployment browser acceptance on desktop and mobile.
 
 ## Important distinction
 
