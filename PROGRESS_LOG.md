@@ -1,5 +1,35 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 541 — Showcase gate attached to the actual mainline Functional Demo workflow
+
+### What was discovered
+- The repository had two demo-related workflows: `demo-functional.yml` and `functional-demo.yml`.
+- The polished showcase gate was already present in `demo-functional.yml`, but the currently observed mainline CI run was produced by `functional-demo.yml`, which only ran the functional verifier.
+- Therefore the observed green Functional Demo run did **not** prove that `demo:showcase` had executed.
+
+### What changed
+- Updated `.github/workflows/functional-demo.yml` on `main` to run `npm run demo:showcase` immediately after the existing functional demo verification.
+- No application behavior, authentication, entitlement, media protection, payment, seller, or admin logic was changed.
+
+### Commit
+- `94e9ec151dc73ad52a82e5ef76d75902442ef714`
+- Updated workflow content SHA: `90536ffdd9d127e2823ba995096e69f52c430902`
+
+### Verification status
+- The workflow file change is committed to `main`.
+- A new CI run should now execute both:
+  1. `npm --prefix demo run verify`
+  2. `npm run demo:showcase`
+- The next step is to verify that new run and specifically confirm the showcase step is GREEN.
+
+### Remaining final-delivery work
+1. Verify the new mainline Functional Demo CI run and showcase step.
+2. Verify the other release gates against the final mainline where possible.
+3. Build the exact commercial archive from a clean checkout of the final mainline.
+4. Inspect archive contents and checksum.
+5. Record final artifact details before delivery.
+6. Live production deployment remains a separate customer-specific acceptance phase.
+
 ## 2026-09-04 — Milestone 540 — Complete master prompt preserved verbatim
 
 ### User-provided master prompt
