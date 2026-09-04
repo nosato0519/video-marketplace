@@ -123,10 +123,10 @@ test.describe('buyer purchase browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/library'));
-    await expect(page.getByRole('heading', { name: 'Your purchased videos' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'buyer@example.test — My Library' })).toBeVisible();
     await expect(page.getByText('buyer@example.test')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Featured Video' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Watch now' })).toHaveAttribute('href', '#/watch/demo-1');
+    await expect(page.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', '#/watch/demo-1');
     await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '/api/media/demo-1/download');
   });
 
