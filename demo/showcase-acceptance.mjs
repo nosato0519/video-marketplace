@@ -3,7 +3,7 @@ import { once } from 'node:events';
 
 const port = 4184;
 const base = `http://127.0.0.1:${port}`;
-const child = spawn(process.execPath, ['server.js'], {
+const child = spawn(process.execPath, ['launcher.mjs'], {
   cwd: new URL('.', import.meta.url),
   env: { ...process.env, PORT: String(port) },
   stdio: ['ignore', 'pipe', 'pipe']
@@ -63,7 +63,9 @@ try {
     if (lower.includes(marker)) fail(`unfinished placeholder detected: ${marker}`);
   }
 
-  const app = await (await fetch(`${base}/app.js`)).text();
+  const asset = await fetch(`${base}/app.js`);
+  if (!asset.ok) fail(`application asset returned HTTP ${asset.status}`);
+  const app = await asset.text();
   const integrations = [
     ['purchase', /(?:async\s+)?function\s+purchase\s*\(/],
     ['buyerView', /function\s+buyerView\s*\(/],
@@ -76,7 +78,9 @@ try {
     if (!pattern.test(app)) fail(`missing functional integration: ${marker}`);
   }
 
-  const state = await (await fetch(`${base}/api/demo/state`)).json();
+  const stateResponse = await fetch(`${base}/api/demo/state`);
+  if (!stateResponse.ok) fail(`demo state returned HTTP ${stateResponse.status}`);
+  const state = await stateResponse.json();
   if (!Array.isArray(state.products) || state.products.length < 5) fail('showcase catalog is incomplete');
   if (!state.products.some(p => p.category === 'Adult')) fail('18+ category is missing');
 
