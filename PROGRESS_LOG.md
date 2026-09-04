@@ -164,3 +164,20 @@
 - Latest payment lifecycle commits: `1bb6912064216fc4e9e17735cec0d81a432603a5` and `0a2d91588e1b19b465fb2547c5b6fabb3d0148f0`.
 - The new migration is additive and specifically reconciles the existing historical ledger schema with the current pending-payment workflow.
 - Completion is not declared until fresh CI and final customer-facing acceptance are complete.
+
+## 2026-09-04 — Milestone 529 — Refund idempotency fixture aligned with canonical payment ledger
+
+### What changed / verified
+- Fresh Clean Install on both Node 20 and Node 22 reached the core regression test stage and failed on the same refund idempotency test.
+- Located the exact failing fixture: `backend/src/payments/refund-payment-idempotency.test.js` created a paid order and refund event but never created the corresponding canonical `payments` ledger row.
+- This became invalid once `refundPayment` correctly locks and validates the canonical payment row before applying a refund.
+- Corrected only the test fixture: it now inserts a succeeded payment with matching provider payment identity, amount/currency, user ownership, and idempotency key; cleanup removes the payment ledger row with the order.
+- Production refund/payment logic was not weakened or changed.
+- Commit: `246e6fbaffd1a8e9b79274ba076cdac89f370725` — `test: align refund idempotency fixture with payment ledger`.
+
+### Exact resume point
+1. Verify fresh CI for commit `246e6fbaffd1a8e9b79274ba076cdac89f370725`.
+2. If Node 20/22 or Payment Regression exposes another concrete failure, fix only that fixture/contract and rerun the affected gate.
+3. If payment and clean-install gates become GREEN, re-read the current demo files and continue final buyer → seller → admin customer-facing acceptance.
+4. Then run fresh release-package verification after the payment changes.
+5. Do not claim 100% completion until final customer-facing acceptance and production deployment/configuration requirements are verified.
