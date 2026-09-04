@@ -1,5 +1,24 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 540 — Complete master prompt preserved verbatim
+
+### User-provided master prompt
+- The complete long project prompt beginning with 「あなたはプロのWebデザイナー兼フルスタックエンジニアです。」 has now been preserved verbatim in `PROJECT_MASTER_PROMPT.md`.
+- This is the authoritative project specification for the video marketplace demo and must not be reduced to a short summary when making future decisions.
+- The prompt's final additional criterion is also preserved verbatim:
+  - 「機能確認用のデモではなく、完成した商用Webサービスを購入希望者に見せるための販売用ショーケースとして作る」
+
+### Exact preservation record
+- File: `PROJECT_MASTER_PROMPT.md`
+- Commit: `8351cfb005bb74098e18adabcb9cdcf7fa2349fa`
+- The file contains the full prompt supplied by the user, including all requirements for buyer, seller, admin, design, responsive UI, security/trust presentation, demo interactions, acceptance criteria, prohibitions, and completion standard.
+
+### Continuity rule
+- Treat `PROJECT_MASTER_PROMPT.md` as the source of truth for the intended finished experience.
+- Before changing the project, inspect both `PROGRESS_LOG.md` and `PROJECT_MASTER_PROMPT.md` plus the current `main` state.
+- Do not repeat completed work unless verification shows regression.
+- Keep recording meaningful milestones with exact commit SHAs and remaining work.
+
 ## 2026-09-04 — Milestone 539 — Completion directive and continuity rule recorded
 
 ### User completion directive
