@@ -126,7 +126,6 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
     }
     if (productId) await pool.query('DELETE FROM products WHERE id = $1', [productId]).catch(() => {});
     if (userId) await pool.query('DELETE FROM users WHERE id = $1', [userId]).catch(() => {});
-    await pool.end();
   }
 });
 
@@ -241,7 +240,6 @@ test('completePayment settles a pending order and creates the buyer entitlement'
     if (productId) await pool.query('DELETE FROM products WHERE id = $1', [productId]).catch(() => {});
     if (buyerId) await pool.query('DELETE FROM users WHERE id = $1', [buyerId]).catch(() => {});
     if (sellerId) await pool.query('DELETE FROM users WHERE id = $1', [sellerId]).catch(() => {});
-    await pool.end();
   }
 });
 
