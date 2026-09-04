@@ -1,6 +1,6 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 552 — Demo category filter wiring fixed
+## 2026-09-04 — Milestone 553 — Demo category filter regression guard added
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
@@ -8,19 +8,21 @@
 - Latest production-oriented implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 - Latest customer-facing showcase UI checkpoint remains `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
 - Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
+- Latest regression-test checkpoint: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
 
 ### Work completed / verified by repository inspection
-- Continued from Milestone 551 without repeating completed application acceptance gates.
-- Found a concrete demo defect in the same-origin launcher: the launcher rewrote the default category option to `value="All"`, while `demo/app.js` filters for the canonical `All categories` value.
-- Fixed `demo/launcher.mjs` so the injected default option uses `value="All categories"`, matching the existing client-side filter logic.
-- This prevents the showcase marketplace from incorrectly rendering an empty product grid on initial load after launcher injection.
+- Continued from Milestone 552 without recreating completed functionality.
+- Added a concrete regression assertion to `demo/showcase-acceptance.mjs` for the launcher-injected default category option: `<option value="All categories">All categories</option>`.
+- The showcase acceptance now reports `category filter default wiring: PASS` when this previously fixed contract is present.
+- This closes a specific gap where the automated showcase check could previously pass even if the launcher regressed the category filter wiring.
 - No production backend functionality was changed.
 - No second frontend server was introduced.
+- No ZIP/archive package was created.
 
 ### Verification boundary
-- The defect was identified from direct source inspection of the launcher and client filter logic.
-- Real-browser acceptance is still required to confirm the corrected showcase behavior after Codespaces refresh.
-- Do not mark the showcase UI GREEN until runtime/browser evidence exists.
+- The regression guard was added from direct inspection of the known launcher/client mismatch and current acceptance harness.
+- The acceptance script itself has not been executed in this session because repository tooling here does not provide a local Codespaces/browser runtime.
+- Real-browser acceptance is still required; do not mark the showcase UI GREEN without runtime/browser evidence.
 
 ### Remaining release gates
 1. Refresh Codespaces and perform real-browser demo acceptance: buyer browse → detail → purchase → library → watch/download.
