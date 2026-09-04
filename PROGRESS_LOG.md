@@ -1,5 +1,56 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 545 — CI continuity checkpoint after showcase launcher fix
+
+### Current repository state
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest main commit: `967905d42ca2ce341338e2278b9397be0d2b8810`
+- This commit fixes `demo/showcase-acceptance.mjs` so the showcase gate starts the real `demo/launcher.mjs` path rather than bypassing the launcher.
+
+### What was discovered
+- Functional Demo run `33839327552` checked out the older commit `a7633b9c76ea74b6538a095b2bd0e8b9ccc8f606`.
+- In that run, the normal functional demo passed, but the showcase gate failed with `missing functional integration: purchase`.
+- The failure was misleading because `demo/app.js` contains the valid `async function purchase(...)` implementation.
+- The demo launcher is responsible for serving the application asset path used by the browser/showcase flow; running the lower-level server directly can produce a false missing-asset/integration result.
+- Therefore the old failure must not be treated as a failure of the current main application.
+
+### Fix applied
+- Updated `demo/showcase-acceptance.mjs` to spawn `launcher.mjs` on port 4184.
+- Added an explicit HTTP status check for `/` and `/app.js`.
+- Kept all existing showcase requirements and buyer/seller/admin/download/protected-media integration checks.
+- No production application logic or security controls were weakened or changed.
+
+### Fix commit
+- `967905d42ca2ce341338e2278b9397be0d2b8810`
+
+### Previously confirmed green gates
+At main commit `a7633b9c76ea74b6538a095b2bd0e8b9ccc8f606`:
+- Browser UI Acceptance run `33839327593`: PASS
+- Backend Browser Acceptance run `33839327562`: PASS
+- Payment Regression run `33839327576`: PASS
+- Functional Demo functional portion: PASS
+- Only the showcase portion failed, due to the test/launcher issue described above.
+
+### Important old-run record
+Functional Demo run `33839327552`:
+- checkout SHA: `a7633b9c76ea74b6538a095b2bd0e8b9ccc8f606`
+- `Verify functional demo`: PASS
+- `Verify polished showcase acceptance`: FAIL
+- failure: `missing functional integration: purchase`
+- This is an OLD run and predates commit `967905d42ca2ce341338e2278b9397be0d2b8810`.
+
+### Exact next action
+1. Check for the new GitHub Actions Functional Demo run triggered by commit `967905d42ca2ce341338e2278b9397be0d2b8810`.
+2. Confirm both `Verify functional demo` and `Verify polished showcase acceptance` pass.
+3. Confirm Browser UI Acceptance, Backend Browser Acceptance, and Payment Regression are green for the latest relevant mainline state.
+4. Only after latest mainline gates are green, generate the final commercial package from a clean checkout.
+5. Verify final ZIP contents, absence of credentials/private data, and SHA-256 checksum.
+6. Record final package information in this log before delivery.
+
+### Continuity rule
+Do not repeat milestones 543/544 or reintroduce their false-positive checks. Do not modify unrelated application code. Continue from commit `967905d42ca2ce341338e2278b9397be0d2b8810` at the CI verification step.
+
 ## 2026-09-04 — Milestone 544 — Showcase integration marker matcher corrected
 
 ### What was discovered
