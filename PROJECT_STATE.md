@@ -1,7 +1,7 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 555 — Release-hardening state synchronized after all major CI gates passed.**
+**Milestone 557 — Release-hardening state synchronized with the latest mainline checkpoint.**
 
 ## Latest checkpoint — 2026-09-04
 ### Authoritative state
@@ -11,7 +11,7 @@
 - Latest customer-facing showcase UI checkpoint: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
 - Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
 - Latest demo acceptance strengthening: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
-- Latest progress-state synchronization commit: `dd10d7b1d5ce66c8259bcd5a0f461dcc98c752a9`.
+- Latest progress-log checkpoint: `b35080fd81b1ab57c30e0e6acb64f4d97a1b791c`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified core application
