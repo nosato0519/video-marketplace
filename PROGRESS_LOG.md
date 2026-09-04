@@ -1,30 +1,31 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 560 — VIDORA showcase visual restored to intended premium layout
+## 2026-09-04 — Milestone 561 — VIDORA final premium visual pass
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - Current `demo/` purpose remains a customer-facing **sales/showcase demo** of the completed video marketplace system.
-- Functional Buyer/Seller/Admin implementation was preserved.
-- The demo entry point now serves the intended `demo/index.html` premium light marketplace presentation directly; the experimental dark neon `visual-overhaul.css` is no longer injected by the launcher.
-- Latest visual restoration commit: `656954f4c770087ccd27d8561c888490f1c26dc2`.
+- Buyer/Seller/Admin functionality is preserved; this milestone changes the presentation layer only.
+- The VIDORA showcase now uses a deliberate premium light marketplace presentation: white/light surfaces, purple brand treatment, large editorial hero, polished cards, trust strip, category tiles, showcase panels, and responsive layouts.
 
 ### Work completed
-- Removed the launcher-level injection of `visual-overhaul.css` that was overriding the established VIDORA showcase styling.
-- Preserved the existing launcher responsibilities for `/app.js`, `/boot.js`, and the root demo page.
-- Preserved Buyer browse/detail/purchase/library/watch/download flows and Seller/Admin demo behavior; this change is presentation-only.
-- Kept `visual-overhaul.css` in the repository as an unused experimental asset rather than deleting it, so no unrelated history/content was disturbed.
+- Replaced the experimental dark/neon visual override with the final premium light presentation layer in `demo/visual-overhaul.css`.
+- Preserved the existing launcher and application behavior.
+- Preserved Buyer browse/detail/purchase/library/watch/download flows and Seller/Admin demo behavior.
+- No production backend, payment, database, storage, or deployment work was changed.
 
-### Next work
-1. Verify the live showcase entry point and responsive presentation.
-2. Walk the buyer journey: browse → detail → purchase → library → watch/download.
-3. Fix only concrete visual/functional defects found by that inspection.
-4. Keep production hosting/DB/storage/Stripe/domain work deferred until an actual customer deployment is required.
+### Verification boundary
+- The visual code is committed to `main`.
+- A fresh GitHub Actions run for this latest commit is not yet available, so no new CI GREEN claim is made here.
+
+### Next checkpoint
+- Open the Codespaces demo on port 4173 and visually inspect the final presentation.
+- If a concrete UI defect is found, fix that defect only; do not rebuild completed functionality.
 
 ### No-waste rule
 - Do not recreate completed Buyer/Seller/Admin functionality.
-- Do not reintroduce the dark visual override unless explicitly required by the approved design.
+- Do not switch visual direction without an explicit design decision.
 - Do not claim GREEN without runtime/browser evidence.
 - Keep demo/showcase evidence separate from production-backend evidence.
 - Do not create or deliver ZIP/archive packages during demo-completion work.
