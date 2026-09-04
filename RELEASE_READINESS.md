@@ -8,11 +8,11 @@ This checklist is the release gate for selling the repository as a customer-inst
 - [x] `backend/.env.example` is included and real credentials are not committed.
 - [x] Local secrets, dependencies, logs and private media are excluded by `.gitignore`.
 - [x] `README.md` and `COMMERCIAL_PACKAGE.md` document installation and customer hand-off.
-- [ ] Final commercial license and redistribution terms are attached before delivery.
+- [x] `LICENSE.md` contains the current commercial license and redistribution terms.
 
 ## 2. Automated release gates
 
-The current application tree at commit `446a935b6b0f0abb2da58a95a7f2dc1bc1ba67c5` has now passed the fresh major automated release gates:
+The current application tree at commit `6ffd53195a06858dc745b6181602340b2de12a9c` has passed the fresh major automated release gates, including the latest demo regression.
 
 - [x] Clean Install — Node 20: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
 - [x] Clean Install — Node 22: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
@@ -20,8 +20,9 @@ The current application tree at commit `446a935b6b0f0abb2da58a95a7f2dc1bc1ba67c5
 - [x] Backend Browser Acceptance — migrations, backend acceptance suite, health checks and real-backend browser acceptance.
 - [x] Payment Regression — payment provider, Stripe webhook and S3 media-storage regression tests.
 - [x] Release Package Check — release safety verification, archive build, archive integrity/content verification and artifact upload.
+- [x] Demo Functional Regression — browser entrypoint, catalog, buyer purchase/entitlement/watch/download, seller product/media/payout flow, and admin payout/moderation/seller approval flow.
 
-These results establish a fresh automated GREEN checkpoint for the current application tree. Documentation commits after this checkpoint must not be described as changing the application behavior unless code is actually changed.
+The latest Demo Functional Regression run `33831920856` completed successfully on the current main commit. The latest Release Package Check run `33831920982` also completed successfully on the same commit.
 
 ## 3. Buyer acceptance
 
@@ -51,7 +52,7 @@ These results establish a fresh automated GREEN checkpoint for the current appli
 
 ## 6. Showcase demo quality
 
-The separate `demo/` package is the commercial sales showcase. It must make the product understandable to a prospective customer without exposing developer-oriented test controls.
+The separate `demo/` package is the commercial sales showcase. Its automated functional regression is GREEN on the current main commit.
 
 Required presentation journey:
 
@@ -87,7 +88,7 @@ Before a customer's site is opened to real users:
 - [ ] Verify no `.env`, private key, production credential, customer data or production media is present.
 - [x] Include installation, configuration and deployment documentation.
 - [x] Include the showcase demo and its launch instructions.
-- [ ] Attach the final commercial license and redistribution terms.
+- [x] Attach the current commercial license and redistribution terms in `LICENSE.md`.
 - [ ] Deliver customer-specific secrets only through a secure channel.
 
 ## Release rule
