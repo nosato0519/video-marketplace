@@ -60,19 +60,21 @@ The system must not be represented as live-payment-ready until the buyer has sup
 
 ## Commercial hand-off checklist
 
-Before handing a ZIP to a customer:
+The repository has already passed the automated commercial-package and showcase gates recorded in `RELEASE_READINESS.md`. The remaining unchecked items are intentionally customer-specific or final-delivery actions:
 
-- [ ] Remove `.env` files containing real secrets.
-- [ ] Confirm database migrations are included.
-- [ ] Confirm automated tests pass.
-- [ ] Confirm demo starts from a clean install.
-- [ ] Confirm buyer watch/download authorization works.
-- [ ] Confirm seller ownership boundaries work.
-- [ ] Confirm admin-only operations reject non-admin sessions.
-- [ ] Confirm production storage and payment configuration are documented.
-- [ ] Set the final commercial license and redistribution terms.
-- [ ] Replace demo branding, legal pages, support contacts and service credentials for the customer.
-- [ ] Perform final browser acceptance on desktop and mobile.
+- [x] No real credentials are committed; release packaging blocks `.env` files and known secret patterns.
+- [x] Database migrations are included in the commercial package.
+- [x] Automated release and acceptance gates pass at the recorded release checkpoint.
+- [x] The showcase demo starts from a clean install and its functional regression is GREEN.
+- [x] Buyer watch/download authorization is covered by automated regression.
+- [x] Seller ownership boundaries are covered by automated regression.
+- [x] Admin-only operations are covered by automated regression.
+- [x] Production storage and payment configuration requirements are documented.
+- [x] Current commercial license and redistribution terms are present in `LICENSE.md`.
+- [ ] Build the final release archive from a clean checkout immediately before customer delivery.
+- [ ] Verify the exact delivered archive contains no customer data, production media, real credentials or private keys.
+- [ ] Replace demo branding, legal pages, support contacts and service credentials for the specific customer when a customer is identified.
+- [ ] Perform final real-deployment browser acceptance on desktop and mobile for the specific customer environment.
 
 ## Important distinction
 
