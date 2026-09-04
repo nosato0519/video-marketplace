@@ -65,7 +65,7 @@
 ### Exact resume point
 1. Re-check Browser E2E #412 and Release Package Check #103 before changing code.
 2. If either fails, inspect the exact failing step/log and apply only the smallest evidence-backed correction.
-3. If browser acceptance becomes GREEN, continue final customer-facing acceptance in order: buyer browse → category/filter → product detail → purchase → My Library → watch → download → seller Studio → admin moderation/verification/payout.
+3. If browser acceptance becomes GREEN, continue customer-facing acceptance in order: buyer browse → category/filter → product detail → purchase → My Library → watch → download → seller Studio → admin moderation/verification/payout.
 4. Then complete release/package verification and only after that assess remaining production deployment/configuration requirements.
 5. Do not claim 100% completion from queued or partial CI results.
 
@@ -141,3 +141,26 @@
 - Latest intended test-fix commits: `f2b994fc85257bdc5a4f60465ed4c6f2027f48ae` and `ef16e186a6999ede7f00b1988be262e91540223c`.
 - No production application logic was changed by Milestone 527.
 - Completion is not yet declared; fresh CI remains outstanding.
+
+## 2026-09-04 — Milestone 528 — Payment ledger lifecycle correction
+
+### What changed / verified
+- Confirmed the current payment model creates a `payments` row while an order is still pending, before the provider returns its payment identity. The application inserts the pending row without `provider_payment_id`; the historical ledger migration had that column as NOT NULL.
+- Added `backend/migrations/007_payment_ledger_lifecycle.sql` to explicitly allow `payments.provider_payment_id` to remain NULL until successful provider settlement.
+- Updated `backend/src/payments/refund-payment.js` so a refund locks and validates the canonical payment row, changes the payment ledger to `refunded`, and keeps the already-refunded recovery path consistent.
+- Refund processing now requires the payment record and matching provider payment identity, preserving transaction atomicity with order, entitlement, seller earning, and payment-event updates.
+- Existing successful settlement already changes the payment ledger to `succeeded`; this fix closes the missing pending/refunded lifecycle transitions without weakening duplicate-event protection.
+- Commits: `1bb6912064216fc4e9e17735cec0d81a432603a5` and `0a2d91588e1b19b465fb2547c5b6fabb3d0148f0`.
+
+### Exact resume point
+1. Run/review fresh CI for the new production payment/migration changes.
+2. If payment regression exposes a concrete compatibility issue, correct only that issue and re-run the relevant gate.
+3. Verify migration and payment/refund regression before returning to customer-facing demo acceptance.
+4. Keep the payment event idempotency and protected-media controls intact.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest payment lifecycle commits: `1bb6912064216fc4e9e17735cec0d81a432603a5` and `0a2d91588e1b19b465fb2547c5b6fabb3d0148f0`.
+- The new migration is additive and specifically reconciles the existing historical ledger schema with the current pending-payment workflow.
+- Completion is not declared until fresh CI and final customer-facing acceptance are complete.
