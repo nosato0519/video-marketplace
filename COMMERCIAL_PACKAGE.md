@@ -1,4 +1,4 @@
-# VIDORA Video Marketplace — Commercial Package Guide
+# VIDORA Video Marketplace — Commercial Deployment Guide
 
 ## Product
 
@@ -9,9 +9,11 @@ VIDORA is a production-oriented video marketplace system covering the complete m
 - Admin: seller verification → product moderation → payout oversight
 - Backend: PostgreSQL persistence, authentication/authorization, entitlement checks, payment lifecycle, protected media delivery
 
-## What the customer receives
+## Repository hand-off
 
-The commercial ZIP should contain the complete repository source, including:
+The customer receives the repository source and deployment documentation through the agreed repository access or source-delivery channel. No generated archive is required for the normal development or hand-off workflow.
+
+The repository includes:
 
 - `app/` — customer-facing browser application
 - `backend/` — API, database access and migrations
@@ -19,11 +21,11 @@ The commercial ZIP should contain the complete repository source, including:
 - `.github/workflows/` — automated regression checks
 - deployment and environment documentation
 
-Do not ship real credentials, private keys, customer data, or production media inside the package.
+Do not commit or transfer real credentials, private keys, customer data, or production media through the source repository.
 
 ## Demo-first sales experience
 
-The `demo/` application is intended to be the sales showcase. It uses a simulated payment environment and isolated demo sessions, while exercising the same product concepts the production system implements.
+The `demo/` application is intended as the sales showcase. It uses a simulated payment environment and isolated demo sessions, while exercising the same product concepts the production system implements.
 
 Launch locally:
 
@@ -60,21 +62,21 @@ The system must not be represented as live-payment-ready until the buyer has sup
 
 ## Commercial hand-off checklist
 
-The repository has passed the recorded automated commercial-package and showcase gates. The following repository-level checks are complete; final delivery and customer-production steps remain intentionally separate.
+The repository has passed the recorded automated showcase and application acceptance gates. Final customer-production steps remain intentionally separate.
 
-- [x] No real credentials are committed; release packaging blocks `.env` files and known secret patterns.
-- [x] Database migrations are included in the commercial package.
-- [x] Automated release and acceptance gates passed at the recorded release checkpoint.
+- [x] No real credentials are committed; repository checks block `.env` files and known secret patterns.
+- [x] Database migrations are included in the repository.
+- [x] Automated acceptance gates passed at the recorded release checkpoint.
 - [x] Showcase demo clean-install and functional regression passed.
 - [x] Buyer watch/download authorization is covered by automated regression.
 - [x] Seller ownership boundaries are covered by automated regression.
 - [x] Admin-only operations are covered by automated regression.
 - [x] Production storage and payment configuration requirements are documented.
 - [x] Current commercial license and redistribution terms are present in `LICENSE.md`.
-- [ ] Build the final release archive from the current clean checkout immediately before customer delivery.
-- [ ] Verify the exact delivered archive contains no `.env`, private key, production credential, customer data or production media.
 - [ ] Replace demo branding, legal pages and support contacts for the specific customer when applicable.
 - [ ] Provision customer-specific production secrets through a secure channel.
+- [ ] Provision customer production hosting, PostgreSQL and protected media storage.
+- [ ] Configure the production payment provider and signed webhook endpoint.
 - [ ] Perform final real-deployment browser acceptance on desktop and mobile.
 
 ## Important distinction
