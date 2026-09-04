@@ -17,17 +17,13 @@ test.describe('seller business browser acceptance', () => {
     await mockSellerSession(page);
     let payoutPosted = false;
     await page.route('**/api/seller/payouts', async (route) => {
-      if (route.request().method() === 'GET') {
-        await json(route, { payouts: [] });
-        return;
-      }
+      if (route.request().method() === 'GET') { await json(route, { payouts: [] }); return; }
       payoutPosted = true;
       const body = route.request().postDataJSON();
       expect(body.amount).toBe(5000);
       expect(body.currency).toBe('JPY');
       await json(route, { payout: { id: 'payout-1', amount: 5000, currency: 'JPY', status: 'requested' } });
     });
-
     await page.goto(appUrl('#/seller/payouts'));
     await page.getByLabel('Amount').fill('5000');
     await page.getByLabel('Currency').selectOption('JPY');
@@ -55,25 +51,23 @@ test.describe('seller business browser acceptance', () => {
       created = true;
       await json(route, { product: { id: 'product-1', title: 'Demo Seller Video', status: 'draft' } });
     });
-
     await page.goto(appUrl('#/seller/upload'));
     await page.getByLabel('Video file').setInputFiles({ name: 'demo.webm', mimeType: 'video/webm', buffer: Buffer.from('demo-video') });
     await page.getByLabel('Title').fill('Demo Seller Video');
     await page.getByLabel('Description').fill('Browser acceptance video');
     await page.getByLabel('Price (JPY)').fill('1500');
     await page.getByRole('button', { name: 'Upload and create draft' }).click();
-
     await expect(page.getByText(/Draft .* created successfully/)).toBeVisible();
     expect(uploaded).toBe(true);
     expect(created).toBe(true);
   });
 
-  test('seller can publish and unpublish a product', async ({ page }) => {
+  test('seller can publish and unpublish a product with a ready protected video', async ({ page }) => {
     await mockSellerSession(page);
     let status = 'draft';
     await page.route('**/api/seller/products', async (route) => {
       if (route.request().method() === 'GET') {
-        await json(route, { products: [{ id: 'product-1', title: 'Demo Seller Video', description: 'Demo', price_amount: 1500, price_currency: 'JPY', status }] });
+        await json(route, { products: [{ id: 'product-1', title: 'Demo Seller Video', description: 'Demo', price_amount: 1500, price_currency: 'JPY', status, media_asset_id: 'media-1', media_status: 'ready', media_original_filename: 'demo.webm', media_byte_size: 1048576 }] });
         return;
       }
       await json(route, { product: { id: 'product-1', title: 'Demo Seller Video', status: 'draft' } });
@@ -88,9 +82,8 @@ test.describe('seller business browser acceptance', () => {
       status = 'draft';
       await json(route, { product: { id: 'product-1', title: 'Demo Seller Video', status } });
     });
-
     await page.goto(appUrl('#/seller/products'));
-    await expect(page.getByRole('button', { name: 'Publish' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Publish' })).toBeEnabled();
     await page.getByRole('button', { name: 'Publish' }).click();
     await expect(page.getByRole('button', { name: 'Unpublish' })).toBeVisible();
     await page.getByRole('button', { name: 'Unpublish' }).click();
