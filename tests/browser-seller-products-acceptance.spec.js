@@ -95,7 +95,7 @@ test.describe('seller products browser acceptance', () => {
       expect(body.title).toBe('Draft Product');
       expect(body.priceAmount).toBe(1000);
       expect(body.priceCurrency).toBe('JPY');
-      expect(body.mediaAssetId).toBeUndefined();
+      expect(body.mediaAssetId).toBeNull();
       await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft' } });
     });
 
