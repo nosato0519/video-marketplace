@@ -12,13 +12,16 @@ This checklist is the release gate for selling the repository as a customer-inst
 
 ## 2. Automated release gates
 
-The previously validated application commit `4085a201d53c17ffcfbc88f222bb046380118661` passed the repository's major automated release gates:
+The current application tree at commit `446a935b6b0f0abb2da58a95a7f2dc1bc1ba67c5` has now passed the fresh major automated release gates:
 
 - [x] Clean Install — Node 20: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
 - [x] Clean Install — Node 22: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
 - [x] Browser UI Acceptance — Playwright/Chromium Buyer browser acceptance and browser module smoke.
+- [x] Backend Browser Acceptance — migrations, backend acceptance suite, health checks and real-backend browser acceptance.
+- [x] Payment Regression — payment provider, Stripe webhook and S3 media-storage regression tests.
+- [x] Release Package Check — release safety verification, archive build, archive integrity/content verification and artifact upload.
 
-These results establish an automated GREEN checkpoint for that application commit. Later documentation-only commits must not be described as having inherited that exact workflow result unless their own relevant workflows are verified.
+These results establish a fresh automated GREEN checkpoint for the current application tree. Documentation commits after this checkpoint must not be described as changing the application behavior unless code is actually changed.
 
 ## 3. Buyer acceptance
 
