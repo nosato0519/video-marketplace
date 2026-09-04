@@ -1,27 +1,28 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 561 — VIDORA final premium visual pass
+## 2026-09-04 — Milestone 562 — VIDORA visual consistency correction
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Current `demo/` purpose remains a customer-facing **sales/showcase demo** of the completed video marketplace system.
-- Buyer/Seller/Admin functionality is preserved; this milestone changes the presentation layer only.
-- The VIDORA showcase now uses a deliberate premium light marketplace presentation: white/light surfaces, purple brand treatment, large editorial hero, polished cards, trust strip, category tiles, showcase panels, and responsive layouts.
+- `demo/` remains the customer-facing sales/showcase demo of the completed video marketplace system.
+- Buyer/Seller/Admin functionality is preserved; this checkpoint changes presentation-layer consistency only.
 
-### Work completed
-- Replaced the experimental dark/neon visual override with the final premium light presentation layer in `demo/visual-overhaul.css`.
-- Preserved the existing launcher and application behavior.
-- Preserved Buyer browse/detail/purchase/library/watch/download flows and Seller/Admin demo behavior.
-- No production backend, payment, database, storage, or deployment work was changed.
+### Correction completed
+- Re-checked the actual `demo/index.html` and the committed visual override instead of relying only on the previous milestone note.
+- Found a concrete inconsistency: the demo HTML uses the intended premium light presentation, while `demo/visual-overhaul.css` was still a dark/neon override.
+- Replaced that stale dark override with a premium light override so the visual direction is consistent if the override is loaded.
+- No Buyer/Seller/Admin flows were rebuilt or changed.
+- No production backend, payment, database, storage, or deployment behavior was changed.
 
 ### Verification boundary
-- The visual code is committed to `main`.
-- A fresh GitHub Actions run for this latest commit is not yet available, so no new CI GREEN claim is made here.
+- The corrected CSS is committed to `main` at commit `58851b353c7900ec8237e823dedf3e794462f9c0`.
+- The local server previously returned HTTP 200 for `/`, confirming the demo entry page is serving, but that alone is not browser-level visual verification.
+- No CI GREEN claim is made without a fresh workflow result.
 
 ### Next checkpoint
-- Open the Codespaces demo on port 4173 and visually inspect the final presentation.
-- If a concrete UI defect is found, fix that defect only; do not rebuild completed functionality.
+- Refresh/reopen the Codespaces demo on port 4173 and inspect the actual browser presentation.
+- If a concrete visual defect remains, fix only that defect; do not rebuild completed functionality.
 
 ### No-waste rule
 - Do not recreate completed Buyer/Seller/Admin functionality.
