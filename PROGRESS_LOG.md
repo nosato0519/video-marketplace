@@ -1,30 +1,30 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 554 — Mainline release-hardening CI gates all GREEN
+## 2026-09-04 — Milestone 556 — Release checkpoint metadata corrected
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest production-oriented implementation checkpoint remains `581cc444063bbecbaed4cb62e51ab82bfc08d73`.
+- Latest production-oriented implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 - Latest customer-facing showcase UI checkpoint remains `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
 - Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
 - Latest showcase regression-test checkpoint: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
 - Latest progress-log checkpoint before this entry: `7fda31578d0d466634d0da6613e7cb0b9a9a0f21`.
 
 ### Work completed / verified
-- Continued from Milestone 553 without recreating completed functionality.
+- Corrected the production checkpoint metadata so the authoritative `581cc...` SHA matches the repository state recorded in `PROJECT_STATE.md`.
 - Browser UI Acceptance run `33843376544` completed GREEN: buyer browser acceptance and browser module smoke both passed.
 - Browser E2E run `33843376600` completed GREEN: backend migrations, health, browser E2E against the backend, and result collection all passed.
 - Payment Regression run `33843376547` completed GREEN: payment regression, webhook regression, and protected S3 media adapter regression all passed.
 - Functional Demo run `33843376578` completed GREEN: functional demo verification and polished showcase acceptance both passed.
 - Clean Install run `33843376615` completed GREEN on both Node 20 and Node 22, including dependency installation, migration preflight, migrations, migration-state verification, and core regression tests.
-- This closes the current mainline CI verification gate for the latest commit.
-- No production backend functionality was changed during this verification-only continuation.
+- This closes the current mainline CI verification gate for the latest implementation checkpoint.
+- No production backend functionality was changed during this verification/documentation continuation.
 - No second frontend server was introduced.
 - No ZIP/archive package was created.
 
 ### Verification boundary
-- Mainline automated verification is now GREEN for the current checkpoint.
+- Mainline automated verification is GREEN for the current checkpoint.
 - This CI evidence verifies repository/test environments; it does not mean external production infrastructure is configured.
 - Final production launch remains blocked on external hosting/runtime, production PostgreSQL plus restore drill, protected media storage and backup, production secrets/HTTPS, Stripe live credentials/webhook, and final production-browser smoke/acceptance.
 
