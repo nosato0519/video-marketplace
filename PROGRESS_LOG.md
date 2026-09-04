@@ -1,11 +1,53 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 546 — Latest mainline CI verification checkpoint
+
+### Current repository state
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest main commit: `04f0a852bb7e9024a12a94ae0f0d14336737c980`
+- This is the continuity/documentation commit immediately after the launcher fix `967905d42ca2ce341338e2278b9397be0d2b8810`.
+
+### Verification completed on latest main commit
+- Functional Demo run `33841582261`: PASS
+  - `Verify functional demo`: PASS
+  - `Verify polished showcase acceptance`: PASS
+- Release Package Check run `33841582367`: PASS
+  - release package safety verification: PASS
+  - archive build: PASS
+  - archive integrity and contents verification: PASS
+  - release-package artifact uploaded successfully
+- Browser UI Acceptance run `33841582234`: PASS
+  - buyer browser acceptance: PASS
+  - browser module smoke: PASS
+
+### Latest mainline gates still running at checkpoint time
+- Backend Browser Acceptance run `33841582424`: IN PROGRESS
+- Payment Regression run `33841582281`: IN PROGRESS
+- Browser E2E run `33841582258`: IN PROGRESS
+- Clean Install run `33841582228`: IN PROGRESS
+
+### Important interpretation
+- The corrected showcase gate is now confirmed green on the latest mainline commit.
+- The earlier showcase failure from run `33839327552` is an OLD run against an older commit and must not be treated as a current application failure.
+- No production application logic or security controls were changed during the showcase-test corrections.
+
+### Exact next action
+1. Re-check the four in-progress latest-main runs until they complete.
+2. If any fail, inspect the failed job/log and fix only the actual root cause; do not repeat milestones 543/544/545.
+3. Once all required mainline gates are green, inspect the generated release artifact from the successful Release Package Check.
+4. Perform final clean-checkout package verification, including archive contents, credentials/private-data exclusion, and SHA-256 checksum.
+5. Record final package filename, size, checksum, and verification result here before delivery.
+
+### Continuity rule
+Do not repeat milestones 543/544/545 or reintroduce their false-positive checks. Continue from the latest mainline CI verification state recorded here. Do not modify unrelated application code.
+
 ## 2026-09-04 — Milestone 545 — CI continuity checkpoint after showcase launcher fix
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest main commit: `967905d42ca2ce341338e2278b9397be0d2b8810`
+- Latest main commit at the time: `967905d42ca2ce341338e2278b9397be0d2b8810`
 - This commit fixes `demo/showcase-acceptance.mjs` so the showcase gate starts the real `demo/launcher.mjs` path rather than bypassing the launcher.
 
 ### What was discovered
@@ -101,7 +143,7 @@ Do not repeat the old false-positive fixes or modify unrelated application code.
 - The next `functional-demo.yml` push run must be checked to confirm the corrected showcase gate passes.
 
 ### Next work
-1. Verify the new Functional Demo run executes the corrected showcase gate and passes.
+1. Verify the new `functional-demo.yml` run executes the corrected showcase gate and passes.
 2. Verify the browser acceptance remains green.
 3. Proceed to final clean-checkout commercial packaging only after the latest mainline verification is green.
 4. Record the final package checksum and contents.
