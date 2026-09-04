@@ -1,5 +1,30 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 536 — Polished showcase demo upgraded
+
+### What changed / verified
+- Reworked `demo/index.html` into a polished, product-facing marketplace showcase rather than a bare functional test screen.
+- Added a stronger premium marketplace hero, clearer buyer journey, curated marketplace presentation, trust/value sections, marketplace statistics, category discovery area, and structured footer navigation.
+- Preserved the existing functional demo entry points and DOM IDs used by `demo/app.js`, so buyer, seller and admin flows remain connected to the server-backed demo.
+- Kept the demo's explicit distinction between simulated checkout and real production payment infrastructure.
+- No production backend security or payment logic was weakened or replaced.
+
+### Current state
+- Showcase demo presentation: upgraded to a more credible finished-form marketplace UI.
+- Buyer journey: browse/search → detail → simulated purchase → library → watch/download remains connected.
+- Seller journey: Creator Studio and product/media/payout flows remain connected.
+- Admin journey: moderation, seller verification and payout oversight remain connected.
+- Automated functional demo coverage remains the verification gate for behavior; this UI-only showcase change does not replace production deployment requirements.
+
+### Remaining final-delivery work
+1. Verify the upgraded showcase through the existing demo functional regression.
+2. Generate the final commercial archive from a clean checkout of the current main line.
+3. Inspect and checksum that exact archive.
+4. For live deployment, configure customer-specific PostgreSQL, object storage, payment provider/webhook, secrets, HTTPS, backups, legal/support information, and complete final desktop/mobile acceptance.
+
+### Release boundary
+This milestone improves the customer-facing showcase and does not change the previously established commercial source-package boundary. The system must still not be called live-production-ready until a real production environment is configured and accepted.
+
 ## 2026-09-04 — Milestone 535 — Final release archive boundary confirmed
 
 ### What changed / verified
