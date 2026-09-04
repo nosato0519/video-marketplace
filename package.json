@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test:e2e": "playwright test",
+    "demo:showcase": "node demo/showcase-acceptance.mjs",
     "release:check": "node scripts/build-release.mjs --check",
     "release:package": "node scripts/build-release.mjs"
   },
