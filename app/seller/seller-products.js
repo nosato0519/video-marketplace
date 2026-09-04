@@ -142,7 +142,7 @@ export async function renderSellerProducts(root) {
     try {
       const data = await request('/api/seller/products');
       const products = Array.isArray(data.products) ? data.products : [];
-      list.innerHTML = products.length ? products.map(productRow).join('') : '<section class="empty-state"><h2>Your catalog is empty</h2><p>Create a product or upload a video to start building your storefront.</p><div class="hero-actions"><button class="button" data-empty-action="create">Create product</button><a class="button secondary" href="#/seller/upload">Upload video</a></div></section>';
+      list.innerHTML = products.length ? products.map(productRow).join('') : '<section class="empty-state"><h2>Your catalog is empty</h2><p>Create a product or upload a video to start building your storefront.</p><div class="hero-actions"><button class="button" data-empty-action="create">Create your first product</button><a class="button secondary" href="#/seller/upload">Upload video</a></div></section>';
       message.textContent = `${products.length} ${products.length === 1 ? 'product' : 'products'}`;
     } catch (error) {
       list.innerHTML = '<section class="error-state"><h2>Products could not be loaded</h2><p>Please try again. Your drafts are not affected.</p></section>';
