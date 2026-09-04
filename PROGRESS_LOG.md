@@ -23,7 +23,7 @@
 - Branch: `main`
 - Payment fixture correction commit: `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8`
 - Core production-oriented application: substantially implemented; final production deployment/configuration remains outstanding.
-- `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app/` + `backend/` system.
+- `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app` + `backend` system.
 - Do not claim 100% completion merely from green tests; demo visual/behavioral acceptance is still required.
 - Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
 
@@ -181,3 +181,19 @@
 3. If payment and clean-install gates become GREEN, re-read the current demo files and continue final buyer → seller → admin customer-facing acceptance.
 4. Then run fresh release-package verification after the payment changes.
 5. Do not claim 100% completion until final customer-facing acceptance and production deployment/configuration requirements are verified.
+
+## 2026-09-04 — Milestone 530 — Backend browser acceptance completed GREEN
+
+### What changed / verified
+- Re-checked the existing Backend Browser Acceptance workflow `33830039327` without starting a duplicate run.
+- The workflow completed with conclusion **success**.
+- All critical stages completed successfully: Playwright installation, Chromium installation, database migrations, backend acceptance suite, backend startup/health checks, browser proxy startup/health checks, and the final **real backend browser acceptance** step.
+- No failure log investigation or production-code change was necessary.
+- The current `demo/index.html` was re-read before proceeding; it remains the separate customer-facing showcase workstream with buyer, seller, admin and responsive presentation already represented.
+
+### Exact resume point
+1. Continue final release/package verification without repeating the already-green Backend Browser Acceptance run.
+2. Confirm the latest release-package workflow after the payment lifecycle changes.
+3. Continue customer-facing demo acceptance and inspect `demo/app.js` and `demo/server.js` before any demo edit.
+4. Keep production payment, entitlement, media authorization, and seller media-readiness controls unchanged unless a concrete fresh failure identifies a defect.
+5. Do not claim 100% completion until commercial hand-off and production deployment requirements are satisfied.
