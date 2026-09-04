@@ -10,28 +10,31 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
   const pool = getPool();
   const suffix = crypto.randomUUID();
   const email = `refund-${suffix}@acceptance.test`;
+  const provider = 'test';
+  const providerPaymentId = `pay_${suffix}`;
+  const eventId = `evt_refund_${suffix}`;
+  const payloadHash = `hash_${suffix}`;
   let userId, productId, orderId;
   try {
     userId = (await pool.query(`INSERT INTO users (email,email_normalized,role) VALUES ($1,$1,'buyer') RETURNING id`, [email])).rows[0].id;
     productId = (await pool.query(`INSERT INTO products (seller_id,status,price_amount,price_currency,title,description) VALUES ($1,'published',1000,'JPY',$2,'refund fixture') RETURNING id`, [userId, suffix])).rows[0].id;
-    orderId = (await pool.query(`INSERT INTO orders (buyer_id,product_id,amount,currency,status,provider,provider_payment_id,paid_at) VALUES ($1,$2,1000,'JPY','paid','test',$3,NOW()) RETURNING id`, [userId, productId, `pay_${suffix}`])).rows[0].id;
+    orderId = (await pool.query(`INSERT INTO orders (buyer_id,product_id,amount,currency,status,provider,provider_payment_id,paid_at) VALUES ($1,$2,1000,'JPY','paid',$3,$4,NOW()) RETURNING id`, [userId, productId, provider, providerPaymentId])).rows[0].id;
+    await pool.query(`INSERT INTO payments (order_id,user_id,provider,provider_payment_id,amount,currency,status,succeeded_at,idempotency_key) VALUES ($1,$2,$3,$4,1000,'JPY','succeeded',NOW(),$5)`, [orderId, userId, provider, providerPaymentId, `${provider}:${providerPaymentId}`]);
     await pool.query(`INSERT INTO entitlements (user_id,product_id,order_id,status) VALUES ($1,$2,$3,'active')`, [userId,productId,orderId]);
-    const eventId = `evt_refund_${suffix}`;
-    const providerPaymentId = `pay_${suffix}`;
-    const payloadHash = `hash_${suffix}`;
-    await pool.query(`INSERT INTO payment_events (provider,event_id,event_type,provider_payment_id,payload_hash,status,order_id) VALUES ('test',$1,'payment_refunded',$2,$3,'received',$4)`, [eventId,providerPaymentId,payloadHash,orderId]);
+    await pool.query(`INSERT INTO payment_events (provider,event_id,event_type,provider_payment_id,payload_hash,status,order_id) VALUES ($1,$2,'payment_refunded',$3,$4,'received',$5)`, [provider,eventId,providerPaymentId,payloadHash,orderId]);
 
-    const first = await refundPayment({ eventId, provider:'test', providerPaymentId, orderId, payloadHash });
+    const first = await refundPayment({ eventId, provider, providerPaymentId, orderId, payloadHash });
     assert.equal(first.duplicate, false);
     assert.equal(first.order.status, 'refunded');
     assert.equal(first.entitlement.status, 'revoked');
 
-    const second = await refundPayment({ eventId, provider:'test', providerPaymentId, orderId, payloadHash });
+    const second = await refundPayment({ eventId, provider, providerPaymentId, orderId, payloadHash });
     assert.equal(second.duplicate, true);
   } finally {
     if (orderId) {
       await pool.query('DELETE FROM entitlements WHERE order_id=$1',[orderId]).catch(()=>{});
       await pool.query('DELETE FROM payment_events WHERE order_id=$1',[orderId]).catch(()=>{});
+      await pool.query('DELETE FROM payments WHERE order_id=$1',[orderId]).catch(()=>{});
       await pool.query('DELETE FROM orders WHERE id=$1',[orderId]).catch(()=>{});
     }
     if (productId) await pool.query('DELETE FROM products WHERE id=$1',[productId]).catch(()=>{});
