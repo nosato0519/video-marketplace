@@ -17,15 +17,15 @@ async function request(path, options = {}) {
 
 export async function renderSellerUpload(root) {
   root.innerHTML = `<main class="seller-shell">
-    <header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>Upload a video</h1><p>Add your protected video, then turn it into a product draft ready for review and publishing.</p></div><a class="button secondary" href="#/seller/products">My videos</a></header>
+    <header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>Upload video</h1><p>Add your protected video, then turn it into a product draft ready for review and publishing.</p></div><a class="button secondary" href="#/seller/products">My videos</a></header>
     <section class="seller-upload-layout">
       <form id="seller-upload-form" class="seller-upload-card">
-        <div class="seller-upload-dropzone"><span class="seller-upload-icon">↑</span><strong>Select your video</strong><span>MP4, WebM, MOV or MKV · up to 5 GB</span><input id="video-file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" required></div>
+        <div class="seller-upload-dropzone"><span class="seller-upload-icon">↑</span><strong>Select your video</strong><span>MP4, WebM, MOV or MKV · up to 5 GB</span><input id="video-file" aria-label="Video file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" required></div>
         <p id="selected-file" class="seller-form__hint">No file selected yet.</p>
         <div class="seller-form__divider"></div>
         <label>Product title<input id="video-title" aria-label="Title" type="text" maxlength="255" placeholder="Give your video a clear title" required></label>
-        <label>Description<textarea id="video-description" maxlength="5000" rows="6" placeholder="Tell buyers what they will receive."></textarea></label>
-        <div class="seller-form__row"><label>Price (JPY)<input id="video-price" type="number" min="1" step="1" value="1000" required></label><div class="seller-field-note"><span>Currency</span><strong>JPY</strong><small>Japanese Yen</small></div></div>
+        <label>Description<textarea id="video-description" aria-label="Description" maxlength="5000" rows="6" placeholder="Tell buyers what they will receive."></textarea></label>
+        <div class="seller-form__row"><label>Price (JPY)<input id="video-price" aria-label="Price (JPY)" type="number" min="1" step="1" value="1000" required></label><div class="seller-field-note"><span>Currency</span><strong>JPY</strong><small>Japanese Yen</small></div></div>
         <button class="button seller-upload-submit" id="upload-submit" type="submit">Upload and create draft</button>
         <p id="seller-upload-message" class="microcopy" aria-live="polite"></p>
       </form>
