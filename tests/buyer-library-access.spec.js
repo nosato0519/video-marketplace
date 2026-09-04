@@ -18,6 +18,9 @@ test('buyer library exposes protected watch and download actions', async ({ page
           product_id: 'demo-1',
           title: 'Featured Video',
           description: 'Purchased demo video.',
+          media_asset_id: 'media-demo-1',
+          media_status: 'ready',
+          purchased_at: '2026-09-04T00:00:00.000Z',
           streaming_enabled: true,
           download_enabled: true,
         }],
@@ -39,5 +42,5 @@ test('buyer library exposes protected watch and download actions', async ({ page
   await watchLink.click();
   await expect(page).toHaveURL(/#\/watch\/demo-1$/);
   await expect(page.locator('video.secure-player')).toHaveAttribute('src', '/api/media/demo-1/stream');
-  await expect(page.getByText('Playback is protected by your active entitlement.')).toBeVisible();
+  await expect(page.getByText('Playback is protected by your active purchase entitlement.')).toBeVisible();
 });
