@@ -64,8 +64,16 @@ try {
   }
 
   const app = await (await fetch(`${base}/app.js`)).text();
-  for (const marker of ['function purchase', 'function buyerView', 'function sellerView', 'function adminView', 'Download', 'Protected media']) {
-    if (!app.includes(marker)) fail(`missing functional integration: ${marker}`);
+  const integrations = [
+    ['purchase', /(?:async\s+)?function\s+purchase\s*\(/],
+    ['buyerView', /function\s+buyerView\s*\(/],
+    ['sellerView', /function\s+sellerView\s*\(/],
+    ['adminView', /function\s+adminView\s*\(/],
+    ['Download', /Download/],
+    ['Protected media', /Protected media/]
+  ];
+  for (const [marker, pattern] of integrations) {
+    if (!pattern.test(app)) fail(`missing functional integration: ${marker}`);
   }
 
   const state = await (await fetch(`${base}/api/demo/state`)).json();
