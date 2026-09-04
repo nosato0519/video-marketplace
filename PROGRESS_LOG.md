@@ -1,5 +1,38 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 547 — Latest mainline CI re-check
+
+### Current repository state
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest main commit: `f9e75f5923e175eef5c7d86f2f22a9a631fba6fc`
+- This is a documentation/continuity commit after the launcher/showcase corrections. No new application-code change was made in this checkpoint.
+
+### Latest mainline CI state observed
+- Functional Demo run `33841997318`: PASS
+- Release Package Check run `33841997268`: PASS
+- Browser UI Acceptance run `33841997298`: PASS
+- Payment Regression run `33841997315`: IN PROGRESS at re-check time; dependency installation was still running.
+- Browser E2E run `33841997267`: IN PROGRESS at re-check time; backend dependency installation was still running.
+- Backend Browser Acceptance run `33841997279`: IN PROGRESS at re-check time; backend dependency installation was still running.
+- Clean Install run `33841997311`: IN PROGRESS at re-check time; one matrix job had completed successfully and another was still running core regression tests.
+
+### Important interpretation
+- The latest mainline Functional Demo and Release Package Check are green.
+- Browser UI Acceptance is green on the latest mainline commit.
+- The remaining gates are active, not failed. Do not modify application code while they are merely in progress.
+- Earlier run `33841582424` and the other `04f0a852...` runs are superseded by the newer `f9e75f...` mainline runs and must not be treated as the latest state.
+
+### Exact next action
+1. Re-check only the six latest-main gates above until the four remaining in-progress gates complete.
+2. If a gate fails, inspect its failed job/log and fix only the actual root cause.
+3. Once all required gates are green, inspect the successful Release Package Check artifact.
+4. Perform final clean-checkout package verification: archive contents, credentials/private-data exclusion, and SHA-256 checksum.
+5. Record final package filename, size, checksum, and verification result here before delivery.
+
+### Continuity rule
+Do not repeat milestones 543/544/545/546 or reintroduce their false-positive checks. Do not modify unrelated application code. Continue from commit `f9e75f5923e175eef5c7d86f2f22a9a631fba6fc` at the remaining CI verification step.
+
 ## 2026-09-04 — Milestone 546 — Latest mainline CI verification checkpoint
 
 ### Current repository state
