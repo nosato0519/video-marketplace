@@ -18,7 +18,7 @@ VIDORA is built around a complete marketplace journey rather than a static store
 - `backend/` — Node.js API, PostgreSQL access and migrations
 - `demo/` — polished, self-contained commercial showcase demo
 - `.github/workflows/` — regression CI
-- `COMMERCIAL_PACKAGE.md` — commercial packaging and customer hand-off checklist
+- `COMMERCIAL_PACKAGE.md` — commercial deployment and customer hand-off guide
 
 ## Requirements
 
@@ -94,8 +94,8 @@ CI and HTTP tests are necessary but do not replace final browser acceptance.
 
 A browser return URL is not sufficient to grant media access; verified payment state is the source of truth.
 
-## Commercial distribution
+## Commercial deployment
 
-See `COMMERCIAL_PACKAGE.md` for the ZIP contents, customer hand-off process, production requirements, and final release checklist.
+See `COMMERCIAL_PACKAGE.md` for the commercial deployment requirements, customer hand-off process, production configuration, and final release checklist.
 
-**Important:** the source is structured for commercial deployment, but a live customer installation still requires customer-specific hosting, PostgreSQL, storage, payment credentials, HTTPS, legal pages, privacy/compliance configuration, and final browser acceptance. Do not market the demo's simulated payment as live payment processing.
+**Important:** the source is structured for commercial deployment, but a live customer installation still requires customer-specific hosting, PostgreSQL, storage, payment credentials, HTTPS, legal/privacy/compliance configuration, and final browser acceptance. Do not market the demo's simulated payment as live payment processing.
