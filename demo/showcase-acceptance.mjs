@@ -47,7 +47,8 @@ try {
     'products',
     'workspace',
     '@media(max-width:650px)',
-    '@media(max-width:1050px)'
+    '@media(max-width:1050px)',
+    '<option value="All categories">All categories</option>'
   ];
   for (const marker of required) {
     if (!html.includes(marker)) fail(`missing showcase marker: ${marker}`);
@@ -88,6 +89,7 @@ try {
   console.log('premium storefront presentation: PASS');
   console.log('buyer/seller/admin navigation integration: PASS');
   console.log('responsive layout markers: PASS');
+  console.log('category filter default wiring: PASS');
   console.log('functional app integration markers: PASS');
   console.log('catalog/content completeness: PASS');
 } catch (error) {
