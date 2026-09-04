@@ -1,5 +1,34 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 544 — Showcase integration marker matcher corrected
+
+### What was discovered
+- The latest Functional Demo failure was caused by a test-side matcher mismatch, not by the marketplace application.
+- `demo/app.js` defines the purchase flow as `async function purchase(...)`, while the showcase gate previously required the exact substring `function purchase`.
+- The other integration markers are synchronous functions, so only the purchase matcher needed to account for the valid async declaration.
+
+### What changed
+- Updated `demo/showcase-acceptance.mjs` to validate integration markers with function-aware regular expressions.
+- The purchase check now accepts both `function purchase(...)` and `async function purchase(...)`.
+- Buyer, seller, admin, download, and protected-media checks remain enforced.
+- No application behavior or security logic was changed.
+
+### Commit
+- `392659b07727888fecfe8692dae959a78a3631b9`
+
+### Verification status
+- The corrected showcase gate has been committed to `main`.
+- A new Functional Demo push run is expected from this commit and must be checked for a clean showcase pass.
+
+### Next work
+1. Verify the new Functional Demo run passes both functional and polished-showcase gates.
+2. Verify browser UI acceptance remains green.
+3. If all mainline gates are green, proceed to final clean-checkout commercial packaging.
+4. Verify the final archive contents and checksum.
+
+### Continuity rule
+Do not repeat the old false-positive fixes or modify unrelated application code. Continue from this exact verification point.
+
 ## 2026-09-04 — Milestone 543 — Showcase acceptance false-positive corrected
 
 ### What was discovered
@@ -33,26 +62,3 @@ Do not repeat the failed test or modify unrelated application code. The next ste
 
 ### What was verified
 - Inspected the actual current `.github/workflows/demo-functional.yml` on `main` rather than relying on older progress notes.
-- Found that the previously described showcase CI integration was not present in the actual current workflow file; the file only ran `npm --prefix demo run verify`.
-- Corrected the workflow so the functional demo gate also runs `npm run demo:showcase` after the functional verification step.
-- The workflow file is now the source of truth for the intended CI wiring; prior notes that claimed the integration existed were stale.
-
-### Current state
-- Master prompt: preserved in `PROJECT_MASTER_PROMPT.md`.
-- `demo:showcase`: present in root `package.json`.
-- `demo/showcase-acceptance.mjs`: present and remains additive to the existing functional verification.
-- Functional verification remains unchanged.
-- Showcase verification is now explicitly wired into the CI workflow.
-
-### Verification caveat
-- The connector did not expose a new workflow run for the commit during this checkpoint, so the corrected workflow's actual execution result is not yet claimed GREEN.
-- Do not mark the showcase CI gate as passed until a workflow run actually executes the new step successfully.
-
-### Next work
-1. Confirm the next CI run executes both functional verification and showcase acceptance.
-2. If the showcase step fails, fix only the actual failure.
-3. Once GREEN, proceed to current-main clean-checkout release packaging and archive inspection.
-4. Record the exact final package checksum before delivery.
-
-### Continuity rule
-Always inspect the actual current `main` files before relying on historical progress notes. Never repeat completed work unless current-state verification shows it is missing or regressed.
