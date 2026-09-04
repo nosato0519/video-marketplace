@@ -3,7 +3,7 @@ import { libraryApi } from './library-api.js';
 import { mediaStreamUrl, mediaDownloadUrl } from './media-api.js';
 
 function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  return String(value ?? '').replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' })[char]);
 }
 
 function mediaState(item) {
@@ -20,7 +20,7 @@ export async function renderLibrary(root) {
     const items = result.items || [];
     root.innerHTML = `<section class="library-page">
       <div class="page-heading">
-        <div><p class="eyebrow">MY LIBRARY</p><h1>Your purchased videos</h1><p class="microcopy">${escapeHtml(me.user.email)} · ${items.length} ${items.length === 1 ? 'title' : 'titles'}</p></div>
+        <div><p class="eyebrow">MY LIBRARY</p><h1>${escapeHtml(me.user.email)} — My Library</h1><p class="microcopy">Your purchased videos · ${items.length} ${items.length === 1 ? 'title' : 'titles'}</p></div>
         <a class="button secondary" href="#/browse">Continue browsing</a>
       </div>
       ${items.length ? `<div class="library-grid">${items.map((item) => {
@@ -34,9 +34,9 @@ export async function renderLibrary(root) {
             <p class="eyebrow">Purchased</p>
             <h2>${escapeHtml(item.title)}</h2>
             <p>${escapeHtml(item.description || 'Purchased video product.')}</p>
-            <p class="library-meta">Purchased ${escapeHtml(new Date(item.purchased_at).toLocaleDateString())}</p>
+            ${item.purchased_at ? `<p class="library-meta">Purchased ${escapeHtml(new Date(item.purchased_at).toLocaleDateString())}</p>` : ''}
             <div class="library-actions">
-              ${canWatch ? `<a class="button" href="#/watch/${encodeURIComponent(item.product_id)}">Watch now</a>` : ''}
+              ${canWatch ? `<a class="button" href="#/watch/${encodeURIComponent(item.product_id)}">Watch</a>` : ''}
               ${canDownload ? `<a class="button secondary" href="${mediaDownloadUrl(item.product_id)}">Download</a>` : ''}
               ${state !== 'ready' ? `<span class="microcopy">${escapeHtml(unavailableText)}</span>` : ''}
             </div>
