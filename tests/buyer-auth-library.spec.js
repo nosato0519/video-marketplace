@@ -15,7 +15,7 @@ test('buyer can register, sign in, and reach the protected library', async ({ pa
   });
   await page.route('**/api/auth/me', async (route) => {
     expect(route.request().method()).toBe('GET');
-    await json(route, { data: { id: 'buyer-1', email: buyerEmail, role: 'buyer' } });
+    await json(route, { user: { id: 'buyer-1', email: buyerEmail, role: 'buyer' } });
   });
   await page.route('**/api/library', async (route) => {
     await json(route, { items: [] });
