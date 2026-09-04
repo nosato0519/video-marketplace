@@ -1,5 +1,31 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 550 — Provider-neutral production deployment runbook added
+
+### Current repository state
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Deployment runbook commit: `bfab22fea21a9df379fed9011c0800c0e610fbb3`
+
+### Work completed
+- Added `DEPLOYMENT.md` as the provider-neutral production deployment/runbook document.
+- Documented Node/PostgreSQL runtime requirements, controlled migrations, production secret handling, private S3-compatible media storage, HTTPS/reverse-proxy expectations, health/readiness checks, Stripe webhook verification, backup/restore, safe rollout, rollback handling, and final launch acceptance.
+- Explicitly separated repository/code completeness from external launch dependencies such as hosting, production database, storage, payment credentials, and live browser acceptance.
+
+### Verification basis
+- Documentation-only change; no application runtime behavior changed.
+- Existing green application acceptance gates were not unnecessarily rerun.
+
+### Exact next action
+1. Continue from `main` without repeating green CI gates.
+2. Inspect remaining application/demo release criteria.
+3. Make only concrete code changes for observed release gaps.
+4. Run the smallest relevant regression after runtime changes.
+5. Record each meaningful change here.
+
+### Continuity rule
+ZIP/archive generation and archive verification remain permanently out of scope. Continue development directly in GitHub/Codespaces.
+
 ## 2026-09-04 — Milestone 549 — Repository hand-off documentation aligned; archive workflow removed
 
 ### Current repository state
@@ -10,10 +36,10 @@
   - `7f6b20019e4f1aba15bdd96b10eb23ed13442573` — commercial guide archive-workflow removal
 
 ### Work completed
-- Removed the outdated archive/ZIP-oriented hand-off language from `README.md`.
+- Removed outdated archive/ZIP-oriented hand-off language from `README.md`.
 - Reframed `COMMERCIAL_PACKAGE.md` as a commercial deployment guide.
 - Documented repository/source hand-off as the normal workflow.
-- Removed the obsolete final archive-build and archive-verification checklist items.
+- Removed obsolete archive-build and archive-verification checklist items.
 - Kept credential, production-data, deployment, payment, storage and final browser-acceptance requirements explicit.
 
 ### Verification basis
@@ -29,32 +55,3 @@
 
 ### Continuity rule
 ZIP/archive generation and archive verification are permanently out of scope for this workflow. Do not recreate them or use the old CI archive artifact as the next task driver.
-
-## 2026-09-04 — Milestone 548 — Final verification direction corrected: no ZIP delivery
-
-### Current repository state
-- Repository: `nosato0519/video-marketplace`
-- Branch: `main`
-- Latest main commit before this log update: `f9e75f5923e175eef5c7d86f2f22a9a631fba6fc`
-
-### Latest mainline verification
-All latest-main gates recorded at Milestone 547 completed successfully:
-- Functional Demo run `33841997318`: PASS
-- Release Package Check run `33841997268`: PASS
-- Browser UI Acceptance run `33841997298`: PASS
-- Payment Regression run `33841997315`: PASS
-- Browser E2E run `33841997267`: PASS
-- Backend Browser Acceptance run `33841997279`: PASS
-- Clean Install run `33841997311`: PASS (both matrix jobs)
-
-### Important user direction
-- ZIP/package delivery is no longer the delivery objective.
-- Do not spend further work on producing, downloading, checking, or delivering an archive.
-- Continue development and finalization directly in the GitHub repository/Codespaces workflow.
-
-### Exact next action
-1. Do not repeat CI verification that is already green.
-2. Review the repository's current production/demo structure and remaining product-readiness items directly from `main`.
-3. Continue implementing or hardening remaining application work in the repository itself.
-4. After each meaningful change, run the smallest relevant regression/acceptance checks and record the result here.
-5. Keep this log current so the next session can resume without repeating completed work.
