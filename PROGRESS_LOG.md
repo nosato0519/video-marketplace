@@ -75,3 +75,25 @@
 - Current head: `628952265c8e2ebbe171ae1c9c59384940f73a5a`
 - Demo and production app remain separate workstreams.
 - Backend production code remains untouched unless fresh CI or acceptance evidence identifies a concrete defect.
+
+## 2026-09-04 — Milestone 525 — Seller browser acceptance contract corrected
+
+### What changed / verified
+- Re-read the current Seller products production implementation and its browser acceptance fixture before making a change.
+- Confirmed the production UI intentionally sends `mediaAssetId: null` when the product form has a loaded media selector and no video is selected.
+- Corrected only the stale browser acceptance expectation from `undefined` to `null` in `tests/browser-seller-products-acceptance.spec.js`.
+- Kept the production publish gate unchanged: a product can only be published when its protected video is in `ready` state.
+- Commit: `62ddbd01ec37c72c3b98316263965aee2383e65e` — `test: align seller product media fixture contract`.
+
+### Exact resume point
+1. Re-check workflows triggered by the latest commit.
+2. If Browser E2E or another gate fails, inspect the exact new failure and correct only the concrete contract mismatch.
+3. Do not weaken the production media-readiness/publish controls to satisfy a stale test.
+4. After browser gates are clean, continue buyer/seller/admin customer-facing acceptance and release/package verification.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest code commit: `62ddbd01ec37c72c3b98316263965aee2383e65e`
+- Production application logic was not changed in this milestone.
+- Completion is not yet declared; fresh CI and final acceptance remain outstanding.
