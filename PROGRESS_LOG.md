@@ -1,40 +1,34 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 556 — Release checkpoint metadata corrected
+## 2026-09-04 — Milestone 559 — Demo showcase scope synchronized
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
+- Scope clarification: the current `demo/` work is for a customer-facing **sales/showcase demo** of the completed video marketplace system, not a production service that the repository owner must deploy and operate now.
+- Latest scope/state synchronization commit: `8b03acbba95f610d3c9add0ee2867a0125d2fe43`.
 - Latest production-oriented implementation checkpoint remains `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
 - Latest customer-facing showcase UI checkpoint remains `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
-- Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
-- Latest showcase regression-test checkpoint: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
-- Latest progress-log checkpoint before this entry: `7fda31578d0d466634d0da6613e7cb0b9a9a0f21`.
+- Latest demo launcher fix remains `22e1516f10e2a95de5103023abaceca335204077`.
+- Latest showcase regression-test checkpoint remains `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
 
 ### Work completed / verified
-- Corrected the production checkpoint metadata so the authoritative `581cc...` SHA matches the repository state recorded in `PROJECT_STATE.md`.
-- Browser UI Acceptance run `33843376544` completed GREEN: buyer browser acceptance and browser module smoke both passed.
-- Browser E2E run `33843376600` completed GREEN: backend migrations, health, browser E2E against the backend, and result collection all passed.
-- Payment Regression run `33843376547` completed GREEN: payment regression, webhook regression, and protected S3 media adapter regression all passed.
-- Functional Demo run `33843376578` completed GREEN: functional demo verification and polished showcase acceptance both passed.
-- Clean Install run `33843376615` completed GREEN on both Node 20 and Node 22, including dependency installation, migration preflight, migrations, migration-state verification, and core regression tests.
-- This closes the current mainline CI verification gate for the latest implementation checkpoint.
-- No production backend functionality was changed during this verification/documentation continuation.
+- Re-read the authoritative project state and progress log before continuing, avoiding repetition of completed implementation work.
+- Synchronized `PROJECT_STATE.md` with the correct current purpose of the demo: demonstrate the finished system to prospective buyers.
+- Explicitly separated current sales-demo readiness from later customer-specific production deployment/operation.
+- No production backend functionality was changed.
 - No second frontend server was introduced.
 - No ZIP/archive package was created.
 
-### Verification boundary
-- Mainline automated verification is GREEN for the current checkpoint.
-- This CI evidence verifies repository/test environments; it does not mean external production infrastructure is configured.
-- Final production launch remains blocked on external hosting/runtime, production PostgreSQL plus restore drill, protected media storage and backup, production secrets/HTTPS, Stripe live credentials/webhook, and final production-browser smoke/acceptance.
+### Current next work
+1. Continue demo sales-readiness work only: inspect the customer-facing buyer journey in Codespaces.
+2. Walk buyer demo: browse → detail → purchase → library → watch/download.
+3. Walk seller/admin demo journeys and fix only concrete UI defects discovered during that inspection.
+4. Keep production hosting/DB/storage/Stripe/domain configuration deferred until an actual customer deployment is required.
 
-### Remaining release gates
-1. Production hosting/runtime selection and configuration.
-2. Production PostgreSQL provisioning, migrations, backup and restore drill.
-3. Protected production media storage and backup configuration.
-4. Production secrets, secure sessions and HTTPS configuration.
-5. Stripe live credentials and webhook endpoint configuration.
-6. Final real-browser production smoke/acceptance.
+### Verification boundary
+- Existing automated release-hardening gates remain GREEN from the latest verified CI set.
+- CI GREEN validates repository/test environments; it is not a claim that live production infrastructure exists.
 
 ### No-waste rule carried forward
 - Do not recreate completed Buyer/Seller/Admin functionality.
@@ -42,3 +36,4 @@
 - Do not claim GREEN without runtime/browser evidence.
 - Keep demo/showcase evidence separate from production-backend evidence.
 - Do not create or deliver ZIP/archive packages.
+- Do not spend current demo-completion work on production infrastructure that is not required for the sales demo.
