@@ -1,29 +1,28 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 531 — Fresh automated release gates GREEN
+## 2026-09-04 — Milestone 532 — Final showcase regression GREEN
 
 ### What changed / verified
-- Re-checked the latest workflows for application commit `446a935b6b0f0abb2da58a95a7f2dc1bc1ba67c5` before making any new application change.
-- Clean Install `33831211339`: Node 20 and Node 22 both completed successfully through dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
-- Backend Browser Acceptance `33831211295`: completed successfully through backend startup/health checks, Chromium installation, test discovery and real-backend browser E2E.
-- Release Package Check `33831211347`: completed successfully through release safety verification, archive build, archive integrity/content verification and artifact upload.
-- These fresh results confirm the current application tree is automated-GREEN after the payment/refund ledger and fixture corrections.
-- Updated `RELEASE_READINESS.md` to record the fresh automated GREEN checkpoint while keeping customer-specific production deployment and final license/legal requirements explicitly unchecked.
-- No production application logic was changed in this milestone.
+- Confirmed the latest main commit `6ffd53195a06858dc745b6181602340b2de12a9c` has a successful Demo Functional Regression run `33831920856`.
+- The demo regression covers the browser entrypoint/catalog, buyer purchase → entitlement → protected watch + download, unauthorized media rejection, seller authorization → product → upload lifecycle → payout, and admin payout oversight → moderation → seller approval.
+- Confirmed the latest Release Package Check run `33831920982` also completed successfully on the same main commit.
+- Confirmed `LICENSE.md` contains the current commercial license and redistribution terms.
+- Updated `RELEASE_READINESS.md` to record the current demo regression and license checkpoint.
+- No production application logic was changed in this milestone; this checkpoint is documentation/release-state synchronization.
 
-### Exact resume point
-1. Continue with final customer-facing showcase acceptance in `demo/` rather than repeating green automated gates.
-2. Before any demo edit, re-read the current `demo/app.js` and `demo/server.js` and verify the buyer → seller → admin journey against the existing acceptance scripts.
-3. If a concrete demo defect is found, make the smallest evidence-backed correction and rerun the relevant demo verification.
-4. After showcase acceptance, perform the final commercial hand-off review: clean-checkout package, no secrets/customer data/private media, installation/deployment documentation, and commercial license terms.
-5. Keep the distinction between a sellable commercial source package and a live-production deployment. Do not mark customer-specific production integration as complete without actual deployment evidence.
-
-### Current state / boundaries
+### Current state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Application checkpoint: `446a935b6b0f0abb2da58a95a7f2dc1bc1ba67c5`
-- Fresh automated gates: Clean Install Node 20/22 GREEN; Backend Browser Acceptance GREEN; Payment Regression GREEN; Release Package Check GREEN.
-- The production-oriented application is substantially implemented and its current automated release gates are GREEN.
-- `demo/` remains the customer-facing showcase workstream and still requires final visual/behavioral acceptance.
-- Customer-specific production configuration, legal pages, support information, final license/redistribution terms and final desktop/mobile real-deployment acceptance remain outstanding.
+- Latest application/demo checkpoint before documentation sync: `6ffd53195a06858dc745b6181602340b2de12a9c`
+- Demo Functional Regression: GREEN (`33831920856`)
+- Release Package Check: GREEN (`33831920982`)
+- Major application release gates remain GREEN from the previously recorded checkpoint.
+- Buyer, seller and admin demo journey is functionally covered end to end.
+- Commercial license/redistribution terms are now present in `LICENSE.md`.
 
+### Remaining before a real customer goes live
+- Customer-specific production PostgreSQL, object storage, Stripe live credentials/webhook, production secrets, HTTPS/reverse proxy, backups/restore, legal/privacy/terms, support/contact information, and final desktop/mobile real-deployment browser acceptance.
+- Final clean-checkout archive hand-off still needs to be performed immediately before delivery so the exact delivered archive is verified for absence of secrets, customer data and production media.
+
+### Release boundary
+The repository is now at the **commercial source-package release checkpoint**: the implementation, automated release gates, functional showcase regression, documentation and commercial license are in place. It is **not** being labeled live-production-ready until customer-specific production integration and real deployment acceptance are actually completed.
