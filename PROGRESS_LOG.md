@@ -1,5 +1,44 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 537 — Showcase quality gate locked
+
+### What changed / verified
+- Recorded the current polished showcase state before further work so the existing implementation is not lost.
+- Added `demo/showcase-acceptance.mjs` as a dedicated acceptance gate for the customer-facing demo.
+- Added the root `demo:showcase` command to run that gate.
+- The new gate checks the VIDORA storefront presentation, buyer/seller/admin integration markers, responsive layout markers, content completeness, and obvious unfinished placeholder text.
+- The acceptance gate is intentionally additive: it does not weaken authentication, entitlement, protected-media, seller, admin, or payment logic.
+
+### Showcase standard
+The demo is being treated as a commercial product showcase, not a developer test screen. The required standard is:
+- finished marketplace visual hierarchy
+- strong hero and primary CTA
+- credible catalog/product cards
+- clear product-detail and purchase journey
+- clear post-purchase library with watch + download
+- polished creator/seller workspace
+- polished admin/operator console
+- coherent trust/security presentation
+- desktop and mobile responsive layout
+- no obvious placeholder or unfinished presentation
+
+### Current state
+- Current polished `demo/index.html` remains the customer-facing visual baseline.
+- Buyer flow remains browse/search → detail → simulated purchase → library → protected watch/download.
+- Seller flow remains Creator Studio → product → media lifecycle → payout request.
+- Admin flow remains moderation → seller verification → payout oversight.
+- Existing functional E2E remains the behavior gate; the new showcase gate adds a presentation-quality gate.
+
+### Remaining final-delivery work
+1. Let CI execute the new showcase acceptance gate on the latest mainline changes.
+2. Review the resulting CI state and fix only actual failures.
+3. Generate the final commercial archive from a clean checkout of the resulting mainline.
+4. Inspect and checksum that exact archive.
+5. Live production still requires customer-specific PostgreSQL, object storage, payment provider/webhook, secrets, HTTPS, backups, legal/support information, and final desktop/mobile acceptance.
+
+### Release boundary
+The commercial source package can only be called final after the exact current-main archive has been generated and verified. Live-production-ready remains a separate boundary requiring real infrastructure and deployment acceptance.
+
 ## 2026-09-04 — Milestone 536 — Polished showcase demo upgraded
 
 ### What changed / verified
