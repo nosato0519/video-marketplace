@@ -119,3 +119,25 @@
 - Latest code commit: `df363bdee3cfaa53915b6ef3626f4de776f3604b`
 - Production application logic remains unchanged by this milestone.
 - Completion is not yet declared; fresh CI and final customer-facing acceptance remain outstanding.
+
+## 2026-09-04 — Milestone 527 — Browser seller fixture alignment for product creation and publishing
+
+### What changed / verified
+- Corrected the seller product browser fixture so the mocked product list reflects the product created by the POST request; this aligns the test with the production page's real reload behavior and removes the stale `1 product` failure without changing production code.
+- Corrected the seller publish/unpublish browser fixture to include a protected media asset in `ready` state, so the test exercises the intended publish flow rather than fighting the production safety gate.
+- Added a direct assertion that the created draft is visible after reload.
+- Production seller publish/readiness behavior was not weakened or changed.
+- Commits: `f2b994fc85257bdc5a4f60465ed4c6f2027f48ae` and `ef16e186a6999ede7f00b1988be262e91540223c`.
+
+### Exact resume point
+1. Wait for and inspect fresh Browser E2E results from the latest main commits.
+2. If another test fails, inspect the concrete failure before touching production code.
+3. Once Browser E2E is GREEN, verify the remaining release gates and continue customer-facing acceptance.
+4. Keep the protected-media publish gate intact.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest intended test-fix commits: `f2b994fc85257bdc5a4f60465ed4c6f2027f48ae` and `ef16e186a6999ede7f00b1988be262e91540223c`.
+- No production application logic was changed by Milestone 527.
+- Completion is not yet declared; fresh CI remains outstanding.
