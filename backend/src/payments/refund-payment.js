@@ -50,7 +50,32 @@ export async function refundPayment({
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
 
+    const paymentRecord = await client.query(
+      `SELECT id, order_id, provider, provider_payment_id, status
+         FROM payments
+        WHERE order_id = $1 AND provider = $2
+        FOR UPDATE`,
+      [current.id, provider]
+    );
+
+    if (paymentRecord.rowCount === 0) throw new Error('payment_record_not_found');
+    const currentPayment = paymentRecord.rows[0];
+    if (currentPayment.provider_payment_id !== providerPaymentId) {
+      throw new Error('provider_payment_id_mismatch');
+    }
+    if (currentPayment.status !== 'succeeded' && currentPayment.status !== 'refunded') {
+      throw new Error('payment_not_refundable');
+    }
+
     if (current.status === ORDER_STATES.REFUNDED) {
+      if (currentPayment.status !== 'refunded') {
+        await client.query(
+          `UPDATE payments
+              SET status = 'refunded', refunded_at = COALESCE(refunded_at, NOW())
+            WHERE id = $1`,
+          [currentPayment.id]
+        );
+      }
       await client.query(
         `UPDATE payment_events
             SET status = 'processed', processed_at = NOW()
@@ -91,6 +116,14 @@ export async function refundPayment({
       [current.id, current.product_id]
     );
 
+    const updatedPayment = await client.query(
+      `UPDATE payments
+          SET status = 'refunded', refunded_at = NOW()
+        WHERE id = $1
+        RETURNING id, order_id, provider, provider_payment_id, amount, currency, status, succeeded_at, refunded_at`,
+      [currentPayment.id]
+    );
+
     await client.query(
       `UPDATE payment_events
           SET status = 'processed', processed_at = NOW()
@@ -103,6 +136,7 @@ export async function refundPayment({
     return {
       duplicate: false,
       order: updated.rows[0],
+      payment: updatedPayment.rows[0],
       entitlement: revoked.rows[0] ?? null,
       earnings: earnings.rows[0] ?? null,
     };
