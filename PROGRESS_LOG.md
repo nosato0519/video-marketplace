@@ -1,5 +1,44 @@
 # Development Progress Log
 
+## 2026-09-04 — Milestone 522 — Payment fixture correction / CI re-verification in progress
+
+### What changed / verified
+- Continued from Milestone 521 after re-reading the existing progress log and checking current `main` workflow state before making any further changes.
+- A concrete Payment Regression failure was identified: the `completePayment settles a pending order and creates the buyer entitlement` test fixture inserted a payment without the required `provider_payment_id` value.
+- Corrected only that test fixture and committed the fix as `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8` — `test: restore payment settlement fixture and include provider identity`.
+- No production payment logic was changed for this fixture-only failure.
+- Fresh workflows for `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8` are now running. At the latest check, Payment Regression was installing backend dependencies and Browser E2E was installing browser test dependencies; neither had reached its test execution stage yet.
+- Therefore the fixed tree must NOT yet be described as GREEN.
+
+### Exact resume point
+1. Re-check the latest `main` workflows for `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8` before changing code.
+2. If a workflow fails, inspect the exact failed step/log and make only the smallest required correction.
+3. If CI is clean enough, return to `demo/` and re-read `demo/index.html`, `demo/app.js`, and `demo/server.js` before any demo edit.
+4. Continue customer-facing demo acceptance in order: buyer browse → category/filter → product detail → purchase → My Library → watch → download → seller Studio → admin moderation/verification/payout.
+5. Do not repeat the already-fixed `All categories` filter issue or payment pool lifecycle fix.
+6. Keep backend production code untouched unless fresh CI or acceptance evidence identifies a concrete defect.
+7. Update this log after each meaningful fix or acceptance milestone so a later session can resume without repeating work.
+
+### Current state / boundaries
+- Repository: `nosato0519/video-marketplace`
+- Branch: `main`
+- Latest commit: `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8`
+- Core production-oriented application: substantially implemented; final production deployment/configuration remains outstanding.
+- `demo/` is the current customer-facing showcase workstream and is separate from the production-oriented `app/` + `backend/` system.
+- Do not claim 100% completion merely from green tests; demo visual/behavioral acceptance is still required.
+- Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
+
+### Important recent fixes already completed — do not repeat
+- Stripe runtime dependency declared in root `package.json`: `b9f0384ca6e7dc6df5551e28ca33511fc7cd94b`.
+- Stripe webhook startup guard hardening: `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14`.
+- Payment test shared-pool lifecycle fix: `c32d82213089a892e366ef5c69afd13a80dc825a`.
+- Demo category filter alignment: `09fb95b5f1567dea3ea1963af1ea5e884d5446a3eba`.
+- Seller existing-video attachment/selector hardening: `b973a8bcd861837f2dab3c28f98e497b6265362c`.
+- Payment settlement test fixture provider identity restoration: `2e78d64dc6a8979c9a004cbd74cc8f5d2ffbf4b8`.
+
+### Next milestone
+- Confirm post-`2e78d64` CI conclusions → fix only any concrete failures → proceed to demo customer-facing acceptance.
+
 ## 2026-09-04 — Milestone 521 — Stripe webhook startup hardening / CI resume
 
 ### What changed / verified
@@ -30,7 +69,7 @@
 - Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
 
 ### Important recent fixes already completed — do not repeat
-- Stripe runtime dependency declared in root `package.json`: `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- Stripe runtime dependency declared in root `package.json`: `b9f0384ca6e7ec6df5551e28ca33511fc7cd94b`.
 - Stripe webhook startup guard hardening: `beed06cb0ead60a1f0f87ffe93e19f4ac3e18d14`.
 - Canonical product moderation flags migration was added before Milestone 520.
 - Seller existing-video attachment/selector workflow and hardening were already implemented in Milestones 517–518.
@@ -64,7 +103,7 @@
 - Earlier authoritative GREEN checkpoint: `4085a201d53c17ffcfbc88f222bb046380118661`; newer commits require fresh verification.
 
 ### Important recent fixes already completed — do not repeat
-- Stripe runtime dependency declared in root `package.json`: `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- Stripe runtime dependency declared in root `package.json`: `b9f0384ca6e7ec6df5551e28ca33511fc7cd94b`.
 - Payment regression dependency/lifecycle investigation already performed; continue from current CI evidence.
 - Canonical product moderation flags migration was added in the current mainline before this checkpoint.
 - Seller existing-video attachment/selector workflow and hardening were already implemented in Milestones 517–518.
@@ -84,7 +123,7 @@
 - Failed run: `33741995413` (`Payment Regression`) on commit `cef06ee7659685c7f9c440eb3bb15d71a3cbe670`.
 - Failure: `ERR_MODULE_NOT_FOUND: Cannot find package 'stripe'` during `payment-provider.test.js` startup.
 - Browser E2E run `33741995330` for the same commit was still `in_progress` when checked.
-- The dependency fix is committed as `b9f0384cae6d7ec6df5551e28ca33511fc7cd94b`.
+- The dependency fix is committed as `b9f0384ca6e7dc6df5551e28ca33511fc7cd94b`.
 - Fresh post-fix CI verification is still required; no GREEN claim is made for the fixed tree yet.
 
 ### Next gate
