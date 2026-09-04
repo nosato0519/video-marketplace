@@ -43,7 +43,6 @@ try {
     'マイライブラリ',
     'ダウンロード',
     'Creator Studio',
-    'Administration',
     'categorySection',
     'products',
     'workspace',
