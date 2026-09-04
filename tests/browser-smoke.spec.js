@@ -23,10 +23,11 @@ test.describe('public marketplace browser smoke', () => {
 
   test('primary navigation exposes buyer and creator entry points', async ({ page }) => {
     await page.goto(appUrl('#/'));
-    await expect(page.getByRole('link', { name: /Discover/i })).toHaveAttribute('href', '#/browse');
-    await expect(page.getByRole('link', { name: /Categories/i })).toHaveAttribute('href', '#/categories');
-    await expect(page.getByRole('link', { name: /Popular/i })).toHaveAttribute('href', '#/popular');
-    await expect(page.getByRole('link', { name: /Creators/i })).toHaveAttribute('href', '#/creators');
+    const primaryNav = page.getByLabel('Primary');
+    await expect(primaryNav.getByRole('link', { name: /Discover/i })).toHaveAttribute('href', '#/browse');
+    await expect(primaryNav.getByRole('link', { name: /Categories/i })).toHaveAttribute('href', '#/categories');
+    await expect(primaryNav.getByRole('link', { name: /Popular/i })).toHaveAttribute('href', '#/popular');
+    await expect(primaryNav.getByRole('link', { name: /Creators/i })).toHaveAttribute('href', '#/creators');
     await expect(page.getByRole('link', { name: /Become a creator/i })).toHaveAttribute('href', '#/seller/register');
   });
 
