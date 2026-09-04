@@ -32,3 +32,5 @@ jobs:
       - name: Run functional demo E2E
         working-directory: demo
         run: npm run verify
+      - name: Run polished showcase acceptance
+        run: npm run demo:showcase
