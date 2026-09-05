@@ -23,7 +23,7 @@ const injected = `${marker}
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
-  if (req.method === 'GET' && /^\\/ott-pass(?:6|7|17|18|19|20|21|22|23|24|25|26|27|28|29)\\.css$/.test(url.pathname)) {
+  if (req.method === 'GET' && /^\\/ott-pass(?:6|7|17|18|19|20|21|22|23|24|25|26|27|28|29|30)\\.css$/.test(url.pathname)) {
     const css = await readFile(join(ROOT, url.pathname.slice(1)), 'utf8');
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
@@ -31,7 +31,7 @@ const injected = `${marker}
   if (req.method === 'GET' && url.pathname === '/') {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
     const safeHtml = html
-      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"><link rel="stylesheet" href="/ott-pass24.css"><link rel="stylesheet" href="/ott-pass25.css"><link rel="stylesheet" href="/ott-pass26.css"><link rel="stylesheet" href="/ott-pass27.css"><link rel="stylesheet" href="/ott-pass28.css"><link rel="stylesheet" href="/ott-pass29.css"></head>')
+      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"><link rel="stylesheet" href="/ott-pass24.css"><link rel="stylesheet" href="/ott-pass25.css"><link rel="stylesheet" href="/ott-pass26.css"><link rel="stylesheet" href="/ott-pass27.css"><link rel="stylesheet" href="/ott-pass28.css"><link rel="stylesheet" href="/ott-pass29.css"><link rel="stylesheet" href="/ott-pass30.css"></head>')
       .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
       .replace('<option>All categories</option>', '<option value="All categories">All categories</option>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
