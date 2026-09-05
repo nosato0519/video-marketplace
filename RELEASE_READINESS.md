@@ -12,17 +12,16 @@ This checklist is the release gate for selling the repository as a customer-inst
 
 ## 2. Automated release gates
 
-The current application tree at commit `6ffd53195a06858dc745b6181602340b2de12a9c` has passed the fresh major automated release gates, including the latest demo regression.
+Current `main` HEAD is `a6994f5038c56cf5136202a4a2262a9d80efabe4`.
 
-- [x] Clean Install — Node 20: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
-- [x] Clean Install — Node 22: dependency installation, migration preflight, migrations, migration-state verification and core regression tests.
-- [x] Browser UI Acceptance — Playwright/Chromium Buyer browser acceptance and browser module smoke.
-- [x] Backend Browser Acceptance — migrations, backend acceptance suite, health checks and real-backend browser acceptance.
-- [x] Payment Regression — payment provider, Stripe webhook and S3 media-storage regression tests.
-- [x] Release Package Check — release safety verification, archive build, archive integrity/content verification and artifact upload.
-- [x] Demo Functional Regression — browser entrypoint, catalog, buyer purchase/entitlement/watch/download, seller product/media/payout flow, and admin payout/moderation/seller approval flow.
+Fresh verification on this HEAD:
 
-The latest Demo Functional Regression run `33831920856` completed successfully on the current main commit. The latest Release Package Check run `33831920982` also completed successfully on the same commit.
+- [x] Browser E2E — GitHub Actions run `33943365067` completed successfully.
+- [x] Backend Regression — GitHub Actions run `33943365019` completed successfully, including migrations, backup/restore, core tests, Buyer purchase, Seller application/product/media/earnings/payout, Admin payout concurrency, media authorization/upload/access, security regression and functional sales demo E2E.
+
+Earlier full release-gate runs `33831920856` (Demo Functional Regression) and `33831920982` (Release Package Check) also completed successfully, but they ran against an earlier commit and are retained as historical evidence rather than current-HEAD evidence.
+
+The clean-install, payment-regression and release-package checks still require fresh current-HEAD runs before claiming the entire automated release-gate matrix is green.
 
 ## 3. Buyer acceptance
 
@@ -52,7 +51,7 @@ The latest Demo Functional Regression run `33831920856` completed successfully o
 
 ## 6. Showcase demo quality
 
-The separate `demo/` package is the commercial sales showcase. Its automated functional regression is GREEN on the current main commit.
+The separate `demo/` package is the commercial sales showcase. Current-HEAD functional demo coverage is GREEN through Backend Regression run `33943365019`.
 
 Required presentation journey:
 
