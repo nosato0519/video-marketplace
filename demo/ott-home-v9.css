@@ -1,0 +1,59 @@
+@import url('/ott-home-v3.css');
+
+/* V9 — clean premium marketplace. Intentionally does NOT import V6/V7/V8. */
+:root{
+  --bg:#0b0d10;
+  --panel:#12161c;
+  --panel-2:#171c23;
+  --text:#f4f2ed;
+  --muted:#98a0aa;
+  --line:#ffffff18;
+  --accent:#d6a45a;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Noto Sans JP","Yu Gothic",Arial,sans-serif}
+.nav{height:68px;padding:0 4vw;gap:28px;background:#0b0d10f2;border-bottom:1px solid var(--line)}
+.logo{font-size:23px;color:#fff}.logo span{color:#7f8994}
+.nav nav{gap:20px}.nav nav a,.nav-right>a{color:#b9c0c8}
+.searchbox{width:220px;height:36px;border:1px solid #ffffff20;border-radius:6px;background:#12161c}
+.sell{background:#fff!important;color:#0b0d10!important;border-radius:5px!important;padding:10px 14px}
+.hero{height:410px;min-height:410px;background:#0b0d10;border-bottom:1px solid var(--line)}
+.hero-bg{display:none}
+.hero-copy{padding:48px 0 50px 6vw;max-width:570px}
+.eyebrow{font-size:9px;letter-spacing:2.5px;color:#aab0b7}.eyebrow span{color:var(--accent)}
+.hero h1{font-size:clamp(50px,6.1vw,82px);line-height:.88;letter-spacing:-5px;margin:17px 0 18px;color:#fff}
+.hero h1 em{color:var(--accent)}
+.hero-copy p{font-size:13px;line-height:1.7;color:#9da5ae;max-width:420px}
+.hero-meta{gap:6px;margin:14px 0}.hero-meta>*{padding:5px 8px;border:1px solid var(--line);color:#aeb5bd;font-size:9px}
+.actions{gap:12px;margin-top:17px}.primary{min-height:40px;padding:0 15px!important;background:#fff!important;color:#0b0d10!important;border-radius:5px!important}.secondary{min-height:40px;padding:0 0!important;border:0!important;border-bottom:1px solid #fff5!important;border-radius:0!important;color:#d8dbe0!important}
+.hero-mosaic{width:430px;height:315px;right:4vw;top:38px}
+.mosaic-card{border:1px solid #ffffff20;border-radius:7px;background:#12161c;box-shadow:0 18px 50px #0008}
+.mc1{width:205px;height:255px;left:0;top:48px;transform:rotate(-3deg)}
+.mc2{width:185px;height:235px;right:0;top:0;transform:rotate(3deg)}
+.mc3{width:180px;height:195px;right:75px;bottom:0;transform:rotate(-1deg)}
+.mosaic-tag{background:var(--accent);color:#101114;padding:7px 10px;border-radius:4px;font-size:8px;letter-spacing:1px}
+.mtext{padding:8px 10px}.mtext b{font-size:10px}.mtext span{font-size:8px;color:#a8afb7}
+.hero:after{content:'01 / MARKETPLACE';right:4vw;bottom:12px;font-size:8px;color:#707983;letter-spacing:2px}
+.trustbar{margin:-1px 4vw 0;padding:16px 22px;border-radius:8px;background:#12161c;border:1px solid var(--line);box-shadow:0 18px 50px #0007}.trustbar b{background:#1b222b;color:var(--accent)}.trustbar strong{color:#f2f2f0}.trustbar span{color:#858e98}
+.section{padding:72px 4vw 4px}.section-head{margin-bottom:20px;border-bottom:1px solid var(--line);padding-bottom:14px}.section-head h2{font-size:34px;letter-spacing:-1.5px}.section-kicker{font-size:9px;color:var(--accent);letter-spacing:2.5px}
+/* THE IMPORTANT FIX: exactly 3 columns, exactly equal cards, no featured card, no stagger. */
+.video-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;align-items:start!important;gap:18px!important;position:relative!important}
+.video-card,.video-card:first-child,.video-card.featured-card{grid-column:span 1!important;grid-row:auto!important;margin:0!important;padding:0!important;min-width:0!important;align-self:start!important;background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:7px!important;overflow:hidden!important;box-shadow:none!important;transform:none!important}
+.video-card:hover{transform:translateY(-3px)!important;border-color:#d6a45a66!important}
+.video-card .thumb,.video-card:first-child .thumb,.video-card.featured-card .thumb{height:190px!important;min-height:190px!important;aspect-ratio:auto!important}
+.video-card .card-info{padding:13px!important}.card-info .category{color:var(--accent);font-size:8px}.card-info h3{font-size:15px;margin:6px 0}.card-info p{font-size:10px;color:#87909a;margin-bottom:12px}.card-bottom{border-top:1px solid var(--line);padding-top:10px;color:#7f8993}.card-bottom b{color:#fff;font-size:12px}.quality,.duration{background:#0b0d10e8!important;border:1px solid #fff2!important;border-radius:3px!important}.quality{color:var(--accent)!important}
+.platform{margin:78px 4vw 0;padding:58px 5vw;background:#11161d;border:1px solid var(--line);border-radius:9px}.platform h2{font-size:50px}.platform-head p{color:#929aa4}.role{border-radius:7px;background:#0d1218;border:1px solid var(--line)}.role.creator-role,.role.admin-role{border-top:3px solid var(--accent)}
+.spotlight{margin:78px 4vw 0;padding:65px 5vw;border-radius:9px;background:#12171e;border:1px solid var(--line)}.spotlight h2{font-size:50px}.spotlight-stack .mini{border-radius:6px;background:#171d25;border:1px solid var(--line)}
+.finder{margin:78px 4vw 0;border-radius:9px;background:#11161d;border:1px solid var(--line)}
+.category-section{padding-top:72px}.category-grid{gap:10px}.cat{border-radius:7px;background:#12171e;border:1px solid var(--line)}
+.library{margin:78px 4vw 0;border-radius:9px;background:#11161d;border:1px solid var(--line)}
+.creator{border-radius:9px;background:#14191f;border:1px solid var(--line)}
+.cta{border-radius:9px;background:var(--accent)}
+footer{border-radius:0;background:#07090c}
+@media(max-width:1100px){.hero-mosaic{right:-20px;opacity:.65}.hero-copy{max-width:500px}.video-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:760px){
+ .hero{height:560px;min-height:560px}.hero-copy{padding:44px 6vw 0}.hero h1{font-size:55px;letter-spacing:-4px}.hero-mosaic{width:360px;height:270px;right:-95px;top:285px;opacity:.3}
+ .video-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important}.video-card,.video-card:first-child,.video-card.featured-card{grid-column:span 1!important}.video-card .thumb,.video-card:first-child .thumb,.video-card.featured-card .thumb{height:155px!important;min-height:155px!important}
+ .section{padding-top:58px}.platform h2,.spotlight h2{font-size:42px}
+}
