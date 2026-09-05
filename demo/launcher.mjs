@@ -7,35 +7,15 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 const source = await readFile(join(root, 'server.js'), 'utf8');
 const marker = "  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`); const s = session(req, res);";
 const injected = `${marker}
-  if (req.method === 'GET' && url.pathname === '/app.js') {
-    const app = await readFile(join(ROOT, 'app.js'), 'utf8');
-    const boot = await readFile(join(ROOT, 'boot.js'), 'utf8');
-    res.writeHead(200, {'content-type':'application/javascript; charset=utf-8','cache-control':'no-store'});
-    res.end(app + '\\n' + boot); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/boot.js') {
-    const boot = await readFile(join(ROOT, 'boot.js'), 'utf8');
-    res.writeHead(200, {'content-type':'application/javascript; charset=utf-8','cache-control':'no-store'});
-    res.end(boot); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-polish.css') {
-    const css = await readFile(join(ROOT, 'ott-polish.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && /^\\/ott-pass(?:6|7|17|18|19|20|21|22|23|24|25|26|27|28|29|30)\\.css$/.test(url.pathname)) {
-    const css = await readFile(join(ROOT, url.pathname.slice(1)), 'utf8');
+  if (req.method === 'GET' && url.pathname === '/ott-home.css') {
+    const css = await readFile(join(ROOT, 'ott-home.css'), 'utf8');
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
   if (req.method === 'GET' && url.pathname === '/') {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
-    const safeHtml = html
-      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"><link rel="stylesheet" href="/ott-pass24.css"><link rel="stylesheet" href="/ott-pass25.css"><link rel="stylesheet" href="/ott-pass26.css"><link rel="stylesheet" href="/ott-pass27.css"><link rel="stylesheet" href="/ott-pass28.css"><link rel="stylesheet" href="/ott-pass29.css"><link rel="stylesheet" href="/ott-pass30.css"></head>')
-      .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
-      .replace('<option>All categories</option>', '<option value="All categories">All categories</option>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
-    res.end(safeHtml); return;
+    res.end(html); return;
   }
 `;
 if (!source.includes(marker)) throw new Error('server injection marker not found');
