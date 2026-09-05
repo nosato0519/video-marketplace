@@ -33,7 +33,8 @@ const injected = `${marker}
     const safeHtml = html
       .replace('</head>', '<link rel="stylesheet" href="/visual-overhaul.css"><link rel="stylesheet" href="/visual-reference-pass-2.css"></head>')
       .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
-      .replace('<option>All categories</option>', '<option value="All categories">All categories</option>');
+      .replace('<option>All categories</option>', '<option value="All categories">All categories</option>')
+      .replace('見つける。<br><span>買う。売る。</span>', '見つける。<br><span>買う。楽しむ。</span>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(safeHtml); return;
   }
