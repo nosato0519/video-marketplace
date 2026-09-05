@@ -5,64 +5,50 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VIDORA — Browse</title>
 <meta name="description" content="VIDORA OTT Browse">
-<link rel="stylesheet" href="/ott-home.css?v=20260905-4">
+<link rel="stylesheet" href="/ott-home.css?v=20260905-5">
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="#">VIDORA</a>
-  <nav class="primary-nav" aria-label="Primary"><a class="active" href="#">Browse</a><a href="#search">Search</a></nav>
-  <div class="account-nav"><a href="#library">Library</a><button class="account" aria-label="Account">S</button></div>
+  <nav class="nav" aria-label="Primary"><a class="active" href="#">Browse</a><a href="#search">Search</a></nav>
+  <div class="right-nav"><a href="#library">Library</a><button class="avatar" aria-label="Account">S</button></div>
 </header>
 
 <main>
-  <section class="hero" aria-label="Featured carousel">
-    <div class="hero-art"></div>
-    <div class="hero-overlay"></div>
-    <div class="hero-copy">
-      <p class="eyebrow">FEATURED</p>
-      <h1>THE ART OF<br>MOVING IMAGE</h1>
-      <p class="hero-description">Stories, films and original series selected for people who love great visual storytelling.</p>
-      <div class="hero-actions"><button class="primary">Watch Now</button><button class="secondary">＋ My List</button></div>
+  <section class="featured" aria-label="Featured carousel">
+    <img class="featured-image" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=2400&q=90" alt="Featured content">
+    <div class="featured-shade"></div>
+    <div class="featured-content">
+      <h1>The Art of Moving Image</h1>
+      <p>Stories, films and original series selected for people who love great visual storytelling.</p>
+      <div class="actions"><button class="watch">Watch Now</button><button class="list">＋ My List</button></div>
     </div>
-    <div class="hero-dots" aria-label="Featured carousel pages"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="dots" aria-label="Featured carousel pages"><span class="selected"></span><span></span><span></span><span></span><span></span></div>
   </section>
 
-  <section class="browse" id="library">
+  <section class="content" id="library">
     <section class="rail continue">
       <h2>Continue Watching</h2>
-      <div class="cards">
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1280&q=85" alt="Behind the Frame"><span class="progress"><b style="width:68%"></b></span></div><h3>Behind the Frame</h3><p>Resume watching</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1280&q=85" alt="Open Roads"><span class="progress"><b style="width:42%"></b></span></div><h3>Open Roads</h3><p>Resume watching</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1280&q=85" alt="The Long Weekend"><span class="progress"><b style="width:25%"></b></span></div><h3>The Long Weekend</h3><p>Resume watching</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1280&q=85" alt="Live Sessions"><span class="progress"><b style="width:54%"></b></span></div><h3>Live Sessions</h3><p>Resume watching</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1280&q=85" alt="Creators at Work"><span class="progress"><b style="width:31%"></b></span></div><h3>Creators at Work</h3><p>Resume watching</p></article>
+      <div class="row">
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=85" alt="Behind the Frame"><b class="progress" style="--progress:68%"></b></div><h3>Behind the Frame</h3><p>12 min remaining</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85" alt="Open Roads"><b class="progress" style="--progress:42%"></b></div><h3>Open Roads</h3><p>28 min remaining</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1200&q=85" alt="The Long Weekend"><b class="progress" style="--progress:25%"></b></div><h3>The Long Weekend</h3><p>41 min remaining</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=85" alt="Live Sessions"><b class="progress" style="--progress:54%"></b></div><h3>Live Sessions</h3><p>19 min remaining</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1200&q=85" alt="Creators at Work"><b class="progress" style="--progress:31%"></b></div><h3>Creators at Work</h3><p>35 min remaining</p></article>
       </div>
     </section>
 
     <section class="rail">
-      <h2>New &amp; Noteworthy</h2>
-      <div class="cards">
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1280&q=85" alt="Award Winners"></div><h3>Award Winners</h3><p>12 titles</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?auto=format&fit=crop&w=1280&q=85" alt="Documentaries"></div><h3>Documentaries</h3><p>24 titles</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1280&q=85" alt="Music and Culture"></div><h3>Music &amp; Culture</h3><p>18 titles</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1280&q=85" alt="Business"></div><h3>Business</h3><p>31 titles</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1280&q=85" alt="Creative Practice"></div><h3>Creative Practice</h3><p>8 episodes</p></article>
-      </div>
-    </section>
-
-    <section class="rail">
-      <h2>Popular</h2>
-      <div class="cards">
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1280&q=85" alt="Creators at Work"></div><h3>Creators at Work</h3><p>Season 2</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=1280&q=85" alt="Sound and Story"></div><h3>Sound &amp; Story</h3><p>12 episodes</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1280&q=85" alt="Inside the Studio"></div><h3>Inside the Studio</h3><p>6 episodes</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1280&q=85" alt="Live From Here"></div><h3>Live From Here</h3><p>5 episodes</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1280&q=85" alt="Making It"></div><h3>Making It</h3><p>8 episodes</p></article>
+      <h2>Featured</h2>
+      <div class="row">
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1200&q=85" alt="Award Winners"></div><h3>Award Winners</h3><p>Documentary</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?auto=format&fit=crop&w=1200&q=85" alt="Documentaries"></div><h3>Documentaries</h3><p>Collection</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=85" alt="Music and Culture"></div><h3>Music &amp; Culture</h3><p>Series</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85" alt="Business"></div><h3>Business</h3><p>Collection</p></article>
+        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=85" alt="Creative Practice"></div><h3>Creative Practice</h3><p>Series</p></article>
       </div>
     </section>
   </section>
 </main>
-
-<footer><span>VIDORA</span><a href="#">Help</a><a href="#">Terms</a><a href="#">Privacy</a></footer>
 </body>
 </html>
