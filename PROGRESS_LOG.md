@@ -114,7 +114,22 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - `demo/launcher.mjs`
 - `PROGRESS_LOG.md`
 
+## Milestone 580 — Stabilized staggered gallery + expanded recommendations
+
+- Corrected the separate **作品との出会いを、もっと自由に。** gallery so its stagger is subtle and structurally stable instead of producing a broken silhouette.
+- Kept the staggered section separate from **人気の動画**; the popular grid remains a normal 3-column × 3-row layout.
+- Reduced the vertical offsets and constrained the gallery rows so cards remain aligned and do not visually collapse into the following section.
+- Added a new **ジャンル別おすすめ** section with 6 additional image-backed recommendation cards.
+- Added six more unique image URLs; the new recommendation thumbnails do not intentionally reuse the images in the existing new-content sections.
+- Refreshed the homepage stylesheet cache version to V19.
+- This remains visual/content expansion only; existing application functionality is untouched.
+
+### Files changed
+- `demo/ott-home-v13.css`
+- `demo/launcher.mjs`
+- `PROGRESS_LOG.md`
+
 ### Status
-- Render auto-deploy is processing the new homepage content.
+- Homepage visual design remains Screen #1.
 - V9 remains the official rollback/reference baseline.
-- Current position remains Screen #1: **Top page**.
+- Next inspection target: verify the stabilized staggered gallery and the expanded content hierarchy in the live demo before further visual changes.
