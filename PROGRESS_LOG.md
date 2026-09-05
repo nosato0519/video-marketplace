@@ -1,30 +1,32 @@
 # Development Progress Log
 
-## 2026-09-04 — Milestone 563 — VIDORA Codespaces launch reliability fix
+## 2026-09-05 — Milestone 564 — Showcase verification boundary and resume checkpoint
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - `demo/` remains the customer-facing sales/showcase demo of the video marketplace system.
 - Buyer/Seller/Admin functionality is preserved.
+- Latest showcase-copy commit: `f6084d49ba7334975286ef80a892a9f73842abee`.
+- Latest bookkeeping commit: `5354b9e1550c5c6c8f289fc75f0cd3233eeddeaf`.
 
-### Concrete issue addressed
-- The demo was not visible because the Codespaces configuration only handled container start; it did not ensure the demo server starts when the workspace is attached.
-- Updated `.devcontainer/devcontainer.json` to run the same health-checked VIDORA startup command on both `postStartCommand` and `postAttachCommand`.
-- Port `4173` remains configured for automatic forwarding with browser opening.
-- The startup command checks `/api/health` first, so an already-running demo is not started a second time.
+### Completed work confirmed from repository
+- Codespaces startup/forwarding fix remains in `.devcontainer/devcontainer.json`: health-checked launcher on both `postStartCommand` and `postAttachCommand`, port `4173` auto-forward/open-browser.
+- Functional demo E2E covers browser entrypoint, catalog, Buyer purchase/entitlement/Watch/Download, unauthorized media rejection, Seller product/upload/payout, and Admin payout/moderation/seller approval.
+- The showcase UI copy was aligned with the product direction in `demo/boot.js`.
 
 ### Verification boundary
-- `.devcontainer/devcontainer.json` is committed on `main` at commit `bbe21bb38822a1947ee23e61f309ebdbbdd44cc5`.
-- The repository configuration is correct for automatic startup/forwarding when Codespaces applies the devcontainer configuration.
-- This assistant cannot directly control or restart the user's already-running Codespace, so the existing Codespace may need one rebuild/reopen before the new devcontainer hooks take effect.
-- No claim is made that the user's current browser is already displaying the page until runtime evidence exists.
+- Demo Functional Regression run `33831920856` is confirmed successful, but it predates the latest hero-copy commit.
+- The latest hero-copy change is limited to presentation text; nevertheless, the current HEAD is intentionally marked **pending re-verification** until a new CI/runtime result exists.
+- No claim is made that the user's currently open Codespace/browser is displaying the demo until runtime evidence exists.
 
 ### Next checkpoint
-- Apply the updated devcontainer configuration to the Codespace, then open forwarded port `4173`.
-- If the page still does not appear after the configuration is applied, inspect the runtime/server log and fix that concrete failure only.
+1. Re-run `npm --prefix demo run verify` on the current `main` HEAD.
+2. Re-apply/rebuild the Codespace devcontainer if the existing workspace has not consumed the startup-hook change.
+3. Open forwarded port `4173` and confirm the actual showcase page.
+4. If a runtime failure appears, inspect that concrete failure and fix only that failure.
 
 ### No-waste rule
 - Do not recreate completed Buyer/Seller/Admin functionality.
 - Do not repeat visual work already completed.
-- Do not claim browser/runtime success without evidence.
+- Do not label the current HEAD fully green without fresh verification evidence.
