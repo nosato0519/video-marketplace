@@ -67,6 +67,27 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - `demo/launcher.mjs`
 
 ### Status
-- V10 has been committed and Render deployment is in progress.
-- This is a visual trial only; accept/reject after visual inspection.
-- If rejected, revert to V9 baseline rather than modifying V9 itself.
+- V10 was a visual trial only; it is superseded by V11 for the current inspection.
+- V9 remains the rollback/reference point.
+
+## Milestone 575 — VIDORA Top Page V11 Staggered Video Gallery Experiment
+
+### Purpose
+- Replace the V10 typography section with a **video-first visual section directly below the first-view hero**.
+- Direction is based on the user's requested idea: many video works arranged with a deliberate **段違い / staggered gallery rhythm**, rather than a large text block.
+
+### Change
+- Added nine video visuals directly below the hero.
+- Cards use different vertical offsets to create a cinematic editorial gallery impression.
+- Existing video thumbnail art (`t1` through `t9`) is reused so the section feels like the actual marketplace rather than abstract placeholders.
+- Removed the V10 `WATCH / BUY / OWN` section from the active presentation.
+- Existing functional/application behavior is untouched; this is visual-only.
+
+### Files
+- `demo/ott-home-v11.css`
+- `demo/launcher.mjs`
+
+### Status
+- V11 is the current visual experiment awaiting inspection.
+- V9 remains the official rollback/reference baseline.
+- Current position remains Screen #1: **Top page**; do not proceed to Screen #2 until the top page is accepted.
