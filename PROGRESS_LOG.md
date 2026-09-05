@@ -90,3 +90,21 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - V13 is the current visual experiment awaiting inspection.
 - V9 remains the official rollback/reference baseline.
 - Current position remains Screen #1: **Top page**; do not proceed to Screen #2 until the top page is accepted.
+
+## Milestone 578 — Requested visual corrections only
+
+- Reduced the three overlapping hero images substantially so they no longer dominate the first viewport.
+- Restored the missing **ADULT / アダルト** category in the rendered homepage without removing the existing lifestyle category.
+- Kept the popular-video area as the required normal 3-column × 3-row grid; no stagger was applied there.
+- Kept the separate "作品との出会いを、もっと自由に。" section above the trust bar and made its five unique image cards visibly stagger vertically.
+- Kept the existing trust-bar messages and the rest of the page structure unchanged.
+- Refreshed the active stylesheet cache version to V17 so Render serves the corrected visual immediately.
+
+### Files changed
+- `demo/ott-home-v13.css`
+- `demo/launcher.mjs`
+
+### Status
+- Current visual correction is deployed through the existing Render auto-deploy pipeline.
+- V9 remains the official rollback/reference baseline.
+- Current position remains Screen #1: **Top page**.
