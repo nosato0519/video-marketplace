@@ -7,8 +7,9 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 const source = await readFile(join(root, 'server.js'), 'utf8');
 const marker = "  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`); const s = session(req, res);";
 const injected = `${marker}
-  if (req.method === 'GET' && url.pathname === '/ott-home.css') {
-    const css = await readFile(join(ROOT, 'ott-home.css'), 'utf8');
+  if (req.method === 'GET' && (url.pathname === '/ott-home.css' || url.pathname === '/ott-home-v2.css')) {
+    const cssFile = url.pathname === '/ott-home-v2.css' ? 'ott-home-v2.css' : 'ott-home.css';
+    const css = await readFile(join(ROOT, cssFile), 'utf8');
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
