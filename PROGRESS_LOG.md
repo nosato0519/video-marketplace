@@ -51,43 +51,35 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 
 ## Milestone 574 — VIDORA Top Page V10 Impact Typography Experiment
 
-### Purpose
-- V10 is an **experiment built on top of the V9 baseline**, not a replacement completion state.
-- The V9 baseline remains the rollback/reference point.
-
-### Change
-- Added a new black editorial section immediately below the first-view hero.
-- Direction: bold oversized typography, restrained charcoal/white/gray palette, muted gold accent.
-- Message: `WATCH. / BUY. / OWN.` with supporting copy about discovering, purchasing, and owning video works.
-- Existing popular-video section and the rest of the page remain structurally unchanged.
-- No business/application functionality was added or changed.
-
-### Files
-- `demo/ott-home-v10.css`
-- `demo/launcher.mjs`
-
-### Status
-- V10 was a visual trial only; it is superseded by V11 for the current inspection.
-- V9 remains the rollback/reference point.
+- V10 was a visual trial adding a large `WATCH / BUY / OWN` typography section below the hero.
+- V10 was rejected as a direction; V9 remains the rollback/reference point.
 
 ## Milestone 575 — VIDORA Top Page V11 Staggered Video Gallery Experiment
 
+- V11 experimented with making the popular-video area itself staggered.
+- This was rejected: **人気の動画は前の通常3列×3段の見せ方を維持する**。
+- V9 remains the rollback/reference point.
+
+## Milestone 576 — VIDORA Top Page V12 Separate Video Showcase Experiment
+
 ### Purpose
-- Replace the V10 typography section with a **video-first visual section directly below the first-view hero**.
-- Direction is based on the user's requested idea: many video works arranged with a deliberate **段違い / staggered gallery rhythm**, rather than a large text block.
+- Keep the **V9 first-view, trust bar, and popular-video section** as the preferred structure.
+- Add a **separate content section between the first-view and the trust bar** rather than changing the popular-video grid itself.
 
 ### Change
-- Added nine video visuals directly below the hero.
-- Cards use different vertical offsets to create a cinematic editorial gallery impression.
-- Existing video thumbnail art (`t1` through `t9`) is reused so the section feels like the actual marketplace rather than abstract placeholders.
-- Removed the V10 `WATCH / BUY / OWN` section from the active presentation.
-- Existing functional/application behavior is untouched; this is visual-only.
+- Added a new `video-showcase` section immediately below the hero.
+- This section uses five video visuals in a cinematic asymmetric composition: one tall lead visual with four supporting visuals of different widths.
+- The section is intended to create the requested feeling of **many videos / rich content** without turning the actual "人気の動画" area into a staggered grid.
+- The trust bar remains the V9-style compact panel with four benefits: safe payment, immediate viewing after purchase, download support, and protected delivery.
+- The "人気の動画" area remains the V9-style **3 columns × 3 rows** layout.
+- V10/V11 typography/staggered-popular experiments are not used in this V12 presentation.
+- No business/application functionality was changed; this is visual-only.
 
 ### Files
-- `demo/ott-home-v11.css`
+- `demo/ott-home-v12.css`
 - `demo/launcher.mjs`
 
 ### Status
-- V11 is the current visual experiment awaiting inspection.
+- V12 is the current visual experiment awaiting inspection.
 - V9 remains the official rollback/reference baseline.
 - Current position remains Screen #1: **Top page**; do not proceed to Screen #2 until the top page is accepted.
