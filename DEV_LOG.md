@@ -2,39 +2,33 @@
 
 `PROJECT_STATE.md` is the authoritative project state.
 
-## 2026-08-27 — Current session
+## 2026-09-05 — Premium showcase redesign
 
-### Seller implementation progress
-- Seller Dashboard foundation exists at `storefront/seller.html`.
-- Seller product listing uses authenticated `/api/seller/products`.
-- Seller video upload uses authenticated `/api/seller/media/upload` with actual video MIME type and original filename.
-- Uploaded media asset ID is carried into draft creation.
-- Seller product list exposes Edit, Publish and Unpublish according to product state.
-- Publish validation bug fixed in `backend/src/seller/product-routes.js`: `validateProductForPublishing` expects a singular `mediaAsset`, and the route now passes the actual media asset ID, owner and status.
-- Added authenticated `GET /api/seller/media/assets`, returning only the logged-in seller's media assets.
-- Integrated the persistent media asset library into the Seller Dashboard. Sellers can now see uploaded videos, select one for a new draft, and select an existing asset while editing a draft.
-- Seller media selection no longer depends solely on a browser-held Media Asset ID: the dashboard reloads the seller's asset library from the backend.
-- Seller UI commit for media-library integration: `2f88a9b160dc6afec99b13f83a74a5ed36fbabf9`.
+### User-directed design reset
+- The previous demo visual direction was explicitly rejected and is no longer treated as the target.
+- The current target is a high-quality commercial video marketplace showcase: stylish enough to impress a prospective system buyer while keeping navigation and functionality immediately understandable.
+- The design must not become a generic overseas-site imitation; useful marketplace UX patterns are retained without copying a specific service.
 
-### Existing work already completed
-- Core Node/Express/PostgreSQL backend foundation.
-- Catalog/product/order/checkout boundaries.
-- Payment webhook settlement and idempotent entitlement grant foundations.
-- Entitlement-gated streaming and buyer download with range support.
-- Private media storage boundary and startup security validation.
-- Buyer Library and Order History localization foundations.
-- Seller Dashboard authenticated product/upload/publish/edit integration.
-- Product vision, seller handoff guide and operations manual foundations.
+### Implemented
+- Reworked `demo/visual-overhaul.css` into a substantially different premium editorial marketplace visual system.
+- Introduced warm premium palette, stronger typography hierarchy, cinematic hero treatment, refined navigation, elevated cards, editorial section spacing, stronger search/filter presentation, polished category cards, creator/admin workspace styling, modal/player styling and responsive mobile behavior.
+- Added visual treatment for hover/focus states, layered shadows, subtle grid texture, glass navigation, premium CTA hierarchy and reduced-motion support.
+- Updated the hero presentation to visibly use the required phrase `見つける。買う。楽しむ。` while preserving the existing interaction markup and demo logic.
+- Preserved the existing launcher architecture: the stylesheet is served through the existing `/visual-overhaul.css` route and injected by `demo/launcher.mjs`; no second frontend server was introduced.
 
-### Current work target
-1. Finish Seller asset-selection UX and acceptance tests.
-2. Add Seller onboarding/verification screens.
-3. Add sales/earnings and payout screens.
-4. Then build no-code Admin moderation/approval operations.
-5. Continue production object storage/CDN, end-to-end payment/database testing and final acceptance.
+### Commits
+- Visual redesign: `947fc2dec75d32b0b98aed53666c3a5dba8c1d11`
+- Project state checkpoint: `6ada96f1ac3163bc37608be72dda0b862e76bd4a`
 
-### Important rules
-- Do not claim Seller E2E complete until upload -> attach -> edit -> publish -> catalog visibility has been tested against a real configured backend/database.
-- Do not bypass backend ownership or publish validation in the UI.
-- Do not call the ten supported locales production-ready until translation catalogs and UI acceptance are complete.
-- Start future sessions by reading `PROJECT_STATE.md` and this log.
+### Verification boundary
+- Existing 2026-09-04 CI gates remain the baseline evidence for the prior demo/backend behavior.
+- Fresh rendered browser inspection of this new visual pass has not yet been performed in this session.
+- Do not call the new design final until desktop/mobile rendering and Buyer/Seller/Admin journeys are inspected.
+
+### Next work
+1. Refresh Codespaces/demo runtime.
+2. Inspect desktop and mobile visual result.
+3. Run buyer browse → detail → purchase → library → watch/download.
+4. Run seller Creator Studio flow.
+5. Run admin moderation/verification flow.
+6. Fix only concrete defects found.
