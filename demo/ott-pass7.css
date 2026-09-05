@@ -45,5 +45,17 @@
 #categorySection .cat b{font-size:13px!important;padding-top:1px!important}
 #categorySection .cat small{font-size:10px!important;opacity:.68!important}
 .section:not(.hero):after{opacity:.7!important}
-@media(max-width:800px){.links button:after{display:none!important}.hero{height:72vh!important;min-height:640px!important;padding-bottom:76px!important}.heroInner{max-width:620px!important}.hero h1{font-size:54px!important}.section:not(.hero):after{left:5vw;right:5vw}.hero:before{background:radial-gradient(circle at 80% 38%,rgba(255,255,255,.04),transparent 38%)!important}#market .row,#categorySection .catgrid{mask-image:none!important}}
-@media(max-width:560px){.hero{height:650px!important;min-height:0!important;padding:0 5vw 54px!important}.hero h1{font-size:47px!important}.hero .eyebrow{font-size:10px!important}.heroMeta{font-size:11px!important}.section{padding:32px 5vw!important}.head h2{font-size:22px!important}#market .row{gap:14px!important;padding-right:10vw!important}#market .row .card{flex-basis:230px!important}#categorySection .catgrid{gap:14px!important;padding-right:10vw!important}#categorySection .cat{flex-basis:200px!important}#categorySection .cat img{height:112px!important}.hero:before{display:none!important}}
+/* pass 9 refinement: full-width featured canvas and clearer OTT row hierarchy */
+.hero{margin-left:-5vw!important;margin-right:-5vw!important;padding-left:6vw!important;padding-right:6vw!important;min-height:760px!important;height:84vh!important;max-height:880px!important}
+.heroInner{max-width:600px!important}
+.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.97) 0%,rgba(0,0,0,.82) 34%,rgba(0,0,0,.24) 70%,rgba(0,0,0,.58) 100%),linear-gradient(0deg,#07080c 0%,transparent 42%)!important}
+#market .head,#categorySection .head{align-items:center!important}
+#market .head .eyebrow,#categorySection .head .eyebrow{margin-bottom:2px!important}
+#market .row .card .thumb{border-radius:3px!important}
+#market .row .card:hover{transform:translateY(-4px)!important}
+#market .row .card:hover .thumb img{filter:brightness(1.06)!important}
+#categorySection .cat{border-radius:3px!important}
+#categorySection .cat:hover{transform:translateY(-3px)!important}
+#categorySection .cat:hover img{filter:saturate(.9) contrast(1.04) brightness(1.04)!important}
+@media(max-width:800px){.hero{margin-left:-5vw!important;margin-right:-5vw!important;padding-left:6vw!important;padding-right:6vw!important;height:74vh!important;min-height:650px!important}.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.95),rgba(0,0,0,.32)),linear-gradient(0deg,#07080c 0%,transparent 45%)!important}}
+@media(max-width:560px){.hero{margin-left:-5vw!important;margin-right:-5vw!important;padding-left:5vw!important;padding-right:5vw!important;height:650px!important;min-height:0!important}.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.28)),linear-gradient(0deg,#07080c 0%,transparent 48%)!important}}
