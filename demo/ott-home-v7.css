@@ -1,0 +1,66 @@
+@import url('/ott-home-v6.css');
+
+/* V7 — compact art-directed marketplace */
+:root{
+  --ink:#161616;
+  --paper:#f5f1e8;
+  --paper-2:#e9e2d5;
+  --accent:#b83a2b;
+  --blue:#294aa5;
+  --line:#1616162a;
+}
+body{background:var(--paper)}
+.nav{min-height:64px}
+.hero{
+  height:470px;min-height:470px;
+  display:block;
+  border-bottom:1px solid var(--ink);
+}
+.hero-copy{padding-top:58px;max-width:500px}
+.eyebrow{font-size:9px;letter-spacing:2.2px}
+.hero h1{font-size:clamp(56px,6.7vw,92px);line-height:.84;letter-spacing:-6px;margin:19px 0 19px}
+.hero-copy p{font-size:14px;line-height:1.65;max-width:430px}
+.hero-meta{margin:17px 0;gap:6px}.hero-meta>*{padding:5px 8px;font-size:9px}
+.actions{gap:15px}.primary{padding:11px 15px!important;font-size:12px}.secondary{font-size:12px}
+.hero-mosaic{width:500px;height:390px;right:5vw;top:34px}
+.mc1{width:230px;height:300px;left:8px;top:55px;transform:rotate(-4deg)}
+.mc2{width:210px;height:275px;right:5px;top:0;transform:rotate(5deg)}
+.mc3{width:205px;height:230px;right:92px;bottom:4px;transform:rotate(-1.5deg)}
+.mosaic-tag{font-size:9px;padding:7px 10px}
+.mtext{padding:9px 11px}.mtext b{font-size:11px}.mtext span{font-size:9px}
+.hero:after{bottom:13px;font-size:9px}
+
+/* A more magazine-like rhythm: three equal columns / three rows */
+.section{padding-top:82px}
+.section-head{padding-bottom:16px}.section-head h2{font-size:38px}
+.video-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.video-card,.video-card:first-child{grid-column:span 1!important}
+.video-card:first-child .thumb,.thumb{height:190px}
+.video-card:nth-child(4){margin-top:24px}.video-card:nth-child(5){margin-top:8px}.video-card:nth-child(6){margin-top:34px}
+.video-card:nth-child(7){margin-top:10px}.video-card:nth-child(8){margin-top:30px}.video-card:nth-child(9){margin-top:2px}
+.video-card{background:#eee8dd}
+.card-info{padding:14px}.card-info h3{font-size:17px}.card-info p{font-size:12px;line-height:1.55}
+
+/* Editorial separator between marketplace rows */
+.video-grid:before{content:'CURATED / 01—09';grid-column:1/-1;grid-row:1;position:absolute;pointer-events:none;transform:translateY(-27px);font-size:8px;letter-spacing:2.5px;color:#16161677}
+
+.platform{margin-top:88px}.platform h2{font-size:56px}
+.spotlight{padding:84px 5vw}
+.spotlight h2{font-size:56px}
+.category-section{padding-top:84px}
+
+/* Add a small editorial index beside the creator section */
+.creator{margin-top:0}
+.creator-copy{position:relative}.creator-copy:after{content:'VIDORA / 2026\A MARKETPLACE SYSTEM';white-space:pre;position:absolute;right:0;bottom:0;text-align:right;font-size:8px;line-height:1.7;letter-spacing:2px;color:#16161666}
+.cta{margin-top:84px}
+
+@media(max-width:1100px){
+ .hero-mosaic{right:-20px;opacity:.78}.hero-copy{max-width:470px}
+ .video-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .hero{height:610px;min-height:610px}.hero-copy{padding-top:48px}.hero h1{font-size:58px;letter-spacing:-4px}
+ .hero-mosaic{width:390px;height:310px;right:-105px;top:290px;opacity:.38}
+ .video-grid{grid-template-columns:1fr 1fr;gap:13px}.video-card:nth-child(n){margin-top:0}.video-card:first-child{grid-column:span 2!important}.video-card:first-child .thumb,.thumb{height:170px}
+ .video-grid:before{display:none}.platform h2{font-size:44px}.spotlight h2{font-size:46px}.creator-copy:after{position:static;display:block;margin-top:28px;text-align:left}
+}
