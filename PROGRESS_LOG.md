@@ -20,16 +20,16 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 ## Milestone 573 — VIDORA Top Page Visual Baseline V9
 
 ### Baseline status
-- **V9 is now the official visual baseline for the VIDORA customer-facing demo top page.**
-- This baseline is the starting point for all future top-page refinement unless explicitly replaced by a newly accepted baseline.
-- The purpose is to ensure we can always return to this exact direction instead of rebuilding from memory or stacking uncontrolled CSS generations.
+- **V9 is the official visual baseline for the VIDORA customer-facing demo top page.**
+- V9 remains the rollback/reference point for all future experiments unless a new baseline is explicitly accepted.
+- Purpose: always return to a known-good visual direction instead of rebuilding from memory or stacking uncontrolled CSS generations.
 
 ### V9 baseline characteristics
 - Top-page stylesheet: `demo/ott-home-v9.css`.
 - First-view/hero is intentionally compact rather than oversized.
 - Main "人気の動画" area is a strict **3 columns × 3 rows** layout.
 - All nine video cards use the same grid position/rhythm; no featured first-card enlargement.
-- No intentional staggered card offsets.
+- No intentional staggered card offsets in the popular-video grid.
 - Palette is restrained: deep charcoal / warm white / neutral gray with one muted accent color.
 - The top page remains a customer-facing commercial showcase, not an admin/test screen.
 - Current phase remains visual-only; business functionality is not being changed during this design phase.
@@ -51,35 +51,42 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 
 ## Milestone 574 — VIDORA Top Page V10 Impact Typography Experiment
 
-- V10 was a visual trial adding a large `WATCH / BUY / OWN` typography section below the hero.
-- V10 was rejected as a direction; V9 remains the rollback/reference point.
+- V10 added a large `WATCH / BUY / OWN` typography section below the hero.
+- V10 was rejected as the preferred direction; V9 remains the rollback/reference point.
 
 ## Milestone 575 — VIDORA Top Page V11 Staggered Video Gallery Experiment
 
 - V11 experimented with making the popular-video area itself staggered.
-- This was rejected: **人気の動画は前の通常3列×3段の見せ方を維持する**。
+- This was rejected: **人気の動画は通常3列×3段の見せ方を維持する**.
 - V9 remains the rollback/reference point.
 
 ## Milestone 576 — VIDORA Top Page V12 Separate Video Showcase Experiment
 
-### Purpose
-- Keep the **V9 first-view, trust bar, and popular-video section** as the preferred structure.
-- Add a **separate content section between the first-view and the trust bar** rather than changing the popular-video grid itself.
+- V12 kept the V9-style hero, trust bar, and popular-video grid while adding a separate video showcase between hero and trust bar.
+- The showcase used multiple video visuals in an asymmetric composition to communicate variety without changing the popular-video grid.
+- Trust bar retained the four benefit messages: safe payment, immediate viewing, download support, protected delivery.
+- V9 remains the rollback/reference baseline.
 
-### Change
-- Added a new `video-showcase` section immediately below the hero.
-- This section uses five video visuals in a cinematic asymmetric composition: one tall lead visual with four supporting visuals of different widths.
-- The section is intended to create the requested feeling of **many videos / rich content** without turning the actual "人気の動画" area into a staggered grid.
-- The trust bar remains the V9-style compact panel with four benefits: safe payment, immediate viewing after purchase, download support, and protected delivery.
-- The "人気の動画" area remains the V9-style **3 columns × 3 rows** layout.
-- V10/V11 typography/staggered-popular experiments are not used in this V12 presentation.
-- No business/application functionality was changed; this is visual-only.
+## Milestone 577 — VIDORA Top Page V13 Cinematic Hero + Category Imagery Experiment
+
+### Purpose
+- V13 is another visual experiment built on the V9/V12 direction; it is **not a new completion baseline**.
+- The goal is to make the first viewport feel more premium and immediately communicate that VIDORA can host many kinds of video content.
+
+### Changes
+- Replaced the hero's previous background image with a **new wide cinematic image**; it is intentionally low-opacity and heavily darkened so the hero copy remains readable.
+- The hero image is different from the category imagery; no intentional image reuse between the hero and category cards.
+- Added image-backed category cards with unique imagery for each existing category.
+- Added an **18+ / Adult** category card using a tasteful, non-explicit mature fashion/editorial image.
+- Category cards use dark overlays, readable labels, and subtle hover zoom rather than bright decorative effects.
+- The existing popular-video section remains unchanged in concept: **3 columns × 3 rows**, equal card rhythm, no featured enlargement.
+- No business/application functionality was changed.
 
 ### Files
-- `demo/ott-home-v12.css`
+- `demo/ott-home-v13.css`
 - `demo/launcher.mjs`
 
 ### Status
-- V12 is the current visual experiment awaiting inspection.
+- V13 is the current visual experiment awaiting inspection.
 - V9 remains the official rollback/reference baseline.
 - Current position remains Screen #1: **Top page**; do not proceed to Screen #2 until the top page is accepted.
