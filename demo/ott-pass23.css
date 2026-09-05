@@ -1,0 +1,14 @@
+/* OTT visual pass 23 — true browse rows */
+#market .row,#categorySection .catgrid{display:flex!important;grid-template-columns:none!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity!important;overscroll-behavior-x:contain!important;padding:2px 2px 12px!important}
+#market .card{flex:0 0 clamp(260px,26vw,360px)!important;scroll-snap-align:start!important}
+#categorySection .cat{flex:0 0 clamp(190px,20vw,280px)!important;scroll-snap-align:start!important}
+#market .row:after,#categorySection .catgrid:after{content:"";flex:0 0 2vw}
+#market .card{border:0!important;box-shadow:none!important;border-radius:10px!important}
+#market .cardBody{padding:11px 2px 4px!important}
+#market .cardBody h3{font-size:14px!important;font-weight:700!important}
+#market .cardBody .muted{font-size:11px!important}
+#market .thumb{border-radius:10px!important}
+#categorySection .cat{border:0!important;box-shadow:none!important;border-radius:10px!important}
+#categorySection .cat img{height:auto!important;aspect-ratio:16/9!important;border-radius:10px!important}
+#categorySection .cat b,#categorySection .cat small{padding-left:2px!important;padding-right:2px!important}
+@media(max-width:650px){#market .card{flex-basis:78vw!important}#categorySection .cat{flex-basis:70vw!important}.section{padding-left:5vw!important;padding-right:5vw!important}}
