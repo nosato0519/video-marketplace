@@ -1,0 +1,23 @@
+/* OTT visual pass 7 — browse-page polish, visual only */
+.nav{background:linear-gradient(180deg,rgba(0,0,0,.98) 0%,rgba(0,0,0,.68) 62%,transparent 100%)!important}
+.links button:after{content:'';position:absolute;left:0;right:0;bottom:1px;height:2px;border-radius:2px;background:#fff;transform:scaleX(0);transform-origin:center;transition:transform .2s ease!important;opacity:.9}
+.links button:hover:after{transform:scaleX(1)}
+.hero:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 74% 42%,rgba(255,255,255,.06),transparent 34%)!important}
+.heroInner{z-index:1!important}
+.hero .eyebrow{font-size:11px!important;letter-spacing:.16em!important;text-transform:uppercase!important}
+.heroMeta{font-size:12px!important;letter-spacing:.01em!important}
+.hero .actions{position:relative;z-index:2!important}
+#market .head h2,#categorySection .head h2{font-weight:600!important}
+#market .row,#categorySection .catgrid{padding-left:1px!important;padding-right:9vw!important}
+#market .row .card .thumb{border-radius:4px!important;overflow:hidden!important;background:#151515!important}
+#market .row .card .thumb:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.14))!important}
+#market .cardBody h3{letter-spacing:-.01em!important}
+#market .rating{opacity:.72!important}
+#categorySection .cat{border-radius:4px!important;overflow:hidden!important}
+#categorySection .cat img{display:block!important}
+#categorySection .cat b{display:block!important;letter-spacing:-.01em!important}
+.section{position:relative!important}
+.section:not(.hero):after{content:'';position:absolute;left:5vw;right:5vw;bottom:0;height:1px;background:rgba(255,255,255,.035)!important}
+.footer{border-top:0!important}
+@media(max-width:800px){.links button:after{display:none!important}.section:not(.hero):after{left:5vw;right:5vw}.hero:before{background:radial-gradient(circle at 80% 38%,rgba(255,255,255,.04),transparent 38%)!important}}
+@media(max-width:560px){.hero .eyebrow{font-size:10px!important}.heroMeta{font-size:11px!important}.section:not(.hero):after{left:5vw;right:5vw}.hero:before{display:none!important}}
