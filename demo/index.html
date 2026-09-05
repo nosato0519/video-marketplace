@@ -4,51 +4,51 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VIDORA — Browse</title>
-<meta name="description" content="VIDORA OTT Browse">
-<link rel="stylesheet" href="/ott-home.css?v=20260905-5">
+<meta name="description" content="VIDORA Browse">
+<link rel="stylesheet" href="/ott-home.css?v=20260905-6">
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="#">VIDORA</a>
-  <nav class="nav" aria-label="Primary"><a class="active" href="#">Browse</a><a href="#search">Search</a></nav>
-  <div class="right-nav"><a href="#library">Library</a><button class="avatar" aria-label="Account">S</button></div>
+  <a class="browse" href="#">Browse</a>
+  <button class="search" aria-label="Search"><span></span>Search</button>
+  <button class="account" aria-label="Account">S</button>
 </header>
 
 <main>
-  <section class="featured" aria-label="Featured carousel">
-    <img class="featured-image" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=2400&q=90" alt="Featured content">
-    <div class="featured-shade"></div>
-    <div class="featured-content">
-      <h1>The Art of Moving Image</h1>
-      <p>Stories, films and original series selected for people who love great visual storytelling.</p>
-      <div class="actions"><button class="watch">Watch Now</button><button class="list">＋ My List</button></div>
+  <section class="featured" aria-label="Featured">
+    <img class="featured-image" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=3200&q=90" alt="">
+    <div class="featured-gradient"></div>
+    <div class="featured-copy">
+      <h1>Featured carousel item</h1>
+      <p>Short description for featured carousel item. Discover stories and original films selected for your library.</p>
+      <div class="actions"><button class="watch">Watch Now</button><button class="my-list">My List</button></div>
     </div>
-    <div class="dots" aria-label="Featured carousel pages"><span class="selected"></span><span></span><span></span><span></span><span></span></div>
+    <div class="pager" aria-label="Featured carousel pages"><i class="on"></i><i></i><i></i><i></i><i></i></div>
   </section>
 
-  <section class="content" id="library">
+  <div class="browse-content">
     <section class="rail continue">
       <h2>Continue Watching</h2>
-      <div class="row">
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=85" alt="Behind the Frame"><b class="progress" style="--progress:68%"></b></div><h3>Behind the Frame</h3><p>12 min remaining</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85" alt="Open Roads"><b class="progress" style="--progress:42%"></b></div><h3>Open Roads</h3><p>28 min remaining</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1200&q=85" alt="The Long Weekend"><b class="progress" style="--progress:25%"></b></div><h3>The Long Weekend</h3><p>41 min remaining</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=85" alt="Live Sessions"><b class="progress" style="--progress:54%"></b></div><h3>Live Sessions</h3><p>19 min remaining</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1200&q=85" alt="Creators at Work"><b class="progress" style="--progress:31%"></b></div><h3>Creators at Work</h3><p>35 min remaining</p></article>
+      <div class="rail-track">
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1400&q=88" alt="Video title"><span class="watch-progress" style="--p:68%"></span></div><h3>Video title</h3><p>12 min remaining</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1400&q=88" alt="Video title"><span class="watch-progress" style="--p:42%"></span></div><h3>Video title</h3><p>28 min remaining</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=88" alt="Video title"><span class="watch-progress" style="--p:25%"></span></div><h3>Video title</h3><p>41 min remaining</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1400&q=88" alt="Video title"><span class="watch-progress" style="--p:54%"></span></div><h3>Video title</h3><p>19 min remaining</p></article>
       </div>
     </section>
 
     <section class="rail">
-      <h2>Featured</h2>
-      <div class="row">
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1200&q=85" alt="Award Winners"></div><h3>Award Winners</h3><p>Documentary</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?auto=format&fit=crop&w=1200&q=85" alt="Documentaries"></div><h3>Documentaries</h3><p>Collection</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=85" alt="Music and Culture"></div><h3>Music &amp; Culture</h3><p>Series</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85" alt="Business"></div><h3>Business</h3><p>Collection</p></article>
-        <article><div class="thumb"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=85" alt="Creative Practice"></div><h3>Creative Practice</h3><p>Series</p></article>
+      <h2>Category title</h2>
+      <div class="rail-track">
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1400&q=88" alt="Video title"></div><h3>Video title</h3><p>Video description</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?auto=format&fit=crop&w=1400&q=88" alt="Video title"></div><h3>Video title</h3><p>Video description</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1400&q=88" alt="Video title"></div><h3>Video title</h3><p>Video description</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=88" alt="Video title"></div><h3>Video title</h3><p>Video description</p></article>
+        <article class="card"><div class="poster"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1400&q=88" alt="Video title"></div><h3>Video title</h3><p>Video description</p></article>
       </div>
     </section>
-  </section>
+  </div>
 </main>
 </body>
 </html>
