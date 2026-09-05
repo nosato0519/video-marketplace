@@ -1,0 +1,22 @@
+/* OTT visual pass 4 — browse-page polish, visual only */
+.hero{isolation:isolate!important}
+.hero:before{content:''!important;position:absolute!important;inset:0!important;background:linear-gradient(90deg,rgba(0,0,0,.22),transparent 48%,rgba(0,0,0,.18)),linear-gradient(0deg,#080808 0%,rgba(8,8,8,.55) 9%,transparent 32%)!important;pointer-events:none!important;z-index:0!important}
+.heroInner{z-index:2!important}
+.hero .actions .btn{font-weight:600!important;letter-spacing:-.01em!important}
+.heroMeta{font-size:12px!important;letter-spacing:.02em!important}
+.hero .eyebrow{font-size:12px!important;letter-spacing:.14em!important;text-transform:uppercase!important}
+.section{position:relative!important}
+.section+.section{padding-top:34px!important}
+#market .head,#categorySection .head{align-items:flex-end!important}
+#market .head h2,#categorySection .head h2{font-weight:600!important}
+#market .row,#categorySection .catgrid{padding-right:7vw!important}
+#market .row .card,#categorySection .cat{scroll-snap-align:start!important}
+#market .row .card .thumb{border-radius:3px!important}
+#market .row .card .thumb:after{content:''!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,transparent 72%,rgba(0,0,0,.18))!important;pointer-events:none!important}
+#market .row .card:hover .thumb:after{background:linear-gradient(180deg,transparent 58%,rgba(0,0,0,.08))!important}
+#categorySection .cat{overflow:hidden!important}
+#categorySection .cat img{object-fit:cover!important;filter:saturate(.92)!important}
+#categorySection .cat b{display:block!important;padding:10px 12px 0!important}
+#categorySection .cat small{display:block!important;padding:2px 12px 12px!important}
+.footer{margin-top:18px!important}
+@media(max-width:800px){#market .row,#categorySection .catgrid{padding-right:10vw!important}.hero:before{background:linear-gradient(0deg,#080808 0%,rgba(8,8,8,.62) 12%,transparent 45%)!important}}
