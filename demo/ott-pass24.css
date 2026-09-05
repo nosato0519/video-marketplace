@@ -1,0 +1,15 @@
+/* OTT visual pass 24 — polish browse hierarchy */
+#market,#categorySection{scroll-margin-top:72px!important}
+#market .sectionTitle,#categorySection .sectionTitle{display:flex!important;align-items:baseline!important;justify-content:space-between!important;gap:16px!important;margin-bottom:14px!important}
+#market .sectionTitle h2,#categorySection .sectionTitle h2{margin:0!important;letter-spacing:-.02em!important}
+#market .row,#categorySection .catgrid{scrollbar-width:none!important}
+#market .row::-webkit-scrollbar,#categorySection .catgrid::-webkit-scrollbar{display:none!important}
+#market .card,#categorySection .cat{transition:transform .2s ease,opacity .2s ease!important}
+#market .card:hover,#categorySection .cat:hover{transform:translateY(-3px)!important}
+#market .card:focus-within,#categorySection .cat:focus-within{outline:2px solid rgba(255,255,255,.55)!important;outline-offset:3px!important}
+#market .thumb{background:#151515!important;aspect-ratio:16/9!important;object-fit:cover!important}
+#market .cardBody h3{line-height:1.35!important;margin:0 0 4px!important}
+#market .cardBody .muted{line-height:1.35!important}
+#categorySection .cat b{display:block!important;margin-top:9px!important;line-height:1.35!important}
+#categorySection .cat small{display:block!important;margin-top:3px!important;line-height:1.35!important}
+@media(max-width:650px){#market .card:hover,#categorySection .cat:hover{transform:none!important}#market .sectionTitle,#categorySection .sectionTitle{margin-bottom:12px!important}.section{padding-top:24px!important;padding-bottom:24px!important}}
