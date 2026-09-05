@@ -45,3 +45,82 @@ Do not start functional implementation while the visual-only phase is being refi
 - Source change committed to `main`.
 - Render auto-deploy is expected from the `main` branch update.
 - Final visual acceptance still requires inspection of the deployed storefront; do not label this visual rebuild as customer-approved yet.
+
+## Milestone 571 — Full screen-design sequence locked
+
+The following screen-design order is now the official development sequence. **Work proceeds one screen at a time.** The next screen is not started until the current screen's visual design is accepted.
+
+### Phase 1 — Customer-facing / buyer screens
+1. Top page
+2. Product list / search page
+3. Product detail / purchase page
+4. Login page
+5. Member registration page
+6. Password reset page
+7. My Page
+8. Purchase / order history page
+9. Favorites / My List page
+10. Video watching page
+11. Purchase completion page
+12. Payment page
+
+### Phase 2 — Seller screens
+13. Upload screen
+14. Product registration screen
+15. Product edit screen
+16. Seller dashboard
+17. Sales / revenue management screen
+
+### Phase 3 — Admin screens
+18. Buyer / user management screen
+19. Admin dashboard
+20. Product / video management screen
+21. Order / payment management screen
+22. Sales / payout management screen
+23. Media management screen
+24. Site settings screen
+
+### Phase 4 — Account / common screens
+25. Profile / account settings screen
+26. Terms of service / privacy policy and other legal-information pages
+27. 404 / error and other common screens
+
+### Phase 5 — Design completion
+28. Unified visual system across all screens
+29. Desktop responsive polish
+30. Mobile responsive polish
+31. Screen-to-screen visual flow verification
+32. Final visual baseline acceptance
+
+### Phase 6 — Function integration (after all visual designs are accepted)
+33. Integrate the redesigned UI with the **already-completed core application system**.
+34. Connect authentication / member registration / login.
+35. Connect product and video registration / upload.
+36. Connect purchase / payment / viewing permissions.
+37. Connect My Page and purchase history.
+38. Connect seller operations.
+39. Connect admin operations.
+40. Connect remaining existing business functions without rebuilding the core system from scratch.
+
+### Phase 7 — Final demo completion
+41. Full functional flow verification.
+42. E2E verification.
+43. Regression / security verification and bug fixes.
+44. Render deployment verification.
+45. Final customer-facing demo acceptance.
+
+### Phase 8 — Sales package
+46. Remove development-only data/materials.
+47. Prepare initial setup and configuration flow.
+48. Prepare README / installation / deployment documentation.
+49. Prepare license / terms documents.
+50. Build the distributable ZIP package.
+51. Prepare sales-page materials.
+52. Start sales.
+
+### Current position
+- **Current screen: #1 Top page.**
+- Current task: visual design only.
+- Functional implementation is intentionally paused until all screen designs are completed and visually accepted.
+- The existing core application system is treated as completed and will be integrated after the visual-design phase.
+- Do not skip ahead to #2 until #1 is accepted.
