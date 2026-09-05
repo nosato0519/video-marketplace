@@ -32,3 +32,16 @@
 
 ### No-waste rule
 Do not start functional implementation while the visual-only phase is being refined. Do not redo completed visual passes without a concrete visual regression. When the visual demo is accepted, record the final visual baseline and then begin functionality as a new milestone without losing this baseline.
+
+## Milestone 570 — Customer storefront visual rebuild
+
+- Reworked the customer-facing home presentation instead of adding another generic marketplace dashboard layer.
+- Added `demo/ott-pass29.css` and loaded it from `demo/launcher.mjs`.
+- Reoriented the visual hierarchy toward an OTT viewer storefront: fixed transparent navigation, cinematic hero, horizontal content rails, compact metadata, category rails, restrained controls, and a dark premium presentation.
+- Kept the current work strictly visual; no new business functionality was implemented.
+- Existing seller/admin workspace code remains preserved and is not the acceptance target for this phase.
+
+### Verification boundary
+- Source change committed to `main`.
+- Render auto-deploy is expected from the `main` branch update.
+- Final visual acceptance still requires inspection of the deployed storefront; do not label this visual rebuild as customer-approved yet.
