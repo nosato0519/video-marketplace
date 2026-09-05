@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
-const root = fileURLToPath(new URL('.', import.meta.url));
-const source = await readFile(join(root, 'server.js'), 'utf8');
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
+const source = await readFile(join(ROOT, 'server.js'), 'utf8');
 const marker = "  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`); const s = session(req, res);";
 const injected = `${marker}
   if (req.method === 'GET' && (url.pathname === '/ott-home.css' || url.pathname === '/ott-home-v2.css' || url.pathname === '/ott-home-v3.css')) {
@@ -13,7 +13,7 @@ const injected = `${marker}
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
-  if (req.method === 'GET' && url.pathname === '/') {
+  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(html); return;
@@ -21,6 +21,6 @@ const injected = `${marker}
 `;
 if (!source.includes(marker)) throw new Error('server injection marker not found');
 const patched = source.replace(marker, injected);
-const temp = join(root, `.server-${randomUUID()}.mjs`);
+const temp = join(ROOT, `.server-${randomUUID()}.mjs`);
 await writeFile(temp, patched, 'utf8');
 try { await import(`file://${temp}`); } finally { try { await unlink(temp); } catch {} }
