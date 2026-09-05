@@ -124,3 +124,23 @@ The following screen-design order is now the official development sequence. **Wo
 - Functional implementation is intentionally paused until all screen designs are completed and visually accepted.
 - The existing core application system is treated as completed and will be integrated after the visual-design phase.
 - Do not skip ahead to #2 until #1 is accepted.
+
+## Milestone 572 — Persistent design master instruction locked
+
+A permanent master instruction has been added at:
+`docs/product/design-master-instruction.md`
+
+### Mandatory rule
+Whenever creating, redesigning, or reviewing any VIDORA screen/UI, **always read and follow `docs/product/design-master-instruction.md` first**.
+
+The master instruction begins with:
+**「あなたはプロのWebデザイナー兼フルスタックエンジニアです。」**
+
+It permanently defines the professional role, commercial-quality target, one-screen-at-a-time workflow, visual-only phase boundary, existing-system preservation rule, GitHub verification/recording rule, design-quality requirements, and completion criteria.
+
+The existing UI principles and international-first design documents remain additional required references; the master instruction does not replace them.
+
+### Verification
+- Created `docs/product/design-master-instruction.md` on `main`.
+- Commit: `1b5729463fb739bb78654c0f27459a1a1e892cb1`.
+- From this milestone onward, the instruction is part of the project record and must be treated as mandatory for every screen creation/design task.
