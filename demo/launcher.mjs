@@ -16,7 +16,7 @@ const injected = `${marker}
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     let html = await readFile(join(ROOT, 'index.html'), 'utf8');
     html = html.replace('/ott-home-v3.css?v=20260905-v3', '/ott-home-v9.css?v=20260905-v9');
-    res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store');
+    res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(html); return;
   }
 `;
