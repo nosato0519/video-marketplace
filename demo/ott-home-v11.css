@@ -1,0 +1,94 @@
+@import url('/ott-home-v9.css');
+
+/* V11 — replace the typography experiment with a cinematic staggered video gallery directly below the hero. */
+.impact-section{display:none!important}
+.stagger-gallery{
+  position:relative;
+  overflow:hidden;
+  background:#0b0c0d;
+  color:#f5f2ea;
+  padding:72px 5vw 86px;
+}
+.stagger-gallery::before{
+  content:'CURATED VIDEO MARKETPLACE';
+  display:block;
+  max-width:1500px;
+  margin:0 auto 28px;
+  font-size:9px;
+  letter-spacing:3px;
+  color:#858a8e;
+}
+.stagger-gallery-head{
+  max-width:1500px;
+  margin:0 auto 34px;
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:30px;
+}
+.stagger-gallery-head h2{margin:0;font-size:clamp(34px,5vw,68px);line-height:.95;letter-spacing:-3px;font-weight:700}
+.stagger-gallery-head p{max-width:360px;margin:0;color:#92979a;font-size:12px;line-height:1.8}
+.stagger-track{
+  max-width:1500px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:16px;
+  align-items:start;
+}
+.stagger-card{
+  position:relative;
+  min-width:0;
+  text-decoration:none;
+  color:inherit;
+  display:block;
+}
+.stagger-card:nth-child(1){grid-column:span 3;margin-top:0}
+.stagger-card:nth-child(2){grid-column:span 3;margin-top:46px}
+.stagger-card:nth-child(3){grid-column:span 3;margin-top:12px}
+.stagger-card:nth-child(4){grid-column:span 3;margin-top:70px}
+.stagger-card:nth-child(5){grid-column:span 3;margin-top:76px}
+.stagger-card:nth-child(6){grid-column:span 3;margin-top:22px}
+.stagger-card:nth-child(7){grid-column:span 3;margin-top:96px}
+.stagger-card:nth-child(8){grid-column:span 3;margin-top:42px}
+.stagger-card:nth-child(9){grid-column:span 3;margin-top:8px}
+.stagger-thumb{position:relative;aspect-ratio:16/10;overflow:hidden;background:#1a1c1e}
+.stagger-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,#000b 100%);pointer-events:none}
+.stagger-thumb .thumb-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .55s cubic-bezier(.2,.7,.2,1);}
+.stagger-card:hover .thumb-bg{transform:scale(1.045)}
+.stagger-meta{padding:13px 2px 0;display:flex;justify-content:space-between;gap:10px;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#777d80}
+.stagger-title{margin:6px 0 0;font-size:15px;line-height:1.25;font-weight:600;letter-spacing:-.2px}
+.stagger-price{font-size:11px;color:#d6a45a;white-space:nowrap}
+.stagger-num{position:absolute;top:10px;left:10px;z-index:2;font-size:9px;letter-spacing:1.5px;color:#fff;mix-blend-mode:screen}
+
+.stagger-thumb.bg1 .thumb-bg{background-image:var(--thumb1)}
+.stagger-thumb.bg2 .thumb-bg{background-image:var(--thumb2)}
+.stagger-thumb.bg3 .thumb-bg{background-image:var(--thumb3)}
+.stagger-thumb.bg4 .thumb-bg{background-image:var(--thumb4)}
+.stagger-thumb.bg5 .thumb-bg{background-image:var(--thumb5)}
+.stagger-thumb.bg6 .thumb-bg{background-image:var(--thumb6)}
+.stagger-thumb.bg7 .thumb-bg{background-image:var(--thumb7)}
+.stagger-thumb.bg8 .thumb-bg{background-image:var(--thumb8)}
+.stagger-thumb.bg9 .thumb-bg{background-image:var(--thumb9)}
+
+@media(max-width:900px){
+  .stagger-gallery{padding:56px 5vw 68px}
+  .stagger-gallery-head{display:block}
+  .stagger-gallery-head p{margin-top:14px}
+  .stagger-track{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .stagger-card:nth-child(n){grid-column:span 2}
+  .stagger-card:nth-child(2){margin-top:34px}
+  .stagger-card:nth-child(4){margin-top:48px}
+  .stagger-card:nth-child(5){margin-top:18px}
+  .stagger-card:nth-child(7){margin-top:58px}
+  .stagger-card:nth-child(8){margin-top:28px}
+}
+@media(max-width:600px){
+  .stagger-gallery{padding:46px 18px 58px}
+  .stagger-gallery-head h2{font-size:42px;letter-spacing:-2px}
+  .stagger-track{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 12px}
+  .stagger-card:nth-child(n){grid-column:span 1;margin-top:0}
+  .stagger-card:nth-child(2),.stagger-card:nth-child(5),.stagger-card:nth-child(8){margin-top:28px}
+  .stagger-card:nth-child(3),.stagger-card:nth-child(6),.stagger-card:nth-child(9){margin-top:10px}
+  .stagger-title{font-size:13px}
+}
