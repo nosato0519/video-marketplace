@@ -79,5 +79,28 @@
 #categorySection .cat b{font-size:12.5px!important;padding:9px 12px 0!important}
 #categorySection .cat small{font-size:9.5px!important;padding:3px 12px 11px!important}
 .section:not(.hero):after{opacity:.45!important}
-@media(max-width:800px){.hero{height:70vh!important;min-height:600px!important;padding-bottom:70px!important}.hero h1{font-size:52px!important}.section{padding-top:34px!important;padding-bottom:34px!important}#market .row,#categorySection .catgrid{padding-right:10vw!important}.head h2{font-size:22px!important}}
-@media(max-width:560px){.hero{height:620px!important;min-height:0!important;padding:0 5vw 48px!important}.hero h1{font-size:46px!important}.hero p{font-size:13.5px!important}.hero .actions{margin-top:17px!important}.section{padding:28px 5vw!important}#market .row{gap:13px!important;padding-right:10vw!important}#market .row .card{flex-basis:220px!important}#categorySection .catgrid{gap:13px!important;padding-right:10vw!important}#categorySection .cat{flex-basis:190px!important}#categorySection .cat img{height:106px!important}}
+/* pass 11 refinement: true OTT browse chrome, stronger row titles, quieter marketplace cues */
+.nav{height:66px!important;padding-left:4vw!important;padding-right:4vw!important;backdrop-filter:blur(8px)!important;background:linear-gradient(180deg,rgba(5,6,9,.98) 0%,rgba(5,6,9,.78) 68%,transparent 100%)!important}
+.logo{letter-spacing:-.055em!important}
+.links{gap:26px!important}
+.links button{font-size:12px!important;color:rgba(255,255,255,.68)!important}
+.links button:first-child{color:#fff!important}
+.right{gap:10px!important}
+.right .primary{min-width:82px!important;height:38px!important}
+.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.96) 0%,rgba(0,0,0,.76) 32%,rgba(0,0,0,.18) 68%,rgba(0,0,0,.52) 100%),linear-gradient(0deg,#07080c 0%,transparent 48%)!important}
+.hero .eyebrow{opacity:.68!important}
+.hero h1{max-width:650px!important}
+.hero .actions .btn{border-radius:5px!important}
+#market .head,#categorySection .head{display:flex!important;flex-direction:column!important;align-items:flex-start!important}
+#market .head h2,#categorySection .head h2{font-size:22px!important;font-weight:650!important;margin:0!important}
+#market .head p,#categorySection .head p{font-size:11px!important;margin-top:5px!important;opacity:.48!important}
+#market .row,#categorySection .catgrid{scrollbar-width:none!important}
+#market .row::-webkit-scrollbar,#categorySection .catgrid::-webkit-scrollbar{display:none!important}
+#market .row .card .thumb{box-shadow:0 6px 18px rgba(0,0,0,.22)!important}
+#market .cardBody h3{font-size:12.5px!important;color:rgba(255,255,255,.9)!important}
+#market .rating{font-size:9.5px!important;color:rgba(255,255,255,.55)!important}
+#categorySection .cat{background:#101114!important}
+#categorySection .cat img{filter:saturate(.72) contrast(1.02)!important}
+.footer{background:#07080c!important;color:rgba(255,255,255,.46)!important}
+@media(max-width:800px){.nav{height:62px!important}.links{display:none!important}.hero{height:70vh!important;min-height:600px!important}.hero h1{font-size:52px!important}.section{padding-top:34px!important;padding-bottom:34px!important}#market .row,#categorySection .catgrid{padding-right:10vw!important}}
+@media(max-width:560px){.nav{height:58px!important}.hero{height:620px!important;min-height:0!important}.hero h1{font-size:46px!important}.section{padding:28px 5vw!important}.head h2{font-size:21px!important}#market .row .card{flex-basis:220px!important}#categorySection .cat{flex-basis:190px!important}}
