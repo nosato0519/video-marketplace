@@ -1,0 +1,18 @@
+/* OTT visual pass 21 — authentic Explore hierarchy: Featured, Continue Watching, rows */
+:root{--ott-gutter:clamp(20px,4vw,64px)}
+/* Keep the web Browse hierarchy close to Vimeo OTT's documented Explore layout. */
+.hero{min-height:min(700px,76vh)!important;display:flex!important;align-items:flex-end!important;padding-bottom:76px!important}
+.heroInner{max-width:600px!important;margin-bottom:0!important}.hero h1{margin-bottom:14px!important}.hero p{max-width:500px!important;margin-bottom:20px!important}
+.hero .actions .btn{min-height:42px!important}.hero .actions .primary{padding-inline:20px!important}
+.section#market{padding-top:27px!important}.section#market:before{letter-spacing:.16em!important;color:rgba(255,255,255,.30)!important}
+.section#market .head,.section#categorySection .head{display:flex!important;align-items:baseline!important;justify-content:space-between!important}
+.section#market .head h2,.section#categorySection .head h2{margin:0!important}
+.section#market .row,.section#categorySection .catgrid{scroll-behavior:smooth!important;scroll-snap-type:x proximity!important}
+.section#market .row .card,.section#categorySection .cat{scroll-snap-align:start!important}
+.section#market .cardBody h3{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.section#market .row .card .thumb{border-radius:4px!important}
+.section#categorySection .cat img{border-radius:4px!important}
+/* Make the first row feel like a continuation of the Featured carousel rather than a separate dashboard panel. */
+.section#market .head p,.section#categorySection .head p{font-size:11px!important;color:rgba(255,255,255,.38)!important}
+.section#categorySection{padding-top:42px!important}
+@media(max-width:560px){.hero{min-height:540px!important;height:66vh!important;padding-bottom:58px!important}.heroInner{max-width:92vw!important}.hero p{max-width:88vw!important}.section#market .head,.section#categorySection .head{display:block!important}.section#market .head p,.section#categorySection .head p{margin-top:4px!important}.section#categorySection{padding-top:34px!important}}
