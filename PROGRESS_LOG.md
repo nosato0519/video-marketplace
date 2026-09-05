@@ -32,7 +32,7 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - No intentional staggered card offsets in the popular-video grid.
 - Palette is restrained: deep charcoal / warm white / neutral gray with one muted accent color.
 - The top page remains a customer-facing commercial showcase, not an admin/test screen.
-- Current phase remains visual-only; business functionality is not being changed during this design phase.
+- Current phase remains visual-only; business/application functionality is not being changed during this design phase.
 
 ### Return-to-baseline rule
 - If a future visual experiment is rejected, **return to V9 as the baseline** before starting another direction.
@@ -100,11 +100,21 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - Kept the existing trust-bar messages and the rest of the page structure unchanged.
 - Refreshed the active stylesheet cache version to V17 so Render serves the corrected visual immediately.
 
+## Milestone 579 — Expanded video marketplace content
+
+- Preserved the existing hero, trust bar, and **人気の動画** 3-column × 3-row grid.
+- Added a **新着動画** section with 6 additional image-backed video cards.
+- Added a **気分から選ぶ** visual rail with 5 image-led collections, including an 18+ adult-oriented collection.
+- Every newly added card uses a distinct image URL; no new card intentionally reuses another new card's image.
+- Kept **作品との出会いを、もっと自由に。** as a separate staggered visual section.
+- This is visual/content expansion only; existing application functionality is untouched.
+
 ### Files changed
 - `demo/ott-home-v13.css`
 - `demo/launcher.mjs`
+- `PROGRESS_LOG.md`
 
 ### Status
-- Current visual correction is deployed through the existing Render auto-deploy pipeline.
+- Render auto-deploy is processing the new homepage content.
 - V9 remains the official rollback/reference baseline.
 - Current position remains Screen #1: **Top page**.
