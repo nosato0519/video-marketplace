@@ -7,7 +7,6 @@
 - Current phase: **customer-facing demo visual design only**.
 - Purpose of this phase: prove that the VIDORA OTT-style video-sales-site look and presentation can be built first.
 - **Do NOT implement real application/business functionality in this phase.** Functional implementation comes later as a separate phase.
-- Existing code may contain legacy/demo interaction scaffolding from earlier work, but the current development objective is visual presentation. Do not expand those functions or treat them as the current acceptance target.
 
 ## Milestone 571 — Full screen-design sequence locked
 
@@ -19,131 +18,51 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 
 ## Milestone 573 — VIDORA Top Page Visual Baseline V9
 
-### Baseline status
-- **V9 is the official visual baseline for the VIDORA customer-facing demo top page.**
-- V9 remains the rollback/reference point for all future experiments unless a new baseline is explicitly accepted.
-- Purpose: always return to a known-good visual direction instead of rebuilding from memory or stacking uncontrolled CSS generations.
-
-### V9 baseline characteristics
-- Top-page stylesheet: `demo/ott-home-v9.css`.
-- First-view/hero is intentionally compact rather than oversized.
-- Main "人気の動画" area is a strict **3 columns × 3 rows** layout.
-- All nine video cards use the same grid position/rhythm; no featured first-card enlargement.
-- No intentional staggered card offsets in the popular-video grid.
-- Palette is restrained: deep charcoal / warm white / neutral gray with one muted accent color.
-- The top page remains a customer-facing commercial showcase, not an admin/test screen.
-- Current phase remains visual-only; business/application functionality is not being changed during this design phase.
-
-### Return-to-baseline rule
-- If a future visual experiment is rejected, **return to V9 as the baseline** before starting another direction.
-- Do not overwrite or reinterpret V9 as an unrecorded intermediate design.
-- Any new design direction must be explicitly recorded as a new milestone and must preserve V9 as the rollback/reference point.
-
-### Current top-page files
-- `demo/ott-home-v9.css` — V9 visual baseline.
-- `demo/index.html` — top-page markup.
-- `demo/launcher.mjs` — serves the active top-page design.
-
-### Current position
-- Screen #1: **Top page**.
-- V9 is the baseline from which visual experiments start.
-- Do not move to screen #2 until the top page is visually accepted.
-
-## Milestone 574 — VIDORA Top Page V10 Impact Typography Experiment
-
-- V10 added a large `WATCH / BUY / OWN` typography section below the hero.
-- V10 was rejected as the preferred direction; V9 remains the rollback/reference point.
-
-## Milestone 575 — VIDORA Top Page V11 Staggered Video Gallery Experiment
-
-- V11 experimented with making the popular-video area itself staggered.
-- This was rejected: **人気の動画は通常3列×3段の見せ方を維持する**.
-- V9 remains the rollback/reference point.
-
-## Milestone 576 — VIDORA Top Page V12 Separate Video Showcase Experiment
-
-- V12 kept the V9-style hero, trust bar, and popular-video grid while adding a separate video showcase between hero and trust bar.
-- The showcase used multiple video visuals in an asymmetric composition to communicate variety without changing the popular-video grid.
-- Trust bar retained the four benefit messages: safe payment, immediate viewing, download support, protected delivery.
-- V9 remains the rollback/reference baseline.
-
-## Milestone 577 — VIDORA Top Page V13 Cinematic Hero + Category Imagery Experiment
-
-### Purpose
-- V13 is another visual experiment built on the V9/V12 direction; it is **not a new completion baseline**.
-- The goal is to make the first viewport feel more premium and immediately communicate that VIDORA can host many kinds of video content.
-
-### Changes
-- Replaced the hero's previous background image with a **new wide cinematic image**; it is intentionally low-opacity and heavily darkened so the hero copy remains readable.
-- The hero image is different from the category imagery; no intentional image reuse between the hero and category cards.
-- Added image-backed category cards with unique imagery for each existing category.
-- Added an **18+ / Adult** category card using a tasteful, non-explicit mature fashion/editorial image.
-- Category cards use dark overlays, readable labels, and subtle hover zoom rather than bright decorative effects.
-- The existing popular-video section remains unchanged in concept: **3 columns × 3 rows**, equal card rhythm, no featured enlargement.
-- No business/application functionality was changed.
-
-### Files
-- `demo/ott-home-v13.css`
-- `demo/launcher.mjs`
-
-### Status
-- V13 is the current visual experiment awaiting inspection.
-- V9 remains the official rollback/reference baseline.
-- Current position remains Screen #1: **Top page**; do not proceed to Screen #2 until the top page is accepted.
+- **V9 is the official visual baseline/reference**, unless a newer baseline is explicitly accepted.
+- Popular videos remain a strict 3-column × 3-row grid; no featured enlargement and no stagger.
+- Dark premium editorial direction; restrained accent; customer-facing showcase.
+- Screen #1 remains the only active design target; do not move to Screen #2 until homepage visual acceptance.
 
 ## Milestone 578 — Requested visual corrections only
 
-- Reduced the three overlapping hero images substantially so they no longer dominate the first viewport.
-- Restored the missing **ADULT / アダルト** category in the rendered homepage without removing the existing lifestyle category.
-- Kept the popular-video area as the required normal 3-column × 3-row grid; no stagger was applied there.
-- Kept the separate "作品との出会いを、もっと自由に。" section above the trust bar and made its five unique image cards visibly stagger vertically.
-- Kept the existing trust-bar messages and the rest of the page structure unchanged.
-- Refreshed the active stylesheet cache version to V17 so Render serves the corrected visual immediately.
+- Hero mosaic, ADULT category, separate "作品との出会いを、もっと自由に。" showcase, and normal 3×3 popular-video grid maintained.
 
 ## Milestone 579 — Expanded video marketplace content
 
-- Preserved the existing hero, trust bar, and **人気の動画** 3-column × 3-row grid.
-- Added a **新着動画** section with 6 additional image-backed video cards.
-- Added a **気分から選ぶ** visual rail with 5 image-led collections, including an 18+ adult-oriented collection.
-- Every newly added card uses a distinct image URL; no new card intentionally reuses another new card's image.
-- Kept **作品との出会いを、もっと自由に。** as a separate staggered visual section.
-- This is visual/content expansion only; existing application functionality is untouched.
-
-### Files changed
-- `demo/ott-home-v13.css`
-- `demo/launcher.mjs`
-- `PROGRESS_LOG.md`
+- Added **新着動画** (6 cards), **気分から選ぶ** (5 collections including 18+), and retained the separate showcase.
 
 ## Milestone 580 — Stabilized staggered gallery + expanded recommendations
 
-- Corrected the separate **作品との出会いを、もっと自由に。** gallery so its stagger is subtle and structurally stable instead of producing a broken silhouette.
-- Kept the staggered section separate from **人気の動画**; the popular grid remains a normal 3-column × 3-row layout.
-- Reduced the vertical offsets and constrained the gallery rows so cards remain aligned and do not visually collapse into the following section.
-- Added a new **ジャンル別おすすめ** section with 6 additional image-backed recommendation cards.
-- Added six more unique image URLs; the new recommendation thumbnails do not intentionally reuse the images in the existing new-content sections.
-- Refreshed the homepage stylesheet cache version to V19.
-- This remains visual/content expansion only; existing application functionality is untouched.
-
-### Files changed
-- `demo/ott-home-v13.css`
-- `demo/launcher.mjs`
-- `PROGRESS_LOG.md`
+- Stabilized the separate **作品との出会いを、もっと自由に。** gallery.
+- Added **ジャンル別おすすめ** (6 cards).
+- Popular-video grid remains normal 3×3.
 
 ## Milestone 581 — Homepage visual polish V21
 
-- Increased the three-image hero mosaic so the images have more visual presence while remaining secondary to the hero copy.
-- Moved the fifth card in **作品との出会いを、もっと自由に。** lower to make the staggered silhouette more intentional.
-- Added restrained VIDORA accent color to fine details such as CTA, prices, category labels, section eyebrows, hover borders, trust highlights, and small UI accents.
-- Kept the overall dark premium editorial direction; no neon-heavy recolor and no changes to the popular-video 3×3 grid.
-- Activated `demo/ott-home-v15.css` and refreshed the homepage cache version to V21.
-- Visual-only change; existing application functionality remains untouched.
+- Larger three-image hero mosaic.
+- Fifth showcase card moved lower.
+- Restrained accent-color polish.
 
-### Files changed
-- `demo/ott-home-v15.css`
-- `demo/launcher.mjs`
-- `PROGRESS_LOG.md`
+## Milestone 582 — V22 exact restore point recorded
 
-### Status
-- Homepage remains Screen #1 and is the only active design target.
-- V9 remains the official rollback/reference baseline.
-- Next step: inspect the updated homepage presentation and make only targeted visual corrections before moving to Screen #2.
+- User requested returning to the previously recorded **V22 state**, including the complete homepage composition—not merely selected sections.
+- Historical V22 restore point: `452e7ba01686f80b9aec1b4948e637c370fffd6e`.
+- V22 homepage includes the full runtime-injected composition: hero, ADULT category, **作品との出会いを、もっと自由に。**, **新着動画**, **気分から選ぶ**, and **ジャンル別おすすめ**.
+- `main` was reset to this V22 restore point. Do not mix V23/V24 visual changes into this baseline.
+- `demo/ott-home-v16.css` is the active V22 stylesheet and imports the V21 chain.
+
+### Next session — exact continuation point
+
+- Start **here**, without rebuilding from memory and without repeating completed work.
+- First verify the actual rendered homepage against the V22 restore point, especially:
+  1. the very top hero / three-image mosaic and its text placement;
+  2. **作品との出会いを、もっと自由に。** and its five-card arrangement;
+  3. all V22-added sections: **新着動画 / 気分から選ぶ / ジャンル別おすすめ**;
+  4. the normal **人気の動画 3×3** grid.
+- If the rendered page differs from V22, restore the missing V22 pieces **before** doing any new design work.
+- Any technical runtime repair must preserve the V22 visual/content state exactly and is not a new visual version.
+- Do not move to Screen #2 until the homepage is visually accepted.
+
+### Current position
+- Screen #1: **Top page**.
+- **V22 is the exact restore target and starting point for the next session.**
