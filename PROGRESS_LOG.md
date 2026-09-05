@@ -1,33 +1,30 @@
 # VIDORA Progress Log
 
-## Milestone 566 — Commercial release package verified
+## Milestone 567 — Showcase layout fix applied
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Verified HEAD: `235c5b07b1a19f16ae95c2e6cae9d143f63b01de`
-- Commercial release workflow: **SUCCESS**
-- Release package safety check: **SUCCESS**
-- Commercial archive build: **SUCCESS**
-- Archive integrity/content verification: **SUCCESS**
-- Required release files present: `package.json`, `README.md`, `RELEASE_MANIFEST.txt`
-- Forbidden paths/credential-key extensions rejected by CI: **PASS**
-- GitHub Actions artifact `vidora-commercial-package` created successfully.
+- Latest code commit: `fc1e00d7380cf6da684bae338e54a948919af5fe`
+- The customer-facing `demo/` remains the VIDORA OTT-style video marketplace showcase.
+- Buyer/Seller/Admin functionality is preserved; no feature rewrite was performed.
 
-### Completed product gates
-- Buyer purchase → paid order → entitlement → library/watch/download flow verified by regression/E2E suites.
-- Seller product/media/earnings/payout flow verified by regression/E2E suites.
-- Admin moderation/seller approval/payout oversight verified by regression/E2E suites.
-- Clean install on Node 20 and Node 22 verified successfully.
-- Demo functional regression and browser acceptance previously verified successfully.
-- Commercial release archive generation and safety validation now verified successfully.
+### Work completed in this checkpoint
+- Fixed the `howItWorks` showcase section so its three steps use an actual CSS grid on desktop/tablet instead of relying on `grid-template-columns` without `display:grid`.
+- Preserved the existing mobile breakpoint so the three steps collapse to one column at widths up to 650px.
+- No unrelated visual or functional areas were changed.
+
+### Existing verification boundary
+- Clean Install — Node 20/22: SUCCESS.
+- Browser E2E: SUCCESS was previously recorded for the verified release boundary.
+- Backend Regression: SUCCESS was previously recorded.
+- Commercial release package generation/safety/content verification: SUCCESS was previously recorded.
+- The latest source change above still requires a fresh showcase/browser verification run before calling the current HEAD fully green.
 
 ### Remaining release gates
-1. Customer-specific production deployment and configuration.
-2. Real payment provider credentials/webhook configuration.
-3. Production object storage configuration.
-4. HTTPS/reverse-proxy and production secrets configuration.
-5. Final browser acceptance against the customer's actual production deployment.
-6. Customer-specific legal/compliance/support/operations confirmation.
+1. Fresh showcase acceptance on the current HEAD after this layout fix.
+2. Final browser acceptance of the actual customer-facing demo, including desktop/mobile presentation.
+3. Customer-specific production deployment/configuration, real payment credentials/webhooks, object storage, HTTPS/reverse proxy and production secrets.
+4. Customer-specific legal/compliance/support/operations confirmation.
 
 ### No-waste rule
-Do not recreate completed Buyer/Seller/Admin functionality, repeat completed visual work, or claim live-production readiness without production configuration and browser evidence. The commercial archive is now CI-generated and verified; remaining work is deployment/customer-specific rather than core feature rebuilding.
+Do not recreate completed Buyer/Seller/Admin functionality or repeat completed visual work. Fix only concrete regressions/issues found in verification. Do not claim live-production readiness without production configuration and final browser evidence.
