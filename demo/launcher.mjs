@@ -23,75 +23,15 @@ const injected = `${marker}
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
-  if (req.method === 'GET' && url.pathname === '/ott-pass6.css') {
-    const css = await readFile(join(ROOT, 'ott-pass6.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass7.css') {
-    const css = await readFile(join(ROOT, 'ott-pass7.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass17.css') {
-    const css = await readFile(join(ROOT, 'ott-pass17.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass18.css') {
-    const css = await readFile(join(ROOT, 'ott-pass18.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass19.css') {
-    const css = await readFile(join(ROOT, 'ott-pass19.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass20.css') {
-    const css = await readFile(join(ROOT, 'ott-pass20.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass21.css') {
-    const css = await readFile(join(ROOT, 'ott-pass21.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass22.css') {
-    const css = await readFile(join(ROOT, 'ott-pass22.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass23.css') {
-    const css = await readFile(join(ROOT, 'ott-pass23.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass24.css') {
-    const css = await readFile(join(ROOT, 'ott-pass24.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass25.css') {
-    const css = await readFile(join(ROOT, 'ott-pass25.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass26.css') {
-    const css = await readFile(join(ROOT, 'ott-pass26.css'), 'utf8');
-    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
-    res.end(css); return;
-  }
-  if (req.method === 'GET' && url.pathname === '/ott-pass27.css') {
-    const css = await readFile(join(ROOT, 'ott-pass27.css'), 'utf8');
+  if (req.method === 'GET' && /^\\/ott-pass(?:6|7|17|18|19|20|21|22|23|24|25|26|27|28)\\.css$/.test(url.pathname)) {
+    const css = await readFile(join(ROOT, url.pathname.slice(1)), 'utf8');
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
   if (req.method === 'GET' && url.pathname === '/') {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
     const safeHtml = html
-      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"><link rel="stylesheet" href="/ott-pass24.css"><link rel="stylesheet" href="/ott-pass25.css"><link rel="stylesheet" href="/ott-pass26.css"><link rel="stylesheet" href="/ott-pass27.css"></head>')
+      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"><link rel="stylesheet" href="/ott-pass24.css"><link rel="stylesheet" href="/ott-pass25.css"><link rel="stylesheet" href="/ott-pass26.css"><link rel="stylesheet" href="/ott-pass27.css"><link rel="stylesheet" href="/ott-pass28.css"></head>')
       .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
       .replace('<option>All categories</option>', '<option value="All categories">All categories</option>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
