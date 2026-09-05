@@ -1,32 +1,33 @@
 # Development Progress Log
 
-## 2026-09-05 — Milestone 564 — Showcase verification boundary and resume checkpoint
+## 2026-09-05 — Milestone 565 — Current-main automated gate checkpoint
 
 ### Current repository state
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- `demo/` remains the customer-facing sales/showcase demo of the video marketplace system.
-- Buyer/Seller/Admin functionality is preserved.
-- Latest showcase-copy commit: `f6084d49ba7334975286ef80a892a9f73842abee`.
-- Latest bookkeeping commit: `5354b9e1550c5c6c8f289fc75f0cd3233eeddeaf`.
+- Current `main` HEAD: `477fe88b006d2fd72ab5611d72bf9aa0af80634b` (`docs: align release readiness with current verification`).
+- `demo/` remains the customer-facing sales/showcase demo.
+- Buyer/Seller/Admin functionality is preserved; no feature rewrite was performed in this checkpoint.
 
-### Completed work confirmed from repository
-- Codespaces startup/forwarding fix remains in `.devcontainer/devcontainer.json`: health-checked launcher on both `postStartCommand` and `postAttachCommand`, port `4173` auto-forward/open-browser.
-- Functional demo E2E covers browser entrypoint, catalog, Buyer purchase/entitlement/Watch/Download, unauthorized media rejection, Seller product/upload/payout, and Admin payout/moderation/seller approval.
-- The showcase UI copy was aligned with the product direction in `demo/boot.js`.
+### Verification status
+- Clean Install — Node 20/22: SUCCESS.
+- Browser E2E: SUCCESS.
+- Backend Regression: SUCCESS.
+- The current release-readiness document has been aligned to the latest verification boundary.
+- No code changes were made during this checkpoint; work is bookkeeping/verification only.
 
-### Verification boundary
-- Demo Functional Regression run `33831920856` is confirmed successful, but it predates the latest hero-copy commit.
-- The latest hero-copy change is limited to presentation text; nevertheless, the current HEAD is intentionally marked **pending re-verification** until a new CI/runtime result exists.
-- No claim is made that the user's currently open Codespace/browser is displaying the demo until runtime evidence exists.
+### Release boundary
+- The repository is not labeled live-production-ready merely from automated CI/demo success.
+- Remaining release work is limited to final clean-package inspection and real-deployment/customer-specific integration and browser acceptance.
+- Demo payment remains simulated and must not be represented as live payment processing.
 
 ### Next checkpoint
-1. Re-run `npm --prefix demo run verify` on the current `main` HEAD.
-2. Re-apply/rebuild the Codespace devcontainer if the existing workspace has not consumed the startup-hook change.
-3. Open forwarded port `4173` and confirm the actual showcase page.
-4. If a runtime failure appears, inspect that concrete failure and fix only that failure.
+1. Verify the final release-package contents from a clean checkout.
+2. Confirm no `.env`, credentials, private keys, customer data, or private production media are included.
+3. If the package gate is clean, prepare the commercial hand-off/release archive path.
+4. Keep real deployment integration and final desktop/mobile acceptance as explicit post-install/customer-specific gates.
 
 ### No-waste rule
 - Do not recreate completed Buyer/Seller/Admin functionality.
-- Do not repeat visual work already completed.
-- Do not label the current HEAD fully green without fresh verification evidence.
+- Do not repeat completed visual work.
+- Do not claim live-production readiness without production configuration and final browser evidence.
