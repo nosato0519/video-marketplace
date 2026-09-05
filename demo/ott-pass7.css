@@ -57,5 +57,27 @@
 #categorySection .cat{border-radius:3px!important}
 #categorySection .cat:hover{transform:translateY(-3px)!important}
 #categorySection .cat:hover img{filter:saturate(.9) contrast(1.04) brightness(1.04)!important}
-@media(max-width:800px){.hero{margin-left:-5vw!important;margin-right:-5vw!important;padding-left:6vw!important;padding-right:6vw!important;height:74vh!important;min-height:650px!important}.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.95),rgba(0,0,0,.32)),linear-gradient(0deg,#07080c 0%,transparent 45%)!important}}
-@media(max-width:560px){.hero{margin-left:-5vw!important;margin-right:-5vw!important;padding-left:5vw!important;padding-right:5vw!important;height:650px!important;min-height:0!important}.hero:after{background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.28)),linear-gradient(0deg,#07080c 0%,transparent 48%)!important}}
+/* pass 10 refinement: calmer cinematic hero, compact browse rhythm, cleaner cards */
+.hero{min-height:680px!important;height:74vh!important;max-height:800px!important;padding-bottom:88px!important}
+.heroInner{max-width:570px!important}
+.hero h1{font-size:clamp(50px,5.35vw,80px)!important;line-height:.96!important;margin-bottom:17px!important}
+.hero p{max-width:540px!important;font-size:14px!important;line-height:1.58!important}
+.hero .actions{margin-top:19px!important}
+.heroMeta{margin-top:11px!important}
+#market{padding-top:30px!important;padding-bottom:34px!important}
+#market .head,#categorySection .head{margin-bottom:14px!important}
+.head h2{font-size:23px!important}
+#market .row{gap:15px!important;padding-right:7vw!important}
+#market .row .card{flex:0 0 clamp(225px,18.5vw,285px)!important}
+#market .row .card .thumb{box-shadow:0 7px 20px rgba(0,0,0,.2)!important}
+#market .cardBody{padding-top:8px!important}
+#market .cardBody h3{font-size:12.5px!important}
+#categorySection{padding-top:38px!important;padding-bottom:38px!important}
+#categorySection .catgrid{gap:14px!important;padding-right:7vw!important}
+#categorySection .cat{flex:0 0 clamp(185px,16.5vw,250px)!important;box-shadow:0 7px 20px rgba(0,0,0,.16)!important}
+#categorySection .cat img{height:108px!important}
+#categorySection .cat b{font-size:12.5px!important;padding:9px 12px 0!important}
+#categorySection .cat small{font-size:9.5px!important;padding:3px 12px 11px!important}
+.section:not(.hero):after{opacity:.45!important}
+@media(max-width:800px){.hero{height:70vh!important;min-height:600px!important;padding-bottom:70px!important}.hero h1{font-size:52px!important}.section{padding-top:34px!important;padding-bottom:34px!important}#market .row,#categorySection .catgrid{padding-right:10vw!important}.head h2{font-size:22px!important}}
+@media(max-width:560px){.hero{height:620px!important;min-height:0!important;padding:0 5vw 48px!important}.hero h1{font-size:46px!important}.hero p{font-size:13.5px!important}.hero .actions{margin-top:17px!important}.section{padding:28px 5vw!important}#market .row{gap:13px!important;padding-right:10vw!important}#market .row .card{flex-basis:220px!important}#categorySection .catgrid{gap:13px!important;padding-right:10vw!important}#categorySection .cat{flex-basis:190px!important}#categorySection .cat img{height:106px!important}}
