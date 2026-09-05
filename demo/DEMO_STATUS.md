@@ -25,7 +25,7 @@ The functional demo is a real Node.js HTTP application, not a static HTML mock.
 
 `npm --prefix demo run verify` is the canonical functional demo E2E verifier. It starts `demo/launcher.mjs` and verifies the browser entrypoint/assets plus Buyer, Seller, Admin, protected Watch/Download, and unauthorized-media flows.
 
-An earlier version of the verifier has an observed CI PASS in Backend Regression run `33723997514`. Changes made after that run must be re-verified before calling the latest commit fully green.
+A fresh Demo Functional Regression run `33831920856` completed successfully before the latest showcase-copy commit. The latest change only updates the hero wording in `demo/boot.js`, but that commit has not yet received a new CI run, so the current HEAD is **pending re-verification** rather than being labeled fully green.
 
 ## Release boundary
 
