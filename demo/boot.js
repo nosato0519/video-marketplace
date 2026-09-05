@@ -26,7 +26,7 @@ function polishCustomerExperience(){
   const eyebrow=document.querySelector('#hero .eyebrow');
   if(eyebrow)eyebrow.textContent='VIDEO MARKETPLACE';
   const heroTitle=document.querySelector('#hero h1');
-  if(heroTitle)heroTitle.innerHTML='好きな動画を、<br><span>見つける。買う。売る。</span>';
+  if(heroTitle)heroTitle.innerHTML='好きな動画を、<br><span>見つける。買う。楽しむ。</span>';
   const heroP=document.querySelector('#hero p');
   if(heroP)heroP.textContent='見たい動画を探して、安心して購入。購入した動画はマイページからいつでも視聴・ダウンロードできます。クリエイターは動画を登録して販売できます。';
   const heroActions=document.querySelectorAll('#hero .actions .btn');
