@@ -63,10 +63,15 @@ const injected = `${marker}
     res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
     res.end(css); return;
   }
+  if (req.method === 'GET' && url.pathname === '/ott-pass23.css') {
+    const css = await readFile(join(ROOT, 'ott-pass23.css'), 'utf8');
+    res.writeHead(200, {'content-type':'text/css; charset=utf-8','cache-control':'no-store'});
+    res.end(css); return;
+  }
   if (req.method === 'GET' && url.pathname === '/') {
     const html = await readFile(join(ROOT, 'index.html'), 'utf8');
     const safeHtml = html
-      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"></head>')
+      .replace('</head>', '<link rel="stylesheet" href="/ott-polish.css"><link rel="stylesheet" href="/ott-pass6.css"><link rel="stylesheet" href="/ott-pass7.css"><link rel="stylesheet" href="/ott-pass17.css"><link rel="stylesheet" href="/ott-pass18.css"><link rel="stylesheet" href="/ott-pass19.css"><link rel="stylesheet" href="/ott-pass20.css"><link rel="stylesheet" href="/ott-pass21.css"><link rel="stylesheet" href="/ott-pass22.css"><link rel="stylesheet" href="/ott-pass23.css"></head>')
       .replace('<body>', '<body><span id="role" hidden></span><span id="rolePill" hidden></span>')
       .replace('<option>All categories</option>', '<option value="All categories">All categories</option>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
