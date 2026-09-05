@@ -2,33 +2,33 @@
 
 `PROJECT_STATE.md` is the authoritative project state.
 
-## 2026-09-05 — Premium showcase redesign
+## 2026-09-05 — Vimeo OTT reference fidelity pass
 
-### User-directed design reset
-- The previous demo visual direction was explicitly rejected and is no longer treated as the target.
-- The current target is a high-quality commercial video marketplace showcase: stylish enough to impress a prospective system buyer while keeping navigation and functionality immediately understandable.
-- The design must not become a generic overseas-site imitation; useful marketplace UX patterns are retained without copying a specific service.
+### Direction
+- The demo is intentionally being treated as a high-fidelity Vimeo OTT layout study before later customization into an original VIDORA design.
+- Vimeo's current public information architecture emphasizes restrained navigation, an oversized editorial hero, strong black/white blocks, large typography, a metric band, feature sections, analytics, FAQ, CTA and a structured footer. citeturn0view0
+- VIDORA branding, marketplace copy and existing demo interactions remain in place; proprietary Vimeo branding and imagery are not copied.
 
 ### Implemented
-- Reworked `demo/visual-overhaul.css` into a substantially different premium editorial marketplace visual system.
-- Introduced warm premium palette, stronger typography hierarchy, cinematic hero treatment, refined navigation, elevated cards, editorial section spacing, stronger search/filter presentation, polished category cards, creator/admin workspace styling, modal/player styling and responsive mobile behavior.
-- Added visual treatment for hover/focus states, layered shadows, subtle grid texture, glass navigation, premium CTA hierarchy and reduced-motion support.
-- Updated the hero presentation to visibly use the required phrase `見つける。買う。楽しむ。` while preserving the existing interaction markup and demo logic.
-- Preserved the existing launcher architecture: the stylesheet is served through the existing `/visual-overhaul.css` route and injected by `demo/launcher.mjs`; no second frontend server was introduced.
+- Added `demo/visual-reference-pass-2.css` and wired it through the existing `demo/launcher.mjs` route/injection path.
+- Reworked the public presentation toward the reference proportions: flat white header, oversized two-column hero, rectangular imagery, black metric band, editorial section spacing, flat product cards, pale category block, black showcase block and black footer.
+- Tightened the latest reference pass by making the header non-sticky and increasing the black metric band hierarchy so the page reads more like a single editorial OTT landing page.
+- Preserved the existing same-origin demo architecture and Buyer/Seller/Admin interactions.
 
-### Commits
-- Visual redesign: `947fc2dec75d32b0b98aed53666c3a5dba8c1d11`
-- Project state checkpoint: `6ada96f1ac3163bc37608be72dda0b862e76bd4a`
+### Checkpoint
+- Latest code checkpoint: `ef4c2c8a27970fdbe0149b3cc43387296ce3554a`
+- Latest Render auto-deploy for the previous launcher checkpoint: `dep-dadoan6cveuc73e7b8eg` — LIVE.
+- Latest Browser E2E for commit `11920a0933135f3e4f5cbc06bfd3bde3fc2fb05d`: success (`33940564389`).
+- Payment Regression for the same commit: success (`33940564380`).
 
 ### Verification boundary
-- Existing 2026-09-04 CI gates remain the baseline evidence for the prior demo/backend behavior.
-- Fresh rendered browser inspection of this new visual pass has not yet been performed in this session.
-- Do not call the new design final until desktop/mobile rendering and Buyer/Seller/Admin journeys are inspected.
+- CI confirms the code path still passes the existing Browser E2E and Payment Regression gates, but CI is not a substitute for human visual inspection.
+- A fresh rendered-browser visual inspection of the newly tightened CSS has not yet been performed.
+- Therefore the visual pass remains **awaiting rendered visual acceptance** and must not be called final.
 
 ### Next work
-1. Refresh Codespaces/demo runtime.
-2. Inspect desktop and mobile visual result.
-3. Run buyer browse → detail → purchase → library → watch/download.
-4. Run seller Creator Studio flow.
-5. Run admin moderation/verification flow.
-6. Fix only concrete defects found.
+1. Allow the new CSS commit to auto-deploy on Render.
+2. Inspect the rendered desktop/mobile result when a browser visual inspection capability is available.
+3. Recheck buyer browse → detail → purchase → library → watch/download.
+4. Recheck Seller Studio and Admin workspace presentation/interactions.
+5. Fix only concrete defects found; record each meaningful checkpoint here and in `PROJECT_STATE.md`.
