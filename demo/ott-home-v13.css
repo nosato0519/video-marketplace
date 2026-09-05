@@ -1,17 +1,17 @@
 @import url('/ott-home-v12.css');
 
-/* V16 — compact hero mosaic, unique imagery, and a clearly staggered "作品との出会い" gallery. */
+/* V17 — only the requested visual corrections: smaller hero mosaic, restored Adult category, and unmistakable staggered showcase. */
 .hero{background:#080a0d!important}
 .hero-bg{display:block!important;position:absolute!important;inset:0!important;z-index:0!important;opacity:.58!important;filter:saturate(.86) contrast(1.02)!important;transform:scale(1.025)!important;background-image:linear-gradient(90deg,#07090df0 0%,#07090dd8 24%,#07090d82 52%,#07090d25 82%,#07090d45 100%),linear-gradient(0deg,#07090de8 0%,transparent 48%,#07090d28 100%),url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=2400&q=92')!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important}
 .hero-bg:after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 72% 42%,#d6a45a20 0%,transparent 25%),linear-gradient(90deg,transparent 0%,#0b0d1018 48%,#0b0d1080 100%)!important}
 .hero-copy{position:relative;z-index:4!important}
-/* Smaller, quieter three-image hero mosaic. */
-.hero-mosaic{position:absolute!important;z-index:4!important;right:5.5vw!important;top:105px!important;width:440px!important;height:335px!important}
-.mosaic-card{position:absolute!important;border:1px solid #fff2!important;border-radius:12px!important;overflow:hidden;background:#10151c!important;box-shadow:0 30px 90px #000c!important}
+/* Smaller than V15: the three-image mosaic stays visible but no longer dominates the first view. */
+.hero-mosaic{position:absolute!important;z-index:4!important;right:6vw!important;top:118px!important;width:360px!important;height:275px!important}
+.mosaic-card{position:absolute!important;border:1px solid #fff2!important;border-radius:10px!important;overflow:hidden;background:#10151c!important;box-shadow:0 22px 65px #000c!important}
 .mosaic-card .pic{height:100%!important;background-size:cover!important;background-position:center!important}
-.mc1{width:245px!important;height:295px!important;left:0!important;top:24px!important;transform:rotate(-3deg)!important}
-.mc2{width:205px!important;height:245px!important;right:0!important;top:0!important;transform:rotate(2.5deg)!important}
-.mc3{width:200px!important;height:220px!important;right:24px!important;bottom:-5px!important;transform:rotate(-2deg)!important}
+.mc1{width:200px!important;height:240px!important;left:0!important;top:20px!important;transform:rotate(-3deg)!important}
+.mc2{width:168px!important;height:200px!important;right:0!important;top:0!important;transform:rotate(2.5deg)!important}
+.mc3{width:164px!important;height:180px!important;right:20px!important;bottom:-2px!important;transform:rotate(-2deg)!important}
 .p1{background-image:linear-gradient(0deg,#05070ddd,transparent 60%),url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=88')!important}
 .p2{background-image:linear-gradient(0deg,#05070ddd,transparent 60%),url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=88')!important}
 .p3{background-image:linear-gradient(0deg,#05070ddd,transparent 60%),url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=88')!important}
@@ -22,22 +22,22 @@
 .cat:before{content:'';position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .4s ease}.cat:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#07090d10 10%,#07090dd8 100%)}.cat:hover:before{transform:scale(1.06);filter:saturate(1.08)}.cat b,.cat span,.cat i{position:relative;z-index:2}.cat b{font-size:10px;letter-spacing:2px}.cat span{font-size:15px;margin-top:5px}.cat i{position:absolute;right:20px;top:18px;font-style:normal;font-size:16px;color:#d6a45a}
 .cat.c1:before{background-image:url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=90')}.cat.c2:before{background-image:url('https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1000&q=90')}.cat.c3:before{background-image:url('https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1000&q=90')}.cat.c4:before{background-image:url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1000&q=90')}.cat.c5:before{background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1000&q=90')}.cat.c6:before{background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1000&q=90')}.cat.c6:after{background:linear-gradient(180deg,#07090d18 8%,#07090de8 100%)}
 
-/* "作品との出会いを、もっと自由に。" — make the stagger unmistakable. */
+/* "作品との出会いを、もっと自由に。" — five distinct cards with obvious vertical offsets. */
 .video-showcase{padding:54px 4vw 66px!important;background:#11151a!important}
 .video-showcase-head{margin-bottom:34px!important;align-items:flex-end!important}
-.video-showcase-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:245px!important;gap:16px!important;align-items:start!important}
+.video-showcase-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:270px!important;gap:16px!important;align-items:start!important}
 .showcase-card,.showcase-card:nth-child(1),.showcase-card:nth-child(2),.showcase-card:nth-child(3),.showcase-card:nth-child(4),.showcase-card:nth-child(5){grid-column:auto!important;grid-row:auto!important;width:100%!important;margin:0!important}
-.showcase-card{height:225px!important;border-radius:8px!important;box-shadow:0 20px 48px #0007!important;transform:translateY(0)!important}
-.showcase-card:nth-child(1){height:238px!important;transform:translateY(20px)!important}
-.showcase-card:nth-child(2){height:205px!important;transform:translateY(-2px)!important}
-.showcase-card:nth-child(3){height:250px!important;transform:translateY(28px)!important}
-.showcase-card:nth-child(4){height:210px!important;transform:translateY(7px)!important}
-.showcase-card:nth-child(5){height:232px!important;transform:translateY(-10px)!important}
+.showcase-card{height:205px!important;border-radius:8px!important;box-shadow:0 20px 48px #0007!important;transform:none!important}
+.showcase-card:nth-child(1){height:215px!important;transform:translateY(34px)!important}
+.showcase-card:nth-child(2){height:190px!important;transform:translateY(2px)!important}
+.showcase-card:nth-child(3){height:225px!important;transform:translateY(48px)!important}
+.showcase-card:nth-child(4){height:195px!important;transform:translateY(18px)!important}
+.showcase-card:nth-child(5){height:210px!important;transform:translateY(-12px)!important}
 .showcase-card.s1 .showcase-bg{background-image:linear-gradient(180deg,transparent,#000b),url('https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=88')!important}
 .showcase-card.s2 .showcase-bg{background-image:linear-gradient(180deg,transparent,#000b),url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=88')!important}
 .showcase-card.s3 .showcase-bg{background-image:linear-gradient(180deg,transparent,#000b),url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=88')!important}
 .showcase-card.s4 .showcase-bg{background-image:linear-gradient(180deg,transparent,#000b),url('https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=88')!important}
 .showcase-card.s5 .showcase-bg{background-image:linear-gradient(180deg,transparent,#000b),url('https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1000&q=88')!important}
 .video-showcase-note{margin-top:28px!important}
-@media(max-width:900px){.hero-mosaic{right:3vw!important;transform:scale(.82);transform-origin:top right}.video-showcase-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important}.showcase-card{height:185px!important}.showcase-card:nth-child(1){height:198px!important}.showcase-card:nth-child(2){height:170px!important}.showcase-card:nth-child(3){height:210px!important}.showcase-card:nth-child(4){height:176px!important}.showcase-card:nth-child(5){height:190px!important}}
-@media(max-width:600px){.hero-bg{opacity:.48!important}.hero-mosaic{right:-20px!important;top:165px!important;transform:scale(.52);transform-origin:top right;opacity:.9}.category-grid{grid-template-columns:1fr}.cat{min-height:150px}.video-showcase{padding:44px 18px 52px!important}.video-showcase-head{display:block!important}.video-showcase-copy{margin-top:12px}.video-showcase-grid{grid-template-columns:repeat(2,1fr)!important;grid-template-rows:150px 125px 125px!important;gap:10px!important}.showcase-card,.showcase-card:nth-child(1),.showcase-card:nth-child(2),.showcase-card:nth-child(3),.showcase-card:nth-child(4),.showcase-card:nth-child(5){height:125px!important;transform:none!important}.showcase-card:nth-child(1){grid-column:1 / 3!important;height:150px!important}.showcase-card:nth-child(2){transform:translateY(-4px)!important}.showcase-card:nth-child(3){transform:translateY(12px)!important}.showcase-card:nth-child(4){transform:translateY(-2px)!important}.showcase-card:nth-child(5){transform:translateY(10px)!important}}
+@media(max-width:900px){.hero-mosaic{right:3vw!important;transform:scale(.72);transform-origin:top right}.video-showcase-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important}.showcase-card{height:175px!important}.showcase-card:nth-child(1){height:185px!important}.showcase-card:nth-child(2){height:160px!important}.showcase-card:nth-child(3){height:195px!important}.showcase-card:nth-child(4){height:165px!important}.showcase-card:nth-child(5){height:180px!important}}
+@media(max-width:600px){.hero-bg{opacity:.48!important}.hero-mosaic{right:-15px!important;top:165px!important;transform:scale(.45);transform-origin:top right;opacity:.9}.category-grid{grid-template-columns:1fr}.cat{min-height:150px}.video-showcase{padding:44px 18px 52px!important}.video-showcase-head{display:block!important}.video-showcase-copy{margin-top:12px}.video-showcase-grid{grid-template-columns:repeat(2,1fr)!important;grid-template-rows:150px 125px 125px!important;gap:10px!important}.showcase-card,.showcase-card:nth-child(1),.showcase-card:nth-child(2),.showcase-card:nth-child(3),.showcase-card:nth-child(4),.showcase-card:nth-child(5){height:125px!important;transform:none!important}.showcase-card:nth-child(1){grid-column:1 / 3!important;height:150px!important}.showcase-card:nth-child(2){transform:translateY(-4px)!important}.showcase-card:nth-child(3){transform:translateY(12px)!important}.showcase-card:nth-child(4){transform:translateY(-2px)!important}.showcase-card:nth-child(5){transform:translateY(10px)!important}}
