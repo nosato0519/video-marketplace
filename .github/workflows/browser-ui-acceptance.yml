@@ -23,3 +23,12 @@ jobs:
         run: npx playwright test tests/browser-buyer-purchase.spec.js --reporter=line
       - name: Run browser module smoke
         run: npx playwright test tests/browser-module-smoke.spec.js --reporter=line
+      - name: Capture rendered showcase evidence
+        run: npx playwright test tests/browser-visual-evidence.spec.js --reporter=line
+      - name: Upload rendered showcase evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-showcase-evidence
+          path: tests/artifacts/
+          if-no-files-found: warn
