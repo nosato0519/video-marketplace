@@ -129,7 +129,21 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - `demo/launcher.mjs`
 - `PROGRESS_LOG.md`
 
+## Milestone 581 — Homepage visual polish V21
+
+- Increased the three-image hero mosaic so the images have more visual presence while remaining secondary to the hero copy.
+- Moved the fifth card in **作品との出会いを、もっと自由に。** lower to make the staggered silhouette more intentional.
+- Added restrained VIDORA accent color to fine details such as CTA, prices, category labels, section eyebrows, hover borders, trust highlights, and small UI accents.
+- Kept the overall dark premium editorial direction; no neon-heavy recolor and no changes to the popular-video 3×3 grid.
+- Activated `demo/ott-home-v15.css` and refreshed the homepage cache version to V21.
+- Visual-only change; existing application functionality remains untouched.
+
+### Files changed
+- `demo/ott-home-v15.css`
+- `demo/launcher.mjs`
+- `PROGRESS_LOG.md`
+
 ### Status
-- Homepage visual design remains Screen #1.
+- Homepage remains Screen #1 and is the only active design target.
 - V9 remains the official rollback/reference baseline.
-- Next inspection target: verify the stabilized staggered gallery and the expanded content hierarchy in the live demo before further visual changes.
+- Next step: inspect the updated homepage presentation and make only targeted visual corrections before moving to Screen #2.
