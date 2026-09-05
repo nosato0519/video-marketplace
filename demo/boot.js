@@ -52,7 +52,7 @@ function polishCustomerExperience(){
     const section=document.createElement('section');
     section.id='howItWorks';
     section.className='section';
-    section.innerHTML=`<div class="head"><div><div class="eyebrow">HOW IT WORKS</div><h2>使い方は、かんたん3ステップ</h2></div></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><article class="panel"><div style="font-size:28px;font-weight:950">01</div><h3>動画を探す</h3><p class="muted">カテゴリーや検索から気になる動画を見つけ、詳細ページで内容・価格・クリエイターを確認します。</p></article><article class="panel"><div style="font-size:28px;font-weight:950">02</div><h3>購入する</h3><p class="muted">購入すると、その動画がマイページの「購入した動画」に追加されます。</p></article><article class="panel"><div style="font-size:28px;font-weight:950">03</div><h3>視聴・ダウンロード</h3><p class="muted">マイページから購入済み動画を視聴。権限が確認されたユーザーだけがダウンロードできます。</p></article></div>`;
+    section.innerHTML=`<div class="head"><div><div class="eyebrow">HOW IT WORKS</div><h2>使い方は、かんたん3ステップ</h2></div></div><div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"><article class="panel"><div style="font-size:28px;font-weight:950">01</div><h3>動画を探す</h3><p class="muted">カテゴリーや検索から気になる動画を見つけ、詳細ページで内容・価格・クリエイターを確認します。</p></article><article class="panel"><div style="font-size:28px;font-weight:950">02</div><h3>購入する</h3><p class="muted">購入すると、その動画がマイページの「購入した動画」に追加されます。</p></article><article class="panel"><div style="font-size:28px;font-weight:950">03</div><h3>視聴・ダウンロード</h3><p class="muted">マイページから購入済み動画を視聴。権限が確認されたユーザーだけがダウンロードできます。</p></article></div>`;
     document.getElementById('categorySection').after(section);
   }
   const style=document.createElement('style');
