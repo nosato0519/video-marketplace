@@ -1,0 +1,17 @@
+@import url('/ott-home-v13.css');
+
+/* V20 gallery repair: fixed card geometry + controlled offsets. */
+.video-showcase{overflow:visible!important}
+.video-showcase-inner{max-width:1440px;margin:0 auto}
+.video-showcase-grid{display:flex!important;align-items:flex-start!important;gap:16px!important;padding:16px 0 28px!important;overflow:visible!important}
+.showcase-card{display:block!important;flex:1 1 0!important;width:auto!important;min-width:0!important;height:205px!important;transform:none!important;position:relative!important;overflow:hidden!important}
+.showcase-card:nth-child(1){height:205px!important;transform:translateY(16px)!important}
+.showcase-card:nth-child(2){height:185px!important;transform:translateY(0)!important}
+.showcase-card:nth-child(3){height:215px!important;transform:translateY(26px)!important}
+.showcase-card:nth-child(4){height:192px!important;transform:translateY(8px)!important}
+.showcase-card:nth-child(5){height:202px!important;transform:translateY(-10px)!important}
+.showcase-card .showcase-bg{position:absolute!important;inset:0!important;background-size:cover!important;background-position:center!important}
+.showcase-card .showcase-label,.showcase-card .showcase-index{position:absolute!important;z-index:3!important}
+.video-showcase-note{display:flex!important;justify-content:space-between!important;align-items:center!important}
+@media(max-width:900px){.video-showcase-grid{gap:10px!important}.showcase-card:nth-child(1){transform:translateY(10px)!important}.showcase-card:nth-child(2){transform:none!important}.showcase-card:nth-child(3){transform:translateY(14px)!important}.showcase-card:nth-child(4){transform:translateY(5px)!important}.showcase-card:nth-child(5){transform:translateY(-6px)!important}}
+@media(max-width:600px){.video-showcase-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:125px!important;gap:10px!important;padding-bottom:18px!important}.showcase-card,.showcase-card:nth-child(1),.showcase-card:nth-child(2),.showcase-card:nth-child(3),.showcase-card:nth-child(4),.showcase-card:nth-child(5){width:auto!important;height:125px!important;transform:none!important}.showcase-card:nth-child(1){grid-column:1 / 3!important;height:150px!important;transform:none!important}.showcase-card:nth-child(2){transform:translateY(-4px)!important}.showcase-card:nth-child(3){transform:translateY(7px)!important}.showcase-card:nth-child(4){transform:translateY(-2px)!important}.showcase-card:nth-child(5){transform:translateY(6px)!important}}
