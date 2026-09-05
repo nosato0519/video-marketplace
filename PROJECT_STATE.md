@@ -1,17 +1,16 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 558 — Demo showcase scope clarified; production deployment remains out of current demo-completion path.**
+**Milestone 559 — Premium sales-showcase visual redesign started; existing demo workflows preserved.**
 
-## Latest checkpoint — 2026-09-04
+## Latest checkpoint — 2026-09-05
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
 - Latest production-oriented implementation checkpoint: `581cc444063bbecbbafd4cb62e51ab82bfc08d73`.
-- Latest customer-facing showcase UI checkpoint: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
-- Latest demo launcher fix: `22e1516f10e2a95de5103023abaceca335204077`.
-- Latest demo acceptance strengthening: `849bbfddc0a86f8257b4b6adddc7f0aafe3a5ee3`.
-- Latest progress-log checkpoint: `b35080fd81b1ab57c30e0e6acb64f4d97a1b791c`.
+- Latest customer-facing showcase UI checkpoint before redesign: `5975248a23c529ed2ff2cb5ba6083565c864ca5d`.
+- Latest premium showcase redesign commit: `947fc2dec75d32b0b98aed53666c3a5dba8c1d11`.
+- Latest master creation-rules record: `2022d63a10b04d913a7392c688562b5f68f49e67`.
 - Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
 
 ### Completed / verified core application
@@ -38,28 +37,27 @@
 
 ### Demo/showcase distinction and scope
 - `demo/` is a lightweight showcase harness with simulated demo state. It is intentionally separate from the production-oriented `app/` + `backend/` system.
-- The demo exists to **show prospective buyers what the completed video marketplace system looks and feels like**; it is not the production service being operated from this repository milestone.
-- The showcase was corrected into a Japanese-first, customer-facing marketplace presentation with a clear buyer journey and creator selling CTA while preserving the existing demo API/workflows.
-- The launcher now explicitly preserves the default `All categories` filter option, with a regression assertion covering that wiring.
-- The demo must never be treated as the only evidence of backend completeness.
-- Do not spend current demo-completion work on production hosting, production PostgreSQL, live storage, live Stripe credentials, or production domain setup. Those belong to a later customer deployment/operation phase.
+- The demo exists to show prospective buyers what the completed video marketplace system looks and feels like; it is not the production service being operated from this repository milestone.
+- Existing Buyer/Seller/Admin demo API and workflows are preserved while the presentation layer is redesigned.
+- `demo/visual-overhaul.css` is injected by the existing launcher, so the visual redesign does not require a second frontend server.
+- The new presentation direction is premium/editorial marketplace: cinematic hero, stronger hierarchy, refined cards, high-quality whitespace, clear search/category/navigation, premium CTA treatment, polished workspace panels, and responsive behavior.
+- The hero visually uses the required phrase `見つける。買う。楽しむ。` while retaining existing interaction markup.
+- Do not confuse visual polish with production readiness; live payment/storage/hosting remain separate concerns.
 
-### Latest verification evidence — 2026-09-04
-All major automated release-hardening gates are GREEN on the latest CI set:
-- Browser UI Acceptance: run `33843376544`, job `100930038320` — success.
-- Payment Regression: run `33843376547`, job `100930038407` — success.
-- Functional Demo: run `33843376578`, job `100930038477` — success.
-- Browser E2E: run `33843376600`, job `100930038472` — success.
-- Clean Install: run `33843376615` — Node 22 job `100930038729` success; Node 20 job `100930039376` success.
-- The successful gates cover the backend payment/webhook/protected-media regressions, functional demo verification and showcase acceptance, real-browser UI/E2E coverage, and clean-install/migration/core regression coverage.
-- These results validate the current repository/CI state. They do **not** constitute production deployment or live Stripe acceptance.
+### Latest verification evidence
+- Existing CI evidence from 2026-09-04 remains valid for the repository state recorded there: Browser UI Acceptance, Payment Regression, Functional Demo, Browser E2E, and Clean Install were green.
+- The 2026-09-05 CSS redesign commit has been made through GitHub, but a fresh browser visual inspection of the redesigned presentation has **not** yet been performed in this session.
+- Therefore the new visual pass must not be called final/complete until the rendered demo is inspected and the required Buyer/Seller/Admin journeys are rechecked.
 
 ## Remaining work
 ### Demo acceptance / sales-demo readiness
-1. Refresh Codespaces and visually inspect the corrected customer-facing showcase.
-2. Walk the buyer demo end-to-end: browse → detail → purchase → library → watch/download.
-3. Walk seller and admin demo journeys and fix concrete UI defects only.
-4. Confirm the demo presents the system clearly as a product/showcase, without implying that live production infrastructure is already configured.
+1. Refresh/restart the Codespaces demo so the new `visual-overhaul.css` is loaded.
+2. Visually inspect desktop and mobile layouts.
+3. Walk buyer journey: browse → detail → purchase → library → watch/download.
+4. Walk seller journey: Creator Studio → new product → upload → payout.
+5. Walk admin journey: moderation → seller verification → security controls.
+6. Fix concrete visual or interaction defects found during inspection.
+7. Only after evidence, update this file and `DEV_LOG.md` to mark the visual pass accepted.
 
 ### Later customer deployment/operation (not required for current demo completion)
 1. Select and configure production hosting/runtime.
@@ -76,4 +74,5 @@ All major automated release-hardening gates are GREEN on the latest CI set:
 - Never claim GREEN without runtime/CI evidence.
 - Keep demo/showcase evidence separate from production-backend evidence.
 - Do not treat production infrastructure as a prerequisite for the current sales-demo milestone.
+- The premium redesign may change presentation substantially because the user explicitly rejected the previous visual direction, but must preserve working demo flows.
 - Once a gate is GREEN, move directly to the next gate.
