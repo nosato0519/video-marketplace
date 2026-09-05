@@ -1,0 +1,35 @@
+@import url('/ott-home-v15.css');
+
+/* V22 — homepage micro-polish: shift hero mosaic up/left, deepen showcase stagger, add restrained multi-accent color. */
+.hero-mosaic{right:9vw!important;top:72px!important}
+.showcase-card:nth-child(5){transform:translateY(34px)!important}
+
+:root{
+  --vidora-accent:#d6a45a;
+  --vidora-accent-soft:#e4c486;
+  --vidora-coral:#d97963;
+  --vidora-blue:#6f9fc8;
+  --vidora-mint:#7eaa9a;
+}
+.hero .eyebrow,.hero .hero-kicker,.section-head .eyebrow{color:var(--vidora-accent)!important}
+.hero .cta-primary,.hero a.cta-primary,.btn-primary{background:var(--vidora-accent)!important;color:#101216!important}
+.hero .cta-primary:hover,.hero a.cta-primary:hover,.btn-primary:hover{background:var(--vidora-accent-soft)!important}
+.collection-card:nth-child(3n+1)>span,.recommendation-card:nth-child(3n+1) .recommendation-meta>span{color:var(--vidora-accent)!important}
+.collection-card:nth-child(3n+2)>span,.recommendation-card:nth-child(3n+2) .recommendation-meta>span{color:var(--vidora-blue)!important}
+.collection-card:nth-child(3n)>span,.recommendation-card:nth-child(3n) .recommendation-meta>span{color:var(--vidora-coral)!important}
+.collection-card>b,.price{color:var(--vidora-accent-soft)!important}
+.genre-card:nth-child(5) strong{color:#e2a57f!important}
+.genre-card:nth-child(2) strong{color:#9bb8d2!important}
+.genre-card:nth-child(4) strong{color:#91b9ad!important}
+.showcase-card:nth-child(1) .showcase-index{border-color:#d6a45a66!important;color:#e4c486!important}
+.showcase-card:nth-child(2) .showcase-index{border-color:#6f9fc866!important;color:#9bb8d2!important}
+.showcase-card:nth-child(3) .showcase-index{border-color:#7eaa9a66!important;color:#91b9ad!important}
+.showcase-card:nth-child(4) .showcase-index{border-color:#d9796366!important;color:#e8a294!important}
+.showcase-card:nth-child(5) .showcase-index{border-color:#d6a45a66!important;color:#e4c486!important}
+.category-grid .cat:nth-child(3n+1) i{color:var(--vidora-accent-soft)!important}
+.category-grid .cat:nth-child(3n+2) i{color:#9bb8d2!important}
+.category-grid .cat:nth-child(3n) i{color:#e8a294!important}
+.trustbar strong,.trustbar b{color:#e8c987!important}
+
+@media(max-width:900px){.hero-mosaic{right:6vw!important;top:72px!important}.showcase-card:nth-child(5){transform:translateY(22px)!important}}
+@media(max-width:600px){.hero-mosaic{right:-18px!important;top:145px!important}.showcase-card:nth-child(5){transform:translateY(24px)!important}}
