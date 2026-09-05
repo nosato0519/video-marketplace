@@ -25,8 +25,7 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - The purpose is to ensure we can always return to this exact direction instead of rebuilding from memory or stacking uncontrolled CSS generations.
 
 ### V9 baseline characteristics
-- Standalone top-page stylesheet: `demo/ott-home-v9.css`.
-- V9 does **not** import V3/V6/V7/V8 or any previous homepage stylesheet.
+- Top-page stylesheet: `demo/ott-home-v9.css`.
 - First-view/hero is intentionally compact rather than oversized.
 - Main "人気の動画" area is a strict **3 columns × 3 rows** layout.
 - All nine video cards use the same grid position/rhythm; no featured first-card enlargement.
@@ -41,11 +40,33 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - Any new design direction must be explicitly recorded as a new milestone and must preserve V9 as the rollback/reference point.
 
 ### Current top-page files
-- `demo/ott-home-v9.css` — standalone V9 visual baseline.
-- `demo/index.html` — top-page markup; first card is no longer treated as a featured-layout card.
-- `demo/launcher.mjs` — serves V9 with cache-busting and no legacy V6/V7/V8 dependency for the top page.
+- `demo/ott-home-v9.css` — V9 visual baseline.
+- `demo/index.html` — top-page markup.
+- `demo/launcher.mjs` — serves the active top-page design.
 
 ### Current position
 - Screen #1: **Top page**.
-- V9 is the baseline from which the next visual refinement starts.
+- V9 is the baseline from which visual experiments start.
 - Do not move to screen #2 until the top page is visually accepted.
+
+## Milestone 574 — VIDORA Top Page V10 Impact Typography Experiment
+
+### Purpose
+- V10 is an **experiment built on top of the V9 baseline**, not a replacement completion state.
+- The V9 baseline remains the rollback/reference point.
+
+### Change
+- Added a new black editorial section immediately below the first-view hero.
+- Direction: bold oversized typography, restrained charcoal/white/gray palette, muted gold accent.
+- Message: `WATCH. / BUY. / OWN.` with supporting copy about discovering, purchasing, and owning video works.
+- Existing popular-video section and the rest of the page remain structurally unchanged.
+- No business/application functionality was added or changed.
+
+### Files
+- `demo/ott-home-v10.css`
+- `demo/launcher.mjs`
+
+### Status
+- V10 has been committed and Render deployment is in progress.
+- This is a visual trial only; accept/reject after visual inspection.
+- If rejected, revert to V9 baseline rather than modifying V9 itself.
