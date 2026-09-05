@@ -76,4 +76,5 @@
 - Keep demo/showcase evidence separate from production-backend evidence.
 - Do not treat production infrastructure as a prerequisite for the current sales-demo milestone.
 - The premium/reference redesign may change presentation substantially because the user explicitly requested it, but must preserve all working demo flows.
+- **Do not create or package the project as a ZIP during development. Only create a ZIP if the user explicitly asks for one.**
 - Once a gate is GREEN, move directly to the next gate.
