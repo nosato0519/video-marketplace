@@ -26,7 +26,7 @@ const GUIDE_STYLE = `<style id="system-guide-teaser-style">
 .system-guide-nav{white-space:nowrap}
 </style>`;
 
-const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>あなた自身の動画販売サイトを。</h2><p>動画を売る人と、買う人をつなぐ。販売者・購入者・運営者、それぞれが使える動画販売マーケットプレイスの仕組みを構築できます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
+const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>そのまま運営。カスタマイズも自由。</h2><p>完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
 
 function injectGuide(html) {
