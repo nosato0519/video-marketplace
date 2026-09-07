@@ -1,0 +1,56 @@
+import { spawn } from 'node:child_process';
+import { createServer, request as httpRequest } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const port = Number(process.env.PORT || 4173);
+const upstreamPort = port === 4173 ? 4174 : 4173;
+const root = fileURLToPath(new URL('.', import.meta.url));
+const child = spawn(process.execPath, ['hero-proxy.mjs'], {
+  cwd: root,
+  env: { ...process.env, PORT: String(upstreamPort) },
+  stdio: 'inherit'
+});
+
+const guide = `<section class="system-guide-teaser" style="margin:48px auto 72px;max-width:1180px;padding:0 28px"><div style="border:1px solid rgba(183,155,91,.38);background:linear-gradient(120deg,#111114,#15130f);padding:42px 50px;display:flex;align-items:center;justify-content:space-between;gap:40px"><div><span style="font-size:10px;letter-spacing:.28em;color:#b79b5b">FOR PLATFORM OPERATORS</span><h2 style="font-size:32px;line-height:1.3;margin:10px 0">あなた自身の動画販売サイトを。</h2><p style="color:#aaa6a0;max-width:650px;margin:0;font-size:14px;line-height:1.9">動画を売る人と、買う人をつなぐ。販売者・購入者・運営者、それぞれが使える動画販売マーケットプレイスの仕組みを構築できます。</p></div><a href="/system-guide.html" style="flex:0 0 auto;border:1px solid #b79b5b;color:#d5ba79;padding:13px 22px;font-size:12px;letter-spacing:.08em">システムについて →</a></div></section>`;
+const nav = `<a href="/system-guide.html" style="white-space:nowrap">システムについて</a>`;
+
+function inject(html) {
+  if (!html.includes('href="/system-guide.html"')) {
+    const navMatch = html.match(/<nav\\b[^>]*>[\\s\\S]*?<\\/nav>/i);
+    if (navMatch) html = html.replace(navMatch[0], navMatch[0].replace(/<\\/nav>/i, `${nav}</nav>`));
+  }
+  if (!html.includes('class="system-guide-teaser"')) {
+    const marker = /<section\\b[^>]*class=["'][^"']*\\btrustbar\\b[^"']*["'][^>]*>/i;
+    if (marker.test(html)) html = html.replace(marker, `${guide}$&`);
+    else html = html.replace(/<\\/main>/i, `${guide}</main>`);
+  }
+  return html;
+}
+
+const server = createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/system-guide.html') {
+    const html = await readFile(join(root, 'system-guide.html'), 'utf8');
+    res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+    res.end(html); return;
+  }
+  const proxyReq = httpRequest({hostname:'127.0.0.1',port:upstreamPort,path:req.url,method:req.method,headers:req.headers}, proxyRes => {
+    const type = String(proxyRes.headers['content-type'] || '');
+    if (req.method === 'GET' && (req.url === '/' || req.url.startsWith('/index.html')) && type.includes('text/html')) {
+      const chunks=[];
+      proxyRes.on('data', c => chunks.push(c));
+      proxyRes.on('end', () => {
+        const html = inject(Buffer.concat(chunks).toString('utf8'));
+        const headers={...proxyRes.headers,'content-length':Buffer.byteLength(html),'cache-control':'no-store'};
+        delete headers['transfer-encoding'];
+        res.writeHead(proxyRes.statusCode||200,headers); res.end(html);
+      });
+    } else { res.writeHead(proxyRes.statusCode||200,proxyRes.headers); proxyRes.pipe(res); }
+  });
+  proxyReq.on('error', () => { if (!res.headersSent) res.writeHead(502); res.end('upstream error'); });
+  req.pipe(proxyReq);
+});
+server.listen(port,'0.0.0.0');
+process.on('SIGTERM',()=>{child.kill('SIGTERM');server.close(()=>process.exit(0));});
+process.on('SIGINT',()=>{child.kill('SIGINT');server.close(()=>process.exit(0));});
