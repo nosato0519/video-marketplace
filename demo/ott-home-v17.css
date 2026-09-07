@@ -1,20 +1,26 @@
 @import url('/ott-home-v16.css');
 
-/* V34 — VIDEO MARKETPLACE: hero mosaic +25%; headline trio +25%. */
-.nav .logo{position:relative!important;display:inline-flex!important;align-items:center!important;width:auto!important;min-width:0!important;height:54px!important;padding:0!important;margin:0!important;color:#f8f3e8!important;text-decoration:none!important;font-family:Georgia,'Times New Roman',serif!important;font-size:27px!important;line-height:1!important;font-weight:500!important;letter-spacing:.13em!important;white-space:nowrap!important;background:linear-gradient(105deg,#fffefa 0%,#f3ead8 34%,#d8bd87 52%,#fffaf0 68%,#c7a565 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;text-shadow:0 2px 24px rgba(255,238,190,.13)!important;filter:drop-shadow(0 1px 8px rgba(0,0,0,.32))!important}
+/* V35 — VIDEO MARKETPLACE: enlarge the camera/frame mosaic itself by another 25%. */
+.nav .logo{
+  position:relative!important;display:inline-flex!important;align-items:center!important;width:auto!important;min-width:0!important;height:54px!important;padding:0!important;margin:0!important;color:#f8f3e8!important;text-decoration:none!important;font-family:Georgia,'Times New Roman',serif!important;font-size:27px!important;line-height:1!important;font-weight:500!important;letter-spacing:.13em!important;white-space:nowrap!important;background:linear-gradient(105deg,#fffefa 0%,#f3ead8 34%,#d8bd87 52%,#fffaf0 68%,#c7a565 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;text-shadow:0 2px 24px rgba(255,238,190,.13)!important;filter:drop-shadow(0 1px 8px rgba(0,0,0,.32))!important;
+}
 .nav .logo::before{content:"";position:absolute!important;left:0!important;bottom:13px!important;width:46px!important;height:1px!important;background:linear-gradient(90deg,#e1c17b,rgba(225,193,123,0))!important;box-shadow:0 0 10px rgba(225,193,123,.22)!important}
 .nav .logo::after{content:"";position:absolute!important;right:0!important;bottom:13px!important;width:102px!important;height:1px!important;background:linear-gradient(90deg,rgba(225,193,123,0),rgba(225,193,123,.9))!important;box-shadow:0 0 10px rgba(225,193,123,.14)!important}
 .nav .logo span{display:none!important}
 .nav .logo:hover{background:linear-gradient(105deg,#ffffff 0%,#f8edda 34%,#e5c987 52%,#fffdf7 68%,#dfbc73 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;filter:drop-shadow(0 1px 10px rgba(0,0,0,.34))!important}
 .nav .logo:hover::before,.nav .logo:hover::after{filter:brightness(1.18)!important}
 
-.hero-mosaic{width:525px!important;height:394px!important;right:6vw!important;top:48px!important}
-.mc1{width:288px!important;height:344px!important;left:0!important;top:22px!important}.mc2{width:238px!important;height:281px!important;right:0!important;top:0!important}.mc3{width:235px!important;height:256px!important;right:23px!important;bottom:-4px!important}
+/* Camera/image frame area: 25% larger than V33/V34. */
+.hero-mosaic{width:656px!important;height:493px!important;right:6vw!important;top:48px!important}
+.mc1{width:360px!important;height:430px!important;left:0!important;top:22px!important}
+.mc2{width:298px!important;height:351px!important;right:0!important;top:0!important}
+.mc3{width:294px!important;height:320px!important;right:29px!important;bottom:-4px!important}
 
-/* Enlarge 「見つける・買う・楽しむ」 hero message by 25%. */
-.hero h1{font-size:clamp(42px,4.4vw,67px)!important;line-height:1.08!important;letter-spacing:-.025em!important}
-.hero .hero-copy{max-width:690px!important}
-.hero .hero-subtitle,.hero .hero-description{font-size:1.05em!important}
-
-@media(max-width:900px){.hero-mosaic{width:475px!important;height:356px!important;right:0!important;top:56px!important}.mc1{width:262px!important;height:310px!important}.mc2{width:213px!important;height:263px!important}.mc3{width:211px!important;height:235px!important;right:20px!important}.hero h1{font-size:clamp(36px,6vw,54px)!important}}
-@media(max-width:600px){.hero-mosaic{width:460px!important;height:346px!important;right:-55px!important;top:145px!important}.mc1{width:248px!important;height:292px!important}.mc2{width:203px!important;height:237px!important}.mc3{width:200px!important;height:221px!important;right:20px!important}.hero h1{font-size:clamp(34px,9vw,46px)!important;line-height:1.06!important}}
+@media(max-width:900px){
+  .hero-mosaic{width:594px!important;height:445px!important;right:0!important;top:56px!important}
+  .mc1{width:328px!important;height:388px!important}.mc2{width:266px!important;height:329px!important}.mc3{width:264px!important;height:294px!important;right:25px!important}
+}
+@media(max-width:600px){
+  .hero-mosaic{width:575px!important;height:433px!important;right:-55px!important;top:145px!important}
+  .mc1{width:310px!important;height:365px!important}.mc2{width:254px!important;height:296px!important}.mc3{width:250px!important;height:276px!important;right:25px!important}
+}
