@@ -28,7 +28,21 @@ const GUIDE_STYLE = `<style id="system-guide-teaser-style">
 
 const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>そのまま運営。カスタマイズも自由。</h2><p>完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
-const MOVE_FEATURES = `<script id="move-system-features">(()=>{const move=()=>{const f=document.querySelector('#system-features');if(!f)return;const anchor=document.querySelector('.hero')||document.querySelector('.hero-mosaic')?.closest('.hero')||document.querySelector('.hero-copy')?.closest('.hero');if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(f,anchor.nextElementSibling);return true}return false};const run=()=>{move();setTimeout(move,100);setTimeout(move,500);setTimeout(move,1500)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();new MutationObserver(move).observe(document.documentElement,{childList:true,subtree:true})})()</script>`;
+
+function moveSystemFeatures(html) {
+  const featureStart = html.search(/<section\b[^>]*id=["']system-features["'][^>]*>/i);
+  if (featureStart < 0) return html;
+  const trustbarStart = html.search(/<section\b[^>]*class=["'][^"']*\btrustbar\b[^"']*["'][^>]*>/i);
+  if (trustbarStart < 0 || trustbarStart <= featureStart) return html;
+  const featureBlock = html.slice(featureStart, trustbarStart);
+  html = html.slice(0, featureStart) + html.slice(trustbarStart);
+  const heroMatch = html.match(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>/i);
+  if (!heroMatch || heroMatch.index == null) return html;
+  const heroEnd = html.indexOf('</section>', heroMatch.index);
+  if (heroEnd < 0) return html;
+  const insertAt = heroEnd + '</section>'.length;
+  return html.slice(0, insertAt) + featureBlock + html.slice(insertAt);
+}
 
 function injectGuide(html) {
   if (!html.includes('/system-guide.html')) {
@@ -75,8 +89,8 @@ const server = createServer(async (req, res) => {
       proxyRes.on('end', () => {
         let html = Buffer.concat(chunks).toString('utf8');
         html = injectGuide(html);
+        html = moveSystemFeatures(html);
         html = html.replace('</head>', `${HERO_STYLE}${GUIDE_STYLE}</head>`);
-        html = html.replace('</body>', `${MOVE_FEATURES}</body>`);
         const headers = { ...proxyRes.headers, 'content-length': Buffer.byteLength(html), 'cache-control': 'no-store' };
         delete headers['transfer-encoding'];
         res.writeHead(proxyRes.statusCode || 200, headers);
