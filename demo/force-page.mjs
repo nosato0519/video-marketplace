@@ -21,36 +21,19 @@ const STYLE = `<style id="force-final-visual">
 @media(max-width:1100px){.ssf-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.hero{height:720px!important;min-height:720px!important}.ssf-roles{grid-template-columns:1fr}.ssf-detail-title{display:block}.ssf-detail-title strong{display:block;margin-top:10px}.ssf-bottom{display:block}.ssf-badge{margin-top:20px;max-width:320px}.ssf-bottom span{max-width:none}}@media(max-width:600px){.hero{height:680px!important;min-height:680px!important}.hero-copy{transform:scale(1)!important}.hero-mosaic{transform:scale(.9)!important}.system-showcase-force{padding:65px 20px}.ssf-grid{grid-template-columns:1fr}.system-showcase-force h2{font-size:36px}.ssf-roles article{padding:25px}.ssf-detail-title strong{font-size:19px}.ssf-bottom{padding:24px}.ssf-badge{min-width:0;width:100%}}
 </style>`;
 
-function removeSectionContaining(html, marker) {
-  let markerIndex = html.indexOf(marker);
-  while (markerIndex >= 0) {
-    const start = html.lastIndexOf('<section', markerIndex);
-    const end = html.indexOf('</section>', markerIndex);
-    if (start < 0 || end < 0) return html;
-    html = html.slice(0, start) + html.slice(end + '</section>'.length);
-    markerIndex = html.indexOf(marker);
-  }
-  return html;
-}
-
 function finalize(html) {
   html = html.replaceAll('VIDORA', 'VIDEO MARKETPLACE');
-  html = removeSectionContaining(html, 'system-showcase');
-  html = removeSectionContaining(html, 'system-guide-teaser');
-  html = removeSectionContaining(html, 'id="guide"');
   html = html.replaceAll('href="#guide"', 'href="#system-features-force"');
 
-  // Deterministic placement: immediately after the hero section, before trustbar/videos.
-  const exactBoundary = '</section><section class="trustbar">';
-  if (html.includes(exactBoundary)) {
-    html = html.replace(exactBoundary, '</section>' + SYSTEM_BLOCK + '<section class="trustbar">');
+  // The launcher already adds the curated video showcase directly after the hero.
+  // Insert the system block immediately before that known boundary. This avoids
+  // parsing or counting arbitrary </section> tags in the large homepage document.
+  if (html.includes('<section class="video-showcase">')) {
+    html = html.replace('<section class="video-showcase">', SYSTEM_BLOCK + '<section class="video-showcase">');
+  } else if (html.includes('<section class="trustbar">')) {
+    html = html.replace('<section class="trustbar">', SYSTEM_BLOCK + '<section class="trustbar">');
   } else {
-    const heroStart = html.indexOf('<section class="hero"');
-    const heroEnd = heroStart >= 0 ? html.indexOf('</section>', heroStart) : -1;
-    if (heroStart >= 0 && heroEnd >= 0) {
-      const insertAt = heroEnd + '</section>'.length;
-      html = html.slice(0, insertAt) + SYSTEM_BLOCK + html.slice(insertAt);
-    }
+    throw new Error('homepage insertion boundary not found');
   }
 
   return html.replace('</head>', STYLE + '</head>');
@@ -65,7 +48,7 @@ function proxy(req, res) {
       const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
       if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
         const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v29'};
+        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v30'};
         delete headers['transfer-encoding'];
         res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
       } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
