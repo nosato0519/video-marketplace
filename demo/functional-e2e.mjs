@@ -7,16 +7,8 @@ let output = '';
 child.stdout.on('data', d => output += d.toString());
 child.stderr.on('data', d => output += d.toString());
 
-async function request(path, options = {}) {
-  return fetch(`http://127.0.0.1:${port}${path}`, options);
-}
-async function waitHealth() {
-  for (let i = 0; i < 50; i++) {
-    try { const r = await request('/api/health'); if (r.ok) return; } catch {}
-    await new Promise(r => setTimeout(r, 100));
-  }
-  throw new Error(`demo server failed to start\n${output}`);
-}
+async function request(path, options = {}) { return fetch(`http://127.0.0.1:${port}${path}`, options); }
+async function waitHealth() { for (let i = 0; i < 50; i++) { try { const r = await request('/api/health'); if (r.ok) return; } catch {} await new Promise(r => setTimeout(r, 100)); } throw new Error(`demo server failed to start\n${output}`); }
 function cookieOf(r) { return r.headers.getSetCookie?.()[0]?.split(';')[0] || r.headers.get('set-cookie')?.split(';')[0] || ''; }
 async function json(path, options = {}) { const r = await request(path, options); const data = await r.json(); if (!r.ok) throw new Error(`${path}: ${JSON.stringify(data)}`); return data; }
 
@@ -24,7 +16,10 @@ try {
   await waitHealth();
   const root = await request('/');
   const html = await root.text();
-  if (!root.ok || !html.includes('VIDORA') || !html.includes('All categories')) throw new Error('browser entrypoint failed');
+  const systemCount = (html.match(/id=["']system-features-force["']/gi) || []).length;
+  const legacyGuideCount = (html.match(/id=["']guide["']/gi) || []).length;
+  if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('All categories') || systemCount !== 1 || legacyGuideCount !== 0) throw new Error('browser entrypoint/system showcase failed');
+  for (let n = 3; n <= 9; n++) if (!new RegExp(`<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?</div></div></article>`, 'i').test(html)) throw new Error(`homepage card t${n} markup failed`);
   const asset = await request('/app.js');
   const js = await asset.text();
   if (!asset.ok || !js.includes('function purchase') || !js.includes('function sellerView') || !js.includes('function adminView')) throw new Error('browser application asset incomplete');
@@ -71,7 +66,7 @@ try {
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
 
   console.log('FUNCTIONAL_DEMO_E2E_GREEN');
-  console.log('browser page + catalog + app asset: PASS');
+  console.log('browser page + current branding + system placement + homepage markup: PASS');
   console.log('buyer purchase -> entitlement -> protected watch + download: PASS');
   console.log('unauthorized media rejection: PASS');
   console.log('seller authorization -> product -> upload lifecycle -> payout: PASS');
