@@ -1,10 +1,10 @@
 {
   "name": "vidora-functional-demo",
   "private": true,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "scripts": {
-    "start": "node system-top-proxy.mjs",
+    "start": "node force-page.mjs",
     "verify": "node functional-e2e.mjs"
   },
   "engines": { "node": ">=20" }
