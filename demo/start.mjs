@@ -18,13 +18,18 @@ const nav = `<a href="/system-guide.html" style="white-space:nowrap">システ�
 
 function inject(html) {
   if (!html.includes('href="/system-guide.html"')) {
-    const navMatch = html.match(/<nav\\b[^>]*>[\\s\\S]*?<\\/nav>/i);
-    if (navMatch) html = html.replace(navMatch[0], navMatch[0].replace(/<\\/nav>/i, `${nav}</nav>`));
+    const navStart = html.indexOf('<nav');
+    const navEnd = navStart >= 0 ? html.indexOf('</nav>', navStart) : -1;
+    if (navStart >= 0 && navEnd >= 0) html = html.slice(0, navEnd) + nav + html.slice(navEnd);
   }
   if (!html.includes('class="system-guide-teaser"')) {
-    const marker = /<section\\b[^>]*class=["'][^"']*\\btrustbar\\b[^"']*["'][^>]*>/i;
-    if (marker.test(html)) html = html.replace(marker, `${guide}$&`);
-    else html = html.replace(/<\\/main>/i, `${guide}</main>`);
+    const marker = '<section class="trustbar">';
+    const markerPos = html.indexOf(marker);
+    if (markerPos >= 0) html = html.slice(0, markerPos) + guide + html.slice(markerPos);
+    else {
+      const mainEnd = html.lastIndexOf('</main>');
+      if (mainEnd >= 0) html = html.slice(0, mainEnd) + guide + html.slice(mainEnd);
+    }
   }
   return html;
 }
