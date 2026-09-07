@@ -1,66 +1,70 @@
 @import url('/ott-home-v16.css');
 
-/* V28 — VIDEO MARKETPLACE: larger luxury wordmark. */
+/* V29 — VIDEO MARKETPLACE: luxury editorial wordmark, larger and more refined. */
 .nav .logo{
   position:relative!important;
   display:inline-flex!important;
   align-items:center!important;
   width:auto!important;
   min-width:0!important;
-  height:52px!important;
-  padding:0 0 4px!important;
-  color:#f7f2e7!important;
+  height:54px!important;
+  padding:0 0 5px!important;
+  color:#f8f3e8!important;
   text-decoration:none!important;
   font-family:Georgia,'Times New Roman',serif!important;
-  font-size:26px!important;
+  font-size:27px!important;
   line-height:1!important;
-  font-weight:600!important;
-  letter-spacing:.105em!important;
+  font-weight:500!important;
+  letter-spacing:.13em!important;
   white-space:nowrap!important;
-  background:linear-gradient(110deg,#fffdf7 0%,#e9dcc1 45%,#fffaf0 72%,#c9a86a 100%)!important;
+  background:linear-gradient(105deg,#fffefa 0%,#f3ead8 34%,#d8bd87 52%,#fffaf0 68%,#c7a565 100%)!important;
   -webkit-background-clip:text!important;
   background-clip:text!important;
   -webkit-text-fill-color:transparent!important;
-  text-shadow:0 3px 20px rgba(255,245,215,.10)!important;
+  text-shadow:0 2px 24px rgba(255,238,190,.13)!important;
+  filter:drop-shadow(0 1px 8px rgba(0,0,0,.32))!important;
 }
 
+/* Fine-gold editorial rules give the wordmark a bespoke luxury identity. */
 .nav .logo::before{
   content:"";
   position:absolute!important;
   left:0!important;
   bottom:-1px!important;
-  width:42px!important;
+  width:46px!important;
   height:1px!important;
-  background:linear-gradient(90deg,#d8b76d,rgba(216,183,109,0))!important;
-  box-shadow:0 0 10px rgba(216,183,109,.18)!important;
+  background:linear-gradient(90deg,#e1c17b,rgba(225,193,123,0))!important;
+  box-shadow:0 0 12px rgba(225,193,123,.24)!important;
 }
 .nav .logo::after{
   content:"";
   position:absolute!important;
   right:0!important;
   bottom:-1px!important;
-  width:94px!important;
+  width:102px!important;
   height:1px!important;
-  background:linear-gradient(90deg,rgba(216,183,109,0),rgba(216,183,109,.82))!important;
+  background:linear-gradient(90deg,rgba(225,193,123,0),rgba(225,193,123,.9))!important;
+  box-shadow:0 0 12px rgba(225,193,123,.16)!important;
 }
 
 .nav .logo span{display:none!important}
 
 .nav .logo:hover{
-  background:linear-gradient(110deg,#ffffff 0%,#f6e8c7 45%,#fffdf5 72%,#dfbd78 100%)!important;
+  background:linear-gradient(105deg,#ffffff 0%,#f8edda 34%,#e5c987 52%,#fffdf7 68%,#dfbc73 100%)!important;
   -webkit-background-clip:text!important;
   background-clip:text!important;
   -webkit-text-fill-color:transparent!important;
+  filter:drop-shadow(0 1px 10px rgba(0,0,0,.34))!important;
 }
-.nav .logo:hover::before,.nav .logo:hover::after{filter:brightness(1.2)!important}
+.nav .logo:hover::before,.nav .logo:hover::after{filter:brightness(1.18)!important}
 
 @media(max-width:600px){
   .nav .logo{
-    height:45px!important;
-    font-size:19px!important;
-    letter-spacing:.075em!important;
-    padding-bottom:2px!important;
+    height:46px!important;
+    font-size:20px!important;
+    letter-spacing:.085em!important;
+    padding-bottom:3px!important;
   }
-  .nav .logo::before{width:30px!important}
-  .nav .logo::after{width:64px!important}
+  .nav .logo::before{width:31px!important}
+  .nav .logo::after{width:67px!important}
 }
