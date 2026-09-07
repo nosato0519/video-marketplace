@@ -1,79 +1,72 @@
 @import url('/ott-home-v16.css');
 
-/* V26 — VIDEO MARKETPLACE: luxurious editorial wordmark. */
+/* V27 — VIDEO MARKETPLACE: typography-first luxury wordmark. */
 .nav .logo{
   position:relative!important;
   display:inline-flex!important;
   align-items:center!important;
-  gap:12px!important;
   width:auto!important;
-  min-width:205px!important;
+  min-width:0!important;
   height:48px!important;
-  padding:0!important;
-  color:#fbfaf6!important;
+  padding:0 0 3px!important;
+  color:#f7f2e7!important;
   text-decoration:none!important;
-  letter-spacing:.12em!important;
-  font-size:22px!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:21px!important;
   line-height:1!important;
-  font-weight:850!important;
-  text-shadow:0 2px 22px rgba(255,255,255,.10)!important;
+  font-weight:600!important;
+  letter-spacing:.105em!important;
+  white-space:nowrap!important;
+  background:linear-gradient(110deg,#fffdf7 0%,#e9dcc1 45%,#fffaf0 72%,#c9a86a 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:0 3px 20px rgba(255,245,215,.10)!important;
 }
 
-/* Elegant V / play monogram — intentionally more jewelry-like than app-like. */
+/* Minimal editorial accent: no badge, no play icon, just a refined wordmark. */
 .nav .logo::before{
   content:"";
-  display:block!important;
-  width:37px!important;
-  height:37px!important;
-  flex:0 0 37px!important;
-  border:1px solid rgba(239,205,127,.72)!important;
-  border-radius:50%!important;
-  background:
-    linear-gradient(135deg,rgba(255,248,220,.16),rgba(199,154,73,.05)),
-    radial-gradient(circle at 30% 20%,rgba(255,255,255,.35),transparent 35%)!important;
-  box-shadow:0 0 0 1px rgba(255,255,255,.05),0 0 28px rgba(224,184,91,.16),inset 0 0 20px rgba(224,184,91,.08)!important;
-  position:relative!important;
+  position:absolute!important;
+  left:0!important;
+  bottom:-1px!important;
+  width:34px!important;
+  height:1px!important;
+  background:linear-gradient(90deg,#d8b76d,rgba(216,183,109,0))!important;
+  box-shadow:0 0 10px rgba(216,183,109,.18)!important;
 }
 .nav .logo::after{
   content:"";
   position:absolute!important;
-  left:15px!important;
-  top:13px!important;
-  width:13px!important;
-  height:15px!important;
-  background:linear-gradient(145deg,#fff3bf,#c99b50)!important;
-  clip-path:polygon(0 0,100% 50%,0 100%,25% 50%)!important;
-  filter:drop-shadow(0 0 7px rgba(230,190,100,.28))!important;
-}
-
-/* Main wordmark + compact descriptor using the existing markup. */
-.nav .logo{
-  font-variant-ligatures:common-ligatures!important;
-}
-.nav .logo span{
-  display:block!important;
-  position:absolute!important;
-  left:49px!important;
+  right:0!important;
   bottom:-1px!important;
-  font-size:6px!important;
-  line-height:1!important;
-  font-weight:650!important;
-  letter-spacing:.31em!important;
-  color:rgba(255,255,255,.46)!important;
-  background:none!important;
-  -webkit-text-fill-color:rgba(255,255,255,.46)!important;
-  white-space:nowrap!important;
+  width:78px!important;
+  height:1px!important;
+  background:linear-gradient(90deg,rgba(216,183,109,0),rgba(216,183,109,.82))!important;
 }
 
-.nav .logo:hover{color:#fff!important}
-.nav .logo:hover::before{
-  border-color:rgba(255,226,151,.95)!important;
-  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 34px rgba(224,184,91,.28),inset 0 0 24px rgba(224,184,91,.12)!important;
+/* Existing descriptor is redundant now that the full wordmark is the logo. */
+.nav .logo span{
+  display:none!important;
+}
+
+.nav .logo:hover{
+  background:linear-gradient(110deg,#ffffff 0%,#f6e8c7 45%,#fffdf5 72%,#dfbd78 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+}
+.nav .logo:hover::before,.nav .logo:hover::after{
+  filter:brightness(1.2)!important;
 }
 
 @media(max-width:600px){
-  .nav .logo{min-width:174px!important;gap:9px!important;font-size:18px!important;letter-spacing:.10em!important;height:42px!important}
-  .nav .logo::before{width:31px!important;height:31px!important;flex-basis:31px!important}
-  .nav .logo::after{left:13px!important;top:11px!important;width:11px!important;height:13px!important}
-  .nav .logo span{left:40px!important;font-size:5px!important;letter-spacing:.24em!important}
+  .nav .logo{
+    height:42px!important;
+    font-size:17px!important;
+    letter-spacing:.075em!important;
+    padding-bottom:2px!important;
+  }
+  .nav .logo::before{width:27px!important}
+  .nav .logo::after{width:58px!important}
 }
