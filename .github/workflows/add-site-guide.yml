@@ -1,0 +1,45 @@
+name: Add site guide to top navigation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  add-guide:
+    if: github.event.head_commit.message != 'Add site guide to top navigation'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add guide menu and section
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('demo/index.html')
+          text = path.read_text(encoding='utf-8')
+
+          old_nav = '<a href="#library">購入済み</a></nav>'
+          new_nav = '<a href="#library">購入済み</a><a href="#guide">ご利用ガイド</a></nav>'
+          if old_nav in text and 'href="#guide">ご利用ガイド</a>' not in text:
+              text = text.replace(old_nav, new_nav, 1)
+
+          marker = '</main><footer>'
+          guide = '''<section class="section" id="guide" style="scroll-margin-top:100px;padding-top:96px;padding-bottom:96px"><div class="section-head"><div><span class="section-kicker">HOW IT WORKS</span><h2>VIDORA ご利用ガイド</h2></div></div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px"><article class="role"><span class="num">01 / BUYER</span><h3>動画を探して購入</h3><p>気になる作品を検索・カテゴリーから探し、作品内容と価格を確認して購入します。</p><div class="tags"><span>検索</span><span>作品詳細</span><span>購入</span></div></article><article class="role"><span class="num">02 / WATCH</span><h3>購入後すぐ楽しむ</h3><p>購入した作品はマイライブラリに保存。いつでも視聴・ダウンロードできます。</p><div class="tags"><span>ライブラリ</span><span>視聴</span><span>DL</span></div></article><article class="role creator-role"><span class="num">03 / CREATOR</span><h3>動画を販売する</h3><p>クリエイターとして作品を登録し、アップロード・販売・売上管理まで行えます。</p><div class="tags"><span>商品登録</span><span>Upload</span><span>Sales</span></div></article></div><div style="margin-top:28px;padding:24px 28px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.035)"><strong style="display:block;margin-bottom:8px">このデモサイトについて</strong><p style="margin:0;line-height:1.8;opacity:.78">このサイトは動画販売マーケットプレイスのデモです。購入・決済など一部の機能はシミュレーションとして動作します。</p></div></section>'''
+          if 'id="guide"' not in text and marker in text:
+              text = text.replace(marker, guide + marker, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demo/index.html
+          git diff --cached --quiet || git commit -m "Add site guide to top navigation"
+          git push
