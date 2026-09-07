@@ -1,18 +1,18 @@
 @import url('/ott-home-v16.css');
 
-/* V27 — VIDEO MARKETPLACE: typography-first luxury wordmark. */
+/* V28 — VIDEO MARKETPLACE: larger luxury wordmark. */
 .nav .logo{
   position:relative!important;
   display:inline-flex!important;
   align-items:center!important;
   width:auto!important;
   min-width:0!important;
-  height:48px!important;
-  padding:0 0 3px!important;
+  height:52px!important;
+  padding:0 0 4px!important;
   color:#f7f2e7!important;
   text-decoration:none!important;
   font-family:Georgia,'Times New Roman',serif!important;
-  font-size:21px!important;
+  font-size:26px!important;
   line-height:1!important;
   font-weight:600!important;
   letter-spacing:.105em!important;
@@ -24,13 +24,12 @@
   text-shadow:0 3px 20px rgba(255,245,215,.10)!important;
 }
 
-/* Minimal editorial accent: no badge, no play icon, just a refined wordmark. */
 .nav .logo::before{
   content:"";
   position:absolute!important;
   left:0!important;
   bottom:-1px!important;
-  width:34px!important;
+  width:42px!important;
   height:1px!important;
   background:linear-gradient(90deg,#d8b76d,rgba(216,183,109,0))!important;
   box-shadow:0 0 10px rgba(216,183,109,.18)!important;
@@ -40,15 +39,12 @@
   position:absolute!important;
   right:0!important;
   bottom:-1px!important;
-  width:78px!important;
+  width:94px!important;
   height:1px!important;
   background:linear-gradient(90deg,rgba(216,183,109,0),rgba(216,183,109,.82))!important;
 }
 
-/* Existing descriptor is redundant now that the full wordmark is the logo. */
-.nav .logo span{
-  display:none!important;
-}
+.nav .logo span{display:none!important}
 
 .nav .logo:hover{
   background:linear-gradient(110deg,#ffffff 0%,#f6e8c7 45%,#fffdf5 72%,#dfbd78 100%)!important;
@@ -56,17 +52,15 @@
   background-clip:text!important;
   -webkit-text-fill-color:transparent!important;
 }
-.nav .logo:hover::before,.nav .logo:hover::after{
-  filter:brightness(1.2)!important;
-}
+.nav .logo:hover::before,.nav .logo:hover::after{filter:brightness(1.2)!important}
 
 @media(max-width:600px){
   .nav .logo{
-    height:42px!important;
-    font-size:17px!important;
+    height:45px!important;
+    font-size:19px!important;
     letter-spacing:.075em!important;
     padding-bottom:2px!important;
   }
-  .nav .logo::before{width:27px!important}
-  .nav .logo::after{width:58px!important}
+  .nav .logo::before{width:30px!important}
+  .nav .logo::after{width:64px!important}
 }
