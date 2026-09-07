@@ -34,9 +34,9 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
-  const hero = html.match(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
-  if (!hero || hero.index == null) throw new Error('homepage hero boundary not found');
-  const at = hero.index + hero[0].length;
+  const platform = html.match(/<section\b[^>]*class=["'][^"']*\bplatform\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
+  if (!platform || platform.index == null) throw new Error('platform boundary not found');
+  const at = platform.index + platform[0].length;
   html = html.slice(0, at) + SYSTEM_BLOCK + html.slice(at);
   html = repairHomepageMarkup(html);
   return html.replace('</head>', STYLE + '</head>');
@@ -51,7 +51,7 @@ function proxy(req, res) {
       const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
       if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
         const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v33'};
+        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v34'};
         delete headers['transfer-encoding'];
         res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
       } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
