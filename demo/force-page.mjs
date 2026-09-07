@@ -34,9 +34,12 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
-  const platform = html.match(/<section\b[^>]*class=["'][^"']*\bplatform\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
-  if (!platform || platform.index == null) throw new Error('platform boundary not found');
-  const at = platform.index + platform[0].length;
+
+  // Trust bar の直後、人気の動画 (#videos) の直前へ COMPLETE VIDEO MARKETPLACE SYSTEM を挿入。
+  // これでページ順は「Trust bar → Complete System → 人気の動画 → Platform」となる。
+  const videos = html.match(/<section\b[^>]*id=["']videos["'][^>]*>/i);
+  if (!videos || videos.index == null) throw new Error('videos boundary not found');
+  const at = videos.index;
   html = html.slice(0, at) + SYSTEM_BLOCK + html.slice(at);
   html = repairHomepageMarkup(html);
   return html.replace('</head>', STYLE + '</head>');
@@ -51,7 +54,7 @@ function proxy(req, res) {
       const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
       if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
         const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v34'};
+        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v35'};
         delete headers['transfer-encoding'];
         res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
       } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
