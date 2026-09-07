@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 
 const port = 4183;
-const child = spawn(process.execPath, ['launcher.mjs'], { cwd: new URL('.', import.meta.url), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
+const child = spawn(process.execPath, ['force-page.mjs'], { cwd: new URL('.', import.meta.url), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
 let output = '';
 child.stdout.on('data', d => output += d.toString());
 child.stderr.on('data', d => output += d.toString());
@@ -18,7 +18,9 @@ try {
   const html = await root.text();
   const systemCount = (html.match(/id=["']system-features-force["']/gi) || []).length;
   const legacyGuideCount = (html.match(/id=["']guide["']/gi) || []).length;
-  if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('All categories') || systemCount !== 1 || legacyGuideCount !== 0) throw new Error('browser entrypoint/system showcase failed');
+  const heroEnd = html.search(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
+  const systemStart = html.search(/id=["']system-features-force["']/i);
+  if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('All categories') || systemCount !== 1 || legacyGuideCount !== 0 || heroEnd < 0 || systemStart < heroEnd) throw new Error('browser entrypoint/system showcase failed');
   for (let n = 3; n <= 9; n++) if (!new RegExp(`<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?</div></div></article>`, 'i').test(html)) throw new Error(`homepage card t${n} markup failed`);
   const asset = await request('/app.js');
   const js = await asset.text();
@@ -66,7 +68,7 @@ try {
   if (!moderation.state || !approval.state) throw new Error('admin workflow failed');
 
   console.log('FUNCTIONAL_DEMO_E2E_GREEN');
-  console.log('browser page + current branding + system placement + homepage markup: PASS');
+  console.log('production force-page entrypoint + branding + system placement + homepage markup: PASS');
   console.log('buyer purchase -> entitlement -> protected watch + download: PASS');
   console.log('unauthorized media rejection: PASS');
   console.log('seller authorization -> product -> upload lifecycle -> payout: PASS');
