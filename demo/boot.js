@@ -61,4 +61,23 @@ function polishCustomerExperience(){
 }
 
 polishCustomerExperience();
+
+/* Homepage hero enlargement: increase the entire top visual presentation by 25%.
+   Keep all sections below the hero unchanged. */
+(function enlargeHomepageHero(){
+  const style=document.createElement('style');
+  style.id='hero-size-v38';
+  style.textContent=`
+    #hero{min-height:512px!important;height:512px!important}
+    #hero .hero-copy{transform:scale(1.25)!important;transform-origin:left top!important}
+    #hero .hero-mosaic{transform:scale(1.25)!important;transform-origin:top right!important}
+    @media(max-width:760px){
+      #hero{min-height:700px!important;height:700px!important}
+      #hero .hero-copy{transform:scale(1.25)!important;transform-origin:left top!important}
+      #hero .hero-mosaic{transform:scale(.5625)!important;transform-origin:top right!important}
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
 window.goHome=goHome;window.goBrowse=goBrowse;window.goCategories=goCategories;window.showBuyer=showBuyer;window.showSeller=showSeller;window.showAdmin=showAdmin;window.loginModal=loginModal;window.openModal=openModal;window.renderRole=renderRole;
