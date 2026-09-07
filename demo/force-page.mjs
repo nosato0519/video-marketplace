@@ -18,17 +18,13 @@ const STYLE = `<style id="force-final-visual">
 </style>`;
 
 function repairHomepageMarkup(html) {
-  // The source homepage historically missed the closing .card-info div on t3-t9.
-  // Repair those cards at the final response layer so malformed nesting cannot
-  // reach the browser even if an older index.html is still present.
   for (let n = 3; n <= 9; n++) {
     const re = new RegExp(`(<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?<div class="card-bottom">[\\s\\S]*?</div>)(</article>)`, 'i');
     html = html.replace(re, '$1</div>$2');
   }
-  // Turn the visible demo CTAs into real workspace actions instead of dead # links.
-  html = html.replace(/<a href=["']#["'][^>]*>ログイン<\\/a>/gi, '<a href="#" onclick="event.preventDefault();loginModal()">ログイン</a>');
-  html = html.replace(/<a class="primary" href=["']#["'][^>]*>マイライブラリを見る →<\\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showBuyer()">マイライブラリを見る →</a>');
-  html = html.replace(/<a class="primary" href=["']#["'][^>]*>販売を始める →<\\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showSeller()">販売を始める →</a>');
+  html = html.replace(/<a href=["']#["'][^>]*>ログイン<\/a>/gi, '<a href="#" onclick="event.preventDefault();loginModal()">ログイン</a>');
+  html = html.replace(/<a class="primary" href=["']#["'][^>]*>マイライブラリを見る →<\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showBuyer()">マイライブラリを見る →</a>');
+  html = html.replace(/<a class="primary" href=["']#["'][^>]*>販売を始める →<\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showSeller()">販売を始める →</a>');
   return html;
 }
 
@@ -55,7 +51,7 @@ function proxy(req, res) {
       const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
       if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
         const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v32'};
+        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v33'};
         delete headers['transfer-encoding'];
         res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
       } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
