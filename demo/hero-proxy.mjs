@@ -30,8 +30,8 @@ const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">シス�
 
 function normalizeGuide(html) {
   if (!html.includes('system-guide-teaser')) return html;
-  return html.replace(/<h2[^>]*>あなた自身の動画販売サイトを。<\/h2>/, '<h2>そのまま運営。カスタマイズも自由。</h2>')
-    .replace(/そのまま使える完成された動画販売システム。さらに、ロゴ・サイト名・カラー・画像・コンテンツ・デザインまで、あなたのブランドに合わせて自由にカスタマイズできます。/, '完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。');
+  return html.replace(/(<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<h2)[^>]*>([\s\S]*?)<\/h2>/i, '$1>そのまま運営。カスタマイズも自由。</h2>')
+    .replace(/(<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<p)[^>]*>([\s\S]*?)<\/p>/i, '$1>完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。</p>');
 }
 
 function moveSystemFeatures(html) {
