@@ -99,3 +99,5 @@ A browser return URL is not sufficient to grant media access; verified payment s
 See `COMMERCIAL_PACKAGE.md` for the commercial deployment requirements, customer hand-off process, production configuration, and final release checklist.
 
 **Important:** the source is structured for commercial deployment, but a live customer installation still requires customer-specific hosting, PostgreSQL, storage, payment credentials, HTTPS, legal/privacy/compliance configuration, and final browser acceptance. Do not market the demo's simulated payment as live payment processing.
+
+<!-- Render deployment refresh: 2026-09-07 -->
