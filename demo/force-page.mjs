@@ -3,7 +3,7 @@ import { createServer, request as httpRequest } from 'node:http';
 
 const port = Number(process.env.PORT || 4173);
 const upstreamPort = port === 4173 ? 4174 : 4173;
-spawn(process.execPath, ['start.mjs'], {
+spawn(process.execPath, ['launcher.mjs'], {
   cwd: new URL('.', import.meta.url).pathname,
   env: { ...process.env, PORT: String(upstreamPort) },
   stdio: 'inherit'
