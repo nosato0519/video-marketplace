@@ -1,8 +1,12 @@
 import { spawn } from 'node:child_process';
 import { createServer, request as httpRequest } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const publicPort = Number(process.env.PORT || 4173);
 const upstreamPort = publicPort === 4173 ? 4174 : 4173;
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const child = spawn(process.execPath, ['launcher.mjs'], {
   cwd: new URL('.', import.meta.url),
   env: { ...process.env, PORT: String(upstreamPort) },
@@ -17,7 +21,25 @@ const HERO_STYLE = `<style id="hero-size-final">
 @media(max-width:650px){.hero{min-height:700px!important;height:700px!important}.hero-copy{padding-top:82px!important;padding-left:6vw!important;max-width:88vw!important;transform:scale(1)!important}.hero-mosaic{top:370px!important;right:-65px!important;width:390px!important;height:304px!important;transform:scale(.9)!important;opacity:.9}}
 </style>`;
 
-const server = createServer((req, res) => {
+const GUIDE_STYLE = `<style id="system-guide-teaser-style">
+.system-guide-teaser{margin:0 auto 90px;max-width:1180px;padding:0 28px}.system-guide-teaser-inner{border:1px solid rgba(183,155,91,.32);background:linear-gradient(120deg,#111114,#15130f);padding:48px 54px;display:flex;align-items:center;justify-content:space-between;gap:40px}.system-guide-teaser .kicker{font-size:10px;letter-spacing:.28em;color:#b79b5b}.system-guide-teaser h2{font-size:32px;line-height:1.3;margin:10px 0}.system-guide-teaser p{color:#aaa6a0;max-width:650px;margin:0;font-size:14px}.system-guide-teaser a{flex:0 0 auto;border:1px solid #b79b5b;color:#d5ba79;padding:13px 22px;font-size:12px;letter-spacing:.08em}@media(max-width:760px){.system-guide-teaser-inner{padding:32px 25px;display:block}.system-guide-teaser a{display:inline-block;margin-top:22px}}
+</style>`;
+
+const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>あなた自身の動画販売サイトを。</h2><p>販売者が動画を登録し、購入者が動画を購入できる。あなたは、この仕組みを使った動画マーケットプレイスを構築・運営できます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
+
+const server = createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/system-guide.html') {
+    try {
+      const html = await readFile(join(ROOT, 'system-guide.html'), 'utf8');
+      res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+      res.end(html);
+    } catch {
+      res.writeHead(404, {'content-type':'text/plain; charset=utf-8'});
+      res.end('system guide unavailable');
+    }
+    return;
+  }
+
   const proxyReq = httpRequest({ hostname: '127.0.0.1', port: upstreamPort, path: req.url, method: req.method, headers: req.headers }, proxyRes => {
     const type = String(proxyRes.headers['content-type'] || '');
     if (req.method === 'GET' && (req.url === '/' || req.url.startsWith('/index.html')) && type.includes('text/html')) {
@@ -25,7 +47,9 @@ const server = createServer((req, res) => {
       proxyRes.on('data', c => chunks.push(c));
       proxyRes.on('end', () => {
         let html = Buffer.concat(chunks).toString('utf8');
-        html = html.replace('</head>', `${HERO_STYLE}</head>`);
+        html = html.replace('<a href="#creators">クリエイター</a>', '<a href="/system-guide.html">システムについて</a><a href="#creators">クリエイター</a>');
+        html = html.replace('<section class="platform">', `${GUIDE_TEASER}<section class="platform">`);
+        html = html.replace('</head>', `${HERO_STYLE}${GUIDE_STYLE}</head>`);
         const headers = { ...proxyRes.headers, 'content-length': Buffer.byteLength(html), 'cache-control': 'no-store' };
         delete headers['transfer-encoding'];
         res.writeHead(proxyRes.statusCode || 200, headers);
