@@ -22,11 +22,10 @@ const HERO_STYLE = `<style id="hero-size-final">
 </style>`;
 
 const GUIDE_STYLE = `<style id="system-guide-teaser-style">
-.system-guide-teaser{margin:0 auto 90px;max-width:1180px;padding:0 28px}.system-guide-teaser-inner{border:1px solid rgba(183,155,91,.32);background:linear-gradient(120deg,#111114,#15130f);padding:48px 54px;display:flex;align-items:center;justify-content:space-between;gap:40px}.system-guide-teaser .kicker{font-size:10px;letter-spacing:.28em;color:#b79b5b}.system-guide-teaser h2{font-size:32px;line-height:1.3;margin:10px 0}.system-guide-teaser p{color:#aaa6a0;max-width:650px;margin:0;font-size:14px}.system-guide-teaser a{flex:0 0 auto;border:1px solid #b79b5b;color:#d5ba79;padding:13px 22px;font-size:12px;letter-spacing:.08em}@media(max-width:760px){.system-guide-teaser-inner{padding:32px 25px;display:block}.system-guide-teaser a{display:inline-block;margin-top:22px}}
+.system-guide-teaser{margin:48px auto 72px;max-width:1180px;padding:0 28px}.system-guide-teaser-inner{border:1px solid rgba(183,155,91,.38);background:linear-gradient(120deg,#111114,#15130f);padding:42px 50px;display:flex;align-items:center;justify-content:space-between;gap:40px}.system-guide-teaser .kicker{font-size:10px;letter-spacing:.28em;color:#b79b5b}.system-guide-teaser h2{font-size:32px;line-height:1.3;margin:10px 0}.system-guide-teaser p{color:#aaa6a0;max-width:650px;margin:0;font-size:14px;line-height:1.9}.system-guide-teaser a{flex:0 0 auto;border:1px solid #b79b5b;color:#d5ba79;padding:13px 22px;font-size:12px;letter-spacing:.08em}@media(max-width:760px){.system-guide-teaser-inner{padding:32px 25px;display:block}.system-guide-teaser a{display:inline-block;margin-top:22px}}
 </style>`;
 
-const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>あなた自身の動画販売サイトを。</h2><p>販売者が動画を登録し、購入者が動画を購入できる。あなたは、この仕組みを使った動画マーケットプレイスを構築・運営できます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
-
+const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>あなた自身の動画販売サイトを。</h2><p>動画を売る人と、買う人をつなぐ。販売者・購入者・運営者、それぞれが使える動画販売マーケットプレイスの仕組みを構築できます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
 
 const server = createServer(async (req, res) => {
@@ -50,22 +49,17 @@ const server = createServer(async (req, res) => {
       proxyRes.on('end', () => {
         let html = Buffer.concat(chunks).toString('utf8');
 
-        // Inject the buyer-facing system guide without depending on one exact nav markup.
         if (!html.includes('/system-guide.html')) {
           const navMatch = html.match(/<nav\b[^>]*>[\s\S]*?<\/nav>/i);
-          if (navMatch) {
-            html = html.replace(navMatch[0], navMatch[0].replace(/<\/nav>/i, `${GUIDE_NAV}</nav>`));
-          } else {
-            html = html.replace(/<body\b[^>]*>/i, `$&${GUIDE_NAV}`);
-          }
+          if (navMatch) html = html.replace(navMatch[0], navMatch[0].replace(/<\/nav>/i, `${GUIDE_NAV}</nav>`));
+          else html = html.replace(/<body\b[^>]*>/i, `$&${GUIDE_NAV}`);
         }
 
-        // Insert the concept teaser at a stable content boundary.
         if (!html.includes('system-guide-teaser')) {
-          const platformBoundary = html.search(/<section\b[^>]*class=["'][^"']*platform[^"']*["'][^>]*>/i);
-          if (platformBoundary >= 0) {
-            const tagEnd = html.indexOf('>', platformBoundary) + 1;
-            html = html.slice(0, platformBoundary) + GUIDE_TEASER + html.slice(platformBoundary);
+          const heroEnd = html.search(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
+          if (heroEnd >= 0) {
+            const heroBlock = html.match(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i)[0];
+            html = html.replace(heroBlock, `${heroBlock}${GUIDE_TEASER}`);
           } else {
             html = html.replace(/<\/main>/i, `${GUIDE_TEASER}</main>`);
           }
