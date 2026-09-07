@@ -17,6 +17,10 @@ function finalize(html) {
   html = html.replaceAll('VIDORA', 'VIDEO MARKETPLACE');
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-showcase\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
+  // Remove the old bottom feature section; the new showcase is inserted directly after the hero.
+  html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
+  // Point the main navigation to the new feature showcase below the hero.
+  html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
   const hero = html.match(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
   if (hero && hero.index != null) {
     const at = hero.index + hero[0].length;
