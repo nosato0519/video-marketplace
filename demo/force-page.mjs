@@ -20,12 +20,14 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
 
-  // The source page is minified, so use the exact hero/trustbar boundary instead of
-  // a broad section matcher. This guarantees the showcase is rendered immediately
-  // below the hero and before the trust bar on every deployment.
-  const boundary = '</section><section class="trustbar">';
-  if (html.includes(boundary)) {
-    html = html.replace(boundary, '</section>' + SYSTEM_BLOCK + '<section class="trustbar">');
+  // launcher.mjs injects a separate video showcase between the hero and trustbar.
+  // Therefore the old hero/trustbar boundary does not exist at this stage.
+  // Find the actual closing tag of the hero and insert the system showcase there.
+  const heroStart = html.indexOf('<section class="hero"');
+  const heroEnd = heroStart >= 0 ? html.indexOf('</section>', heroStart) : -1;
+  if (heroEnd >= 0 && !html.includes('id="system-features-force"')) {
+    const insertAt = heroEnd + '</section>'.length;
+    html = html.slice(0, insertAt) + SYSTEM_BLOCK + html.slice(insertAt);
   }
 
   return html.replace('</head>', STYLE + '</head>');
