@@ -9,11 +9,7 @@ const port = Number(process.env.PORT || 4173);
 const upstreamPort = port === 4173 ? 4174 : 4173;
 const SYSTEM_BLOCK = await readFile(join(ROOT, 'system-block.html'), 'utf8');
 
-spawn(process.execPath, ['launcher.mjs'], {
-  cwd: ROOT,
-  env: { ...process.env, PORT: String(upstreamPort) },
-  stdio: 'inherit'
-});
+spawn(process.execPath, ['launcher.mjs'], { cwd: ROOT, env: { ...process.env, PORT: String(upstreamPort) }, stdio: 'inherit' });
 
 const STYLE = `<style id="force-final-visual">
 .hero{height:680px!important;min-height:680px!important}.hero-copy{transform:scale(1.25)!important;transform-origin:left top!important}.hero-mosaic{transform:scale(1.25)!important;transform-origin:top right!important}
@@ -21,22 +17,32 @@ const STYLE = `<style id="force-final-visual">
 @media(max-width:1100px){.ssf-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.hero{height:720px!important;min-height:720px!important}.ssf-roles{grid-template-columns:1fr}.ssf-detail-title{display:block}.ssf-detail-title strong{display:block;margin-top:10px}.ssf-bottom{display:block}.ssf-badge{margin-top:20px;max-width:320px}.ssf-bottom span{max-width:none}}@media(max-width:600px){.hero{height:680px!important;min-height:680px!important}.hero-copy{transform:scale(1)!important}.hero-mosaic{transform:scale(.9)!important}.system-showcase-force{padding:65px 20px}.ssf-grid{grid-template-columns:1fr}.system-showcase-force h2{font-size:36px}.ssf-roles article{padding:25px}.ssf-detail-title strong{font-size:19px}.ssf-bottom{padding:24px}.ssf-badge{min-width:0;width:100%}}
 </style>`;
 
+function repairHomepageMarkup(html) {
+  // The source homepage historically missed the closing .card-info div on t3-t9.
+  // Repair those cards at the final response layer so malformed nesting cannot
+  // reach the browser even if an older index.html is still present.
+  for (let n = 3; n <= 9; n++) {
+    const re = new RegExp(`(<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?<div class="card-bottom">[\\s\\S]*?</div>)(</article>)`, 'i');
+    html = html.replace(re, '$1</div>$2');
+  }
+  // Turn the visible demo CTAs into real workspace actions instead of dead # links.
+  html = html.replace(/<a href=["']#["'][^>]*>ログイン<\\/a>/gi, '<a href="#" onclick="event.preventDefault();loginModal()">ログイン</a>');
+  html = html.replace(/<a class="primary" href=["']#["'][^>]*>マイライブラリを見る →<\\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showBuyer()">マイライブラリを見る →</a>');
+  html = html.replace(/<a class="primary" href=["']#["'][^>]*>販売を始める →<\\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showSeller()">販売を始める →</a>');
+  return html;
+}
+
 function finalize(html) {
   html = html.replaceAll('VIDORA', 'VIDEO MARKETPLACE');
-
-  // Remove every legacy system/guide block first. The current showcase is the
-  // only system section that should remain on the homepage.
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-showcase\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
-
-  // Insert exactly once immediately after the hero.
   const hero = html.match(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
   if (!hero || hero.index == null) throw new Error('homepage hero boundary not found');
   const at = hero.index + hero[0].length;
   html = html.slice(0, at) + SYSTEM_BLOCK + html.slice(at);
-
+  html = repairHomepageMarkup(html);
   return html.replace('</head>', STYLE + '</head>');
 }
 
@@ -49,7 +55,7 @@ function proxy(req, res) {
       const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
       if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
         const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v31'};
+        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v32'};
         delete headers['transfer-encoding'];
         res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
       } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
