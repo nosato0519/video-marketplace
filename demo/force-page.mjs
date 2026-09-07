@@ -30,26 +30,43 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
 
-  // The launcher inserts video sections dynamically. Build the requested top-page order:
-  // hero → system → buyer/seller/admin pitch → video content → popular/featured/genre → creators → footer.
-  const heroStart = html.indexOf('<section class="hero"');
-  const heroEnd = heroStart >= 0 ? html.indexOf('</section>', heroStart) : -1;
-  if (heroEnd >= 0 && !html.includes('id="system-features-force"')) {
-    const insertAt = heroEnd + '</section>'.length;
-    html = html.slice(0, insertAt) + SYSTEM_BLOCK + html.slice(insertAt);
-  }
-
-  // Move the three-role platform pitch directly below the system showcase.
+  // Force the exact requested top-page order without replacing the functional catalog.
+  const hero = takeSection(html, '<section class="hero"');
+  html = hero.html;
+  const system = SYSTEM_BLOCK;
   const platformTake = takeSection(html, '<section class="platform"');
   html = platformTake.html;
-  if (platformTake.section) {
-    const systemEnd = html.indexOf('</section>', html.indexOf('id="system-features-force"'));
-    if (systemEnd >= 0) {
-      const at = systemEnd + '</section>'.length;
-      html = html.slice(0, at) + platformTake.section + html.slice(at);
-    }
-  }
+  const showcaseTake = takeSection(html, '<section class="video-showcase"');
+  html = showcaseTake.html;
+  const trustTake = takeSection(html, '<section class="trustbar"');
+  html = trustTake.html;
+  const popularTake = takeSection(html, '<section class="section" id="videos"');
+  html = popularTake.html;
+  const spotlightTake = takeSection(html, '<section class="spotlight"');
+  html = spotlightTake.html;
+  const collectionsTake = takeSection(html, '<section class="video-collections"');
+  html = collectionsTake.html;
+  const genreRailTake = takeSection(html, '<section class="genre-rail"');
+  html = genreRailTake.html;
+  const recommendationsTake = takeSection(html, '<section class="genre-recommendations"');
+  html = recommendationsTake.html;
 
+  // Reassemble: hero → system → buyer/seller/admin pitch → video content → popular/featured/genre.
+  const orderedTop = [
+    hero.section,
+    system,
+    platformTake.section,
+    showcaseTake.section,
+    trustTake.section,
+    popularTake.section,
+    spotlightTake.section,
+    collectionsTake.section,
+    genreRailTake.section,
+    recommendationsTake.section
+  ].filter(Boolean).join('');
+
+  // Everything else remains intact after the ordered video area, including creator sections and footer.
+  html = orderedTop + html;
   return html.replace('</head>', STYLE + '</head>');
 }
 
