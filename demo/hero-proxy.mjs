@@ -28,6 +28,7 @@ const GUIDE_STYLE = `<style id="system-guide-teaser-style">
 
 const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>そのまま運営。カスタマイズも自由。</h2><p>完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
+const MOVE_FEATURES = `<script id="move-system-features">(()=>{const move=()=>{const f=document.querySelector('#system-features');const h=document.querySelector('section.hero');if(f&&h&&h.parentNode&&h.nextElementSibling!==f)h.parentNode.insertBefore(f,h.nextElementSibling)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',move);else move()})()</script>`;
 
 function injectGuide(html) {
   if (!html.includes('/system-guide.html')) {
@@ -40,9 +41,6 @@ function injectGuide(html) {
   }
 
   if (!html.includes('system-guide-teaser')) {
-    // The hero contains nested divs, so a non-greedy section regex can stop at
-    // the wrong closing tag. Insert at the stable boundary immediately before
-    // the existing trust bar instead.
     const trustbarMarker = /<section\b[^>]*class=["'][^"']*\btrustbar\b[^"']*["'][^>]*>/i;
     if (trustbarMarker.test(html)) {
       html = html.replace(trustbarMarker, `${GUIDE_TEASER}$&`);
@@ -78,6 +76,7 @@ const server = createServer(async (req, res) => {
         let html = Buffer.concat(chunks).toString('utf8');
         html = injectGuide(html);
         html = html.replace('</head>', `${HERO_STYLE}${GUIDE_STYLE}</head>`);
+        html = html.replace('</body>', `${MOVE_FEATURES}</body>`);
         const headers = { ...proxyRes.headers, 'content-length': Buffer.byteLength(html), 'cache-control': 'no-store' };
         delete headers['transfer-encoding'];
         res.writeHead(proxyRes.statusCode || 200, headers);
