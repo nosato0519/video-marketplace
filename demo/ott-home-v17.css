@@ -1,6 +1,6 @@
 @import url('/ott-home-v16.css');
 
-/* V30 — VIDEO MARKETPLACE: luxury editorial wordmark with tight underline. */
+/* V31 — VIDEO MARKETPLACE: underline directly beneath the wordmark. */
 .nav .logo{
   position:relative!important;
   display:inline-flex!important;
@@ -8,7 +8,7 @@
   width:auto!important;
   min-width:0!important;
   height:54px!important;
-  padding:0 0 2px!important;
+  padding:0!important;
   color:#f8f3e8!important;
   text-decoration:none!important;
   font-family:Georgia,'Times New Roman',serif!important;
@@ -25,12 +25,12 @@
   filter:drop-shadow(0 1px 8px rgba(0,0,0,.32))!important;
 }
 
-/* Underline sits close to the baseline for a polished fashion-editorial feel. */
+/* The rules hug the actual text baseline rather than sitting at the box edge. */
 .nav .logo::before{
   content:"";
   position:absolute!important;
   left:0!important;
-  bottom:2px!important;
+  bottom:10px!important;
   width:46px!important;
   height:1px!important;
   background:linear-gradient(90deg,#e1c17b,rgba(225,193,123,0))!important;
@@ -40,7 +40,7 @@
   content:"";
   position:absolute!important;
   right:0!important;
-  bottom:2px!important;
+  bottom:10px!important;
   width:102px!important;
   height:1px!important;
   background:linear-gradient(90deg,rgba(225,193,123,0),rgba(225,193,123,.9))!important;
@@ -63,8 +63,8 @@
     height:46px!important;
     font-size:20px!important;
     letter-spacing:.085em!important;
-    padding-bottom:1px!important;
   }
+  .nav .logo::before,.nav .logo::after{bottom:8px!important}
   .nav .logo::before{width:31px!important}
   .nav .logo::after{width:67px!important}
 }
