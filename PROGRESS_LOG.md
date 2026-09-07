@@ -48,21 +48,26 @@ Mandatory master instruction: `docs/product/design-master-instruction.md`.
 - User requested returning to the previously recorded **V22 state**, including the complete homepage composition—not merely selected sections.
 - Historical V22 restore point: `452e7ba01686f80b9aec1b4948e637c370fffd6e`.
 - V22 homepage includes the full runtime-injected composition: hero, ADULT category, **作品との出会いを、もっと自由に。**, **新着動画**, **気分から選ぶ**, and **ジャンル別おすすめ**.
-- `main` was reset to this V22 restore point. Do not mix V23/V24 visual changes into this baseline.
 - `demo/ott-home-v16.css` is the active V22 stylesheet and imports the V21 chain.
+
+## Milestone 583 — Post-V22 homepage polish sequence
+
+- Subsequent commits intentionally made **visual-only** refinements while preserving the approved hero mosaic and the V22 section composition.
+- The current latest commit is `6ea0a733acca3394738a011bdf0df194bdbdac39` (`Fix showcase visual frame size only`).
+- Current `demo/ott-home-v17.css` keeps the luxury **VIDEO MARKETPLACE** wordmark and enlarges only the visual-frame gallery immediately above **作品との出会いを、もっと自由に。** by 25%; the hero mosaic and other sections are explicitly protected from this change.
+- The normal **人気の動画 3×3** grid and the V22-added sections remain protected from showcase-only edits.
+- Do not begin Screen #2 yet.
 
 ### Next session — exact continuation point
 
-- Start **here**, without rebuilding from memory and without repeating completed work.
-- First verify the actual rendered homepage against the V22 restore point, especially:
-  1. the very top hero / three-image mosaic and its text placement;
-  2. **作品との出会いを、もっと自由に。** and its five-card arrangement;
-  3. all V22-added sections: **新着動画 / 気分から選ぶ / ジャンル別おすすめ**;
-  4. the normal **人気の動画 3×3** grid.
-- If the rendered page differs from V22, restore the missing V22 pieces **before** doing any new design work.
-- Any technical runtime repair must preserve the V22 visual/content state exactly and is not a new visual version.
+- Continue from the current `main` state; do not rebuild the homepage from memory and do not repeat completed visual work.
+- First validate the actual rendered Screen #1 against the current intended state, especially:
+  1. top hero / three-image mosaic and its text placement;
+  2. premium VIDEO MARKETPLACE wordmark and underline placement;
+  3. the enlarged visual-frame gallery immediately above **作品との出会いを、もっと自由に。**;
+  4. the full **作品との出会いを、もっと自由に。** five-card arrangement;
+  5. **新着動画 / 気分から選ぶ / ジャンル別おすすめ**;
+  6. the normal **人気の動画 3×3** grid.
+- If rendering differs, make the smallest visual-only correction required. Do not alter unrelated sections while correcting one area.
+- Any technical/runtime repair must preserve the current visual/content state exactly and is not a new visual version.
 - Do not move to Screen #2 until the homepage is visually accepted.
-
-### Current position
-- Screen #1: **Top page**.
-- **V22 is the exact restore target and starting point for the next session.**
