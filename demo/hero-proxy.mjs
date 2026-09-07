@@ -28,7 +28,7 @@ const GUIDE_STYLE = `<style id="system-guide-teaser-style">
 
 const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>そのまま運営。カスタマイズも自由。</h2><p>完成された動画販売システムとして、このまま動画販売サイトを運営することも可能。さらに、ロゴ・サイト名・カラー・画像・カテゴリー・メニュー・コンテンツ・デザインまで、あなたのブランドやビジネスに合わせて自由にカスタマイズできます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
-const MOVE_FEATURES = `<script id="move-system-features">(()=>{const move=()=>{const f=document.querySelector('#system-features');const h=document.querySelector('.hero');if(f&&h&&h.parentNode&&h.nextElementSibling!==f)h.parentNode.insertBefore(f,h.nextElementSibling)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',move);else move()})()</script>`;
+const MOVE_FEATURES = `<script id="move-system-features">(()=>{const move=()=>{const f=document.querySelector('#system-features');if(!f)return;const anchor=document.querySelector('.hero')||document.querySelector('.hero-mosaic')?.closest('.hero')||document.querySelector('.hero-copy')?.closest('.hero');if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(f,anchor.nextElementSibling);return true}return false};const run=()=>{move();setTimeout(move,100);setTimeout(move,500);setTimeout(move,1500)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();new MutationObserver(move).observe(document.documentElement,{childList:true,subtree:true})})()</script>`;
 
 function injectGuide(html) {
   if (!html.includes('/system-guide.html')) {
