@@ -27,6 +27,8 @@ const GUIDE_STYLE = `<style id="system-guide-teaser-style">
 
 const GUIDE_TEASER = `<section class="system-guide-teaser"><div class="system-guide-teaser-inner"><div><span class="kicker">FOR PLATFORM OPERATORS</span><h2>あなた自身の動画販売サイトを。</h2><p>販売者が動画を登録し、購入者が動画を購入できる。あなたは、この仕組みを使った動画マーケットプレイスを構築・運営できます。</p></div><a href="/system-guide.html">システムについて →</a></div></section>`;
 
+const GUIDE_NAV = `<a href="/system-guide.html" class="system-guide-nav">システムについて</a>`;
+
 const server = createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/system-guide.html') {
     try {
@@ -47,8 +49,28 @@ const server = createServer(async (req, res) => {
       proxyRes.on('data', c => chunks.push(c));
       proxyRes.on('end', () => {
         let html = Buffer.concat(chunks).toString('utf8');
-        html = html.replace('<a href="#creators">クリエイター</a>', '<a href="/system-guide.html">システムについて</a><a href="#creators">クリエイター</a>');
-        html = html.replace('<section class="platform">', `${GUIDE_TEASER}<section class="platform">`);
+
+        // Inject the buyer-facing system guide without depending on one exact nav markup.
+        if (!html.includes('/system-guide.html')) {
+          const navMatch = html.match(/<nav\b[^>]*>[\s\S]*?<\/nav>/i);
+          if (navMatch) {
+            html = html.replace(navMatch[0], navMatch[0].replace(/<\/nav>/i, `${GUIDE_NAV}</nav>`));
+          } else {
+            html = html.replace(/<body\b[^>]*>/i, `$&${GUIDE_NAV}`);
+          }
+        }
+
+        // Insert the concept teaser at a stable content boundary.
+        if (!html.includes('system-guide-teaser')) {
+          const platformBoundary = html.search(/<section\b[^>]*class=["'][^"']*platform[^"']*["'][^>]*>/i);
+          if (platformBoundary >= 0) {
+            const tagEnd = html.indexOf('>', platformBoundary) + 1;
+            html = html.slice(0, platformBoundary) + GUIDE_TEASER + html.slice(platformBoundary);
+          } else {
+            html = html.replace(/<\/main>/i, `${GUIDE_TEASER}</main>`);
+          }
+        }
+
         html = html.replace('</head>', `${HERO_STYLE}${GUIDE_STYLE}</head>`);
         const headers = { ...proxyRes.headers, 'content-length': Buffer.byteLength(html), 'cache-control': 'no-store' };
         delete headers['transfer-encoding'];
