@@ -34,14 +34,15 @@
 - `e61e928da382a7fd63559c00c927fa61a715873f` — Account navigation and safe password-change demo interaction.
 - `a8a74bd785dc5923a6558fa87318da5a9765f7d2` — Register interaction styling.
 - `0da1254863e8524082cef9a1c1cc0f97fd5fa683` — Register→Account demo completion flow; stops generic handler propagation.
-- `955ed7f1400f50edc6560d790f8b393455240052` — recorded Orders→Watch→Library navigation verification and continuation point.
-- `258f06f960caa4741083df10d0da0a874a3fdc5` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
+- `955ed7f1400f50edc6568a6ad14ad2038884b554` — recorded Orders→Watch→Library navigation verification and continuation point.
+- `258f06f960caa4741083df0d10d0da512792f8765b` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
 - `c38494c5a1e213f5c4a9e8f279ab43d69a421488` — Admin review-queue action controls changed from inert spans to demo-safe buttons while preserving the visual treatment.
 - `bd77d221c21489ab10435cfe481610826176c2e4` — homepage system showcase connected to completed child pages with direct navigation buttons.
 
 ## Render verification
 
-- Latest code commit `bd77d221c21489ab10435cfe481610826176c2e4` has an automatic Render deployment `dep-dafs2anavr4c73cepra0` currently in `build_in_progress` at the time of the latest check.
+- The homepage connection commit `bd77d221c21489ab10435cfe481610826176c2e4` deployed automatically and reached `live` as deployment `dep-dafs2anavr4c73cepra0`.
+- The subsequent automatic deployment `dep-dafs2cud1shc7387r0mg` is also `live`, so the current Render service is healthy at deployment-state level.
 - Auto-deploy is enabled; no manual deploy was triggered.
 - Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
 - Browser-level visual E2E has not been claimed because no browser inspection tool is available. Verification is limited to source, commits, Render deployment state, and logs.
@@ -64,16 +65,15 @@
 
 - [x] Existing `COMMERCIAL_PACKAGE.md` reviewed for production hand-off requirements.
 - [x] Existing `LICENSE.md` reviewed for current commercial license terms.
-- [x] Added `SALES_PACKAGE.md` (`ab17cb66baea170aacb45b72778b830912d93b77`) with buyer-facing product overview, feature inventory, user journeys, customization guidance, demo boundaries, setup, production requirements, hand-off checklist, and sales positioning.
+- [x] Added `SALES_PACKAGE.md` with buyer-facing product overview, feature inventory, user journeys, customization guidance, demo boundaries, setup, production requirements, hand-off checklist, and sales positioning.
 - [x] Documentation explicitly separates the safe showcase demo from customer-specific production integrations.
 
 ## Exact continuation point
 
-1. Keep homepage visual design frozen; only preserve the newly requested child-page connection layer.
-2. Wait/check the latest Render auto-deploy state; do not manually trigger a deploy.
-3. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
-4. Review the new buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
-5. Continue final packaging only where it adds real buyer value.
+1. Keep homepage visual design frozen; only preserve the requested child-page connection layer.
+2. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
+3. Review buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
+4. Continue final packaging only where it adds real buyer value.
 
 ## Safety rules
 
