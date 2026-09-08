@@ -43,7 +43,7 @@ function finalize(html) {
 }
 
 function servePage(pathname, res) {
-  const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html']);
+  const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html']);
   if (!allowed.has(pathname)) return false;
   readFile(join(ROOT, pathname.slice(1)), 'utf8').then(html => {
     const body = Buffer.from(html, 'utf8');
