@@ -1,4 +1,4 @@
-name: Fix Top Navigation Order
+name: One-time login dropdown update
 
 on:
   push:
@@ -6,28 +6,33 @@ on:
 
 jobs:
   fix:
-    if: ${{ github.event.head_commit.message != 'Fix top navigation order' }}
+    if: ${{ github.event.head_commit.message == 'Prepare non-navigating login dropdown' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Reorder top navigation
+      - name: Add non-navigating login dropdown
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           p = Path('demo/index.html')
-          s = p.read_text()
-          old = '<nav><a href="#videos">動画を探す</a><a href="#popular">人気の動画</a><a href="#guide">機能・システム</a><a href="#creators">クリエイター</a></nav>'
-          new = '<nav><a href="#guide">機能・システム</a><a href="#popular">人気の動画</a><a href="#videos">動画を探す</a><a href="#creators">クリエイター</a></nav>'
+          s = p.read_text(encoding='utf-8')
+          old = '<div class="nav-right"><a class="system" href="#creator">販売者デモ</a><a class="system" href="#popular">購入者デモ</a><a class="sell" href="#creator">ログイン</a></div>'
+          new = '<div class="nav-right"><a class="system" href="#creator">販売者デモ</a><a class="system" href="#popular">購入者デモ</a><div class="login-menu"><button class="sell login-trigger" type="button">ログイン</button><div class="login-dropdown"><button type="button">販売者ログイン</button><button type="button">購入者ログイン</button></div></div></div>'
           if old not in s:
-              raise SystemExit('Target navigation markup not found')
-          p.write_text(s.replace(old, new, 1))
+              raise SystemExit('Target header markup not found')
+          s = s.replace(old, new, 1)
+          css = '<style>.login-menu{position:relative}.login-trigger{border:0;cursor:pointer;font:inherit}.login-dropdown{position:absolute;right:0;top:calc(100% + 8px);min-width:150px;padding:6px;background:#10151c;border:1px solid #fff2;border-radius:8px;box-shadow:0 18px 45px #0009;display:none}.login-menu:hover .login-dropdown,.login-menu:focus-within .login-dropdown{display:grid}.login-dropdown button{border:0;background:transparent;color:#dfe4e9;text-align:left;padding:10px 12px;border-radius:5px;font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}.login-dropdown button:hover{background:#ffffff0d;color:var(--accent)}</style>'
+          if '.login-menu{position:relative}' not in s:
+              s = s.replace('</head>', css + '</head>', 1)
+          p.write_text(s, encoding='utf-8')
           PY
+          grep -o '<div class="nav-right">.*</div></header>' demo/index.html | head -1
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add demo/index.html
-          git commit -m 'Fix top navigation order'
+          git commit -m 'Add non-navigating login dropdown'
           git push
       - name: Remove temporary workflow
         run: |
@@ -35,5 +40,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .github/workflows/fix-nav-order.yml
-          git commit -m 'Remove temporary nav order workflow'
+          git commit -m 'Remove temporary login dropdown workflow'
           git push
