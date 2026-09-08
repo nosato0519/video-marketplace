@@ -1,0 +1,29 @@
+name: Safe format demo index
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rebase onto latest main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+      - name: Format demo index only
+        run: npx --yes prettier@3.6.2 --write demo/index.html
+      - name: Commit only index and temporary files
+        run: |
+          rm -f .github/workflows/format-index-safe.yml .format-index-trigger
+          git add demo/index.html .github/workflows/format-index-safe.yml .format-index-trigger
+          if git diff --cached --quiet; then exit 0; fi
+          git diff --cached --check
+          git commit -m "Format demo index HTML safely"
+          git push origin HEAD:main
