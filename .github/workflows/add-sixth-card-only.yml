@@ -1,0 +1,40 @@
+name: Add sixth card only
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore 11:20 homepage and add sixth card
+        shell: python
+        run: |
+          import subprocess
+          from pathlib import Path
+          subprocess.run(['git','checkout','217b3320a4a612fa446e1e9e43b551a90b628149','--','demo/index.html'], check=True)
+          p = Path('demo/index.html')
+          s = p.read_text(encoding='utf-8')
+          start = s.index('<section class="section" id="collection">')
+          end = s.index('</section>', start) + len('</section>')
+          section = s[start:end]
+          if 'Mountain Silence' not in section:
+              card = '''<article class="video-card"><div class="thumb t6"><span class="quality">4K</span><span class="duration">42:05</span><button>▶</button></div><div class="card-info"><span class="category">ライフスタイル</span><h3>Mountain Silence</h3><p>静かな山の時間を切り取った映像作品。</p><div class="card-bottom"><span>by YAMA FILM ★ 4.8</span><b>¥1,200</b></div></div></article>'''
+              marker = '</article></div><div class="trustbar" style="margin-top:34px">'
+              if marker not in section:
+                  raise SystemExit('collection insertion point not found')
+              section = section.replace(marker, '</article>' + card + '</div><div class="trustbar" style="margin-top:34px">', 1)
+              s = s[:start] + section + s[end:]
+          p.write_text(s, encoding='utf-8')
+          subprocess.run(['git','config','user.name','github-actions[bot]'], check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git','add','demo/index.html'], check=True)
+          subprocess.run(['git','commit','-m','Add sixth collection card'], check=True)
+          subprocess.run(['git','push','origin','HEAD:main'], check=True)
+          Path('.github/workflows/add-sixth-card-only.yml').unlink()
+          subprocess.run(['git','add','-u','.github/workflows/add-sixth-card-only.yml'], check=True)
+          subprocess.run(['git','commit','-m','Remove one-time card workflow'], check=True)
+          subprocess.run(['git','push','origin','HEAD:main'], check=True)
