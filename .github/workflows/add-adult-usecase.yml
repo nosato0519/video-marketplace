@@ -1,13 +1,11 @@
 name: Add adult use case
 on:
-  workflow_dispatch:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
   update:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,4 +38,3 @@ jobs:
           git add .github/workflows/add-adult-usecase.yml
           git commit -m 'Remove temporary adult use case workflow'
           git push
-# one-time trigger
