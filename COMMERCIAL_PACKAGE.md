@@ -1,8 +1,8 @@
-# VIDORA Video Marketplace — Commercial Deployment Guide
+# VIDEO MARKETPLACE — Commercial Deployment Guide
 
 ## Product
 
-VIDORA is a production-oriented video marketplace system covering the complete marketplace lifecycle:
+VIDEO MARKETPLACE is a production-oriented video marketplace system covering the complete marketplace lifecycle:
 
 - Buyer: browse → search/filter → product detail → checkout → order → library → protected watch/download
 - Seller: creator workspace → product creation → media lifecycle → publishing/moderation → earnings → payout request
