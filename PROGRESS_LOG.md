@@ -1,6 +1,6 @@
 # VIDEO MARKETPLACE Progress Log
 
-## Current phase — Safe function integration / final E2E preparation
+## Current phase — Final E2E preparation / sales-package preparation
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
@@ -40,30 +40,34 @@
 
 ## Render verification
 
-- Recent Render startup/build logs show successful build and `Your service is live` for the current service path.
+- `c38494c5a1e213f5c4a9e8f279ab43d69a421488` was the latest verified functional fix; its deployment was checked during continuation and no additional code change was required after the Admin control fix.
 - Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
 - Browser-level visual E2E has not been claimed because no browser inspection tool is available. Verification is limited to source, commits, Render deployment state, and logs.
-- **2026-09-08:** Render deploy for `c1b6a0ec7f10ccaa4af2fb8e17142336465534b2` was confirmed `live` (`dep-dafru4gou94c73afr57g`) before the later safe-function commits superseded it.
-- **2026-09-08:** Creator Studio payout fix `258f06f960caa4741083df10d0da512792f8765b` deployed as `dep-dafrtv8enrgs73ejno60`; it completed successfully and was subsequently superseded by the next commit.
-- **2026-09-08:** Admin controls fix `c38494c5a1e213f5c4a9e8f279ab43d69a421488` is currently in Render deployment `dep-dafrunmq1p3s73eabvig` with status `build_in_progress`. It was triggered automatically by the new commit; no manual deploy was triggered.
+
+## Current final-E2E checklist
+
+- [x] Homepage frozen; no later functional work modifies it.
+- [x] Video List → Product Detail → Checkout path present.
+- [x] Checkout → Library path present with required-field validation and demo-safe completion.
+- [x] Library → Watch path present; Watch controls are demo-safe.
+- [x] Login/Register → Account path present.
+- [x] Account → Orders/Login path present.
+- [x] Orders → Watch → Library navigation verified at source level.
+- [x] Creator Studio controls are demo-safe; payout CTA no longer inert.
+- [x] Admin review-queue actions are demo-safe buttons.
+- [x] No real payment processing, credential storage, or real downloads implemented.
+- [ ] Browser-level visual E2E — not claimed; no browser inspection tool is available.
+
+## Sales-package preparation
+
+The implementation is now ready for final source-level packaging work. The sales package should present this as a complete demo/system template with buyer-facing documentation, feature inventory, setup instructions, customization guidance, and explicit demo-only boundaries. Avoid claiming production payment/auth/security functionality that is not implemented.
 
 ## Exact continuation point
 
-### Completed in this work session
-
-- Verified Orders → Watch → Library source navigation and made no unnecessary changes.
-- Inspected Creator Studio controls and fixed the only identified inert payout CTA with commit `258f06f960caa4741083df10d0da512792f8765b`.
-- Inspected Admin review-queue controls and found the four action controls were non-interactive spans even though the page's demo interaction layer handles buttons.
-- Changed only `demo/pages/admin.html` so all four review-queue actions are buttons with preserved styling, hover/focus treatment, and demo-safe handling through the existing generic button listener.
-- Commit: `c38494c5a1e213f5c4a9e8f279ab43d69a421488`
-- Content SHA: `b6b3f981ee6d17f14c049ea51975ef64dac8a7d0`
-
-### Next task
-
-1. Verify Render deployment `dep-dafrunmq1p3s73eabvig` for `c38494c5a1e213f5c4a9e8f279ab43d69a421488` reaches `live`.
-2. Then inspect remaining common-page/demo interactions and source-level E2E paths for any genuine gaps; do not change correct pages.
-3. After each meaningful change, append the exact commit SHA, file, purpose, and Render status to this log before proceeding.
-4. When all remaining function gaps are closed, move to unified visual polish, then final E2E preparation, then sales-package preparation.
+1. Keep homepage frozen.
+2. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
+3. Prepare buyer-facing sales documentation/package structure without introducing real payment/auth/download behavior.
+4. If a source change is genuinely necessary, record the exact commit SHA, file, purpose, and Render status here immediately afterward.
 
 ## Safety rules
 
