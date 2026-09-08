@@ -49,20 +49,42 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     const grid = document.querySelector('.grid');
     const input = document.querySelector('.search input');
     const searchButton = document.querySelector('.search button');
-    const filters = [...document.querySelectorAll('.filter')];
+    const filters = [...document.querySelectorAll('.filters .filter')];
+    const sideChecks = [...document.querySelectorAll('.side input[type="checkbox"]')];
     const sort = document.querySelector('.sort');
     const more = document.querySelector('.more');
     const cards = grid ? [...grid.querySelectorAll('.card')] : [];
     const categoryMap = {'映像作品':'FILM','教育':'EDUCATION','ビジネス':'BUSINESS','クリエイティブ':'CREATIVE','ライフスタイル':'LIFESTYLE','音楽':'MUSIC','アダルト':'ADULT'};
     let activeCategory = '';
+    const parseDuration = value => {
+      const parts = value.split(':').map(Number);
+      return parts.length === 2 ? parts[0] * 60 + parts[1] : 0;
+    };
     const apply = () => {
       const q = (input?.value || '').trim().toLowerCase();
+      const wants4k = sideChecks[0]?.checked;
+      const wants1080 = sideChecks[1]?.checked;
+      const wantsUnder30 = sideChecks[2]?.checked;
+      const wants30to90 = sideChecks[3]?.checked;
+      const wantsOver90 = sideChecks[4]?.checked;
+      const wantsHighRating = sideChecks[5]?.checked;
       cards.forEach(card => {
         const text = card.textContent.toLowerCase();
         const cat = card.querySelector('.cat')?.textContent.trim() || '';
+        const badge = card.querySelector('.badge')?.textContent.trim() || '';
+        const duration = parseDuration(card.querySelector('.duration')?.textContent.trim() || '0:00');
+        const rating = parseFloat(card.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
+        const durationMatch = !wantsUnder30 && !wants30to90 && !wantsOver90
+          || (wantsUnder30 && duration < 30 * 60)
+          || (wants30to90 && duration >= 30 * 60 && duration <= 90 * 60)
+          || (wantsOver90 && duration > 90 * 60);
+        const qualityMatch = (!wants4k && !wants1080)
+          || (wants4k && badge === '4K')
+          || (wants1080 && badge === '1080P');
+        const ratingMatch = !wantsHighRating || rating >= 4.5;
         const matchQ = !q || text.includes(q);
         const matchCat = !activeCategory || cat === activeCategory;
-        card.style.display = matchQ && matchCat ? '' : 'none';
+        card.style.display = matchQ && matchCat && qualityMatch && durationMatch && ratingMatch ? '' : 'none';
       });
     };
     searchButton?.addEventListener('click', apply);
@@ -73,6 +95,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
       activeCategory = categoryMap[f.textContent.trim()] || '';
       apply();
     }));
+    sideChecks.forEach(check => check.addEventListener('change', apply));
     sort?.addEventListener('change', () => {
       const mode = sort.value;
       const value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0;
