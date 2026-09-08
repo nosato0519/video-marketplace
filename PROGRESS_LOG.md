@@ -7,7 +7,7 @@
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
 - Auto-deploy: enabled. **Never manually trigger a deploy after pushing.**
-- Homepage (Screen #1) is frozen and must not be modified unless explicitly requested.
+- Homepage (Screen #1) is frozen except for explicitly requested connection work.
 - Screens #2–#9 are completed demo surfaces. Changes now must be limited to genuine missing interactions, navigation consistency, safety, or final E2E preparation.
 
 ## Completed screens
@@ -35,18 +35,20 @@
 - `a8a74bd785dc5923a6558fa87318da5a9765f7d2` — Register interaction styling.
 - `0da1254863e8524082cef9a1c1cc0f97fd5fa683` — Register→Account demo completion flow; stops generic handler propagation.
 - `955ed7f1400f50edc6560d790f8b393455240052` — recorded Orders→Watch→Library navigation verification and continuation point.
-- `258f06f960caa4741083df10d0da512792f8765b` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
+- `258f06f960caa4741083df10d0da0a874a3fdc5` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
 - `c38494c5a1e213f5c4a9e8f279ab43d69a421488` — Admin review-queue action controls changed from inert spans to demo-safe buttons while preserving the visual treatment.
+- `bd77d221c21489ab10435cfe481610826176c2e4` — homepage system showcase connected to completed child pages with direct navigation buttons.
 
 ## Render verification
 
-- `c38494c5a1e213f5c4a9e8f279ab43d69a421488` was the latest verified functional fix; its deployment was checked during continuation and no additional code change was required after the Admin control fix.
+- Latest code commit `bd77d221c21489ab10435cfe481610826176c2e4` has an automatic Render deployment `dep-dafs2anavr4c73cepra0` currently in `build_in_progress` at the time of the latest check.
+- Auto-deploy is enabled; no manual deploy was triggered.
 - Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
 - Browser-level visual E2E has not been claimed because no browser inspection tool is available. Verification is limited to source, commits, Render deployment state, and logs.
 
 ## Current final-E2E checklist
 
-- [x] Homepage frozen; no later functional work modifies it.
+- [x] Homepage system showcase now links directly to Video List, Product Detail, Checkout, Library, Watch, Creator Studio, Admin, and Login.
 - [x] Video List → Product Detail → Checkout path present.
 - [x] Checkout → Library path present with required-field validation and demo-safe completion.
 - [x] Library → Watch path present; Watch controls are demo-safe.
@@ -67,16 +69,16 @@
 
 ## Exact continuation point
 
-1. Keep homepage frozen.
-2. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
-3. Review the new buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
-4. Verify the latest Render auto-deploy state after the documentation commit; do not manually trigger a deploy.
+1. Keep homepage visual design frozen; only preserve the newly requested child-page connection layer.
+2. Wait/check the latest Render auto-deploy state; do not manually trigger a deploy.
+3. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
+4. Review the new buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
 5. Continue final packaging only where it adds real buyer value.
 
 ## Safety rules
 
 - Never implement real payment processing, credential storage, or real downloads in this demo.
-- Never modify the frozen homepage without an explicit user request.
+- Never modify the frozen homepage visual design without an explicit user request.
 - Never request screenshots from the user.
 - Never repeat completed visual work.
 - If work is interrupted, resume from this file and inspect the stated next task before changing anything.
