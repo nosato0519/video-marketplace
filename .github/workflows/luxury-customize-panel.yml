@@ -1,0 +1,43 @@
+name: Apply Luxury Customize Panel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  style:
+    if: github.event.head_commit.message != 'Apply luxury customize panel styling'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply luxury panel CSS
+        run: |
+          cat >> demo/ott-home-v3.css <<'EOF'
+
+/* Luxury operate / customize showcase */
+#guide>section[style*="READY TO OPERATE"],#guide .ready-customize,#guide .customize-panel{position:relative;overflow:hidden}
+#guide>section:has(strong:first-child){position:relative}
+#guide>section:has(strong:first-child) strong{letter-spacing:.02em}
+
+/* Distinct luxury panel for the READY TO OPERATE / BUILT TO CUSTOMIZE block */
+#guide .ready-to-operate,#guide .operate-customize{position:relative;overflow:hidden;border:1px solid rgba(217,180,95,.28)!important;border-radius:26px!important;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018) 45%,rgba(217,180,95,.045))!important;box-shadow:0 28px 70px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.09)!important}
+#guide .ready-to-operate:before,#guide .operate-customize:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 88% 12%,rgba(217,180,95,.16),transparent 30%),linear-gradient(115deg,transparent 0 72%,rgba(255,255,255,.035) 72.2%,transparent 72.5%);pointer-events:none}
+#guide .ready-to-operate:after,#guide .operate-customize:after{content:"✦";position:absolute;right:30px;top:22px;color:rgba(217,180,95,.55);font-size:18px;letter-spacing:4px}
+#guide .ready-to-operate h2,#guide .operate-customize h2{position:relative;z-index:1;font-size:clamp(28px,3.2vw,46px);line-height:1.12;letter-spacing:-.035em;color:#fff!important;text-shadow:0 8px 30px rgba(0,0,0,.35)}
+#guide .ready-to-operate h2 em,#guide .operate-customize h2 em{font-style:normal;background:linear-gradient(90deg,#fff 20%,#d9b45f 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+#guide .ready-to-operate p,#guide .operate-customize p{position:relative;z-index:1;color:#aeb6c1!important;max-width:780px;line-height:1.9}
+#guide .ready-to-operate .tags span,#guide .operate-customize .tags span{border:1px solid rgba(217,180,95,.2)!important;background:rgba(217,180,95,.055)!important;color:#d9c78f!important;border-radius:999px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+#guide .ready-to-operate:hover,#guide .operate-customize:hover{transform:translateY(-3px);border-color:rgba(217,180,95,.48)!important;box-shadow:0 34px 80px rgba(0,0,0,.45),0 0 45px rgba(217,180,95,.06),inset 0 1px 0 rgba(255,255,255,.11)!important;transition:.35s ease}
+@media(max-width:760px){#guide .ready-to-operate,#guide .operate-customize{border-radius:20px!important;padding:24px!important}#guide .ready-to-operate:after,#guide .operate-customize:after{right:20px;top:18px}}
+
+/* Hard override: prevent the old literal /A from ever appearing */
+#guide>div[style*="rgba(255,255,255,.12)"] strong:after{content:"必要な仕組みを、最初から。"!important;white-space:nowrap!important}
+@media(max-width:760px){#guide>div[style*="rgba(255,255,255,.12)"] strong:after{white-space:normal!important}}
+EOF
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo/ott-home-v3.css
+          git commit -m 'Apply luxury customize panel styling' || exit 0
+          git push
