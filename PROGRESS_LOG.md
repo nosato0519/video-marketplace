@@ -60,14 +60,18 @@
 
 ## Sales-package preparation
 
-The implementation is now ready for final source-level packaging work. The sales package should present this as a complete demo/system template with buyer-facing documentation, feature inventory, setup instructions, customization guidance, and explicit demo-only boundaries. Avoid claiming production payment/auth/security functionality that is not implemented.
+- [x] Existing `COMMERCIAL_PACKAGE.md` reviewed for production hand-off requirements.
+- [x] Existing `LICENSE.md` reviewed for current commercial license terms.
+- [x] Added `SALES_PACKAGE.md` (`ab17cb66baea170aacb45b72778b830912d93b77`) with buyer-facing product overview, feature inventory, user journeys, customization guidance, demo boundaries, setup, production requirements, hand-off checklist, and sales positioning.
+- [x] Documentation explicitly separates the safe showcase demo from customer-specific production integrations.
 
 ## Exact continuation point
 
 1. Keep homepage frozen.
 2. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
-3. Prepare buyer-facing sales documentation/package structure without introducing real payment/auth/download behavior.
-4. If a source change is genuinely necessary, record the exact commit SHA, file, purpose, and Render status here immediately afterward.
+3. Review the new buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
+4. Verify the latest Render auto-deploy state after the documentation commit; do not manually trigger a deploy.
+5. Continue final packaging only where it adds real buyer value.
 
 ## Safety rules
 
