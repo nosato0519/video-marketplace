@@ -116,8 +116,8 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
-  const videos = html.match(/<section\b[^>]*id=["']videos["'][^>]*>/i);
-  if (!videos || videos.index == null) throw new Error('videos boundary not found');
+  const videos = html.match(/<section\b[^>]*id=["']videos["'][^>]*>/i) || html.match(/<section\b[^>]*class=["'][^"']*\btrustbar\b[^"']*["'][^>]*>/i);
+  if (!videos || videos.index == null) throw new Error('homepage insertion boundary not found');
   const at = videos.index;
   html = html.slice(0, at) + SYSTEM_BLOCK + html.slice(at);
   html = repairHomepageMarkup(html);
