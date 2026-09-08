@@ -6,7 +6,7 @@ on:
 
 jobs:
   fix:
-    if: ${{ github.event.head_commit.message == 'Prepare non-navigating login dropdown' }}
+    if: ${{ github.event.head_commit.message == 'Trigger login dropdown execution' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -28,15 +28,15 @@ jobs:
               s = s.replace('</head>', css + '</head>', 1)
           p.write_text(s, encoding='utf-8')
           PY
-          grep -o '<div class="nav-right">.*</div></header>' demo/index.html | head -1
+          rm -f .github/workflows/one-time-login-dropdown.yml .github/login-dropdown-trigger.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add demo/index.html
+          git add demo/index.html .github/workflows/one-time-login-dropdown.yml .github/login-dropdown-trigger.txt .github/workflows/fix-nav-order.yml
           git commit -m 'Add non-navigating login dropdown'
           git push
       - name: Remove temporary workflow
         run: |
-          rm .github/workflows/fix-nav-order.yml
+          rm -f .github/workflows/fix-nav-order.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .github/workflows/fix-nav-order.yml
