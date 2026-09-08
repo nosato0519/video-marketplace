@@ -1,0 +1,31 @@
+name: One-time login label
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  change:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Change label and remove workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('demo/index.html')
+          s=p.read_text()
+          old='販売を始める'
+          new='ログイン'
+          if old not in s:
+              raise SystemExit('target label not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo/index.html .github/workflows/one-time-login-label.yml
+          git commit -m 'Change top-right button to login'
+          git rm .github/workflows/one-time-login-label.yml
+          git commit -m 'Remove one-time login workflow'
+          git push
