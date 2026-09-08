@@ -3,7 +3,8 @@ on:
   push:
     branches: [main]
     paths:
-      - .github/workflows/add-sixth-card-only.yml
+      - '.github/workflows/add-sixth-card-only.yml'
+      - '.sixth-card-trigger'
 permissions:
   contents: write
 jobs:
@@ -39,6 +40,8 @@ jobs:
           subprocess.run(['git','commit','-m','Add sixth collection card'], check=True)
           subprocess.run(['git','push','origin','HEAD:main'], check=True)
           Path('.github/workflows/add-sixth-card-only.yml').unlink()
-          subprocess.run(['git','add','-u','.github/workflows/add-sixth-card-only.yml'], check=True)
-          subprocess.run(['git','commit','-m','Remove one-time card workflow'], check=True)
+          trigger = Path('.sixth-card-trigger')
+          if trigger.exists(): trigger.unlink()
+          subprocess.run(['git','add','-u','.github/workflows/add-sixth-card-only.yml','.sixth-card-trigger'], check=True)
+          subprocess.run(['git','commit','-m','Remove sixth card trigger'], check=True)
           subprocess.run(['git','push','origin','HEAD:main'], check=True)
