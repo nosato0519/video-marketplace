@@ -1,6 +1,7 @@
 name: Disable login menu navigation
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 jobs:
   update:
     runs-on: ubuntu-latest
