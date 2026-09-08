@@ -1,10 +1,10 @@
-# VIDORA — Video Marketplace
+# VIDEO MARKETPLACE — Video Marketplace
 
 A production-oriented video marketplace with buyer, seller, payment, entitlement, protected-media, and admin workflows.
 
 ## What this system demonstrates
 
-VIDORA is built around a complete marketplace journey rather than a static storefront:
+VIDEO MARKETPLACE is built around a complete marketplace journey rather than a static storefront:
 
 **Buyer** — discover → search/filter → compare → product detail → checkout → paid order → My Library → protected watch/download
 
