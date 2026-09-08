@@ -35,17 +35,29 @@
 - `a8a74bd785dc5923a6558fa87318da5a9765f7d2` — Register interaction styling.
 - `0da1254863e8524082cef9a1c1cc0f97fd5fa683` — Register→Account demo completion flow; stops generic handler propagation.
 - `955ed7f1400f50edc6568a6ad14ad2038884b554` — recorded Orders→Watch→Library navigation verification and continuation point.
-- `258f06f960caa4741083df0d10d0da512792f8765b` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
+- `258f06f960caa4741083df9e8f279ab43d69a421488` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
 - `c38494c5a1e213f5c4a9e8f279ab43d69a421488` — Admin review-queue action controls changed from inert spans to demo-safe buttons while preserving the visual treatment.
 - `bd77d221c21489ab10435cfe481610826176c2e4` — homepage system showcase connected to completed child pages with direct navigation buttons.
 
+## Final source-level navigation audit
+
+- [x] Verified Video List has the intended Product Detail handoff through the demo routing layer; no duplicate or conflicting source link was introduced.
+- [x] Verified Product Detail purchase CTA points to `/pages/checkout.html`.
+- [x] Verified Checkout completion points to `/pages/library.html` and required-field validation remains intact.
+- [x] Verified Library watch actions point to `/pages/watch.html`; demo downloads remain non-functional by design.
+- [x] Verified Orders watch actions point to `/pages/watch.html`.
+- [x] Verified Account purchase-history action points to `/pages/orders.html` and login action points to `/pages/login.html`.
+- [x] Verified the named destination files exist under `demo/pages/`.
+- [x] No concrete missing child-page link was found in this audit, so no unnecessary source change was made.
+- [ ] Browser-level visual E2E — not claimed; no browser inspection tool is available.
+
 ## Render verification
 
-- The homepage connection commit `bd77d221c21489ab10435cfe481610826176c2e4` deployed automatically and reached `live` as deployment `dep-dafs2anavr4c73cepra0`.
-- The subsequent automatic deployment `dep-dafs2cud1shc7387r0mg` is also `live`, so the current Render service is healthy at deployment-state level.
+- Latest Render deployment checked after the previous progress-log push: deployment `dep-dafs37md1shc7387rja0` is `live`.
+- Latest live commit reported by Render: `3e9fa51c7c813f11ed45f2c36d679bd41e0d47fc` (`Apply feature showcase card design`).
+- The progress-log commit `1ae938192ac7a89f21d74bee2534b48d17cc7596` deployed automatically and was subsequently superseded by the latest live deployment.
 - Auto-deploy is enabled; no manual deploy was triggered.
 - Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
-- Browser-level visual E2E has not been claimed because no browser inspection tool is available. Verification is limited to source, commits, Render deployment state, and logs.
 
 ## Current final-E2E checklist
 
@@ -71,7 +83,7 @@
 ## Exact continuation point
 
 1. Keep homepage visual design frozen; only preserve the requested child-page connection layer.
-2. Perform only targeted source-level E2E checks for regressions or missing links; do not repeat completed fixes.
+2. Source-level navigation audit completed with no concrete missing link found.
 3. Review buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
 4. Continue final packaging only where it adds real buyer value.
 
