@@ -40,3 +40,4 @@ jobs:
           git add .github/workflows/add-adult-usecase.yml
           git commit -m 'Remove temporary adult use case workflow'
           git push
+# one-time trigger
