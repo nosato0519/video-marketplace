@@ -1,1 +1,0 @@
-Apply the requested temporary non-navigation behavior for the two demo buttons.
