@@ -36,3 +36,4 @@ jobs:
           git add .github/workflows/one-time-header-nav.yml
           git commit -m "Remove one-time header workflow"
           git push
+# trigger
