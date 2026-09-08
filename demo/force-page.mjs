@@ -54,6 +54,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     const sort = document.querySelector('.sort');
     const more = document.querySelector('.more');
     const cards = grid ? [...grid.querySelectorAll('.card')] : [];
+    const originalOrder = [...cards];
     const empty = document.createElement('div');
     empty.style.cssText = 'display:none;grid-column:1/-1;padding:48px 24px;border:1px solid #34353a;background:linear-gradient(145deg,#15161a,#0f1013);text-align:center;color:#aaa6a0;font-size:13px;line-height:1.9';
     empty.innerHTML = '<strong style="display:block;color:#f3f0e9;font-size:18px;margin-bottom:8px">該当する作品がありません。</strong><span>条件を変更するか、別のキーワードで検索してください。</span>';
@@ -109,7 +110,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
       const value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0;
       const rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
       const title = c => c.querySelector('.title')?.textContent.trim() || '';
-      const ordered = [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b)));
+      const ordered = mode === 'おすすめ順' ? [...originalOrder] : [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b)));
       ordered.forEach(c => grid.appendChild(c));
       grid.appendChild(empty);
     });
