@@ -33,3 +33,4 @@ jobs:
           git rm .github/workflows/fix-video-search-menu.yml
           git commit -m 'Fix video search menu target'
           git push
+# trigger workflow from an existing workflow file
