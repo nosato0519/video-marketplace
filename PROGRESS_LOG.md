@@ -79,12 +79,13 @@
 - [x] Existing `LICENSE.md` reviewed for current commercial license terms.
 - [x] Added `SALES_PACKAGE.md` with buyer-facing product overview, feature inventory, user journeys, customization guidance, demo boundaries, setup, production requirements, hand-off checklist, and sales positioning.
 - [x] Documentation explicitly separates the safe showcase demo from customer-specific production integrations.
+- [x] Reconciled `COMMERCIAL_PACKAGE.md` branding with the current product name `VIDEO MARKETPLACE`; removed the stale `VIDORA` title from that guide.
 
 ## Exact continuation point
 
 1. Keep homepage visual design frozen; only preserve the requested child-page connection layer.
 2. Source-level navigation audit completed with no concrete missing link found.
-3. Review buyer-facing sales documentation for consistency with the actual repository; update only if a concrete mismatch is found.
+3. Buyer-facing commercial documentation is now consistent with the current product name.
 4. Continue final packaging only where it adds real buyer value.
 
 ## Safety rules
