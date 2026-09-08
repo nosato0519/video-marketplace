@@ -17,6 +17,18 @@ const STYLE = `<style id="force-final-visual">
 @media(max-width:1100px){.ssf-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.hero{height:720px!important;min-height:720px!important}.ssf-roles{grid-template-columns:1fr}.ssf-detail-title{display:block}.ssf-detail-title strong{display:block;margin-top:10px}.ssf-bottom{display:block}.ssf-badge{margin-top:20px;max-width:320px}.ssf-bottom span{max-width:none}}@media(max-width:600px){.hero{height:680px!important;min-height:680px!important}.hero-copy{transform:scale(1)!important}.hero-mosaic{transform:scale(.9)!important}.system-showcase-force{padding:65px 20px}.ssf-grid{grid-template-columns:1fr}.system-showcase-force h2{font-size:36px}.ssf-roles article{padding:25px}.ssf-detail-title strong{font-size:19px}.ssf-bottom{padding:24px}.ssf-badge{min-width:0;width:100%}}
 </style>`;
 
+const COMMON_PAGE_STYLE = `<style id="common-page-polish">
+:root{color-scheme:dark}
+body{background:radial-gradient(circle at 50% -10%,rgba(198,168,100,.055),transparent 34%),#08090b!important;color:#f4f1eb!important}
+.top{background:rgba(8,9,11,.88)!important;backdrop-filter:blur(14px);box-shadow:0 1px 0 rgba(255,255,255,.025)!important}
+.logo{color:#f4f1eb!important;letter-spacing:.2em!important}
+.back{transition:color .25s ease,transform .25s ease!important}.back:hover{color:#d9b45f!important;transform:translateX(-2px)}
+.btn,button{font-family:inherit!important;cursor:pointer!important;transition:transform .22s ease,box-shadow .22s ease,background .22s ease!important}
+.btn:hover,button:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.32)!important}
+input,select,textarea{font-family:inherit!important;border-radius:0!important}
+.card,.panel,.shell,.content-card{box-shadow:0 28px 80px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.025)!important}
+</style>`;
+
 function repairHomepageMarkup(html) {
   for (let n = 3; n <= 9; n++) {
     const re = new RegExp(`(<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?<div class="card-bottom">[\\s\\S]*?</div>)(</article>)`, 'i');
@@ -46,6 +58,7 @@ function servePage(pathname, res) {
   const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html']);
   if (!allowed.has(pathname)) return false;
   readFile(join(ROOT, pathname.slice(1)), 'utf8').then(html => {
+    html = html.replace('</head>', COMMON_PAGE_STYLE + '</head>');
     const body = Buffer.from(html, 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':body.length,'cache-control':'no-store'});
     res.end(body);
