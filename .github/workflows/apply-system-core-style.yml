@@ -1,0 +1,22 @@
+name: Apply System Core Style
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    if: github.event.head_commit.message != 'Apply system core panel style'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append system core styling
+        run: |
+          cat >> demo/ott-home-v3.css <<'EOF'
+          #guide>div[style*="rgba(255,255,255,.12)"]{position:relative;overflow:hidden;margin-top:30px!important;padding:34px 38px 32px!important;border:1px solid rgba(217,180,95,.24)!important;border-radius:20px!important;background:radial-gradient(circle at 92% 20%,rgba(217,180,95,.14),transparent 28%),linear-gradient(120deg,rgba(217,180,95,.07),rgba(255,255,255,.025) 42%,rgba(255,255,255,.015))!important;box-shadow:0 24px 70px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07)}#guide>div[style*="rgba(255,255,255,.12)"]:before{content:"SYSTEM CORE";position:absolute;right:28px;top:22px;font-size:8px;letter-spacing:2.5px;font-weight:900;color:rgba(217,180,95,.68);padding:7px 10px;border:1px solid rgba(217,180,95,.25);border-radius:999px;background:rgba(7,9,13,.45)}#guide>div[style*="rgba(255,255,255,.12)"]:after{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(180deg,transparent,var(--accent),transparent);box-shadow:0 0 24px rgba(217,180,95,.38)}#guide>div[style*="rgba(255,255,255,.12)"] strong{display:flex!important;align-items:center;gap:12px;margin-bottom:14px!important;font-size:19px!important;letter-spacing:-.4px}#guide>div[style*="rgba(255,255,255,.12)"] strong:before{content:"✦";display:grid;place-items:center;width:30px;height:30px;border-radius:9px;color:#0b0d10;background:linear-gradient(135deg,#f0d78b,var(--accent));box-shadow:0 8px 25px rgba(217,180,95,.22);font-size:14px}#guide>div[style*="rgba(255,255,255,.12)"] p{max-width:900px!important;margin:0!important;color:#aeb7c1;line-height:2!important;font-size:11px!important}#guide>div[style*="rgba(255,255,255,.12)"]:hover{border-color:rgba(217,180,95,.42)!important;transform:translateY(-2px);transition:.3s ease;box-shadow:0 30px 80px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.09)}@media(max-width:760px){#guide>div[style*="rgba(255,255,255,.12)"]{padding:28px 24px 26px!important;border-radius:16px!important}#guide>div[style*="rgba(255,255,255,.12)"]:before{right:20px;top:18px;font-size:7px}#guide>div[style*="rgba(255,255,255,.12)"] strong{font-size:17px!important;padding-right:72px}#guide>div[style*="rgba(255,255,255,.12)"] p{font-size:10px!important;line-height:1.9!important}}
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demo/ott-home-v3.css
+          git commit -m "Apply system core panel style"
+          git push
