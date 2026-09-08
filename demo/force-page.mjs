@@ -29,6 +29,76 @@ input,select,textarea{font-family:inherit!important;border-radius:0!important}
 .card,.panel,.shell,.content-card{box-shadow:0 28px 80px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.025)!important}
 </style>`;
 
+const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
+(() => {
+  const path = location.pathname;
+  const go = p => { location.href = p; };
+
+  if (path === '/') {
+    document.querySelectorAll('a').forEach(a => {
+      const text = (a.textContent || '').trim();
+      if (text.includes('動画を探す')) a.onclick = e => { e.preventDefault(); go('/pages/video-list.html'); };
+      if (text.includes('クリエイターになる')) a.onclick = e => { e.preventDefault(); go('/pages/creator-studio.html'); };
+      if (text === '販売者デモ') a.onclick = e => { e.preventDefault(); go('/pages/creator-studio.html'); };
+      if (text === '購入者デモ') a.onclick = e => { e.preventDefault(); go('/pages/library.html'); };
+    });
+    document.querySelectorAll('.login-dropdown button').forEach(b => b.onclick = e => { e.preventDefault(); go('/pages/login.html'); });
+  }
+
+  if (path === '/pages/video-list.html') {
+    const grid = document.querySelector('.grid');
+    const input = document.querySelector('.search input');
+    const searchButton = document.querySelector('.search button');
+    const filters = [...document.querySelectorAll('.filter')];
+    const sort = document.querySelector('.sort');
+    const more = document.querySelector('.more');
+    const cards = grid ? [...grid.querySelectorAll('.card')] : [];
+    const categoryMap = {'映像作品':'FILM','教育':'EDUCATION','ビジネス':'BUSINESS','クリエイティブ':'CREATIVE','ライフスタイル':'LIFESTYLE','音楽':'MUSIC','アダルト':'ADULT'};
+    let activeCategory = '';
+    const apply = () => {
+      const q = (input?.value || '').trim().toLowerCase();
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const cat = card.querySelector('.cat')?.textContent.trim() || '';
+        const matchQ = !q || text.includes(q);
+        const matchCat = !activeCategory || cat === activeCategory;
+        card.style.display = matchQ && matchCat ? '' : 'none';
+      });
+    };
+    searchButton?.addEventListener('click', apply);
+    input?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
+    filters.forEach(f => f.addEventListener('click', () => {
+      filters.forEach(x => x.classList.remove('active'));
+      f.classList.add('active');
+      activeCategory = categoryMap[f.textContent.trim()] || '';
+      apply();
+    }));
+    sort?.addEventListener('change', () => {
+      const mode = sort.value;
+      const value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0;
+      const rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
+      const title = c => c.querySelector('.title')?.textContent.trim() || '';
+      const ordered = [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b)));
+      ordered.forEach(c => grid.appendChild(c));
+    });
+    cards.forEach(card => card.addEventListener('click', () => go('/pages/product-detail.html')));
+    more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
+  }
+
+  if (path === '/pages/creator-studio.html') {
+    document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
+  }
+  if (path === '/pages/admin.html') {
+    document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
+  }
+  if (path === '/pages/account.html' || path === '/pages/login.html' || path === '/pages/register.html') {
+    document.querySelectorAll('button').forEach(b => {
+      if (!b.closest('.login-dropdown')) b.addEventListener('click', () => alert('デモ版のため、実際の認証処理は行いません。'));
+    });
+  }
+})();
+</script>`;
+
 function repairHomepageMarkup(html) {
   for (let n = 3; n <= 9; n++) {
     const re = new RegExp(`(<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?<div class="card-bottom">[\\s\\S]*?</div>)(</article>)`, 'i');
@@ -51,14 +121,14 @@ function finalize(html) {
   const at = videos.index;
   html = html.slice(0, at) + SYSTEM_BLOCK + html.slice(at);
   html = repairHomepageMarkup(html);
-  return html.replace('</head>', STYLE + '</head>');
+  return html.replace('</head>', STYLE + '</head>').replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
 }
 
 function servePage(pathname, res) {
   const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html']);
   if (!allowed.has(pathname)) return false;
   readFile(join(ROOT, pathname.slice(1)), 'utf8').then(html => {
-    html = html.replace('</head>', COMMON_PAGE_STYLE + '</head>');
+    html = html.replace('</head>', COMMON_PAGE_STYLE + '</head>').replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
     const body = Buffer.from(html, 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':body.length,'cache-control':'no-store'});
     res.end(body);
