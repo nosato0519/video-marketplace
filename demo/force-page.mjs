@@ -34,7 +34,6 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
-
   const videos = html.match(/<section\b[^>]*id=["']videos["'][^>]*>/i);
   if (!videos || videos.index == null) throw new Error('videos boundary not found');
   const at = videos.index;
@@ -43,9 +42,10 @@ function finalize(html) {
   return html.replace('</head>', STYLE + '</head>');
 }
 
-function serveVideoList(req, res) {
-  if (req.method !== 'GET' || req.url.split('?')[0] !== '/pages/video-list.html') return false;
-  readFile(join(ROOT, 'pages', 'video-list.html'), 'utf8').then(html => {
+function servePage(pathname, res) {
+  const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html']);
+  if (!allowed.has(pathname)) return false;
+  readFile(join(ROOT, pathname.slice(1)), 'utf8').then(html => {
     const body = Buffer.from(html, 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':body.length,'cache-control':'no-store'});
     res.end(body);
@@ -57,7 +57,7 @@ function serveVideoList(req, res) {
 }
 
 function proxy(req, res) {
-  if (serveVideoList(req, res)) return;
+  if (servePage(req.url.split('?')[0], res)) return;
   const upstream = httpRequest({hostname:'127.0.0.1',port:upstreamPort,path:req.url,method:req.method,headers:req.headers}, (upstreamRes) => {
     const chunks = [];
     upstreamRes.on('data', c => chunks.push(c));
