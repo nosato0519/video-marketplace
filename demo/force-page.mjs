@@ -54,6 +54,10 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     const sort = document.querySelector('.sort');
     const more = document.querySelector('.more');
     const cards = grid ? [...grid.querySelectorAll('.card')] : [];
+    const empty = document.createElement('div');
+    empty.style.cssText = 'display:none;grid-column:1/-1;padding:48px 24px;border:1px solid #34353a;background:linear-gradient(145deg,#15161a,#0f1013);text-align:center;color:#aaa6a0;font-size:13px;line-height:1.9';
+    empty.innerHTML = '<strong style="display:block;color:#f3f0e9;font-size:18px;margin-bottom:8px">該当する作品がありません。</strong><span>条件を変更するか、別のキーワードで検索してください。</span>';
+    grid?.appendChild(empty);
     const categoryMap = {'映像作品':'FILM','教育':'EDUCATION','ビジネス':'BUSINESS','クリエイティブ':'CREATIVE','ライフスタイル':'LIFESTYLE','音楽':'MUSIC','アダルト':'ADULT'};
     let activeCategory = '';
     const parseDuration = value => {
@@ -68,6 +72,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
       const wants30to90 = sideChecks[3]?.checked;
       const wantsOver90 = sideChecks[4]?.checked;
       const wantsHighRating = sideChecks[5]?.checked;
+      let visible = 0;
       cards.forEach(card => {
         const text = card.textContent.toLowerCase();
         const cat = card.querySelector('.cat')?.textContent.trim() || '';
@@ -84,8 +89,11 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
         const ratingMatch = !wantsHighRating || rating >= 4.5;
         const matchQ = !q || text.includes(q);
         const matchCat = !activeCategory || cat === activeCategory;
-        card.style.display = matchQ && matchCat && qualityMatch && durationMatch && ratingMatch ? '' : 'none';
+        const matched = matchQ && matchCat && qualityMatch && durationMatch && ratingMatch;
+        card.style.display = matched ? '' : 'none';
+        if (matched) visible++;
       });
+      empty.style.display = visible ? 'none' : 'block';
     };
     searchButton?.addEventListener('click', apply);
     input?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
@@ -103,6 +111,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
       const title = c => c.querySelector('.title')?.textContent.trim() || '';
       const ordered = [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b)));
       ordered.forEach(c => grid.appendChild(c));
+      grid.appendChild(empty);
     });
     cards.forEach(card => card.addEventListener('click', () => go('/pages/product-detail.html')));
     more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
