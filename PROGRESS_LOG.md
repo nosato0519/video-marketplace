@@ -40,6 +40,7 @@
 - Recent Render startup/build logs show successful build and `Your service is live` for the current service path.
 - Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
 - Browser-level visual E2E has not been claimed because no browser inspection tool is available. Verification is limited to source, commits, Render deployment state, and logs.
+- **2026-09-08:** Render deploy for latest commit `c1b6a0ec7f10ccaa4af2fb8e17142336465534b2` is confirmed `live` (`dep-dafrqc79l3cc73cefq7g`). The preceding Register commit `0da1254863e8524082cef9a1c1cc0f97fd5fa683` also deployed successfully before being superseded.
 
 ## Exact continuation point
 
@@ -52,14 +53,21 @@
 - Content SHA: `388ac7a9eb9e9d6904a7762fe2b05720843d3846`
 - This remains demo-only: no input is submitted or persisted.
 
+### Verification completed after that action
+
+- Verified latest Render deployment for `c1b6a0ec7f10ccaa4af2fb8e17142336465534b2` is live.
+- Inspected **Orders → Watch → Library** source navigation.
+- Orders' `購入済み動画を視聴 →` links route to `/pages/watch.html`.
+- Watch's `← マイライブラリ` and `ライブラリへ` links route to `/pages/library.html`.
+- Library's `視聴する` links route to `/pages/watch.html`.
+- No actual navigation inconsistency was found in this chain, so no page code was changed.
+
 ### Next task
 
-1. Verify the latest Register commit reaches Render successfully through auto-deploy.
-2. Then inspect **Orders → Watch → Library** navigation for any actual inconsistency.
-3. Inspect **Creator Studio/Admin** controls only for safe interaction consistency.
-4. Do not change pages that are already correct.
-5. After each meaningful change, append the exact commit SHA, file, purpose, and Render status to this log before proceeding.
-6. When all remaining function gaps are closed, move to unified visual polish, then final E2E preparation, then sales-package preparation.
+1. Inspect **Creator Studio/Admin** controls for actual safe-interaction gaps.
+2. Do not change pages that are already correct.
+3. After each meaningful change, append the exact commit SHA, file, purpose, and Render status to this log before proceeding.
+4. When all remaining function gaps are closed, move to unified visual polish, then final E2E preparation, then sales-package preparation.
 
 ## Safety rules
 
