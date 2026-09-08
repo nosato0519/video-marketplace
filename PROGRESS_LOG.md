@@ -1,6 +1,6 @@
 # VIDEO MARKETPLACE Progress Log
 
-## Current phase — Final E2E preparation / sales-package preparation
+## Current phase — Final packaging / deployment verification
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
@@ -8,7 +8,7 @@
 - Render workspace: `tea-dab6c02jobas73bgrl70`
 - Auto-deploy: enabled. **Never manually trigger a deploy after pushing.**
 - Homepage (Screen #1) is frozen except for explicitly requested connection work.
-- Screens #2–#9 are completed demo surfaces. Changes now must be limited to genuine missing interactions, navigation consistency, safety, or final E2E preparation.
+- Screens #2–#9 are completed demo surfaces. Changes now must be limited to genuine missing interactions, navigation consistency, safety, or final packaging.
 
 ## Completed screens
 
@@ -34,10 +34,12 @@
 - `e61e928da382a7fd63559c00c927fa61a715873f` — Account navigation and safe password-change demo interaction.
 - `a8a74bd785dc5923a6558fa87318da5a9765f7d2` — Register interaction styling.
 - `0da1254863e8524082cef9a1c1cc0f97fd5fa683` — Register→Account demo completion flow; stops generic handler propagation.
-- `955ed7f1400f50edc6568a6ad14ad2038884b554` — recorded Orders→Watch→Library navigation verification and continuation point.
+- `955ed7f1400f50edc6560d790f8b393455240052` — recorded Orders→Watch→Library navigation verification and continuation point.
 - `258f06f960caa4741083df9e8f279ab43d69a421488` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
 - `c38494c5a1e213f5c4a9e8f279ab43d69a421488` — Admin review-queue action controls changed from inert spans to demo-safe buttons while preserving the visual treatment.
 - `bd77d221c21489ab10435cfe481610826176c2e4` — homepage system showcase connected to completed child pages with direct navigation buttons.
+- `fc0724332bac4427e3237f000494f4d16af310e7` — latest feature showcase card design applied to the frozen homepage presentation.
+- `adfe5d3a0dd6cf7a654415c834fa656f27c2b83f` — internal demo package name aligned with `VIDEO MARKETPLACE`; no runtime behavior changed.
 
 ## Final source-level navigation audit
 
@@ -53,15 +55,25 @@
 
 ## Render verification
 
-- Latest Render deployment checked after the previous progress-log push: deployment `dep-dafs37md1shc7387rja0` is `live`.
-- Latest live commit reported by Render: `3e9fa51c7c813f11ed45f2c36d679bd41e0d47fc` (`Apply feature showcase card design`).
-- The progress-log commit `1ae938192ac7a89f21d74bee2534b48d17cc7596` deployed automatically and was subsequently superseded by the latest live deployment.
+- Latest Render deployment `dep-dafs65v9r02s73fknv9g` is **live**.
+- It is the deployment for commit `8f2a49f7b33a0972dbb66aa97869a1bcb4c5cdbd` (`Apply feature showcase card design`).
+- The preceding package-branding deployment `dep-dafs633bc2fs73dj0eqg` for `adfe5d3a0dd6cf7a654415c834fa656f27c2b83f` completed and was superseded automatically.
 - Auto-deploy is enabled; no manual deploy was triggered.
-- Historical `videos boundary not found` errors belong to older deployment versions. Current `force-page.mjs` contains the protected `videos`/`trustbar` fallback and must not be reverted to the historical implementation.
+
+## Final packaging audit
+
+- [x] `VIDORA` search returned no results in the repository.
+- [x] `href #` search returned no results.
+- [x] `TODO FIXME HACK XXX` search returned no results.
+- [x] `console.log` search returned no results in the repository search scope.
+- [x] Internal demo package name is `video-marketplace-functional-demo`.
+- [x] Functional E2E script covers homepage/system placement, catalog state, unauthorized media rejection, buyer purchase/entitlement/watch/download, seller authorization/product/upload/payout, and admin payout/moderation/seller-approval flows.
+- [x] No real payment processing, credential storage, or real downloads are implemented in the showcase demo.
+- [ ] Browser-level visual E2E — not claimed; no browser inspection tool is available.
 
 ## Current final-E2E checklist
 
-- [x] Homepage system showcase now links directly to Video List, Product Detail, Checkout, Library, Watch, Creator Studio, Admin, and Login.
+- [x] Homepage system showcase links directly to Video List, Product Detail, Checkout, Library, Watch, Creator Studio, Admin, and Login.
 - [x] Video List → Product Detail → Checkout path present.
 - [x] Checkout → Library path present with required-field validation and demo-safe completion.
 - [x] Library → Watch path present; Watch controls are demo-safe.
@@ -80,13 +92,15 @@
 - [x] Added `SALES_PACKAGE.md` with buyer-facing product overview, feature inventory, user journeys, customization guidance, demo boundaries, setup, production requirements, hand-off checklist, and sales positioning.
 - [x] Documentation explicitly separates the safe showcase demo from customer-specific production integrations.
 - [x] Reconciled `COMMERCIAL_PACKAGE.md` branding with the current product name `VIDEO MARKETPLACE`; removed the stale `VIDORA` title from that guide.
+- [x] Reconciled the internal demo package name with the current product name; `demo/package.json` is `video-marketplace-functional-demo`.
 
 ## Exact continuation point
 
 1. Keep homepage visual design frozen; only preserve the requested child-page connection layer.
-2. Source-level navigation audit completed with no concrete missing link found.
-3. Buyer-facing commercial documentation is now consistent with the current product name.
-4. Continue final packaging only where it adds real buyer value.
+2. Source-level navigation and final packaging audits are complete.
+3. Render deployment for the latest verified code is live.
+4. Do not make cosmetic changes without an explicit user request.
+5. Remaining limitation is browser-level visual E2E, which is not claimed because no browser inspection tool is available.
 
 ## Safety rules
 
