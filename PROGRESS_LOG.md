@@ -38,7 +38,7 @@
 - `258f06f960caa4741083df9e8f279ab43d69a421488` — Creator Studio payout CTA changed to a demo-safe interaction; no real payout is performed.
 - `c38494c5a1e213f5c4a9e8f279ab43d69a421488` — Admin review-queue action controls changed from inert spans to demo-safe buttons while preserving the visual treatment.
 - `bd77d221c21489ab10435cfe481610826176c2e4` — homepage system showcase connected to completed child pages with direct navigation buttons.
-- `fc0724332bac4427e3237f000494f4d16af310e7` — latest feature showcase card design applied to the frozen homepage presentation.
+- `fc0724332bac4427e3237f000494f4d16af310e7` — feature showcase card design applied to the frozen homepage presentation.
 - `adfe5d3a0dd6cf7a654415c834fa656f27c2b83f` — internal demo package name aligned with `VIDEO MARKETPLACE`; no runtime behavior changed.
 
 ## Final source-level navigation audit
@@ -55,9 +55,9 @@
 
 ## Render verification
 
-- Latest Render deployment `dep-dafs65v9r02s73fknv9g` is **live**.
-- It is the deployment for commit `8f2a49f7b33a0972dbb66aa97869a1bcb4c5cdbd` (`Apply feature showcase card design`).
-- The preceding package-branding deployment `dep-dafs633bc2fs73dj0eqg` for `adfe5d3a0dd6cf7a654415c834fa656f27c2b83f` completed and was superseded automatically.
+- Latest Render deployment `dep-dafs7bud1shc7387uj40` is **live**.
+- It is the current live deployment for commit `2d302b67d6b7b4268f9ef075160e6b726acddadd` (`Apply feature showcase card design`).
+- The progress-log update deployment `dep-dafs79jbc2fs73dj1pa0` and previous duplicate feature deployment were superseded automatically.
 - Auto-deploy is enabled; no manual deploy was triggered.
 
 ## Final packaging audit
@@ -69,7 +69,7 @@
 - [x] Internal demo package name is `video-marketplace-functional-demo`.
 - [x] Functional E2E script covers homepage/system placement, catalog state, unauthorized media rejection, buyer purchase/entitlement/watch/download, seller authorization/product/upload/payout, and admin payout/moderation/seller-approval flows.
 - [x] No real payment processing, credential storage, or real downloads are implemented in the showcase demo.
-- [ ] Browser-level visual E2E — not claimed; no browser inspection tool is available.
+- [ ] Browser-level visual E2E — not claimed; no browser inspection tool available.
 
 ## Current final-E2E checklist
 
@@ -83,7 +83,7 @@
 - [x] Creator Studio controls are demo-safe; payout CTA no longer inert.
 - [x] Admin review-queue actions are demo-safe buttons.
 - [x] No real payment processing, credential storage, or real downloads implemented.
-- [ ] Browser-level visual E2E — not claimed; no browser inspection tool is available.
+- [ ] Browser-level visual E2E — not claimed; no browser inspection tool available.
 
 ## Sales-package preparation
 
