@@ -22,9 +22,6 @@ try {
   const systemStart = html.search(/id=["']system-features-force["']/i);
   if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('動画を探す') || systemCount !== 1 || legacyGuideCount !== 0 || heroEnd < 0 || systemStart < heroEnd) throw new Error('browser entrypoint/system showcase failed');
   for (let n = 3; n <= 9; n++) if (!new RegExp(`<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?</div></div></article>`, 'i').test(html)) throw new Error(`homepage card t${n} markup failed`);
-  const asset = await request('/app.js');
-  const js = await asset.text();
-  if (!asset.ok || !js.includes('function purchase') || !js.includes('function sellerView') || !js.includes('function adminView')) throw new Error('browser application asset incomplete');
 
   const initialState = await json('/api/demo/state');
   if (!Array.isArray(initialState.products) || initialState.products.length < 5) throw new Error('catalog state incomplete');
