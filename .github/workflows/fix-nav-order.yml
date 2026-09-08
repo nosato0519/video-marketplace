@@ -1,0 +1,39 @@
+name: Fix Top Navigation Order
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  fix:
+    if: ${{ github.event.head_commit.message != 'Fix top navigation order' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reorder top navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('demo/index.html')
+          s = p.read_text()
+          old = '<nav><a href="#videos">動画を探す</a><a href="#popular">人気の動画</a><a href="#guide">機能・システム</a><a href="#creators">クリエイター</a></nav>'
+          new = '<nav><a href="#guide">機能・システム</a><a href="#popular">人気の動画</a><a href="#videos">動画を探す</a><a href="#creators">クリエイター</a></nav>'
+          if old not in s:
+              raise SystemExit('Target navigation markup not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo/index.html
+          git commit -m 'Fix top navigation order'
+          git push
+      - name: Remove temporary workflow
+        run: |
+          rm .github/workflows/fix-nav-order.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/fix-nav-order.yml
+          git commit -m 'Remove temporary nav order workflow'
+          git push
