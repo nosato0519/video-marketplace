@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node link-fix-proxy.mjs",
-    "verify": "node functional-e2e.mjs"
+    "verify": "node functional-e2e.mjs && node navigation-e2e.mjs"
   },
   "engines": { "node": ">=20" }
 }
