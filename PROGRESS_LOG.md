@@ -6,11 +6,12 @@
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest code/documentation commit: `31b8857b8cd02e81ad6d03958f35e63024bab84d`
+- Latest code/documentation commit: `1bfe4a8008adc7de65d25a8c33be8db09651ea53`
 - Previous verified commercial package commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`
-- Previous verified final code commit: `363b1e725e09c6deb33190ee662f7bed18cb3629`
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
+- Latest Render deployment: `dep-dagd88q0a91c73b2d4eg`
+- Latest Render status: **LIVE**
 - Render auto-deploy: **enabled** — after any push, do NOT manually trigger a deploy.
 - Homepage (Screen #1): **FROZEN / DO NOT REDESIGN** unless the user explicitly requests a visual change.
 - Screens #2–#9: **COMPLETED**.
@@ -41,7 +42,7 @@
 - Admin review-queue actions are demo-safe buttons.
 - Showcase does not perform real payment processing, credential storage, or real media downloads.
 
-## VERIFIED CI — CURRENT RELEASE PACKAGE
+## VERIFIED CI — CURRENT COMMERCIAL RELEASE
 
 Current commercial release commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`.
 
@@ -90,13 +91,15 @@ The release-package workflow path mismatch discovered after the previous baselin
 
 ## VERIFIED RENDER
 
-The latest verified application deployment before the documentation-only updates was:
-- Deployment: `dep-dagd77flk1mc73cvhihg`
-- Commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`
+Latest Render deployment:
+- Deployment: `dep-dagd88q0a91c73b2d4eg`
+- Commit: `1bfe4a8008adc7de65d25a8c33be8db09651ea53`
 - Status: **LIVE**
 - Trigger: `new_commit`
 
-The subsequent documentation-only push will auto-deploy because Render auto-deploy is enabled. Do not manually trigger a deployment.
+The latest deployment contains documentation-only changes after the commercial package verification. Application/demo page behavior was not changed.
+
+Do not manually redeploy after normal GitHub pushes while auto-deploy remains enabled.
 
 ## COMPLETED AUDITS / CLEANUP
 
