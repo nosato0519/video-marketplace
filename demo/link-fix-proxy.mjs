@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 10000);
-const upstreamPort = 4174;
+const upstreamPort = 4175;
 
 // force-page is the canonical demo-page server: it preserves the finished
 // homepage while also serving every child page under /pages/*.html.
