@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const demoPort = 4176;
 const demoUrl = `http://127.0.0.1:${demoPort}/`;
 const demoRoot = dirname(fileURLToPath(new URL('../demo/', import.meta.url)));
-const demoScript = fileURLToPath(new URL('../demo/link-fix-proxy.mjs', import.meta.url));
+const demoScript = fileURLToPath(new URL('../demo/showcase-navigation-proxy.mjs', import.meta.url));
 let demoProcess;
 let demoOutput = '';
 
@@ -28,7 +28,7 @@ test.beforeAll(async () => {
   test.setTimeout(30_000);
   demoProcess = spawn(process.execPath, [demoScript], {
     cwd: demoRoot,
-    env: { ...process.env, PORT: String(demoPort) },
+    env: { ...process.env, PORT: String(demoPort), UPSTREAM_PORT: '4177' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   demoProcess.stdout?.on('data', chunk => { demoOutput += chunk.toString(); });
