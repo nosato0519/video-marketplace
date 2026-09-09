@@ -1,4 +1,4 @@
-# VIDORA — Commercial Release Readiness
+# VIDEO MARKETPLACE — Commercial Release Readiness
 
 This checklist is the release gate for selling the repository as a customer-installable video marketplace package.
 
@@ -7,21 +7,24 @@ This checklist is the release gate for selling the repository as a customer-inst
 - [x] `app/`, `backend/`, and `demo/` are included.
 - [x] `backend/.env.example` is included and real credentials are not committed.
 - [x] Local secrets, dependencies, logs and private media are excluded by `.gitignore`.
-- [x] `README.md` and `COMMERCIAL_PACKAGE.md` document installation and customer hand-off.
+- [x] `README.md`, `COMMERCIAL_PACKAGE.md`, and the sales hand-off documentation cover installation and customer hand-off.
 - [x] `LICENSE.md` contains the current commercial license and redistribution terms.
+- [x] Commercial release packaging uses the `VIDEO MARKETPLACE` name and `video-marketplace-commercial.zip` archive name.
+- [x] Commercial release packaging includes `LICENSE.md`, `SALES_PACKAGE.md`, `SALES_DEMO_SCRIPT.md`, and `OPERATIONS_MANUAL.md`.
 
 ## 2. Automated release gates
 
-Current `main` HEAD is `a6994f5038c56cf5136202a4a2262a9d80efabe4`.
+Latest source commit: `df9a16700d087ca6bebccc6cce702a362d02ccaa` (`Align commercial release package with VIDEO MARKETPLACE`).
 
-Fresh verification on this HEAD:
+Verified automated acceptance evidence for the current release baseline:
 
-- [x] Browser E2E — GitHub Actions run `33943365067` completed successfully.
-- [x] Backend Regression — GitHub Actions run `33943365019` completed successfully, including migrations, backup/restore, core tests, Buyer purchase, Seller application/product/media/earnings/payout, Admin payout concurrency, media authorization/upload/access, security regression and functional sales demo E2E.
+- [x] Browser UI Acceptance — GitHub Actions run `34306417291` completed successfully.
+- [x] Clean Install — GitHub Actions run `34306417300` completed successfully on Node 20 and Node 22, including migrations and core regression tests.
+- [x] Demo Functional E2E — GitHub Actions run `34304647985` completed successfully, including functional demo E2E and polished showcase acceptance.
+- [x] Backend Regression — GitHub Actions run `34304647998` completed successfully, including migrations, backup/restore, core tests, authentication, payment flows, buyer purchase, seller flows, admin payout concurrency, media authorization/upload/access, security suites and functional sales demo E2E.
+- [x] Payment Regression — GitHub Actions run `34304648008` completed successfully, including payment, webhook and protected S3 media adapter regression tests.
 
-Earlier full release-gate runs `33831920856` (Demo Functional Regression) and `33831920982` (Release Package Check) also completed successfully, but they ran against an earlier commit and are retained as historical evidence rather than current-HEAD evidence.
-
-The clean-install, payment-regression and release-package checks still require fresh current-HEAD runs before claiming the entire automated release-gate matrix is green.
+The `df9a167...` change is limited to commercial release packaging metadata/content selection; it does not modify application/demo page behavior.
 
 ## 3. Buyer acceptance
 
@@ -51,7 +54,7 @@ The clean-install, payment-regression and release-package checks still require f
 
 ## 6. Showcase demo quality
 
-The separate `demo/` package is the commercial sales showcase. Current-HEAD functional demo coverage is GREEN through Backend Regression run `33943365019`.
+The separate `demo/` package is the commercial sales showcase. Current release-baseline functional and browser acceptance coverage is GREEN.
 
 Required presentation journey:
 
@@ -83,12 +86,14 @@ Before a customer's site is opened to real users:
 
 ## 8. Commercial hand-off
 
-- [ ] Build release archive from a clean checkout.
-- [ ] Verify no `.env`, private key, production credential, customer data or production media is present.
-- [x] Include installation, configuration and deployment documentation.
-- [x] Include the showcase demo and its launch instructions.
-- [x] Attach the current commercial license and redistribution terms in `LICENSE.md`.
-- [ ] Deliver customer-specific secrets only through a secure channel.
+- [x] Commercial release packaging script is aligned with the current `VIDEO MARKETPLACE` product name.
+- [x] Release packaging excludes `.env`, dependency, build-output and repository metadata paths.
+- [x] Release packaging scans for private keys and common credential/token patterns.
+- [x] Installation, configuration and deployment documentation is included.
+- [x] Showcase demo and launch instructions are included.
+- [x] Current commercial license and redistribution terms are included in `LICENSE.md`.
+- [ ] Customer-specific secrets are delivered only through a secure channel.
+- [ ] Final archive build from a clean customer checkout is performed immediately before customer delivery.
 
 ## Release rule
 
