@@ -6,8 +6,8 @@ import { execFileSync } from 'node:child_process';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
 const distRoot = path.join(root, 'dist');
-const staging = path.join(distRoot, 'vidora-commercial');
-const archive = path.join(distRoot, 'vidora-commercial.zip');
+const staging = path.join(distRoot, 'video-marketplace-commercial');
+const archive = path.join(distRoot, 'video-marketplace-commercial.zip');
 const checkOnly = process.argv.includes('--check');
 
 const include = [
@@ -19,10 +19,14 @@ const include = [
   'README.md',
   'COMMERCIAL_PACKAGE.md',
   'COMMERCIAL_LICENSE_TEMPLATE.md',
+  'LICENSE.md',
   'PRODUCT_VISION.md',
   'PROJECT_STATE.md',
   'RELEASE_READINESS.md',
   'PROGRESS_LOG.md',
+  'SALES_PACKAGE.md',
+  'SALES_DEMO_SCRIPT.md',
+  'OPERATIONS_MANUAL.md',
   'package.json',
 ];
 
@@ -111,7 +115,7 @@ if (violations.length) {
 
 const manifestPath = path.join(staging, 'RELEASE_MANIFEST.txt');
 const manifest = [
-  'VIDORA Commercial Package Manifest',
+  'VIDEO MARKETPLACE Commercial Package Manifest',
   `Source commit: ${gitSha()}`,
   `Generated: ${new Date().toISOString()}`,
   `Files: ${files.length + 1}`,
