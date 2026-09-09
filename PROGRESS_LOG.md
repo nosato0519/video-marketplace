@@ -6,11 +6,11 @@
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest code/documentation commit: `0c63a3117d07e5a7fa5e464007ba8bc1c69ecb23`
+- Latest code/documentation commit: `ee4a4e585f788927fe792cf37440262b6a489460`
 - Previous verified commercial package commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
-- Latest Render deployment: `dep-dagddhks728c73d2nsag`
+- Latest Render deployment: `dep-dagft520a91c73b4dchg`
 - Latest Render status: **LIVE**
 - Render auto-deploy: **enabled** — after any push, do NOT manually trigger a deploy.
 - Homepage (Screen #1): **FROZEN / DO NOT REDESIGN** unless the user explicitly requests a visual change.
@@ -92,14 +92,24 @@ The release-package workflow path mismatch discovered after the previous baselin
 ## VERIFIED RENDER
 
 Latest Render deployment:
-- Deployment: `dep-dagddhks728c73d2nsag`
-- Commit: `0c63a3117d07e5a7fa5e464007ba8bc1c69ecb23`
+- Deployment: `dep-dagft520a91c73b4dchg`
+- Commit: `ee4a4e585f788927fe792cf37440262b6a489460`
 - Status: **LIVE**
 - Trigger: `new_commit`
 
-The latest deployment contains documentation-only changes after the commercial package verification. Application/demo page behavior was not changed.
+## CURRENT BROWSER ACCEPTANCE INVESTIGATION
 
-Do not manually redeploy after normal GitHub pushes while auto-deploy remains enabled.
+The latest showcase-navigation fixes are on `ee4a4e5...`.
+
+- Showcase navigation test uses isolated port `4176`.
+- Showcase proxy isolates `force-page` and launcher processes on `4177` and `4178`.
+- Workflow cleanup covers ports `4173` through `4178`.
+- Latest Browser UI Acceptance run observed: `34319888534`, job `102363960118`, currently queued at the last direct check.
+- Backend Browser Acceptance: `34319888531` queued at the last check.
+- Functional Demo: `34319888567` queued at the last check.
+- Payment Regression: `34319888584` queued at the last check.
+
+The previous failure was isolated to showcase-navigation test infrastructure/process startup; buyer browser acceptance and module smoke had passed. Do not blindly change ports again. If the queued run starts, inspect the actual failing step/log first.
 
 ## COMPLETED AUDITS / CLEANUP
 
