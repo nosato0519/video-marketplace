@@ -7,7 +7,9 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = 4174;
 
-const child = spawn(process.execPath, ['launcher.mjs'], {
+// force-page is the canonical demo-page server: it preserves the finished
+// homepage while also serving every child page under /pages/*.html.
+const child = spawn(process.execPath, ['force-page.mjs'], {
   cwd: ROOT,
   env: { ...process.env, PORT: String(upstreamPort) },
   stdio: 'inherit'
@@ -34,7 +36,6 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     if (el.classList?.contains('logo') || text === '← TOP') {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
-
     if (current === '/' || current === '/index.html') {
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.library); return; }
@@ -43,7 +44,6 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (text === '販売者ログイン' || text === '購入者ログイン' || text === 'ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.login); return; }
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
-
     if (current === routes.list && el.closest('.card')) {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return;
     }
@@ -91,20 +91,15 @@ function injectNavigation(html) {
 
 function proxy(req, res) {
   const upstream = httpRequest({
-    hostname: '127.0.0.1',
-    port: upstreamPort,
-    path: req.url,
-    method: req.method,
-    headers: req.headers
+    hostname: '127.0.0.1', port: upstreamPort, path: req.url,
+    method: req.method, headers: req.headers
   }, upstream => {
     const chunks = [];
     upstream.on('data', chunk => chunks.push(chunk));
     upstream.on('end', () => {
       let body = Buffer.concat(chunks);
       const type = String(upstream.headers['content-type'] || '');
-      if (type.includes('text/html')) {
-        body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
-      }
+      if (type.includes('text/html')) body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
       const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
       delete headers['transfer-encoding'];
       res.writeHead(upstream.statusCode || 200, headers);
