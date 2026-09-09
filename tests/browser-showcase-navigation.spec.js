@@ -1,27 +1,37 @@
 import { test, expect } from '@playwright/test';
 import { spawn } from 'node:child_process';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const demoPort = 4175;
 const demoUrl = `http://127.0.0.1:${demoPort}/`;
+const demoRoot = dirname(fileURLToPath(new URL('../demo/', import.meta.url)));
+const demoScript = fileURLToPath(new URL('../demo/link-fix-proxy.mjs', import.meta.url));
 let demoProcess;
+let demoOutput = '';
 
 async function waitForDemo() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    if (demoProcess?.exitCode !== null && demoProcess?.exitCode !== undefined) {
+      throw new Error(`Navigation demo server exited with code ${demoProcess.exitCode}.\n${demoOutput}`);
+    }
     try {
       const response = await fetch(demoUrl);
       if (response.ok) return;
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error('Navigation demo server did not become ready');
+  throw new Error(`Navigation demo server did not become ready.\n${demoOutput}`);
 }
 
 test.beforeAll(async () => {
-  demoProcess = spawn(process.execPath, ['link-fix-proxy.mjs'], {
-    cwd: 'demo',
+  demoProcess = spawn(process.execPath, [demoScript], {
+    cwd: demoRoot,
     env: { ...process.env, PORT: String(demoPort) },
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
+  demoProcess.stdout?.on('data', chunk => { demoOutput += chunk.toString(); });
+  demoProcess.stderr?.on('data', chunk => { demoOutput += chunk.toString(); });
   await waitForDemo();
 });
 
