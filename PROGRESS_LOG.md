@@ -2,7 +2,7 @@
 
 ## CURRENT RESUME POINT — 2026-09-09
 
-**Current state is the final verified showcase-demo state.** Future work must start from the remaining optional/production items below and must not redo completed page construction, navigation, or verification.
+**Current state is the final verified showcase-demo state plus sales hand-off documentation.** Future work must start from the remaining optional/production items below and must not redo completed page construction, navigation, or verification.
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
@@ -86,6 +86,7 @@ Do not manually redeploy after normal GitHub pushes while auto-deploy remains en
 - Functional E2E covers homepage/system placement, catalog state, unauthorized media rejection, buyer purchase/entitlement/watch/download, seller authorization/product/upload/payout, and admin payout/moderation/seller-approval flows.
 - Commercial documentation is aligned with the current `VIDEO MARKETPLACE` product name.
 - `SALES_PACKAGE.md` documents features, journeys, customization, setup, production requirements, demo boundaries, hand-off, and sales positioning.
+- `SALES_DEMO_SCRIPT.md` now provides a consistent five-minute buyer demonstration sequence and explicitly preserves the demo/production boundary.
 - Obsolete auto-edit/fix workflows were removed; remaining CI workflows are verification/testing workflows.
 
 ## KNOWN LIMITATION
