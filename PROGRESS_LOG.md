@@ -6,11 +6,11 @@
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest code/documentation commit: `b51b92188a2fc4ff52feb329968924df031e244e`
+- Latest code/documentation commit: `0c63a3117d07e5a7fa5e464007ba8bc1c69ecb23`
 - Previous verified commercial package commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
-- Latest Render deployment: `dep-dagd88q0a91c73b2d4eg`
+- Latest Render deployment: `dep-dagddhks728c73d2nsag`
 - Latest Render status: **LIVE**
 - Render auto-deploy: **enabled** — after any push, do NOT manually trigger a deploy.
 - Homepage (Screen #1): **FROZEN / DO NOT REDESIGN** unless the user explicitly requests a visual change.
@@ -92,8 +92,8 @@ The release-package workflow path mismatch discovered after the previous baselin
 ## VERIFIED RENDER
 
 Latest Render deployment:
-- Deployment: `dep-dagd88q0a91c73b2d4eg`
-- Commit: `1bfe4a8008adc7de65d25a8c33be8db09651ea53`
+- Deployment: `dep-dagddhks728c73d2nsag`
+- Commit: `0c63a3117d07e5a7fa5e464007ba8bc1c69ecb23`
 - Status: **LIVE**
 - Trigger: `new_commit`
 
