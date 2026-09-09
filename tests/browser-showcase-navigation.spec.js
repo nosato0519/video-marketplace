@@ -11,7 +11,7 @@ let demoProcess;
 let demoOutput = '';
 
 async function waitForDemo() {
-  for (let attempt = 0; attempt < 240; attempt += 1) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
     if (demoProcess?.exitCode !== null && demoProcess?.exitCode !== undefined) {
       throw new Error(`Navigation demo server exited with code ${demoProcess.exitCode}.\n${demoOutput}`);
     }
@@ -25,7 +25,7 @@ async function waitForDemo() {
 }
 
 test.beforeAll(async () => {
-  test.setTimeout(120_000);
+  test.setTimeout(30_000);
   demoProcess = spawn(process.execPath, [demoScript], {
     cwd: demoRoot,
     env: { ...process.env, PORT: String(demoPort) },
