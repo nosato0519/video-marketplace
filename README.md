@@ -19,6 +19,10 @@ VIDEO MARKETPLACE is built around a complete marketplace journey rather than a s
 - `demo/` — polished, self-contained commercial showcase demo
 - `.github/workflows/` — regression CI
 - `COMMERCIAL_PACKAGE.md` — commercial deployment and customer hand-off guide
+- `SALES_PACKAGE.md` — feature inventory, positioning, customization and production requirements
+- `SALES_DEMO_SCRIPT.md` — five-minute buyer demonstration flow
+- `LICENSE.md` — commercial license terms
+- `PROGRESS_LOG.md` — implementation and verification history
 
 ## Requirements
 
@@ -50,6 +54,8 @@ Recommended presentation order:
 6. Product/media lifecycle
 7. Admin moderation and seller verification
 8. Responsive/mobile presentation
+
+For a consistent sales presentation, follow `SALES_DEMO_SCRIPT.md`.
 
 ## Production setup
 
@@ -97,6 +103,8 @@ A browser return URL is not sufficient to grant media access; verified payment s
 ## Commercial deployment
 
 See `COMMERCIAL_PACKAGE.md` for the commercial deployment requirements, customer hand-off process, production configuration, and final release checklist.
+
+See `SALES_PACKAGE.md` for the buyer-facing feature inventory and sales positioning, and `SALES_DEMO_SCRIPT.md` for the recommended five-minute demonstration sequence.
 
 **Important:** the source is structured for commercial deployment, but a live customer installation still requires customer-specific hosting, PostgreSQL, storage, payment credentials, HTTPS, legal/privacy/compliance configuration, and final browser acceptance. Do not market the demo's simulated payment as live payment processing.
 
