@@ -1,11 +1,14 @@
 import { spawn } from 'node:child_process';
 import { createServer, request as httpRequest } from 'node:http';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const ROOT = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = 4174;
 
 const child = spawn(process.execPath, ['launcher.mjs'], {
-  cwd: process.cwd(),
+  cwd: ROOT,
   env: { ...process.env, PORT: String(upstreamPort) },
   stdio: 'inherit'
 });
