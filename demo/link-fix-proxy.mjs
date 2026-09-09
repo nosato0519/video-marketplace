@@ -21,19 +21,62 @@ function patchHomepage(html) {
     }
   );
 
-  const patchButton = (source, label, target) => source.replace(
-    new RegExp(`<button\\b([^>]*)>([\\s\\S]*?${label}[\\s\\S]*?)<\\/button>`, 'gi'),
-    (_m, attrs, body) => {
-      const cleanAttrs = attrs.replace(/\\s+onclick\\s*=\\s*(?:"[^"]*"|'[^']*')/gi, '');
-      return `<button${cleanAttrs} onclick="window.location.href='${target}'">${body}</button>`;
-    }
-  );
-
   html = patchAnchor(html, '販売者デモ', '/pages/creator-studio.html');
   html = patchAnchor(html, '購入者デモ', '/pages/library.html');
-  html = patchButton(html, '販売者デモ', '/pages/creator-studio.html');
-  html = patchButton(html, '購入者デモ', '/pages/library.html');
   return html;
+}
+
+const NAV_SCRIPT = `<script id="site-navigation-integration">
+(() => {
+  const go = target => { window.location.assign(target); };
+  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+
+  document.addEventListener('click', event => {
+    const el = event.target?.closest?.('a,button');
+    if (!el) return;
+    const text = textOf(el);
+    const path = location.pathname;
+
+    // Homepage: route the primary marketplace/demo entry points without changing markup or CSS.
+    if (path === '/' || path === '/index.html') {
+      if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/creator-studio.html'); return; }
+      if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/library.html'); return; }
+      if (text.includes('動画を探す')) { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/video-list.html'); return; }
+      if (text.includes('クリエイターになる')) { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/creator-studio.html'); return; }
+      if (text === '販売者ログイン' || text === '購入者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/login.html'); return; }
+    }
+
+    // Video discovery -> product detail.
+    if (path === '/pages/video-list.html' && el.closest('.card')) {
+      event.preventDefault(); event.stopImmediatePropagation(); go('/pages/product-detail.html'); return;
+    }
+
+    // Product detail -> checkout. Keep the existing explicit href working as-is, but make the click deterministic.
+    if (path === '/pages/product-detail.html' && text.includes('この動画を購入する')) {
+      event.preventDefault(); event.stopImmediatePropagation(); go('/pages/checkout.html'); return;
+    }
+
+    // Library -> dedicated watch page.
+    if (path === '/pages/library.html' && (text === '視聴する' || el.closest('.play'))) {
+      event.preventDefault(); event.stopImmediatePropagation(); go('/pages/watch.html'); return;
+    }
+
+    // Account -> order history.
+    if (path === '/pages/account.html' && text.includes('購入履歴を見る')) {
+      event.preventDefault(); event.stopImmediatePropagation(); go('/pages/orders.html'); return;
+    }
+
+    // Orders -> watch page for a purchased item.
+    if (path === '/pages/orders.html' && (text.includes('視聴') || text.includes('見る'))) {
+      event.preventDefault(); event.stopImmediatePropagation(); go('/pages/watch.html'); return;
+    }
+  }, true);
+})();
+</script>`;
+
+function injectNavigation(html) {
+  if (!/<\\/body>/i.test(html) || html.includes('site-navigation-integration')) return html;
+  return html.replace(/<\\/body>/i, `${NAV_SCRIPT}</body>`);
 }
 
 function proxy(req, res) {
@@ -45,6 +88,9 @@ function proxy(req, res) {
       const type = String(upstream.headers['content-type'] || '');
       if ((req.url === '/' || req.url === '/index.html') && type.includes('text/html')) {
         body = Buffer.from(patchHomepage(body.toString('utf8')), 'utf8');
+      }
+      if (type.includes('text/html')) {
+        body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
       }
       const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
       delete headers['transfer-encoding'];
