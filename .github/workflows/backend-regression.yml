@@ -86,4 +86,5 @@ jobs:
         run: npm run test:security-regression
       - name: Run functional sales demo E2E
         working-directory: demo
-        run: node functional-e2e.mjs
+        timeout-minutes: 5
+        run: timeout 4m node functional-e2e.mjs
