@@ -1,4 +1,4 @@
-# VIDORA Demo Status
+# VIDEO MARKETPLACE Demo Status
 
 The functional demo is a real Node.js HTTP application, not a static HTML mock.
 
@@ -25,7 +25,7 @@ The functional demo is a real Node.js HTTP application, not a static HTML mock.
 
 `npm --prefix demo run verify` is the canonical functional demo E2E verifier. It starts `demo/launcher.mjs` and verifies the browser entrypoint/assets plus Buyer, Seller, Admin, protected Watch/Download, and unauthorized-media flows.
 
-The previously recorded Demo Functional Regression run `33831920856` completed successfully on an earlier demo commit. The current `main` HEAD has fresh Browser UI Acceptance and Backend Browser Acceptance results; the remaining release-gate workflows must still be re-verified against this HEAD before the package is labeled fully green.
+The commercial release baseline has already passed the release-package, browser UI, clean-install, functional demo E2E, payment regression, and backend regression gates. Any new commit must be re-verified before it is treated as a newly validated release state.
 
 ## Release boundary
 
