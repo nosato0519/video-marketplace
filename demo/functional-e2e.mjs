@@ -7,7 +7,15 @@ let output = '';
 child.stdout.on('data', d => output += d.toString());
 child.stderr.on('data', d => output += d.toString());
 
-async function request(path, options = {}) { return fetch(`http://127.0.0.1:${port}${path}`, options); }
+async function request(path, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    return await fetch(`http://127.0.0.1:${port}${path}`, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 async function waitHealth() { for (let i = 0; i < 50; i++) { try { const r = await request('/api/health'); if (r.ok) return; } catch {} await new Promise(r => setTimeout(r, 100)); } throw new Error(`demo server failed to start\n${output}`); }
 function cookieOf(r) { return r.headers.getSetCookie?.()[0]?.split(';')[0] || r.headers.get('set-cookie')?.split(';')[0] || ''; }
 async function json(path, options = {}) { const r = await request(path, options); const data = await r.json(); if (!r.ok) throw new Error(`${path}: ${JSON.stringify(data)}`); return data; }
