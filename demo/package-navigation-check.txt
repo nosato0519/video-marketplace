@@ -1,0 +1,1 @@
+Navigation E2E is maintained in demo/navigation-e2e.mjs and is intended to run alongside the existing functional demo verification.
