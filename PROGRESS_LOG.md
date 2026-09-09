@@ -7,10 +7,11 @@
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
 - Latest verified code commit: `363b1e725e09c6deb33190ee662f7bed18cb3629`
-- Latest verified Render deployment for that code: `dep-dagchp67bikc739e7g80`
+- Latest documentation commit: `c2757e22978c34a2408f75a740d9b8c76f244ad7`
+- Latest Render deployment: `dep-dagcqup1l3dc73dbeegg`
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
-- Render status for `363b1e7...`: **LIVE**
+- Render status for latest deployment: **LIVE**
 - Render auto-deploy: **enabled** — after any push, do NOT manually trigger a deploy.
 - Homepage (Screen #1): **FROZEN / DO NOT REDESIGN** unless the user explicitly requests a visual change.
 - Screens #2–#9: **COMPLETED**.
@@ -64,13 +65,20 @@ Latest final code commit: `363b1e725e09c6deb33190ee662f7bed18cb3629`
   - media authorization/upload/access — SUCCESS
   - security regression suites — SUCCESS
   - functional sales demo E2E — SUCCESS
+- **Browser UI Acceptance** for latest documentation commit `c2757e22978c34a2408f75a740d9b8c76f244ad7` — SUCCESS (`34305906950`)
+  - Chromium installed successfully
+  - buyer browser acceptance — SUCCESS
+  - browser module smoke — SUCCESS
+  - rendered showcase evidence capture/upload — SUCCESS
+- **Release Package Check** for `c2757e22978c34a2408f75a740d9b8c76f244ad7` — SUCCESS (`34305906962`)
 
 An older Backend Regression run (`34208515800`) had a cancelled functional-sales-demo step during the previous process-cleanup issue. That is historical only; the latest final-code run above completed that step successfully.
 
 ## VERIFIED RENDER
 
-Latest code commit `363b1e7...` deployed successfully to Render:
-- Deployment: `dep-dagchp67bikc739e7g80`
+Latest Render deployment:
+- Deployment: `dep-dagcqup1l3dc73dbeegg`
+- Commit: `c2757e22978c34a2408f75a740d9b8c76f244ad7`
 - Status: **LIVE**
 - Trigger: `new_commit`
 
@@ -86,12 +94,12 @@ Do not manually redeploy after normal GitHub pushes while auto-deploy remains en
 - Functional E2E covers homepage/system placement, catalog state, unauthorized media rejection, buyer purchase/entitlement/watch/download, seller authorization/product/upload/payout, and admin payout/moderation/seller-approval flows.
 - Commercial documentation is aligned with the current `VIDEO MARKETPLACE` product name.
 - `SALES_PACKAGE.md` documents features, journeys, customization, setup, production requirements, demo boundaries, hand-off, and sales positioning.
-- `SALES_DEMO_SCRIPT.md` now provides a consistent five-minute buyer demonstration sequence and explicitly preserves the demo/production boundary.
+- `SALES_DEMO_SCRIPT.md` provides a consistent five-minute buyer demonstration sequence and explicitly preserves the demo/production boundary.
 - Obsolete auto-edit/fix workflows were removed; remaining CI workflows are verification/testing workflows.
 
 ## KNOWN LIMITATION
 
-- Browser-level visual inspection is **not claimed by ChatGPT's working environment**. CI/browser workflows exist in the repository, but no interactive browser inspection was performed in this session. Do not claim visual/browser inspection was personally performed unless new evidence is available.
+- Browser-level visual inspection is **not claimed as an interactive inspection by ChatGPT's working environment**. However, the repository's Browser UI Acceptance workflow has now successfully installed Chromium, executed buyer browser acceptance and browser smoke tests, and captured/uploaded rendered showcase evidence for the latest documentation commit. Do not claim personal interactive browser inspection unless new evidence is available.
 
 ## NEXT WORK — ONLY IF REQUESTED
 
