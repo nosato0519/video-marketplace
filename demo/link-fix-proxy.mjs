@@ -10,11 +10,6 @@ const child = spawn(process.execPath, ['launcher.mjs'], {
   stdio: 'inherit'
 });
 
-function patchHomepage(html) {
-  html = html.replace(/href="#" onclick="event\.preventDefault\(\)"/g, 'href="/pages/creator-studio.html"');
-  return html;
-}
-
 const NAV_SCRIPT = `<script id="site-navigation-integration">
 (() => {
   const routes = {
@@ -104,9 +99,6 @@ function proxy(req, res) {
     upstream.on('end', () => {
       let body = Buffer.concat(chunks);
       const type = String(upstream.headers['content-type'] || '');
-      if ((req.url === '/' || req.url === '/index.html') && type.includes('text/html')) {
-        body = Buffer.from(patchHomepage(body.toString('utf8')), 'utf8');
-      }
       if (type.includes('text/html')) {
         body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
       }
