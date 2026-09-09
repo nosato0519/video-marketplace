@@ -4,7 +4,7 @@ import { createServer, request as httpRequest } from 'node:http';
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = 4174;
 
-const child = spawn(process.execPath, ['force-page.mjs'], {
+const child = spawn(process.execPath, ['launcher.mjs'], {
   cwd: process.cwd(),
   env: { ...process.env, PORT: String(upstreamPort) },
   stdio: 'inherit'
@@ -20,7 +20,6 @@ function patchHomepage(html) {
       return `<a${cleanAttrs} href="${target}">${body}</a>`;
     }
   );
-
   html = patchAnchor(html, '販売者デモ', '/pages/creator-studio.html');
   html = patchAnchor(html, '購入者デモ', '/pages/library.html');
   return html;
@@ -57,8 +56,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
 
-    if (current === routes.list) {
-      if (el.closest('.card')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
+    if (current === routes.list && el.closest('.card')) {
+      event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return;
     }
     if (current === routes.detail && text.includes('この動画を購入する')) {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.checkout); return;
