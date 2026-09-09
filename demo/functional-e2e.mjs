@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 
 const port = 4183;
-const child = spawn(process.execPath, ['force-page.mjs'], { cwd: new URL('.', import.meta.url), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
+const child = spawn(process.execPath, ['force-page.mjs'], { cwd: new URL('.', import.meta.url), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
 let output = '';
 child.stdout.on('data', d => output += d.toString());
 child.stderr.on('data', d => output += d.toString());
@@ -63,7 +63,7 @@ try {
   const payout = await json('/api/demo/seller/payout', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({amount:125}) });
   if (!payout.payout.id) throw new Error('seller payout failed');
 
-  const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'admin'}) });
+  const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ role:'admin' }) });
   if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
   const adminState = await json('/api/demo/state', { headers:{cookie:adminCookie} });
@@ -79,6 +79,8 @@ try {
   console.log('seller authorization -> product -> upload lifecycle -> payout: PASS');
   console.log('admin payout oversight -> moderation -> seller approval: PASS');
 } finally {
-  child.kill('SIGTERM');
+  if (child.pid) {
+    try { process.kill(-child.pid, 'SIGTERM'); } catch {}
+  }
   await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 1000))]);
 }
