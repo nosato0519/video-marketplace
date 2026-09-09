@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const showcaseNavigation = process.env.SHOWCASE_NAVIGATION === '1';
+
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
@@ -16,10 +18,12 @@ export default defineConfig({
     video: 'retain-on-failure',
     ...devices['Desktop Chrome'],
   },
-  webServer: {
-    command: 'node tests/browser-server.js',
-    url: 'http://127.0.0.1:4173/app/index.html',
-    reuseExistingServer: true,
-    timeout: 30_000,
-  },
+  ...(showcaseNavigation ? {} : {
+    webServer: {
+      command: 'node tests/browser-server.js',
+      url: 'http://127.0.0.1:4173/app/index.html',
+      reuseExistingServer: true,
+      timeout: 30_000,
+    },
+  }),
 });
