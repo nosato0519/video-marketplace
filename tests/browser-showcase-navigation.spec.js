@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const demoPort = 4173;
+const demoPort = 4176;
 const demoUrl = `http://127.0.0.1:${demoPort}/`;
 const demoRoot = dirname(fileURLToPath(new URL('../demo/', import.meta.url)));
 const demoScript = fileURLToPath(new URL('../demo/link-fix-proxy.mjs', import.meta.url));
