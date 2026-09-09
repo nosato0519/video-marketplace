@@ -17,7 +17,8 @@ async function waitForDemo() {
 }
 
 test.beforeAll(async () => {
-  demoProcess = spawn(process.execPath, ['demo/link-fix-proxy.mjs'], {
+  demoProcess = spawn(process.execPath, ['link-fix-proxy.mjs'], {
+    cwd: 'demo',
     env: { ...process.env, PORT: String(demoPort) },
     stdio: 'ignore',
   });
