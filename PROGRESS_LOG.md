@@ -6,7 +6,7 @@
 
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- Latest code/documentation commit: `1bfe4a8008adc7de65d25a8c33be8db09651ea53`
+- Latest code/documentation commit: `b51b92188a2fc4ff52feb329968924df031e244e`
 - Previous verified commercial package commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e`
 - Render service: `video-marketplace-demo-live` (`srv-daf30tv40ujc739bof4g`)
 - Render workspace: `tea-dab6c02jobas73bgrl70`
@@ -115,6 +115,7 @@ Do not manually redeploy after normal GitHub pushes while auto-deploy remains en
 - `README.md` provides a clear commercial hand-off documentation index.
 - `OPERATIONS_MANUAL.md` provides the operator-facing setup, daily routine, support, moderation, finance, incident, backup/recovery, update, multilingual and multicurrency outline.
 - Obsolete auto-edit/fix workflows were removed; remaining CI workflows are verification/testing workflows.
+- Temporary verification PR #17 (`ci: verify functional demo end to end`) was closed after its already-merged verification work was confirmed complete.
 
 ## KNOWN LIMITATION
 
