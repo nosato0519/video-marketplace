@@ -14,9 +14,11 @@ This checklist is the release gate for selling the repository as a customer-inst
 
 ## 2. Automated release gates
 
-Latest source commit: `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e` (`Fix commercial release package workflow paths`).
+**Verified commercial release baseline:** `f94e6df71133dd1dcb2e70fe0fe1c279ff13aa1e` (`Fix commercial release package workflow paths`).
 
-Verified automated acceptance evidence for the current release baseline:
+**Current repository documentation state:** `12af8bf5cd33d16d32e65cd88aea0054357afd8c` (documentation-only resume-point updates after the verified release baseline).
+
+Verified automated acceptance evidence for the commercial release baseline:
 
 - [x] Release Package Check — GitHub Actions run `34307606485` completed successfully, including release safety validation, archive build, archive integrity/content verification, and artifact upload.
 - [x] Browser UI Acceptance — GitHub Actions run `34306417291` completed successfully.
@@ -25,7 +27,7 @@ Verified automated acceptance evidence for the current release baseline:
 - [x] Backend Regression — GitHub Actions run `34304647998` completed successfully, including migrations, backup/restore, core tests, authentication, payment flows, buyer purchase, seller flows, admin payout concurrency, media authorization/upload/access, security suites and functional sales demo E2E.
 - [x] Payment Regression — GitHub Actions run `34304648008` completed successfully, including payment, webhook and protected S3 media adapter regression tests.
 
-The `f94e6df...` change is limited to commercial release package workflow path/validation alignment; it does not modify application/demo page behavior.
+The `f94e6df...` change is limited to commercial release package workflow path/validation alignment; it does not modify application/demo page behavior. Subsequent commits recorded verification/deployment state and documentation only.
 
 ## 3. Buyer acceptance
 
@@ -93,7 +95,7 @@ Before a customer's site is opened to real users:
 - [x] Installation, configuration and deployment documentation is included.
 - [x] Showcase demo and launch instructions are included.
 - [x] Current commercial license and redistribution terms are included in `LICENSE.md`.
-- [x] Release Package Check produced and verified the `video-marketplace-commercial-package` artifact from the current release commit.
+- [x] Release Package Check produced and verified the `video-marketplace-commercial-package` artifact from the commercial release baseline.
 - [ ] Customer-specific secrets are delivered only through a secure channel.
 - [ ] Final archive build from a clean customer checkout is performed immediately before customer delivery.
 
