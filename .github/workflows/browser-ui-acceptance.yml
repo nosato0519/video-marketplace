@@ -25,10 +25,10 @@ jobs:
         run: npx playwright test tests/browser-module-smoke.spec.js --reporter=line
       - name: Clean demo ports before showcase navigation
         run: |
-          fuser -k 4173/tcp 4174/tcp 4175/tcp 2>/dev/null || true
+          fuser -k 4173/tcp 4174/tcp 4175/tcp 4176/tcp 2>/dev/null || true
           pkill -9 -f 'demo/(launcher|force-page|link-fix-proxy)\.mjs' 2>/dev/null || true
           sleep 1
-          fuser -k 4173/tcp 4174/tcp 4175/tcp 2>/dev/null || true
+          fuser -k 4173/tcp 4174/tcp 4175/tcp 4176/tcp 2>/dev/null || true
       - name: Run showcase navigation acceptance
         run: SHOWCASE_NAVIGATION=1 npx playwright test tests/browser-showcase-navigation.spec.js --reporter=line
       - name: Capture rendered showcase evidence
