@@ -1,0 +1,1 @@
+Navigation work is being verified without changing the homepage visual design. The runtime proxy provides deterministic routes for all demo pages, and navigation coverage is tracked separately from backend/payment/media regression coverage.
