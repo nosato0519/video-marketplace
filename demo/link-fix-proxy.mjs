@@ -38,12 +38,14 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
-      if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id]')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
+      if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id], .mini')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
-      if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.library); return; }
+      if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
       if (text.includes('動画を探す') || text.includes('人気の動画')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
       if (text.includes('クリエイターになる')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
-      if (text === '販売者ログイン' || text === '購入者ログイン' || text === 'ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.login); return; }
+      if (text === '販売者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.login}?role=seller`); return; }
+      if (text === '購入者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.login}?role=buyer`); return; }
+      if (text === 'ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.login); return; }
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
     if (current === routes.list && el.closest('.card')) {
@@ -86,6 +88,16 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
 })();
 </script>`;
 
+const HOMEPAGE_STYLE = `<style id="homepage-navigation-fixes">
+.login-dropdown a { display:block; border:0; background:transparent; color:#dfe4e9; text-align:left; padding:10px 12px; border-radius:5px; font:inherit; font-size:11px; line-height:1.4; cursor:pointer; white-space:nowrap; text-decoration:none; }
+.login-dropdown a:hover { background:#ffffff0d; color:var(--accent); }
+.category-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; align-items:stretch; }
+.category-grid .cat { min-width:0; min-height:175px; box-sizing:border-box; }
+.category-grid .cat i { position:absolute; right:20px; bottom:20px; z-index:2; font-style:normal; color:var(--accent); font-size:18px; line-height:1; }
+@media (max-width:1100px) { .category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:680px) { .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .category-grid .cat { min-height:150px; padding:16px; } .category-grid .cat i { right:16px; bottom:16px; } }
+</style>`;
+
 function wireHomepageMarkup(html) {
   if (!html.includes('<header class="nav">')) return html;
   return html
@@ -96,11 +108,18 @@ function wireHomepageMarkup(html) {
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/login.html?role=seller">販売者ログイン</a>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/login.html?role=buyer">購入者ログイン</a>');
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/login.html?role=buyer">購入者ログイン</a>')
+    .replace(/<a class="cat c1"/g, '<a class="cat c1" href="/pages/video-list.html?category=education"')
+    .replace(/<a class="cat c2"/g, '<a class="cat c2" href="/pages/video-list.html?category=business"')
+    .replace(/<a class="cat c3"/g, '<a class="cat c3" href="/pages/video-list.html?category=creative"')
+    .replace(/<a class="cat c4"/g, '<a class="cat c4" href="/pages/video-list.html?category=documentary"')
+    .replace(/<a class="cat c5"/g, '<a class="cat c5" href="/pages/video-list.html?category=lifestyle"');
 }
 
 function injectNavigation(html) {
   html = wireHomepageMarkup(html);
+  if (html.includes('homepage-navigation-fixes')) return html;
+  if (html.includes('</head>')) html = html.replace('</head>', `${HOMEPAGE_STYLE}</head>`);
   if (!html.includes('</body>') || html.includes('site-navigation-integration')) return html;
   return html.replace('</body>', `${NAV_SCRIPT}</body>`);
 }
