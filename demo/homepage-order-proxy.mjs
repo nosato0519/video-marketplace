@@ -43,14 +43,14 @@ function reorderHomepage(html) {
 }
 
 function repairHomepageNavigationMarkup(html) {
-  html = html.replace(/(<a\b[^>]*class=["'][^"']*\bsystem\b[^"']*["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*販売者デモ\s*<\/a>)/i,
-    '$1 href="/pages/creator-studio.html"$2');
-  html = html.replace(/(<a\b[^>]*class=["'][^"']*\bsystem\b[^"']*["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*購入者デモ\s*<\/a>)/i,
-    '$1 href="/pages/video-list.html"$2');
-  html = html.replace(/(<button\b[^>]*type=["']button["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*販売者ログイン\s*<\/button>)/i,
-    '$1 data-demo-route="/pages/login.html"$2');
-  html = html.replace(/(<button\b[^>]*type=["']button["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*購入者ログイン\s*<\/button>)/i,
-    '$1 data-demo-route="/pages/login.html"$2');
+  html = html.replace(/href=["']#["']\s+onclick=["']event\.preventDefault\(\)["'](\s*>\s*販売者デモ)/i,
+    'href="/pages/creator-studio.html"$1');
+  html = html.replace(/href=["']#["']\s+onclick=["']event\.preventDefault\(\)["'](\s*>\s*購入者デモ)/i,
+    'href="/pages/video-list.html"$1');
+  html = html.replace(/(<button\b[^>]*type=["']button["'])(\s+onclick=["']event\.preventDefault\(\)["'])(\s*>\s*販売者ログイン)/i,
+    '$1 data-demo-route="/pages/login.html"$3');
+  html = html.replace(/(<button\b[^>]*type=["']button["'])(\s+onclick=["']event\.preventDefault\(\)["'])(\s*>\s*購入者ログイン)/i,
+    '$1 data-demo-route="/pages/login.html"$3');
   return html;
 }
 
