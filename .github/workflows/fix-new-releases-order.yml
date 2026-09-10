@@ -71,3 +71,5 @@ jobs:
           git rm .github/workflows/fix-new-releases-order.yml
           git commit -m "fix: move new releases below popular"
           git push
+
+# trigger workflow
