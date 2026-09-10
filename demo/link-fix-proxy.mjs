@@ -141,36 +141,18 @@ const NEW_RELEASES_MARKUP = `<section class="section new-releases-section" id="n
     <a href="/pages/video-list.html">すべて見る <b>→</b></a>
   </div>
   <div class="video-grid">
-    <article class="video-card" data-video-id="6">
-      <div class="thumb t6"><span class="quality">NEW</span><span class="duration">42:05</span><button>▶</button></div>
-      <div class="card-info"><span class="category">ライフスタイル</span><h3>Mountain Silence</h3><p>静かな山の時間を切り取った映像作品。</p><div class="card-bottom"><span>by YAMA FILM ★ 4.8</span><b>¥1,200</b></div></div>
-    </article>
-    <article class="video-card" data-video-id="1">
-      <div class="thumb t1"><span class="quality">4K</span><span class="duration">78:14</span><button>▶</button></div>
-      <div class="card-info"><span class="category">教育</span><h3>Creator Masterclass</h3><p>作品づくりから販売までを体系的に学ぶ。</p><div class="card-bottom"><span>by Nova Studio ★ 4.9</span><b>¥2,980</b></div></div>
-    </article>
-    <article class="video-card" data-video-id="2">
-      <div class="thumb t2"><span class="quality">4K</span><span class="duration">52:08</span><button>▶</button></div>
-      <div class="card-info"><span class="category">映像作品</span><h3>Cinematic Travel Pack</h3><p>旅の映像を美しく仕上げる撮影と編集。</p><div class="card-bottom"><span>by Luma Collective ★ 4.8</span><b>¥2,280</b></div></div>
-    </article>
-    <article class="video-card" data-video-id="3">
-      <div class="thumb t3"><span class="quality">1080P</span><span class="duration">96:20</span><button>▶</button></div>
-      <div class="card-info"><span class="category">ビジネス</span><h3>Build Your Digital Product</h3><p>アイデアをデジタル商品へ変える実践ガイド。</p><div class="card-bottom"><span>by Alex Rivera ★ 5.0</span><b>¥3,480</b></div></div>
-    </article>
-    <article class="video-card" data-video-id="4">
-      <div class="thumb t4"><span class="quality">4K</span><span class="duration">41:22</span><button>▶</button></div>
-      <div class="card-info"><span class="category">クリエイティブ</span><h3>Motion Design Toolkit</h3><p>モーションデザインの制作フローを実践。</p><div class="card-bottom"><span>by Mika Chen ★ 4.7</span><b>¥1,780</b></div></div>
-    </article>
-    <article class="video-card" data-video-id="5">
-      <div class="thumb t5"><span class="quality">COURSE</span><span class="duration">64:12</span><button>▶</button></div>
-      <div class="card-info"><span class="category">ラーニング</span><h3>Designing Ideas</h3><p>アイデアを整理し、伝わる形へデザインする。</p><div class="card-bottom"><span>by Frame Lab ★ 4.9</span><b>¥2,480</b></div></div>
-    </article>
+    <article class="video-card" data-video-id="6"><div class="thumb t6"><span class="quality">NEW</span><span class="duration">42:05</span><button>▶</button></div><div class="card-info"><span class="category">ライフスタイル</span><h3>Mountain Silence</h3><p>静かな山の時間を切り取った映像作品。</p><div class="card-bottom"><span>by YAMA FILM ★ 4.8</span><b>¥1,200</b></div></div></article>
+    <article class="video-card" data-video-id="1"><div class="thumb t1"><span class="quality">4K</span><span class="duration">78:14</span><button>▶</button></div><div class="card-info"><span class="category">教育</span><h3>Creator Masterclass</h3><p>作品づくりから販売までを体系的に学ぶ。</p><div class="card-bottom"><span>by Nova Studio ★ 4.9</span><b>¥2,980</b></div></div></article>
+    <article class="video-card" data-video-id="2"><div class="thumb t2"><span class="quality">4K</span><span class="duration">52:08</span><button>▶</button></div><div class="card-info"><span class="category">映像作品</span><h3>Cinematic Travel Pack</h3><p>旅の映像を美しく仕上げる撮影と編集。</p><div class="card-bottom"><span>by Luma Collective ★ 4.8</span><b>¥2,280</b></div></div></article>
+    <article class="video-card" data-video-id="3"><div class="thumb t3"><span class="quality">1080P</span><span class="duration">96:20</span><button>▶</button></div><div class="card-info"><span class="category">ビジネス</span><h3>Build Your Digital Product</h3><p>アイデアをデジタル商品へ変える実践ガイド。</p><div class="card-bottom"><span>by Alex Rivera ★ 5.0</span><b>¥3,480</b></div></div></article>
+    <article class="video-card" data-video-id="4"><div class="thumb t4"><span class="quality">4K</span><span class="duration">41:22</span><button>▶</button></div><div class="card-info"><span class="category">クリエイティブ</span><h3>Motion Design Toolkit</h3><p>モーションデザインの制作フローを実践。</p><div class="card-bottom"><span>by Mika Chen ★ 4.7</span><b>¥1,780</b></div></div></article>
+    <article class="video-card" data-video-id="5"><div class="thumb t5"><span class="quality">COURSE</span><span class="duration">64:12</span><button>▶</button></div><div class="card-info"><span class="category">ラーニング</span><h3>Designing Ideas</h3><p>アイデアを整理し、伝わる形へデザインする。</p><div class="card-bottom"><span>by Frame Lab ★ 4.9</span><b>¥2,480</b></div></div></article>
   </div>
 </section>`;
 
 function wireHomepageMarkup(html) {
   if (!html.includes('<header class="nav">')) return html;
-  return html
+  let wired = html
     .replace('href="#search"', 'href="/pages/video-list.html"')
     .replace('href="#creators"', 'href="/pages/creator-studio.html"')
     .replace('href="#videos"', 'href="/pages/video-list.html"')
@@ -183,8 +165,26 @@ function wireHomepageMarkup(html) {
     .replace(/(<a\s+class="[^"]*\bcat\s+c2\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=business"$2')
     .replace(/(<a\s+class="[^"]*\bcat\s+c3\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=creative"$2')
     .replace(/(<a\s+class="[^"]*\bcat\s+c4\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=documentary"$2')
-    .replace(/(<a\s+class="[^"]*\bcat\s+c5\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=lifestyle"$2')
-    .replace('</section>\n      <section class="platform">', `${NEW_RELEASES_MARKUP}\n      </section>\n      <section class="platform">`);
+    .replace(/(<a\s+class="[^"]*\bcat\s+c5\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=lifestyle"$2');
+
+  if (wired.includes('id="new-releases"')) return wired;
+
+  const markers = [
+    '<section class="platform">',
+    '<section class="section platform">',
+    '<section class="section" id="popular">'
+  ];
+  for (const marker of markers) {
+    if (wired.includes(marker)) {
+      return wired.replace(marker, `${NEW_RELEASES_MARKUP}\n      ${marker}`);
+    }
+  }
+
+  const mainEnd = wired.lastIndexOf('</main>');
+  if (mainEnd >= 0) {
+    return wired.slice(0, mainEnd) + NEW_RELEASES_MARKUP + '\n    ' + wired.slice(mainEnd);
+  }
+  return wired;
 }
 
 function injectNavigation(html) {
