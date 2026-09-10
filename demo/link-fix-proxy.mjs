@@ -33,16 +33,16 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
   const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
   const path = () => location.pathname.replace(/\\/$/, '') || '/';
   const productIdForCard = el => {
-    const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini');
+    const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card');
     if (!card) return '1';
     if (card.dataset?.videoId) return String(card.dataset.videoId);
-    const cards = [...document.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini')].filter(x => !x.closest('.mosaic-card'));
+    const cards = [...document.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card')];
     const index = cards.indexOf(card);
     return String(index >= 0 ? (index % 6) + 1 : 1);
   };
 
   document.addEventListener('click', event => {
-    const el = event.target?.closest?.('a,button,[role="button"],.cat,.video-card,.mosaic-card');
+    const el = event.target?.closest?.('a,button,[role="button"],.cat,.card,.video-card,.mosaic-card');
     if (!el) return;
     const text = textOf(el);
     const current = path();
@@ -55,7 +55,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (category) {
         event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
       }
-      if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id], .mini')) {
+      if (el.closest('.mosaic-card, .card, .video-card, .video-item, [data-video-id], .mini')) {
         event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el)); return;
       }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
