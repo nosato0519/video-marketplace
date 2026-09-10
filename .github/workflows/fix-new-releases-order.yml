@@ -1,0 +1,73 @@
+name: Fix homepage new releases order
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !startsWith(github.event.head_commit.message, 'fix: move new releases below popular') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Move the existing lower new releases section below popular
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('demo/link-fix-proxy.mjs')
+          text = path.read_text()
+          marker = "  document.addEventListener('click', event => {"
+
+          if 'const normalizeHomepageNewReleases = () =>' in text:
+              print('normalization already present')
+          else:
+              insert = r'''  const normalizeHomepageNewReleases = () => {
+    if (path() !== '/' && path() !== '/index.html') return;
+    const sections = [...document.querySelectorAll('section')].filter(section => {
+      if (section.id === 'new-releases') return true;
+      const heading = section.querySelector('h1,h2,h3');
+      return textOf(heading) === '新着動画';
+    });
+    if (!sections.length) return;
+
+    // Keep the section that currently sits lower on the homepage, then move it.
+    const keep = sections[sections.length - 1];
+    sections.forEach(section => {
+      if (section !== keep) section.remove();
+    });
+
+    const popular = document.querySelector('#popular');
+    if (popular && keep !== popular.nextElementSibling) popular.after(keep);
+  };
+
+'''
+              if marker not in text:
+                  raise SystemExit('NAV_SCRIPT insertion marker not found')
+              text = text.replace(marker, insert + marker, 1)
+
+          call_marker = "  document.addEventListener('click', event => {"
+          call = "  normalizeHomepageNewReleases();\n\n"
+          if call not in text:
+              text = text.replace(call_marker, call + call_marker, 1)
+
+          path.write_text(text)
+          PY
+
+          git diff --check
+          git diff -- demo/link-fix-proxy.mjs
+
+      - name: Commit homepage fix and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demo/link-fix-proxy.mjs
+          git rm .github/workflows/fix-new-releases-order.yml
+          git commit -m "fix: move new releases below popular"
+          git push
