@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 const port = 4184;
 const root = fileURLToPath(new URL('.', import.meta.url));
-const child = spawn(process.execPath, ['link-fix-proxy.mjs'], { cwd: root, env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
+const child = spawn(process.execPath, ['link-fix-proxy.mjs'], { cwd: root, env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
 let output = '';
 child.stdout.on('data', d => output += d.toString());
 child.stderr.on('data', d => output += d.toString());
@@ -43,5 +43,7 @@ try {
   console.log('homepage navigation targets present: PASS');
   console.log('video list card entrypoint present: PASS');
 } finally {
-  if (child.pid) { try { process.kill(child.pid, 'SIGTERM'); } catch {} }
+  if (child.pid) {
+    try { process.kill(-child.pid, 'SIGTERM'); } catch { try { child.kill('SIGTERM'); } catch {} }
+  }
 }
