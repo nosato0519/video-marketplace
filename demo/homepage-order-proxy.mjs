@@ -42,6 +42,50 @@ function reorderHomepage(html) {
   return working.slice(0, popularEnd + 10) + block + working.slice(popularEnd + 10);
 }
 
+const HOMEPAGE_NAVIGATION_FIX = `<script id="homepage-navigation-fix">
+(() => {
+  const go = path => window.location.assign(path);
+  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+
+  document.addEventListener('click', event => {
+    if (!event.target?.closest) return;
+    const el = event.target.closest('a,button');
+    if (!el) return;
+    const text = textOf(el);
+    if (text === '販売者デモ') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('/pages/creator-studio.html');
+      return;
+    }
+    if (text === '購入者デモ') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('/pages/video-list.html');
+      return;
+    }
+    if (text === '販売者ログイン') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('/pages/seller-login.html');
+      return;
+    }
+    if (text === '購入者ログイン') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('/pages/buyer-login.html');
+    }
+  }, true);
+})();
+</script>`;
+
+function injectHomepageNavigation(html) {
+  if (html.includes('id="homepage-navigation-fix"')) return html;
+  const marker = /<\/body>/i;
+  if (marker.test(html)) return html.replace(marker, `${HOMEPAGE_NAVIGATION_FIX}</body>`);
+  return `${html}${HOMEPAGE_NAVIGATION_FIX}`;
+}
+
 const server = createServer((req, res) => {
   const proxy = httpRequest({
     hostname: '127.0.0.1', port: upstreamPort, path: req.url,
@@ -53,7 +97,9 @@ const server = createServer((req, res) => {
       let body = Buffer.concat(chunks);
       const type = String(upstream.headers['content-type'] || '');
       if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html') && type.includes('text/html')) {
-        body = Buffer.from(reorderHomepage(body.toString('utf8')), 'utf8');
+        let html = reorderHomepage(body.toString('utf8'));
+        html = injectHomepageNavigation(html);
+        body = Buffer.from(html, 'utf8');
       }
       const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
       delete headers['transfer-encoding'];
