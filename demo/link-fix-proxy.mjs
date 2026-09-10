@@ -30,11 +30,12 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     c5: '/pages/video-list.html?category=lifestyle'
   };
   const go = target => window.location.assign(target);
-  const textOf = el => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-  const path = () => location.pathname.replace(/\/$/, '') || '/';
+  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+  const path = () => location.pathname.replace(/\\/$/, '') || '/';
   const productIdForCard = el => {
     const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini');
     if (!card) return '1';
+    if (card.dataset?.videoId) return String(card.dataset.videoId);
     const cards = [...document.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini')].filter(x => !x.closest('.mosaic-card'));
     const index = cards.indexOf(card);
     return String(index >= 0 ? (index % 6) + 1 : 1);
@@ -50,7 +51,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
-      const category = Object.keys(categoryRoutes).find(key => el.closest('.category-grid .' + key));
+      const category = Object.keys(categoryRoutes).find(key => el.closest('.cat.' + key));
       if (category) {
         event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
       }
@@ -118,21 +119,21 @@ function wireHomepageMarkup(html) {
     .replace('href="#creators"', 'href="/pages/creator-studio.html"')
     .replace('href="#videos"', 'href="/pages/video-list.html"')
     .replace('href="#creator"', 'href="/pages/creator-studio.html"')
-    .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
-    .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/seller-login.html">販売者ログイン</a>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/buyer-login.html">購入者ログイン</a>')
-    .replace(/(<a class="cat c1")>/, '$1 href="/pages/video-list.html?category=education">')
-    .replace(/(<a class="cat c2")>/, '$1 href="/pages/video-list.html?category=business">')
-    .replace(/(<a class="cat c3")>/, '$1 href="/pages/video-list.html?category=creative">')
-    .replace(/(<a class="cat c4")>/, '$1 href="/pages/video-list.html?category=documentary">')
-    .replace(/(<a class="cat c5")>/, '$1 href="/pages/video-list.html?category=lifestyle">');
+    .replace(/<a class="system"[^>]*>\s*販売者デモ\s*<\/a>/i, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
+    .replace(/<a class="system"[^>]*>\s*購入者デモ\s*<\/a>/i, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
+    .replace(/<button[^>]*>\s*販売者ログイン\s*<\/button>/i, '<a href="/pages/seller-login.html">販売者ログイン</a>')
+    .replace(/<button[^>]*>\s*購入者ログイン\s*<\/button>/i, '<a href="/pages/buyer-login.html">購入者ログイン</a>')
+    .replace(/(<a\s+class="[^"]*\bcat\s+c1\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=education"$2')
+    .replace(/(<a\s+class="[^"]*\bcat\s+c2\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=business"$2')
+    .replace(/(<a\s+class="[^"]*\bcat\s+c3\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=creative"$2')
+    .replace(/(<a\s+class="[^"]*\bcat\s+c4\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=documentary"$2')
+    .replace(/(<a\s+class="[^"]*\bcat\s+c5\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=lifestyle"$2');
 }
 
 function injectNavigation(html) {
   const isHomepage = /<header class="nav">/.test(html);
   if (isHomepage) {
-    html = html.replace(/<script id="demo-function-integration">[\s\S]*?<\/script>/i, '');
+    html = html.replace(/<script id="demo-function-integration">[\s\S]*?<\/script>/gi, '');
   }
   html = wireHomepageMarkup(html);
   if (html.includes('homepage-navigation-fixes')) return html;
