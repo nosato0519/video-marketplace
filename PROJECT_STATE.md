@@ -1,15 +1,40 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 562 — Browser UI Acceptance GREEN; rendered showcase evidence path verified.**
+**Milestone 562 — Browser UI Acceptance / sales-demo navigation stabilization.**
 
 ## Latest checkpoint — 2026-09-10
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- Latest navigation proxy fix: `2fe536620fc7a17166bb7dd95a5b5e8cf312aa8b`.
-- Browser UI Acceptance run `34457815795` passed all steps, including showcase navigation acceptance and rendered showcase evidence capture/upload.
-- The navigation proxy now reuses the existing Browser test server instead of spawning a conflicting second frontend server.
+- Latest functional navigation guard commit: `5b4ed0664e51c97a951ef2387df3863abd45706e` (`fix: start demo with homepage navigation guard`).
+- Render service: `video-marketplace-demo-live`.
+- Latest Render deployment for the navigation guard is **LIVE**: `dep-dah7h6jeogqs739mfu9g`.
+- Render deployment completed at `2026-09-10T09:30:47Z`.
+- The user confirmed the deployed demo is now visible and the homepage navigation issue is no longer blocking access.
+
+### 2026-09-10 homepage navigation incident and resolution
+- Initial homepage HTML contained disabled demo/login controls (`href="#"` and `event.preventDefault()`), so first-load navigation was not reliable.
+- The earlier browser acceptance path was misleading because proxy-layer interception could mask defects in the underlying homepage markup.
+- Multiple navigation/proxy layers were identified as the structural risk: homepage HTML, `homepage-order-proxy.mjs`, `force-page.mjs`, and the browser-navigation proxy had overlapping navigation behavior.
+- `47d1fb8d0fd85d45f4793c9bb70fd7754528770d` made homepage navigation targets explicit and regression-safe.
+- `89644d0f128a3500c7b5cf72a86691cde9663003` attempted first-load freshness handling; this is not treated as the root-cause fix.
+- `48f5b3ecb49b7f058b66258db8c565d0c3629190` added a dedicated first-load homepage navigation guard.
+- `5b4ed0664e51c97a951ef2387df3863abd45706e` changed the demo start command to use `homepage-navigation-guard.mjs` as the authoritative startup path.
+- The guard repairs the homepage navigation targets and provides capture-phase routing for:
+  - 販売者デモ → `/pages/creator-studio.html`
+  - 購入者デモ → `/pages/video-list.html`
+  - 販売者ログイン → `/pages/login.html`
+  - 購入者ログイン → `/pages/login.html`
+- The latest deployed state was manually confirmed by the user as visible.
+
+### Regression-prevention rule — IMPORTANT
+- **Do not modify homepage navigation by adding another competing proxy, click interceptor, or cache workaround.**
+- `homepage-navigation-guard.mjs` is the current authoritative first-load navigation protection for the demo.
+- Any future homepage/child-page modification must preserve the four routes above and must not reintroduce `href="#"` + `preventDefault()` for these controls.
+- After any code change that can affect shared startup/proxy/navigation behavior, run the existing navigation verification before considering the change complete.
+- Do not declare navigation fixed/green without runtime or CI evidence.
+- Do not revert the guard or replace it with a second overlapping navigation mechanism unless a concrete failure is demonstrated and the replacement is tested end-to-end.
 
 ### Completed / verified core application
 - Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization.
@@ -39,28 +64,14 @@
 - The visual direction is a close study of current Vimeo OTT information architecture: restrained navigation, oversized featured hero, content rows, strong typography, and structured CTA/footer rhythm. Vimeo branding, logos, copy, and proprietary imagery are not used.
 - All previously implemented Buyer/Seller/Admin functionality remains an explicit requirement; visual redesign must not remove or bypass it.
 
-### Latest verification evidence
-- Browser UI Acceptance run `34457815795` is GREEN.
-- All browser acceptance steps passed: buyer browser acceptance, browser module smoke, showcase navigation acceptance, rendered showcase evidence capture, and artifact upload.
-- Navigation regression caused by the proxy startup path is resolved.
-- Patch workflow run `34457815783` completed successfully.
+### Remaining work
+1. Inspect/confirm the latest rendered showcase evidence when accessible.
+2. Confirm no concrete visual or interaction defects remain.
+3. Fix only concrete defects found during inspection.
+4. Keep the homepage frozen except for concrete defects or explicitly requested changes.
+5. After demo acceptance is stable, proceed to remaining productionization/commercial packaging work.
 
-## Remaining work
-### Demo acceptance / sales-demo readiness
-1. Inspect the `rendered-showcase-evidence` artifact from run `34457815795` when accessible.
-2. Confirm the captured screenshots show the intended polished showcase and no concrete visual/interaction defects.
-3. Fix only concrete visual or interaction defects found during inspection.
-4. After evidence inspection, update `PROJECT_STATE.md` and `PROGRESS_LOG.md` to close the visual acceptance gate.
-
-### Later customer deployment/operation (not required for current demo completion)
-1. Select and configure production hosting/runtime.
-2. Provision production PostgreSQL and perform migration plus backup/restore drill.
-3. Configure protected production media storage and media backup.
-4. Configure production secrets, secure sessions and HTTPS.
-5. Configure Stripe live credentials and webhook endpoint.
-6. Run final real-browser production smoke/acceptance.
-
-## No-waste rules
+### No-waste rules
 - Do not recreate completed Buyer/Seller/Admin acceptance or provider persistence work.
 - Do not create marker/no-op or CI-trigger-only commits.
 - Only modify code for a concrete release criterion or observed failure.
