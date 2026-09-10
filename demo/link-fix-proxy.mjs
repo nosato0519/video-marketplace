@@ -38,6 +38,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
+      if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id]')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.library); return; }
       if (text.includes('動画を探す') || text.includes('人気の動画')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
