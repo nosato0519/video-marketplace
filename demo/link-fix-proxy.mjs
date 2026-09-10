@@ -50,13 +50,12 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
-      const categoryCard = el.closest('.category-grid > *');
-      const category = categoryCard ? Object.keys(categoryRoutes).find(key => categoryCard.classList.contains(key)) : null;
+      const category = Object.keys(categoryRoutes).find(key => el.closest('.category-grid .' + key));
       if (category) {
         event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
       }
       if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id], .mini')) {
-        event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.detail}?product=${productIdForCard(el)}`); return;
+        event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el)); return;
       }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
@@ -68,7 +67,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
     if (current === routes.list && el.closest('.card')) {
-      event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.detail}?product=${productIdForCard(el)}`); return;
+      event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el)); return;
     }
     if (current === routes.detail && text.includes('この動画を購入する')) {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.checkout); return;
