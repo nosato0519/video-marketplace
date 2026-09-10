@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 import { createServer, request as httpRequest } from 'node:http';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 10000);
@@ -89,28 +90,49 @@ function injectNavigation(html) {
   return html.replace('</body>', `${NAV_SCRIPT}</body>`);
 }
 
-function proxy(req, res) {
-  const upstream = httpRequest({
-    hostname: '127.0.0.1', port: upstreamPort, path: req.url,
-    method: req.method, headers: req.headers
-  }, upstream => {
-    const chunks = [];
-    upstream.on('data', chunk => chunks.push(chunk));
-    upstream.on('end', () => {
-      let body = Buffer.concat(chunks);
-      const type = String(upstream.headers['content-type'] || '');
-      if (type.includes('text/html')) body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
-      const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
-      delete headers['transfer-encoding'];
-      res.writeHead(upstream.statusCode || 200, headers);
-      res.end(body);
+async function serveLegalPage(pathname, res) {
+  if (pathname !== '/pages/legal.html' && pathname !== '/pages/privacy.html') return false;
+  try {
+    const html = await readFile(join(ROOT, pathname.slice(1)), 'utf8');
+    const body = Buffer.from(injectNavigation(html), 'utf8');
+    res.writeHead(200, {
+      'content-type': 'text/html; charset=utf-8',
+      'content-length': String(body.length),
+      'cache-control': 'no-store'
     });
+    res.end(body);
+  } catch (error) {
+    res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
+    res.end(`Legal page unavailable: ${error.message}`);
+  }
+  return true;
+}
+
+function proxy(req, res) {
+  serveLegalPage(req.url.split('?')[0], res).then(served => {
+    if (served) return;
+    const upstream = httpRequest({
+      hostname: '127.0.0.1', port: upstreamPort, path: req.url,
+      method: req.method, headers: req.headers
+    }, upstream => {
+      const chunks = [];
+      upstream.on('data', chunk => chunks.push(chunk));
+      upstream.on('end', () => {
+        let body = Buffer.concat(chunks);
+        const type = String(upstream.headers['content-type'] || '');
+        if (type.includes('text/html')) body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
+        const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
+        delete headers['transfer-encoding'];
+        res.writeHead(upstream.statusCode || 200, headers);
+        res.end(body);
+      });
+    });
+    upstream.on('error', err => {
+      res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
+      res.end(`Upstream unavailable: ${err.message}`);
+    });
+    req.pipe(upstream);
   });
-  upstream.on('error', err => {
-    res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
-    res.end(`Upstream unavailable: ${err.message}`);
-  });
-  req.pipe(upstream);
 }
 
 createServer(proxy).listen(port, '0.0.0.0', () => {
