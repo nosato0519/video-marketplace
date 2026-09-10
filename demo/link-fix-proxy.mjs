@@ -107,11 +107,11 @@ function wireHomepageMarkup(html) {
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/seller-login.html">販売者ログイン</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/buyer-login.html">購入者ログイン</a>')
-    .replace(/<a class="cat c1"/g, '<a class="cat c1" href="/pages/video-list.html?category=education"')
-    .replace(/<a class="cat c2"/g, '<a class="cat c2" href="/pages/video-list.html?category=business"')
-    .replace(/<a class="cat c3"/g, '<a class="cat c3" href="/pages/video-list.html?category=creative"')
-    .replace(/<a class="cat c4"/g, '<a class="cat c4" href="/pages/video-list.html?category=documentary"')
-    .replace(/<a class="cat c5"/g, '<a class="cat c5" href="/pages/video-list.html?category=lifestyle"');
+    .replace(/(<a class="cat c1")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=education"')
+    .replace(/(<a class="cat c2")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=business"')
+    .replace(/(<a class="cat c3")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=creative"')
+    .replace(/(<a class="cat c4")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=documentary"')
+    .replace(/(<a class="cat c5")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=lifestyle"');
 }
 
 function injectNavigation(html) {
@@ -130,12 +130,15 @@ async function serveSpecialPage(pathname, res) {
     let html = await readFile(join(ROOT, source.slice(1)), 'utf8');
     if (pathname === '/pages/seller-login.html') {
       html = html.replace(/<title>.*?<\/title>/i, '<title>販売者ログイン | VIDEO MARKETPLACE</title>');
-      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1>販売者ログイン</h1>');
-      html = html.replace(/(<body[^>]*>)/i, '$1');
+      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1 class="title">販売者ログイン。</h1>');
+      html = html.replace(/window\.location\.href='\/pages\/account\.html'/, "window.location.href='/pages/creator-studio.html'");
+      html = html.replace(/購入した動画を楽しむ、または販売者として作品を届けるためのログイン画面です。/, '作品を登録・販売し、販売状況を管理するための販売者ログインです。');
     }
     if (pathname === '/pages/buyer-login.html') {
       html = html.replace(/<title>.*?<\/title>/i, '<title>購入者ログイン | VIDEO MARKETPLACE</title>');
-      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1>購入者ログイン</h1>');
+      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1 class="title">購入者ログイン。</h1>');
+      html = html.replace(/window\.location\.href='\/pages\/account\.html'/, "window.location.href='/pages/library.html'");
+      html = html.replace(/購入した動画を楽しむ、または販売者として作品を届けるためのログイン画面です。/, '購入した動画をライブラリで楽しむための購入者ログインです。');
     }
     const body = Buffer.from(injectNavigation(html), 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':String(body.length),'cache-control':'no-store'});
