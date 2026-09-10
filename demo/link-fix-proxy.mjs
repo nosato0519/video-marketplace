@@ -23,8 +23,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     register: '/pages/register.html', account: '/pages/account.html', orders: '/pages/orders.html'
   };
   const go = target => window.location.assign(target);
-  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
-  const path = () => location.pathname.replace(/\\/$/, '') || '/';
+  const textOf = el => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+  const path = () => location.pathname.replace(/\/$/, '') || '/';
 
   document.addEventListener('click', event => {
     const el = event.target?.closest?.('a,button,[role="button"]');
@@ -41,8 +41,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
       if (text.includes('動画を探す') || text.includes('人気の動画')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
       if (text.includes('クリエイターになる')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
-      if (text === '販売者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.login}?role=seller`); return; }
-      if (text === '購入者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(`${routes.login}?role=buyer`); return; }
+      if (text === '販売者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/seller-login.html'); return; }
+      if (text === '購入者ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go('/pages/buyer-login.html'); return; }
       if (text === 'ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.login); return; }
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
@@ -73,7 +73,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     if (current === routes.orders && text.includes('アカウント')) {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.account); return;
     }
-    if (current === routes.login && (text.includes('新規') || text.includes('登録'))) {
+    if ((current === routes.login || current === '/pages/seller-login.html' || current === '/pages/buyer-login.html') && (text.includes('新規') || text.includes('登録'))) {
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.register); return;
     }
     if (current === routes.register && text.includes('ログイン')) {
@@ -90,7 +90,7 @@ const HOMEPAGE_STYLE = `<style id="homepage-navigation-fixes">
 .login-dropdown a { display:block; border:0; background:transparent; color:#dfe4e9; text-align:left; padding:10px 12px; border-radius:5px; font:inherit; font-size:11px; line-height:1.4; cursor:pointer; white-space:nowrap; text-decoration:none; }
 .login-dropdown a:hover { background:#ffffff0d; color:var(--accent); }
 .category-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; align-items:stretch; }
-.category-grid .cat { min-width:0; min-height:175px; box-sizing:border-box; }
+.category-grid .cat { position:relative; min-width:0; min-height:175px; box-sizing:border-box; }
 .category-grid .cat i { position:absolute; right:20px; bottom:20px; z-index:2; font-style:normal; color:var(--accent); font-size:18px; line-height:1; }
 @media (max-width:1100px) { .category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:680px) { .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .category-grid .cat { min-height:150px; padding:16px; } .category-grid .cat i { right:16px; bottom:16px; } }
@@ -105,8 +105,8 @@ function wireHomepageMarkup(html) {
     .replace('href="#creator"', 'href="/pages/creator-studio.html"')
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/login.html?role=seller">販売者ログイン</a>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/login.html?role=buyer">購入者ログイン</a>')
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/seller-login.html">販売者ログイン</a>')
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/buyer-login.html">購入者ログイン</a>')
     .replace(/<a class="cat c1"/g, '<a class="cat c1" href="/pages/video-list.html?category=education"')
     .replace(/<a class="cat c2"/g, '<a class="cat c2" href="/pages/video-list.html?category=business"')
     .replace(/<a class="cat c3"/g, '<a class="cat c3" href="/pages/video-list.html?category=creative"')
@@ -122,21 +122,32 @@ function injectNavigation(html) {
   return html.replace('</body>', `${NAV_SCRIPT}</body>`);
 }
 
-async function serveLegalPage(pathname, res) {
-  if (pathname !== '/pages/legal.html' && pathname !== '/pages/privacy.html') return false;
+async function serveSpecialPage(pathname, res) {
+  if (!['/pages/legal.html','/pages/privacy.html','/pages/seller-login.html','/pages/buyer-login.html'].includes(pathname)) return false;
   try {
-    const html = await readFile(join(ROOT, pathname.slice(1)), 'utf8');
+    let source = pathname;
+    if (pathname === '/pages/seller-login.html' || pathname === '/pages/buyer-login.html') source = '/pages/login.html';
+    let html = await readFile(join(ROOT, source.slice(1)), 'utf8');
+    if (pathname === '/pages/seller-login.html') {
+      html = html.replace(/<title>.*?<\/title>/i, '<title>販売者ログイン | VIDEO MARKETPLACE</title>');
+      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1>販売者ログイン</h1>');
+      html = html.replace(/(<body[^>]*>)/i, '$1');
+    }
+    if (pathname === '/pages/buyer-login.html') {
+      html = html.replace(/<title>.*?<\/title>/i, '<title>購入者ログイン | VIDEO MARKETPLACE</title>');
+      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, '<h1>購入者ログイン</h1>');
+    }
     const body = Buffer.from(injectNavigation(html), 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':String(body.length),'cache-control':'no-store'});
     res.end(body);
   } catch (error) {
-    res.writeHead(500, {'content-type':'text/plain; charset=utf-8'}); res.end(`Legal page unavailable: ${error.message}`);
+    res.writeHead(500, {'content-type':'text/plain; charset=utf-8'}); res.end(`Special page unavailable: ${error.message}`);
   }
   return true;
 }
 
 function proxy(req, res) {
-  serveLegalPage(req.url.split('?')[0], res).then(served => {
+  serveSpecialPage(req.url.split('?')[0], res).then(served => {
     if (served) return;
     const upstream = httpRequest({hostname:'127.0.0.1', port:upstreamPort, path:req.url, method:req.method, headers:req.headers}, upstream => {
       const chunks=[];
