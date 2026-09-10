@@ -50,7 +50,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
-      const category = Object.keys(categoryRoutes).find(key => el.closest(`.category-grid .${key}`));
+      const categoryCard = el.closest('.category-grid > *');
+      const category = categoryCard ? Object.keys(categoryRoutes).find(key => categoryCard.classList.contains(key)) : null;
       if (category) {
         event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
       }
