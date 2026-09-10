@@ -64,7 +64,9 @@ test.describe('sales showcase navigation', () => {
     await page.locator('.card').first().click();
     await expect(page).toHaveURL(/\/pages\/product-detail\.html$/);
 
-    await page.getByText('この動画を購入する', { exact: true }).click();
+    // Use the semantic purchase CTA instead of its presentation copy so the
+    // navigation test remains stable if the sales wording is polished.
+    await page.locator('a.buy[href="/pages/checkout.html"]').click();
     await expect(page).toHaveURL(/\/pages\/checkout\.html$/);
 
     await page.goto(`${demoUrl}pages/library.html`);
@@ -77,11 +79,11 @@ test.describe('sales showcase navigation', () => {
 
   test('account, orders and authentication links connect', async ({ page }) => {
     await page.goto(`${demoUrl}pages/account.html`);
-    await page.getByText('購入履歴を見る', { exact: true }).click();
+    await page.locator('a[href="/pages/orders.html"]').click();
     await expect(page).toHaveURL(/\/pages\/orders\.html$/);
 
     await page.goto(`${demoUrl}pages/account.html`);
-    await page.getByText('ログイン画面', { exact: true }).click();
+    await page.locator('a[href="/pages/login.html"]').click();
     await expect(page).toHaveURL(/\/pages\/login\.html$/);
 
     await page.goto(`${demoUrl}pages/login.html`);
