@@ -21,7 +21,9 @@ function cookieOf(r) { return r.headers.getSetCookie?.()[0]?.split(';')[0] || r.
 async function json(path, options = {}) { const r = await request(path, options); const data = await r.json(); if (!r.ok) throw new Error(`${path}: ${JSON.stringify(data)}`); return data; }
 
 try {
+  console.log('STEP 1: waiting for demo server health');
   await waitHealth();
+  console.log('STEP 2: validating homepage entrypoint and showcase markup');
   const root = await request('/');
   const html = await root.text();
   const systemCount = (html.match(/id=["']system-features-force["']/gi) || []).length;
@@ -31,6 +33,7 @@ try {
   if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('動画を探す') || systemCount !== 1 || legacyGuideCount !== 0 || heroEnd < 0 || systemStart < heroEnd) throw new Error('browser entrypoint/system showcase failed');
   for (let n = 3; n <= 9; n++) if (!new RegExp(`<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?</div></div></article>`, 'i').test(html)) throw new Error(`homepage card t${n} markup failed`);
 
+  console.log('STEP 3: validating catalog and protected media');
   const initialState = await json('/api/demo/state');
   if (!Array.isArray(initialState.products) || initialState.products.length < 5) throw new Error('catalog state incomplete');
   if (!initialState.products.some(p => p.category === 'Adult')) throw new Error('18+ catalog category missing');
@@ -38,6 +41,7 @@ try {
   const freshMedia = await request('/api/demo/media/1');
   if (![401, 404].includes(freshMedia.status)) throw new Error(`unauthorized media status ${freshMedia.status}`);
 
+  console.log('STEP 4: validating buyer purchase -> entitlement -> watch/download');
   const loginBuyer = await request('/api/demo/login', { method:'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ role: 'buyer' }) });
   if (!loginBuyer.ok) throw new Error('buyer login failed');
   const buyerCookie = cookieOf(loginBuyer);
@@ -52,6 +56,7 @@ try {
   const downloadBytes = await download.arrayBuffer();
   if (downloadBytes.byteLength !== mediaBytes.byteLength) throw new Error('download body differs from watch media');
 
+  console.log('STEP 5: validating seller authorization and lifecycle');
   const loginSeller = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({role:'seller'}) });
   if (!loginSeller.ok) throw new Error('seller login failed');
   const sellerCookie = cookieOf(loginSeller);
@@ -63,6 +68,7 @@ try {
   const payout = await json('/api/demo/seller/payout', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({amount:125}) });
   if (!payout.payout.id) throw new Error('seller payout failed');
 
+  console.log('STEP 6: validating admin oversight workflows');
   const loginAdmin = await request('/api/demo/login', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ role:'admin' }) });
   if (!loginAdmin.ok) throw new Error('admin login failed');
   const adminCookie = cookieOf(loginAdmin);
