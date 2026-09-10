@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = port === 10000 ? 10001 : port + 1;
+const HOMEPAGE_VERSION = '20260910-nav2';
 
 spawn(process.execPath, ['safe-proxy.mjs'], {
   cwd: new URL('.', import.meta.url),
@@ -42,9 +43,6 @@ function reorderHomepage(html) {
   return working.slice(0, popularEnd + 10) + block + working.slice(popularEnd + 10);
 }
 
-// The homepage source historically contained placeholder links/buttons that
-// deliberately prevented navigation. Repair those elements at the HTML level
-// so navigation does not depend on a capture-phase JavaScript handler.
 function repairHomepageNavigationMarkup(html) {
   html = html.replace(
     /<a\b([^>]*?)href=["']#["']([^>]*?)onclick=["']event\.preventDefault\(\)["']([^>]*)>\s*販売者デモ\s*<\/a>/i,
@@ -64,8 +62,6 @@ function repairHomepageNavigationMarkup(html) {
     '<button$1type="button"$2$3 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">購入者ログイン</button>'
   );
 
-  // Defensive fallback: if an earlier transformation already removed the
-  // placeholder onclick, still make the login buttons explicit routes.
   html = html.replace(
     /<button\b([^>]*class=["'][^"']*login[^"']*["'][^>]*)>\s*販売者ログイン\s*<\/button>/i,
     '<button$1 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">販売者ログイン</button>'
@@ -117,29 +113,53 @@ function injectHomepageNavigation(html) {
 }
 
 const server = createServer((req, res) => {
+  const pathname = (req.url || '/').split('?')[0];
+
+  // Never allow the browser's old cached root document to become the first
+  // page a visitor sees. A versioned redirect forces a fresh homepage payload.
+  if (req.method === 'GET' && pathname === '/' && !req.url.includes(`home=${HOMEPAGE_VERSION}`)) {
+    res.writeHead(302, {
+      location: `/index.html?home=${HOMEPAGE_VERSION}`,
+      'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      pragma: 'no-cache',
+      expires: '0'
+    });
+    res.end();
+    return;
+  }
+
   const proxy = httpRequest({
-    hostname: '127.0.0.1', port: upstreamPort, path: req.url,
-    method: req.method, headers: req.headers
+    hostname: '127.0.0.1',
+    port: upstreamPort,
+    path: req.url,
+    method: req.method,
+    headers: req.headers
   }, upstream => {
     const chunks = [];
     upstream.on('data', chunk => chunks.push(chunk));
     upstream.on('end', () => {
       let body = Buffer.concat(chunks);
       const type = String(upstream.headers['content-type'] || '');
-      if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html') && (type.includes('text/html') || body.toString('utf8').includes('<html'))) {
+      if (req.method === 'GET' && pathname === '/index.html' && (type.includes('text/html') || body.toString('utf8').includes('<html'))) {
         let html = reorderHomepage(body.toString('utf8'));
         html = repairHomepageNavigationMarkup(html);
         html = injectHomepageNavigation(html);
         body = Buffer.from(html, 'utf8');
       }
-      const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
+      const headers = {
+        ...upstream.headers,
+        'content-length': String(body.length),
+        'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        pragma: 'no-cache',
+        expires: '0'
+      };
       delete headers['transfer-encoding'];
       res.writeHead(upstream.statusCode || 200, headers);
       res.end(body);
     });
   });
   proxy.on('error', err => {
-    res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
+    res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
     res.end(`Upstream unavailable: ${err.message}`);
   });
   req.pipe(proxy);
