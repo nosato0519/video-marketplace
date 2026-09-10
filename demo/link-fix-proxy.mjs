@@ -109,11 +109,6 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
 const HOMEPAGE_STYLE = `<style id="homepage-navigation-fixes">
 .login-dropdown button, .login-dropdown a { display:block !important; width:100% !important; box-sizing:border-box !important; border:0 !important; outline:0 !important; background:transparent !important; color:#dfe4e9 !important; text-align:left !important; padding:10px 12px !important; margin:0 !important; border-radius:5px !important; font:inherit !important; font-size:11px !important; font-weight:400 !important; line-height:1.4 !important; cursor:pointer !important; white-space:nowrap !important; text-decoration:none !important; }
 .login-dropdown button:hover, .login-dropdown a:hover { background:#ffffff0d !important; color:var(--accent) !important; text-decoration:none !important; }
-.category-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); grid-auto-rows:minmax(175px,auto); gap:12px; align-items:stretch; }
-.category-grid .cat { position:relative; min-width:0; width:100%; height:175px; min-height:175px; box-sizing:border-box; cursor:pointer; }
-.category-grid .cat i { position:absolute; right:20px; bottom:20px; z-index:2; font-style:normal; color:var(--accent); font-size:18px; line-height:1; }
-@media (max-width:1100px) { .category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-@media (max-width:680px) { .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(150px,auto); gap:10px; } .category-grid .cat { height:150px; min-height:150px; padding:16px; } .category-grid .cat i { right:16px; bottom:16px; } }
 </style>`;
 
 function wireHomepageMarkup(html) {
@@ -127,11 +122,11 @@ function wireHomepageMarkup(html) {
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/seller-login.html">販売者ログイン</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/buyer-login.html">購入者ログイン</a>')
-    .replace(/(<a class="cat c1")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=education"')
-    .replace(/(<a class="cat c2")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=business"')
-    .replace(/(<a class="cat c3")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=creative"')
-    .replace(/(<a class="cat c4")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=documentary"')
-    .replace(/(<a class="cat c5")\s+href="[^"]*"/, '$1 href="/pages/video-list.html?category=lifestyle"');
+    .replace(/(<a class="cat c1")>/, '$1 href="/pages/video-list.html?category=education">')
+    .replace(/(<a class="cat c2")>/, '$1 href="/pages/video-list.html?category=business">')
+    .replace(/(<a class="cat c3")>/, '$1 href="/pages/video-list.html?category=creative">')
+    .replace(/(<a class="cat c4")>/, '$1 href="/pages/video-list.html?category=documentary">')
+    .replace(/(<a class="cat c5")>/, '$1 href="/pages/video-list.html?category=lifestyle">');
 }
 
 function injectNavigation(html) {
