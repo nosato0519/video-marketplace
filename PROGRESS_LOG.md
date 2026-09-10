@@ -2,25 +2,25 @@
 
 ## CURRENT RESUME POINT — 2026-09-10
 
-**現在の作業基準点は `de9b087290958f4c6f5d4facc7de943244147580`。CI安定化後の最終デモ監査を進行中。Legal / Privacyページを追加し、Navigation E2Eにも組み込んだ。ホームページと完成済み子ページは作り直さない。重複作業を避ける。**
+**現在の作業基準点は `9a5e8c6132a2a3e3881e7aaf0e31a369fb9e07a2`。Legal / Privacyページの配信修正まで反映し、主要CIの成功を確認。次は顧客向けブランド差し替え性の最終監査へ進む。ホームページと完成済み子ページは作り直さない。重複作業を避ける。**
 
 ### 1. 現在のコード基準点
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- **Latest code commit: `de9b087290958f4c6f5d4facc7de943244147580`**
+- **Latest code commit: `9a5e8c6132a2a3e3881e7aaf0e31a369fb9e07a2`**
 - 追加したもの:
   - `demo/pages/legal.html` — 利用規約・特商法表示のデモ用テンプレート。
   - `demo/pages/privacy.html` — プライバシーポリシーのデモ用テンプレート。
   - `demo/navigation-e2e.mjs` — Legal / Privacyの2ルートをNavigation E2E対象へ追加。
+  - `demo/link-fix-proxy.mjs` — Legal / Privacyをshowcase proxyから直接配信する処理を追加。
 - Legal / Privacyは実運用時に顧客固有の事業者情報、連絡先、外部サービス、販売条件等へ差し替える前提。
 - 既存の商品画面・UI本体の再設計はしていない。
 
-### 2. CI安定化の確認結果
-- Functional Demo job `102718057894`: **SUCCESS**。
-- Backend Browser E2E job `102718057925`: **SUCCESS**。
-- Browser UI Acceptance job `102718057965`: **SUCCESS**。
-- Showcase navigation acceptance: **SUCCESS**。
-- Rendered showcase evidence capture/upload: **SUCCESS**。
+### 2. CI確認結果
+- `Demo Functional E2E` run `34428839917`: **SUCCESS**。
+- `Payment Regression` run `34428839822`: **SUCCESS**。
+- `Browser E2E` run `34428839979`: **SUCCESS**。
+- Legal / Privacy追加後のHTTPルート回帰は解消済み。
 - 以前のnavigation-e2eプロセス終了不具合は `f342a775` で解消済み。
 
 ### 3. 今回の最終デモ監査
@@ -28,10 +28,11 @@
 - デモは販売用ショーケースであり、本番の決済・認証情報・本番メディア・production credentialsとは分離されていることを確認。
 - Legal / Privacyが商用チェックリスト上の未完了項目だったため、デモ内ページとして追加。
 - 新規2ページをNavigation E2EでHTTPルート確認対象に追加。
+- 最初のLegal / Privacy実装後、showcase proxy側が2ページを配信しておらず404になる回帰を確認。`9a5e8c6` で最小修正し、Functional / Browser E2Eの成功を確認。
 
 ### 4. 次の作業
-1. `de9b087` で起動したCIの結果を確認する。
-2. Legal / Privacy追加による回帰がなければ、次は**顧客向けブランド差し替え性の最終監査**へ進む。
+1. **顧客向けブランド差し替え性の最終監査**を進める。
+2. ブランド名・ロゴ・サポート連絡先・Legal / Privacy等を顧客ごとに安全に差し替えられるか、既存完成UIを壊さず確認する。
 3. その後、必要なビジュアルポリッシュだけを確認する。
 4. Renderはauto-deploy前提で、GitHub変更後の実状態だけ確認する。手動deployは行わない。
 
@@ -54,7 +55,7 @@
 - 本番化工程はデモ監査が安定してから進める。
 
 ### 7. 残作業の優先順位
-**CI安定化（完了） → デモ最終監査（進行中） → 顧客向けブランド差し替え性 → 必要なビジュアルポリッシュ → 本番決済・ストレージ・認証 → hosting/backup/monitoring → 最終CI → 販売パッケージ確定。**
+**CI安定化（完了） → Legal / Privacy配信回帰（完了） → デモ最終監査（進行中） → 顧客向けブランド差し替え性 → 必要なビジュアルポリッシュ → 本番決済・ストレージ・認証 → hosting/backup/monitoring → 最終CI → 販売パッケージ確定。**
 
 ### 8. 絶対にやらないこと
 - 完成済みHomepage/Screen #2–#9を理由なく作り直さない。
