@@ -28,7 +28,8 @@ async function request(path) {
 
 try {
   await waitForDemo();
-  for (const path of ['/', '/pages/video-list.html', '/pages/product-detail.html', '/pages/checkout.html', '/pages/library.html', '/pages/watch.html', '/pages/creator-studio.html', '/pages/admin.html', '/pages/login.html', '/pages/register.html', '/pages/account.html', '/pages/orders.html']) {
+  const routes = ['/', '/pages/video-list.html', '/pages/product-detail.html', '/pages/checkout.html', '/pages/library.html', '/pages/watch.html', '/pages/creator-studio.html', '/pages/admin.html', '/pages/login.html', '/pages/register.html', '/pages/account.html', '/pages/orders.html', '/pages/legal.html', '/pages/privacy.html'];
+  for (const path of routes) {
     const html = await request(path);
     if (!html.includes('site-navigation-integration')) throw new Error(`navigation script missing: ${path}`);
   }
@@ -39,9 +40,10 @@ try {
   const list = await request('/pages/video-list.html');
   if ((list.match(/class="card"/g) || []).length < 1) throw new Error('video list cards missing');
   console.log('NAVIGATION_E2E_GREEN');
-  console.log('all 12 routes load through the navigation proxy: PASS');
+  console.log(`all ${routes.length} routes load through the navigation proxy: PASS`);
   console.log('homepage navigation targets present: PASS');
   console.log('video list card entrypoint present: PASS');
+  console.log('legal + privacy routes present: PASS');
 } finally {
   if (child.pid) {
     try { process.kill(-child.pid, 'SIGTERM'); } catch { try { child.kill('SIGTERM'); } catch {} }
