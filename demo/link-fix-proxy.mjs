@@ -30,8 +30,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     c5: '/pages/video-list.html?category=lifestyle'
   };
   const go = target => window.location.assign(target);
-  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
-  const path = () => location.pathname.replace(/\\/$/, '') || '/';
+  const textOf = el => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+  const path = () => location.pathname.replace(/\/$/, '') || '/';
   const productIdForCard = el => {
     const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini');
     if (!card) return '1';
