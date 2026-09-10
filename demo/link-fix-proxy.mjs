@@ -130,6 +130,10 @@ function wireHomepageMarkup(html) {
 }
 
 function injectNavigation(html) {
+  const isHomepage = /<header class="nav">/.test(html);
+  if (isHomepage) {
+    html = html.replace(/<script id="demo-function-integration">[\s\S]*?<\/script>/i, '');
+  }
   html = wireHomepageMarkup(html);
   if (html.includes('homepage-navigation-fixes')) return html;
   if (html.includes('</head>')) html = html.replace('</head>', `${HOMEPAGE_STYLE}</head>`);
