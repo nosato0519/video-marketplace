@@ -34,7 +34,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
   const path = () => location.pathname.replace(/\/$/, '') || '/';
 
   document.addEventListener('click', event => {
-    const el = event.target?.closest?.('a,button,[role="button"],.cat');
+    const el = event.target?.closest?.('a,button,[role="button"],.cat,.video-card,.mosaic-card');
     if (!el) return;
     const text = textOf(el);
     const current = path();
