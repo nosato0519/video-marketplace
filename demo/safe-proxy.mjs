@@ -28,31 +28,28 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
     'NIGHT SESSION': 13,
     'THE CRAFTSMEN': 14
   };
-  const go = id => { location.href = `/pages/product-detail.html?product=${encodeURIComponent(id)}`; };
-  const titleId = el => {
-    const text = (el.textContent || '').replace(/\\s+/g, ' ').trim();
+  const go = id => { window.location.assign('/pages/product-detail.html?product=' + encodeURIComponent(id)); };
+  const findId = el => {
+    if (!el) return null;
+    const direct = el.closest('[data-video-id]');
+    if (direct && direct.dataset.videoId) return Number(direct.dataset.videoId);
+    const text = (el.closest('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card')?.textContent || el.textContent || '').replace(/\\s+/g, ' ').trim();
     for (const [title, id] of Object.entries(ids)) if (text.includes(title)) return id;
     return null;
   };
-  document.querySelectorAll('.video-card').forEach(card => {
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-      const id = Number(card.dataset.videoId || titleId(card) || 1);
-      go(id);
-    });
-  });
-  document.querySelectorAll('.card').forEach(card => {
-    if (card.closest('.video-card')) return;
-    const id = titleId(card);
+  document.addEventListener('click', event => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const card = target.closest('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card');
+    if (!card) return;
+    const id = findId(card);
     if (!id) return;
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => go(id));
-  });
-  document.querySelectorAll('.showcase-card, .recommendation-card, .mosaic-card').forEach(card => {
-    const id = titleId(card);
-    if (!id) return;
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', e => { e.preventDefault(); go(id); });
+    event.preventDefault();
+    event.stopPropagation();
+    go(id);
+  }, true);
+  document.querySelectorAll('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card').forEach(card => {
+    if (findId(card)) card.style.cursor = 'pointer';
   });
 })();
 </script>`;
