@@ -10,15 +10,17 @@ function applyBrand(root = document) {
 
   for (const node of nodes) {
     if (!node.nodeValue) continue;
-    node.nodeValue = node.nodeValue
+    const nextValue = node.nodeValue
       .replaceAll(LEGACY_BRAND, BRAND)
       .replaceAll(DEFAULT_BRAND, BRAND);
+    if (nextValue !== node.nodeValue) node.nodeValue = nextValue;
   }
 
   if (document.title) {
-    document.title = document.title
+    const nextTitle = document.title
       .replaceAll(LEGACY_BRAND, BRAND)
       .replaceAll(DEFAULT_BRAND, BRAND);
+    if (nextTitle !== document.title) document.title = nextTitle;
   }
 }
 
