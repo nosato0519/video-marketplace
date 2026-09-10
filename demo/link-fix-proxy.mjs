@@ -34,7 +34,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
   const path = () => location.pathname.replace(/\/$/, '') || '/';
 
   document.addEventListener('click', event => {
-    const el = event.target?.closest?.('a,button,[role="button"],.cat,.video-card,.mosaic-card');
+    const el = event.target?.closest?.('a,button,[role="button"],.cat,.video-card,.mosaic-card,.card');
     if (!el) return;
     const text = textOf(el);
     const current = path();
@@ -47,7 +47,11 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (category && el.closest('.category-grid')) {
         event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
       }
-      if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id], .mini')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
+      // Homepage video cards live in the popular/new-video sections. Keep this
+      // scoped so the feature/role cards above do not accidentally become links.
+      if (el.closest('#popular, #videos, .popular, .new-videos, .mosaic-card, .video-card, .video-item, [data-video-id], .mini')) {
+        event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return;
+      }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
       if (text.includes('動画を探す') || text.includes('人気の動画')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
