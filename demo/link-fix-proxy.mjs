@@ -85,7 +85,21 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
 })();
 </script>`;
 
+function wireHomepageMarkup(html) {
+  if (!html.includes('<header class="nav">')) return html;
+  return html
+    .replace('href="#search"', 'href="/pages/video-list.html"')
+    .replace('href="#creators"', 'href="/pages/creator-studio.html"')
+    .replace('href="#videos"', 'href="/pages/video-list.html"')
+    .replace('href="#creator"', 'href="/pages/creator-studio.html"')
+    .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
+    .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>購入者デモ<\/a>/, '<a class="system" href="/pages/video-list.html">購入者デモ</a>')
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<a href="/pages/login.html?role=seller">販売者ログイン</a>')
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<a href="/pages/login.html?role=buyer">購入者ログイン</a>');
+}
+
 function injectNavigation(html) {
+  html = wireHomepageMarkup(html);
   if (!html.includes('</body>') || html.includes('site-navigation-integration')) return html;
   return html.replace('</body>', `${NAV_SCRIPT}</body>`);
 }
