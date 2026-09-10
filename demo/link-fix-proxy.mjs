@@ -22,12 +22,19 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     creator: '/pages/creator-studio.html', admin: '/pages/admin.html', login: '/pages/login.html',
     register: '/pages/register.html', account: '/pages/account.html', orders: '/pages/orders.html'
   };
+  const categoryRoutes = {
+    c1: '/pages/video-list.html?category=education',
+    c2: '/pages/video-list.html?category=business',
+    c3: '/pages/video-list.html?category=creative',
+    c4: '/pages/video-list.html?category=documentary',
+    c5: '/pages/video-list.html?category=lifestyle'
+  };
   const go = target => window.location.assign(target);
   const textOf = el => (el?.textContent || '').replace(/\s+/g, ' ').trim();
   const path = () => location.pathname.replace(/\/$/, '') || '/';
 
   document.addEventListener('click', event => {
-    const el = event.target?.closest?.('a,button,[role="button"]');
+    const el = event.target?.closest?.('a,button,[role="button"],.cat');
     if (!el) return;
     const text = textOf(el);
     const current = path();
@@ -36,6 +43,10 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       event.preventDefault(); event.stopImmediatePropagation(); go(routes.home); return;
     }
     if (current === '/' || current === '/index.html') {
+      const category = Object.keys(categoryRoutes).find(key => el.classList?.contains(key));
+      if (category && el.closest('.category-grid')) {
+        event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return;
+      }
       if (el.closest('.mosaic-card, .video-card, .video-item, [data-video-id], .mini')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
@@ -87,10 +98,10 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
 </script>`;
 
 const HOMEPAGE_STYLE = `<style id="homepage-navigation-fixes">
-.login-dropdown a { display:block; border:0; background:transparent; color:#dfe4e9; text-align:left; padding:10px 12px; border-radius:5px; font:inherit; font-size:11px; line-height:1.4; cursor:pointer; white-space:nowrap; text-decoration:none; }
-.login-dropdown a:hover { background:#ffffff0d; color:var(--accent); }
+.login-dropdown button, .login-dropdown a { display:block !important; width:100% !important; box-sizing:border-box !important; border:0 !important; outline:0 !important; background:transparent !important; color:#dfe4e9 !important; text-align:left !important; padding:10px 12px !important; margin:0 !important; border-radius:5px !important; font:inherit !important; font-size:11px !important; font-weight:400 !important; line-height:1.4 !important; cursor:pointer !important; white-space:nowrap !important; text-decoration:none !important; }
+.login-dropdown button:hover, .login-dropdown a:hover { background:#ffffff0d !important; color:var(--accent) !important; text-decoration:none !important; }
 .category-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; align-items:stretch; }
-.category-grid .cat { position:relative; min-width:0; min-height:175px; box-sizing:border-box; }
+.category-grid .cat { position:relative; min-width:0; min-height:175px; box-sizing:border-box; cursor:pointer; }
 .category-grid .cat i { position:absolute; right:20px; bottom:20px; z-index:2; font-style:normal; color:var(--accent); font-size:18px; line-height:1; }
 @media (max-width:1100px) { .category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:680px) { .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .category-grid .cat { min-height:150px; padding:16px; } .category-grid .cat i { right:16px; bottom:16px; } }
