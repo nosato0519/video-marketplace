@@ -86,7 +86,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       const category = Object.keys(categoryRoutes).find(key => el.closest('.cat.' + key));
       if (category) { event.preventDefault(); event.stopImmediatePropagation(); go(categoryRoutes[category]); return; }
       if (el.closest('.mosaic-card, .card, .video-card, .video-item, [data-video-id], .mini')) {
-        event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el)); return;
+        event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el) + '&thumb=' + encodeURIComponent((() => { const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card'); const thumb = card?.querySelector('.thumb,.showcase-bg,.pic,.recommendation-thumb'); if (!thumb) return ''; const bg = getComputedStyle(thumb).backgroundImage; const m = bg.match(/url\((?:\"|')?(.+?)(?:\"|')?\)/); return m ? m[1] : ''; })())); return;
       }
       if (text === '販売者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
       if (text === '購入者デモ') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.list); return; }
@@ -97,7 +97,7 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
       if (text === 'ログイン') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.login); return; }
       if (text === 'クリエイター') { event.preventDefault(); event.stopImmediatePropagation(); go(routes.creator); return; }
     }
-    if (current === routes.list && el.closest('.card')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el)); return; }
+    if (current === routes.list && el.closest('.card')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail + '?product=' + productIdForCard(el) + '&thumb=' + encodeURIComponent((() => { const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card'); const thumb = card?.querySelector('.thumb,.showcase-bg,.pic,.recommendation-thumb'); if (!thumb) return ''; const bg = getComputedStyle(thumb).backgroundImage; const m = bg.match(/url\((?:\"|')?(.+?)(?:\"|')?\)/); return m ? m[1] : ''; })())); return; }
     if (current === routes.detail && text.includes('この動画を購入する')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.checkout); return; }
     if (current === routes.checkout && text.includes('商品詳細')) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.detail); return; }
     if (current === routes.library && (text === '視聴する' || el.closest('.play'))) { event.preventDefault(); event.stopImmediatePropagation(); go(routes.watch); return; }
