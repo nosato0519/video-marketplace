@@ -36,6 +36,16 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     const card = el.closest('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card');
     if (!card) return '1';
     if (card.dataset?.videoId) return String(card.dataset.videoId);
+
+    // Homepage sections can contain several card groups. Resolve popular cards
+    // against the cards in #popular instead of counting unrelated hero/section cards.
+    const popularSection = card.closest('#popular');
+    if (popularSection) {
+      const cards = [...popularSection.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini')];
+      const index = cards.indexOf(card);
+      if (index >= 0) return String((index % 6) + 1);
+    }
+
     const cards = [...document.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini,.mosaic-card')];
     const index = cards.indexOf(card);
     return String(index >= 0 ? (index % 6) + 1 : 1);
