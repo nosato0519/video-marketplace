@@ -2,41 +2,59 @@
 
 ## CURRENT RESUME POINT — 2026-09-10
 
-**現在の作業基準点は `eadcdaa72b914c4be2ccc7e0f1f405586499a672`。Legal / Privacy配信回帰を解消済み。顧客向けブランド差し替え性の監査を進め、ブランド処理を原因とするブラウザ受入テスト回帰を特定・最小修正済み。現在は修正後CIの再確認待ち。ホームページと完成済み子ページは作り直さない。重複作業を避ける。**
+**本日の作業はここで終了。次回は `5b4ed0664e51c97a951ef2387df3863abd45706e` のLIVE状態を基準に再開する。トップページは完成済みとして扱い、今回解消した初回アクセス時のナビゲーション不具合を再発させない。**
 
-### 1. 現在のコード基準点
+### 1. 本日の到達点
 - Repository: `nosato0519/video-marketplace`
 - Branch: `main`
-- **Latest code commit: `eadcdaa72b914c4be2ccc7e0f1f405586499a672`**
-- 顧客向けブランド設定:
-  - `app/index.html` の `video-marketplace-brand` metaを変更点として使用。
-  - `app/branding.js` が動的に生成されるUIへブランド名を適用。
-  - 旧 `VIDORA` と既定値 `VIDEO MARKETPLACE` の両方を顧客ブランドへ置換。
-  - ブランド置換結果が元テキストと異なる場合だけDOMを書き換えるようにし、MutationObserverの自己発火ループを防止。
-  - `BRANDING.md` に顧客引き渡し手順を明記。
+- 最新機能修正コミット: `5b4ed0664e51c97a951ef2387df3863abd45706e`
+- Render service: `video-marketplace-demo-live`
+- 最新Render deploy: `dep-dah7h6jeogqs739mfu9g`
+- 最新deploy status: **live**
+- ユーザーが実際にRender上のデモを開けることを確認。
 
-### 2. 直近CI回帰と修正
-- `908735017d7e0ada7cdbd54846109ef476ea2df2` の Browser UI Acceptance で buyer browser acceptance が4件とも `page.goto()` の30秒タイムアウトで失敗。
-- 失敗対象は `/app/index.html#/library`、`#/product/demo-1`、`#/watch/demo-1` など複数ルートに共通していたため、個別画面の不具合ではなくアプリ起動時の共通処理を調査。
-- `app/index.html` から `branding.js` を先に読み込み、`main.js` が描画したDOMをMutationObserverで監視している構造を確認。
-- `branding.js` が同じ文字列へ置換した場合にも `nodeValue` を再設定するため、MutationObserverが自己発火し続ける可能性を特定。
-- `eadcdaa72b914c4be2ccc7e0f1f405586499a672` で、置換後の値が元値と異なる場合だけDOMを書き換える最小修正を反映。
-- 既存ページやテストコードは変更していない。
+### 2. 本日解消した問題
+トップページを最初に開いた直後、右上の以下の操作が子ページへ遷移しない問題を修正。
+- 販売者デモ
+- 購入者デモ
+- 販売者ログイン
+- 購入者ログイン
 
-### 3. Legal / Privacy
-- `demo/pages/legal.html` — 利用規約・特商法表示のデモ用テンプレート。
-- `demo/pages/privacy.html` — プライバシーポリシーのデモ用テンプレート。
-- `demo/navigation-e2e.mjs` — Legal / PrivacyのHTTPルートを検証。
-- `demo/link-fix-proxy.mjs` — Legal / Privacyをshowcase proxyから直接配信。
-- Legal / Privacyは実運用時に顧客固有の事業者情報、連絡先、外部サービス、販売条件等へ差し替える前提。
+原因調査では、元の `demo/index.html` に無効化されたナビゲーション（`href="#"` / `event.preventDefault()`）が存在し、さらに複数のproxy/起動層がナビゲーションを重複制御していたことを確認。単純なキャッシュ問題として扱わず、初回ロード時のナビゲーションを専用ガードで固定した。
 
-### 4. 次の作業
-1. **`eadcdaa...` に対する全CIの完了確認**。
-2. 失敗があれば失敗箇所だけを最小修正する。
-3. CIが全面成功したら、デモ最終監査をクローズする。
-4. Renderはauto-deploy前提で、GitHub変更後の実状態だけ確認する。手動deployは行わない。
+### 3. 修正履歴
+- `47d1fb8d0fd85d45f4793c9bb70fd7754528770d`
+  - Homepage navigationを明示的な実ルートへ修正。
+- `89644d0f128a3500c7b5cf72a86691cde9663003`
+  - 初回ロードのfreshness対策を追加。ただし根本原因の確定修正とは扱わない。
+- `48f5b3ecb49b7f058b66258db8c565d0c3629190`
+  - `homepage-navigation-guard.mjs` を追加し、初回ロード時のナビゲーションを保護。
+- `5b4ed0664e51c97a951ef2387df3863abd45706e`
+  - `demo/package.json` のstartを `homepage-navigation-guard.mjs` に変更し、現在の起動経路を固定。
 
-### 5. 完成・変更しない範囲
+### 4. 現在の重要ルート
+- 販売者デモ → `/pages/creator-studio.html`
+- 購入者デモ → `/pages/video-list.html`
+- 販売者ログイン → `/pages/login.html`
+- 購入者ログイン → `/pages/login.html`
+
+### 5. 再発防止ルール
+- **今後の修正で上記ナビゲーションを元に戻さない。**
+- 新しいproxyやclick interceptorを追加して競合させない。
+- `homepage-navigation-guard.mjs` を現在の初回ロードナビゲーションの基準とする。
+- 共有startup/proxy/navigationに触れる修正をした場合は、既存のnavigation E2E/ブラウザ検証を必ず実行する。
+- 動作確認なしで「修正済み」「GREEN」と断定しない。
+- トップページを理由なく作り直さない。
+- スクリーンショットを要求して済ませず、GitHub/Render/テストで確認できるものを先に確認する。
+
+### 6. 次回の再開位置
+1. GitHubの最新コミットを確認。
+2. Renderの最新deployがLIVEか確認。
+3. 今日のナビゲーション修正を壊していないことを確認。
+4. その後、残っている具体的な子ページ/デモ受入項目だけを進める。
+5. 完了済みのHomepage/Screen #2–#9を無駄に作り直さない。
+
+### 7. 完成・変更しない範囲
 - Homepage / Screen #1: FROZEN。
 - Screen #2 Video list/search: completed。
 - Screen #3 Product detail: completed。
@@ -46,21 +64,8 @@
 - Screen #7 Creator Studio: completed。
 - Screen #8 Admin: completed。
 - Screen #9 Common pages: completed。
-- 既存の主要システムフローを理由なく作り直さない。
-- 同じCI修正を繰り返さない。
 
-### 6. 商用デモ境界
+### 8. 商用デモ境界
 - 現在は販売用ショーケースデモ。
 - 実決済、実認証情報保存、実メディアダウンロード、production credentialsはまだ接続しない。
-- 本番化工程はデモ監査が安定してから進める。
-
-### 7. 残作業の優先順位
-**CI安定化（完了） → Legal / Privacy配信回帰（完了） → 顧客向けブランド差し替え性（実装・回帰修正済み、CI再確認中） → デモ最終監査クローズ → 必要なビジュアルポリッシュ → 本番決済・ストレージ・認証 → hosting/backup/monitoring → 最終CI → 販売パッケージ確定。**
-
-### 8. 絶対にやらないこと
-- 完成済みHomepage/Screen #2–#9を理由なく作り直さない。
-- 根拠なく「完成」「CI成功」と言わない。
-- CI待ちのためだけに意味のないコミットを作らない。
-- Render auto-deploy有効時に手動deployを重ねない。
-- 同じ作業を繰り返さない。
-- スクリーンショットを要求して済ませない。GitHub/Renderで確認できるものは先に確認する。
+- ZIPはユーザーが明示的に求めるまで作成しない。
