@@ -42,15 +42,39 @@ function reorderHomepage(html) {
   return working.slice(0, popularEnd + 10) + block + working.slice(popularEnd + 10);
 }
 
+// The homepage source historically contained placeholder links/buttons that
+// deliberately prevented navigation. Repair those elements at the HTML level
+// so navigation does not depend on a capture-phase JavaScript handler.
 function repairHomepageNavigationMarkup(html) {
-  html = html.replace(/href=["']#["']\s+onclick=["']event\.preventDefault\(\)["'](\s*>\s*販売者デモ)/i,
-    'href="/pages/creator-studio.html"$1');
-  html = html.replace(/href=["']#["']\s+onclick=["']event\.preventDefault\(\)["'](\s*>\s*購入者デモ)/i,
-    'href="/pages/video-list.html"$1');
-  html = html.replace(/(<button\b[^>]*type=["']button["'])(\s+onclick=["']event\.preventDefault\(\)["'])(\s*>\s*販売者ログイン)/i,
-    '$1 data-demo-route="/pages/login.html"$3');
-  html = html.replace(/(<button\b[^>]*type=["']button["'])(\s+onclick=["']event\.preventDefault\(\)["'])(\s*>\s*購入者ログイン)/i,
-    '$1 data-demo-route="/pages/login.html"$3');
+  html = html.replace(
+    /<a\b([^>]*?)href=["']#["']([^>]*?)onclick=["']event\.preventDefault\(\)["']([^>]*)>\s*販売者デモ\s*<\/a>/i,
+    '<a$1href="/pages/creator-studio.html"$2$3>販売者デモ</a>'
+  );
+  html = html.replace(
+    /<a\b([^>]*?)href=["']#["']([^>]*?)onclick=["']event\.preventDefault\(\)["']([^>]*)>\s*購入者デモ\s*<\/a>/i,
+    '<a$1href="/pages/video-list.html"$2$3>購入者デモ</a>'
+  );
+
+  html = html.replace(
+    /<button\b([^>]*?)type=["']button["']([^>]*)onclick=["']event\.preventDefault\(\)["']([^>]*)>\s*販売者ログイン\s*<\/button>/i,
+    '<button$1type="button"$2$3 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">販売者ログイン</button>'
+  );
+  html = html.replace(
+    /<button\b([^>]*?)type=["']button["']([^>]*)onclick=["']event\.preventDefault\(\)["']([^>]*)>\s*購入者ログイン\s*<\/button>/i,
+    '<button$1type="button"$2$3 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">購入者ログイン</button>'
+  );
+
+  // Defensive fallback: if an earlier transformation already removed the
+  // placeholder onclick, still make the login buttons explicit routes.
+  html = html.replace(
+    /<button\b([^>]*class=["'][^"']*login[^"']*["'][^>]*)>\s*販売者ログイン\s*<\/button>/i,
+    '<button$1 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">販売者ログイン</button>'
+  );
+  html = html.replace(
+    /<button\b([^>]*class=["'][^"']*login[^"']*["'][^>]*)>\s*購入者ログイン\s*<\/button>/i,
+    '<button$1 data-demo-route="/pages/login.html" onclick="window.location.assign(\'/pages/login.html\')">購入者ログイン</button>'
+  );
+
   return html;
 }
 
