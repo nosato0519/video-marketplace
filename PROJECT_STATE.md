@@ -1,17 +1,15 @@
 # Video Marketplace Project State
 
 ## Current milestone
-**Milestone 561 — Rendered showcase evidence path fixed; awaiting Browser UI Acceptance evidence.**
+**Milestone 562 — Browser UI Acceptance GREEN; rendered showcase evidence path verified.**
 
-## Latest checkpoint — 2026-09-05
+## Latest checkpoint — 2026-09-10
 ### Authoritative state
 - Repository: `nosato0519/video-marketplace`
 - Authoritative branch: `main`.
-- Latest production-oriented implementation checkpoint: `581cc444063bbecbafd4cb62e51ab82bfc08d73`.
-- Latest Vimeo OTT reference stylesheet checkpoint: `ef4c2c8a27970fdbe0149b3cc43387296ce3554a`.
-- Latest showcase acceptance checkpoint: `2bfc19d3443aae7c3e10047c74f794569d08a698`.
-- Latest visual-evidence path fix: `f060bd57355135e493459793c43fc64e260b04f6`.
-- Mainline Browser E2E uses the existing same-origin Browser Proxy at `/app/index.html`; do not add a second frontend server.
+- Latest navigation proxy fix: `2fe536620fc7a17166bb7dd95a5b5e8cf312aa8b`.
+- Browser UI Acceptance run `34457815795` passed all steps, including showcase navigation acceptance and rendered showcase evidence capture/upload.
+- The navigation proxy now reuses the existing Browser test server instead of spawning a conflicting second frontend server.
 
 ### Completed / verified core application
 - Core storefront/catalog, Buyer purchase/order/Library/watch/download authorization.
@@ -38,27 +36,21 @@
 ### Demo/showcase distinction and scope
 - `demo/` is a lightweight showcase harness with simulated demo state. It is intentionally separate from the production-oriented `app/` + `backend/` system.
 - Existing Buyer/Seller/Admin demo API and workflows are preserved while the presentation layer is redesigned.
-- `demo/visual-overhaul.css` and `demo/visual-reference-pass-2.css` are injected by the existing launcher; no second frontend server was introduced.
 - The visual direction is a close study of current Vimeo OTT information architecture: restrained navigation, oversized featured hero, content rows, strong typography, and structured CTA/footer rhythm. Vimeo branding, logos, copy, and proprietary imagery are not used.
 - All previously implemented Buyer/Seller/Admin functionality remains an explicit requirement; visual redesign must not remove or bypass it.
 
 ### Latest verification evidence
-- Backend Regression run `33941085663` passed the full backend/security/payment/media and functional sales-demo suites for checkpoint `2bfc19d3443aae7c3e10047c74f794569d08a698`.
-- Demo Functional E2E run `33941085595` passed health, functional demo E2E and polished showcase acceptance.
-- Browser UI Acceptance run `33940944253` passed buyer browser acceptance and browser module smoke before the rendered-evidence addition.
-- Render deploy `dep-dadongn9r02s73e30mi0` for the evidence-enabled commit `b9796395da09d63fd3d47d77865bdf4b2a602c1a` is LIVE.
-- The visual evidence test now writes screenshots directly under `tests/artifacts/`, matching the workflow upload path.
-- A new rendered-browser evidence run is still required before visual acceptance can be marked GREEN.
+- Browser UI Acceptance run `34457815795` is GREEN.
+- All browser acceptance steps passed: buyer browser acceptance, browser module smoke, showcase navigation acceptance, rendered showcase evidence capture, and artifact upload.
+- Navigation regression caused by the proxy startup path is resolved.
+- Patch workflow run `34457815783` completed successfully.
 
 ## Remaining work
 ### Demo acceptance / sales-demo readiness
-1. Obtain the Browser UI Acceptance run for the evidence-enabled commit.
-2. Confirm the `rendered-showcase-evidence` artifact exists and inspect its screenshots when accessible.
-3. Walk buyer journey: browse → detail → purchase → library → watch/download.
-4. Walk seller journey: Creator Studio → new product → upload → payout.
-5. Walk admin journey: moderation → seller verification → security controls.
-6. Fix only concrete visual or interaction defects found during inspection.
-7. After evidence, update this file and `DEV_LOG.md` to mark the visual pass accepted.
+1. Inspect the `rendered-showcase-evidence` artifact from run `34457815795` when accessible.
+2. Confirm the captured screenshots show the intended polished showcase and no concrete visual/interaction defects.
+3. Fix only concrete visual or interaction defects found during inspection.
+4. After evidence inspection, update `PROJECT_STATE.md` and `PROGRESS_LOG.md` to close the visual acceptance gate.
 
 ### Later customer deployment/operation (not required for current demo completion)
 1. Select and configure production hosting/runtime.
