@@ -42,6 +42,18 @@ function reorderHomepage(html) {
   return working.slice(0, popularEnd + 10) + block + working.slice(popularEnd + 10);
 }
 
+function repairHomepageNavigationMarkup(html) {
+  html = html.replace(/(<a\b[^>]*class=["'][^"']*\bsystem\b[^"']*["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*販売者デモ\s*<\/a>)/i,
+    '$1 href="/pages/creator-studio.html"$2');
+  html = html.replace(/(<a\b[^>]*class=["'][^"']*\bsystem\b[^"']*["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*購入者デモ\s*<\/a>)/i,
+    '$1 href="/pages/video-list.html"$2');
+  html = html.replace(/(<button\b[^>]*type=["']button["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*販売者ログイン\s*<\/button>)/i,
+    '$1 data-demo-route="/pages/login.html"$2');
+  html = html.replace(/(<button\b[^>]*type=["']button["'][^>]*)(?:\s+onclick=["'][^"']*["'])?([^>]*>\s*購入者ログイン\s*<\/button>)/i,
+    '$1 data-demo-route="/pages/login.html"$2');
+  return html;
+}
+
 const HOMEPAGE_NAVIGATION_FIX = `<script id="homepage-navigation-fix">
 (() => {
   const go = path => window.location.assign(path);
@@ -64,16 +76,10 @@ const HOMEPAGE_NAVIGATION_FIX = `<script id="homepage-navigation-fix">
       go('/pages/video-list.html');
       return;
     }
-    if (text === '販売者ログイン') {
+    if (text === '販売者ログイン' || text === '購入者ログイン') {
       event.preventDefault();
       event.stopImmediatePropagation();
-      go('/pages/seller-login.html');
-      return;
-    }
-    if (text === '購入者ログイン') {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      go('/pages/buyer-login.html');
+      go('/pages/login.html');
     }
   }, true);
 })();
@@ -96,8 +102,9 @@ const server = createServer((req, res) => {
     upstream.on('end', () => {
       let body = Buffer.concat(chunks);
       const type = String(upstream.headers['content-type'] || '');
-      if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html') && type.includes('text/html')) {
+      if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html') && (type.includes('text/html') || body.toString('utf8').includes('<html'))) {
         let html = reorderHomepage(body.toString('utf8'));
+        html = repairHomepageNavigationMarkup(html);
         html = injectHomepageNavigation(html);
         body = Buffer.from(html, 'utf8');
       }
