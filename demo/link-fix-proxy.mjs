@@ -37,11 +37,16 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     if (!card) return '1';
     if (card.dataset?.videoId) return String(card.dataset.videoId);
 
-    // Homepage sections can contain several card groups. Resolve popular cards
-    // against the cards in #popular instead of counting unrelated hero/section cards.
     const popularSection = card.closest('#popular');
     if (popularSection) {
       const cards = [...popularSection.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini')];
+      const index = cards.indexOf(card);
+      if (index >= 0) return String((index % 6) + 1);
+    }
+
+    const newSection = card.closest('#new-releases');
+    if (newSection) {
+      const cards = [...newSection.querySelectorAll('.card,.video-card,.video-item,[data-video-id],.mini')];
       const index = cards.indexOf(card);
       if (index >= 0) return String((index % 6) + 1);
     }
@@ -120,7 +125,48 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
 const HOMEPAGE_STYLE = `<style id="homepage-navigation-fixes">
 .login-dropdown button, .login-dropdown a { display:block !important; width:100% !important; box-sizing:border-box !important; border:0 !important; outline:0 !important; background:transparent !important; color:#dfe4e9 !important; text-align:left !important; padding:10px 12px !important; margin:0 !important; border-radius:5px !important; font:inherit !important; font-size:11px !important; font-weight:400 !important; line-height:1.4 !important; cursor:pointer !important; white-space:nowrap !important; text-decoration:none !important; }
 .login-dropdown button:hover, .login-dropdown a:hover { background:#ffffff0d !important; color:var(--accent) !important; text-decoration:none !important; }
+.new-releases-section { padding-top: 88px; padding-bottom: 88px; }
+.new-releases-section .section-head { margin-bottom: 30px; }
+.new-releases-section .new-badge { display:inline-flex; align-items:center; gap:8px; margin-bottom:12px; font-size:10px; letter-spacing:.18em; font-weight:700; color:var(--accent); }
+.new-releases-section .new-badge i { width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 14px currentColor; }
+.new-releases-section .video-card { cursor:pointer; }
 </style>`;
+
+const NEW_RELEASES_MARKUP = `<section class="section new-releases-section" id="new-releases">
+  <div class="section-head">
+    <div>
+      <span class="new-badge"><i></i>NEW RELEASES</span>
+      <h2>新着動画</h2>
+    </div>
+    <a href="/pages/video-list.html">すべて見る <b>→</b></a>
+  </div>
+  <div class="video-grid">
+    <article class="video-card" data-video-id="6">
+      <div class="thumb t6"><span class="quality">NEW</span><span class="duration">42:05</span><button>▶</button></div>
+      <div class="card-info"><span class="category">ライフスタイル</span><h3>Mountain Silence</h3><p>静かな山の時間を切り取った映像作品。</p><div class="card-bottom"><span>by YAMA FILM ★ 4.8</span><b>¥1,200</b></div></div>
+    </article>
+    <article class="video-card" data-video-id="1">
+      <div class="thumb t1"><span class="quality">4K</span><span class="duration">78:14</span><button>▶</button></div>
+      <div class="card-info"><span class="category">教育</span><h3>Creator Masterclass</h3><p>作品づくりから販売までを体系的に学ぶ。</p><div class="card-bottom"><span>by Nova Studio ★ 4.9</span><b>¥2,980</b></div></div>
+    </article>
+    <article class="video-card" data-video-id="2">
+      <div class="thumb t2"><span class="quality">4K</span><span class="duration">52:08</span><button>▶</button></div>
+      <div class="card-info"><span class="category">映像作品</span><h3>Cinematic Travel Pack</h3><p>旅の映像を美しく仕上げる撮影と編集。</p><div class="card-bottom"><span>by Luma Collective ★ 4.8</span><b>¥2,280</b></div></div>
+    </article>
+    <article class="video-card" data-video-id="3">
+      <div class="thumb t3"><span class="quality">1080P</span><span class="duration">96:20</span><button>▶</button></div>
+      <div class="card-info"><span class="category">ビジネス</span><h3>Build Your Digital Product</h3><p>アイデアをデジタル商品へ変える実践ガイド。</p><div class="card-bottom"><span>by Alex Rivera ★ 5.0</span><b>¥3,480</b></div></div>
+    </article>
+    <article class="video-card" data-video-id="4">
+      <div class="thumb t4"><span class="quality">4K</span><span class="duration">41:22</span><button>▶</button></div>
+      <div class="card-info"><span class="category">クリエイティブ</span><h3>Motion Design Toolkit</h3><p>モーションデザインの制作フローを実践。</p><div class="card-bottom"><span>by Mika Chen ★ 4.7</span><b>¥1,780</b></div></div>
+    </article>
+    <article class="video-card" data-video-id="5">
+      <div class="thumb t5"><span class="quality">COURSE</span><span class="duration">64:12</span><button>▶</button></div>
+      <div class="card-info"><span class="category">ラーニング</span><h3>Designing Ideas</h3><p>アイデアを整理し、伝わる形へデザインする。</p><div class="card-bottom"><span>by Frame Lab ★ 4.9</span><b>¥2,480</b></div></div>
+    </article>
+  </div>
+</section>`;
 
 function wireHomepageMarkup(html) {
   if (!html.includes('<header class="nav">')) return html;
@@ -137,7 +183,8 @@ function wireHomepageMarkup(html) {
     .replace(/(<a\s+class="[^"]*\bcat\s+c2\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=business"$2')
     .replace(/(<a\s+class="[^"]*\bcat\s+c3\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=creative"$2')
     .replace(/(<a\s+class="[^"]*\bcat\s+c4\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=documentary"$2')
-    .replace(/(<a\s+class="[^"]*\bcat\s+c5\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=lifestyle"$2');
+    .replace(/(<a\s+class="[^"]*\bcat\s+c5\b[^"]*")([^>]*>)/i, '$1 href="/pages/video-list.html?category=lifestyle"$2')
+    .replace('</section>\n      <section class="platform">', `${NEW_RELEASES_MARKUP}\n      </section>\n      <section class="platform">`);
 }
 
 function injectNavigation(html) {
