@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = port === 10000 ? 10001 : port + 1;
 
-spawn(process.execPath, ['link-fix-proxy.mjs'], {
+spawn(process.execPath, ['safe-proxy.mjs'], {
   cwd: new URL('.', import.meta.url),
   env: { ...process.env, PORT: String(upstreamPort) },
   stdio: 'inherit'
