@@ -6,7 +6,7 @@ The production app has a single customer-facing brand setting in `app/index.html
 <meta name="video-marketplace-brand" content="VIDEO MARKETPLACE">
 ```
 
-Change the `content` value to the customer's brand name. `app/branding.js` applies that value to dynamically rendered UI and replaces the legacy demo placeholder `VIDORA` when it appears in the application shell.
+Change the `content` value to the customer's brand name. `app/branding.js` applies that value to dynamically rendered UI, replacing both the legacy `VIDORA` placeholder and the default `VIDEO MARKETPLACE` label when they appear in the application shell.
 
 ## Customer hand-off
 
