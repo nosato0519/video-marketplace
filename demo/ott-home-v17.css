@@ -32,4 +32,13 @@
   .showcase-card:nth-child(3){transform:translateY(7px)!important}
   .showcase-card:nth-child(4){transform:translateY(-2px)!important}
   .showcase-card:nth-child(5){transform:translateY(6px)!important}
+
+  /* The role cards must remain readable on a phone. Force a single-column stack
+     so Seller / Buyer / Admin are full-width cards instead of narrow vertical strips. */
+  .ssf-roles{grid-template-columns:1fr!important}
+  .ssf-roles article{min-height:auto!important;padding:25px!important}
+  .ssf-roles strong{font-size:22px!important;line-height:1.35!important}
+  .ssf-roles p{font-size:13px!important;line-height:1.85!important}
+  .ssf-tags{gap:7px!important}
+  .ssf-tags span{font-size:10px!important;padding:7px 10px!important}
 }
