@@ -37,11 +37,25 @@ try {
   for (const routeText of ['販売者デモ', '購入者デモ', '動画を探す', 'クリエイターになる', '販売者ログイン', '購入者ログイン']) {
     if (!home.includes(routeText)) throw new Error(`homepage navigation target text missing: ${routeText}`);
   }
+  const homepageFix = home.match(/<script id="homepage-navigation-fix">[\s\S]*?<\/script>/i)?.[0] || '';
+  if (!homepageFix) throw new Error('homepage navigation fix missing');
+  const requiredTargets = [
+    ['販売者デモ', '/pages/creator-studio.html'],
+    ['購入者デモ', '/pages/video-list.html'],
+    ['販売者ログイン', '/pages/seller-login.html'],
+    ['購入者ログイン', '/pages/buyer-login.html']
+  ];
+  for (const [label, target] of requiredTargets) {
+    if (!homepageFix.includes(label) || !homepageFix.includes(`go('${target}')`)) {
+      throw new Error(`homepage navigation mapping missing: ${label} -> ${target}`);
+    }
+  }
   const list = await request('/pages/video-list.html');
   if ((list.match(/class="card"/g) || []).length < 1) throw new Error('video list cards missing');
   console.log('NAVIGATION_E2E_GREEN');
   console.log(`all ${routes.length} routes load through the navigation proxy: PASS`);
   console.log('homepage navigation targets present: PASS');
+  console.log('homepage role/demo navigation mappings locked: PASS');
   console.log('video list card entrypoint present: PASS');
   console.log('legal + privacy routes present: PASS');
 } finally {
