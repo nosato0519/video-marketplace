@@ -1,0 +1,42 @@
+name: Repair launcher syntax
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ !contains(github.event.head_commit.message, '[launcher repaired]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace fragile regex with string logic
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('demo/launcher.mjs')
+          s = p.read_text()
+          old = next((line for line in s.splitlines() if 'html = html.replace(/(<section class="platform">' in line), None)
+          if old is None:
+              raise SystemExit('target launcher line not found')
+          new = """    const platformStart = html.indexOf('<section class=\"platform\">');
+          if (platformStart >= 0) {
+            const platformEnd = html.indexOf('</section>', platformStart);
+            if (platformEnd >= 0) {
+              html = html.slice(0, platformStart) + collections + recommendations + html.slice(platformEnd + '</section>'.length);
+            }
+          }"""
+          s = s.replace(old, new)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demo/launcher.mjs
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: repair launcher syntax [launcher repaired]"
+          git push
