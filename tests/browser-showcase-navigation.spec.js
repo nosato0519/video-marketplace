@@ -70,7 +70,7 @@ test.describe('sales showcase navigation', () => {
     await expect(page).toHaveURL(/\/pages\/checkout\.html$/);
 
     await page.goto(`${demoUrl}pages/library.html`);
-    await page.getByText('視聴する', { exact: true }).click();
+    await page.locator('a[href="/pages/watch.html"]').first().click();
     await expect(page).toHaveURL(/\/pages\/watch\.html$/);
 
     await page.getByText('ライブラリへ', { exact: true }).click();
@@ -87,10 +87,10 @@ test.describe('sales showcase navigation', () => {
     await expect(page).toHaveURL(/\/pages\/login\.html$/);
 
     await page.goto(`${demoUrl}pages/login.html`);
-    await page.getByText(/新規|登録/).first().click();
+    await page.locator('a[href="/pages/register.html"]').click();
     await expect(page).toHaveURL(/\/pages\/register\.html$/);
 
-    await page.getByText('ログイン', { exact: true }).click();
+    await page.locator('a[href="/pages/login.html"]').click();
     await expect(page).toHaveURL(/\/pages\/login\.html$/);
   });
 });
