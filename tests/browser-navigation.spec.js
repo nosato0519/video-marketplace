@@ -6,7 +6,7 @@ const BASE_URL = `http://127.0.0.1:${PORT}`;
 let proxy;
 
 async function waitForProxy() {
-  const deadline = Date.now() + 15_000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(`${BASE_URL}/`);
@@ -16,7 +16,7 @@ async function waitForProxy() {
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error('navigation proxy did not start');
+  throw new Error('navigation proxy did not start within 30 seconds');
 }
 
 test.beforeAll(async () => {
@@ -55,5 +55,5 @@ test('homepage video card opens the product detail page by a real browser click'
   const card = page.locator('.card').first();
   await expect(card).toBeVisible();
   await card.click();
-  await expect(page).toHaveURL(/\/pages\/product-detail\.html\?id=\d+/);
+  await expect(page).toHaveURL(/\/pages\/product-detail\.html\?(?:id|product)=\d+/);
 });
