@@ -8,12 +8,13 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Verify functional demo
-        run: npm --prefix demo run verify
+        run: timeout --signal=TERM --kill-after=15s 3m npm --prefix demo run verify
       - name: Verify polished showcase acceptance
-        run: npm run demo:showcase
+        run: timeout --signal=TERM --kill-after=15s 2m npm run demo:showcase
