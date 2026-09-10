@@ -8,8 +8,6 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = 4175;
 
-// force-page is the canonical demo-page server: it preserves the finished
-// homepage while also serving every child page under /pages/*.html.
 const child = spawn(process.execPath, ['force-page.mjs'], {
   cwd: ROOT,
   env: { ...process.env, PORT: String(upstreamPort) },
@@ -25,8 +23,8 @@ const NAV_SCRIPT = `<script id="site-navigation-integration">
     register: '/pages/register.html', account: '/pages/account.html', orders: '/pages/orders.html'
   };
   const go = target => window.location.assign(target);
-  const textOf = el => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-  const path = () => location.pathname.replace(/\/$/, '') || '/';
+  const textOf = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+  const path = () => location.pathname.replace(/\\/$/, '') || '/';
 
   document.addEventListener('click', event => {
     const el = event.target?.closest?.('a,button,[role="button"]');
@@ -129,15 +127,10 @@ async function serveLegalPage(pathname, res) {
   try {
     const html = await readFile(join(ROOT, pathname.slice(1)), 'utf8');
     const body = Buffer.from(injectNavigation(html), 'utf8');
-    res.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8',
-      'content-length': String(body.length),
-      'cache-control': 'no-store'
-    });
+    res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':String(body.length),'cache-control':'no-store'});
     res.end(body);
   } catch (error) {
-    res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
-    res.end(`Legal page unavailable: ${error.message}`);
+    res.writeHead(500, {'content-type':'text/plain; charset=utf-8'}); res.end(`Legal page unavailable: ${error.message}`);
   }
   return true;
 }
@@ -145,34 +138,22 @@ async function serveLegalPage(pathname, res) {
 function proxy(req, res) {
   serveLegalPage(req.url.split('?')[0], res).then(served => {
     if (served) return;
-    const upstream = httpRequest({
-      hostname: '127.0.0.1', port: upstreamPort, path: req.url,
-      method: req.method, headers: req.headers
-    }, upstream => {
-      const chunks = [];
+    const upstream = httpRequest({hostname:'127.0.0.1', port:upstreamPort, path:req.url, method:req.method, headers:req.headers}, upstream => {
+      const chunks=[];
       upstream.on('data', chunk => chunks.push(chunk));
       upstream.on('end', () => {
-        let body = Buffer.concat(chunks);
-        const type = String(upstream.headers['content-type'] || '');
-        if (type.includes('text/html')) body = Buffer.from(injectNavigation(body.toString('utf8')), 'utf8');
-        const headers = { ...upstream.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
-        delete headers['transfer-encoding'];
-        res.writeHead(upstream.statusCode || 200, headers);
-        res.end(body);
+        let body=Buffer.concat(chunks);
+        const type=String(upstream.headers['content-type']||'');
+        if (type.includes('text/html')) body=Buffer.from(injectNavigation(body.toString('utf8')),'utf8');
+        const headers={...upstream.headers,'content-length':String(body.length),'cache-control':'no-store'};
+        delete headers['transfer-encoding']; res.writeHead(upstream.statusCode||200,headers); res.end(body);
       });
     });
-    upstream.on('error', err => {
-      res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
-      res.end(`Upstream unavailable: ${err.message}`);
-    });
+    upstream.on('error', err => { res.writeHead(502,{'content-type':'text/plain; charset=utf-8'}); res.end(`Upstream unavailable: ${err.message}`); });
     req.pipe(upstream);
   });
 }
 
-createServer(proxy).listen(port, '0.0.0.0', () => {
-  console.log(`VIDEO MARKETPLACE navigation proxy listening on ${port}`);
-});
-
-const shutdown = () => { child.kill('SIGTERM'); process.exit(0); };
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+createServer(proxy).listen(port,'0.0.0.0',()=>console.log(`VIDEO MARKETPLACE navigation proxy listening on ${port}`));
+const shutdown=()=>{child.kill('SIGTERM');process.exit(0)};
+process.on('SIGTERM',shutdown); process.on('SIGINT',shutdown);
