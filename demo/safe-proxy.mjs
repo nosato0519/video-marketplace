@@ -68,7 +68,15 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
   const titleCategory = ${JSON.stringify(TITLE_CATEGORY)};
   const discoveryLabelMap = ${JSON.stringify(DISCOVERY_LABEL_MAP)};
   const categoryPath = category => '/pages/video-list.html?category=' + encodeURIComponent(category);
+  const detailPath = id => '/pages/product-detail.html?product=' + encodeURIComponent(id);
   const normalize = value => (value || '').replace(/\\s+/g, ' ').trim();
+  const findId = card => {
+    if (!card) return null;
+    const direct = card.closest('[data-video-id]');
+    if (direct?.dataset.videoId) return Number(direct.dataset.videoId);
+    const title = normalize(card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent);
+    return ids[title] || null;
+  };
   const findCategory = card => {
     if (!card) return null;
     const explicit = card.dataset.category || card.getAttribute('data-category');
@@ -87,6 +95,7 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
     return null;
   };
   const discoveryCard = target => target?.closest('.genre-rail .genre-card, .genre-recommendations .recommendation-card, .cat');
+  const detailCard = target => target?.closest('.video-card, .showcase-card, .mosaic-card, [data-video-id]');
   const markDiscoveryCards = () => {
     document.querySelectorAll('.genre-rail .genre-card, .genre-recommendations .recommendation-card, .cat').forEach(card => {
       if (!findCategory(card)) return;
@@ -98,22 +107,41 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
   };
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
-    const card = discoveryCard(target);
-    if (!card) return;
-    const category = findCategory(card);
-    if (!category) return;
+    const discovery = discoveryCard(target);
+    if (discovery) {
+      const category = findCategory(discovery);
+      if (category) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign(categoryPath(category));
+        return;
+      }
+    }
+    const detail = detailCard(target);
+    if (!detail || discoveryCard(detail)) return;
+    const id = findId(detail);
+    if (!id) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    window.location.assign(categoryPath(category));
+    window.location.assign(detailPath(id));
   }, true);
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    const card = discoveryCard(event.target instanceof Element ? event.target : null);
-    if (!card) return;
-    const category = findCategory(card);
-    if (!category) return;
+    const target = event.target instanceof Element ? event.target : null;
+    const discovery = discoveryCard(target);
+    if (discovery) {
+      const category = findCategory(discovery);
+      if (!category) return;
+      event.preventDefault();
+      window.location.assign(categoryPath(category));
+      return;
+    }
+    const detail = detailCard(target);
+    if (!detail) return;
+    const id = findId(detail);
+    if (!id) return;
     event.preventDefault();
-    window.location.assign(categoryPath(category));
+    window.location.assign(detailPath(id));
   }, true);
   markDiscoveryCards();
 })();
