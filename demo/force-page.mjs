@@ -133,10 +133,6 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
 </script>`;
 
 function repairHomepageMarkup(html) {
-  for (let n = 3; n <= 9; n++) {
-    const re = new RegExp(`(<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?<div class="card-bottom">[\\s\\S]*?</div>)(</article>)`, 'i');
-    html = html.replace(re, '$1</div>$2');
-  }
   html = html.replace(/<a href=["']#["'][^>]*>ログイン<\/a>/gi, '<a href="#" onclick="event.preventDefault();loginModal()">ログイン</a>');
   html = html.replace(/<a class="primary" href=["']#["'][^>]*>マイライブラリを見る →<\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showBuyer()">マイライブラリを見る →</a>');
   html = html.replace(/<a class="primary" href=["']#["'][^>]*>販売を始める →<\/a>/gi, '<a class="primary" href="#" onclick="event.preventDefault();showSeller()">販売を始める →</a>');
