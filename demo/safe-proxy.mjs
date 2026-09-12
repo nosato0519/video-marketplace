@@ -47,58 +47,75 @@ const CATEGORY_MAP = {
 
 const TITLE_CATEGORY = Object.fromEntries(Object.entries(IDS).map(([title, id]) => [title, CATEGORY_MAP[DETAIL_DATA[id]?.category || ''] || '映像作品']));
 
+const DISCOVERY_LABEL_MAP = {
+  '映画のような映像':'映像作品',
+  '学びたい夜':'教育',
+  '旅に出る':'映像作品',
+  '音楽に浸る':'音楽',
+  '大人の映像':'アダルト',
+  'シネマティック':'映像作品',
+  'クリエイター':'クリエイティブ',
+  'ビジネス':'ビジネス',
+  'イベント':'音楽',
+  'インタビュー':'クリエイティブ',
+  'ラーニング':'教育'
+};
+
 const NAV_SCRIPT = `<script id="safe-video-navigation">
 (() => {
   const ids = ${JSON.stringify(IDS)};
   const categoryMap = ${JSON.stringify(CATEGORY_MAP)};
   const titleCategory = ${JSON.stringify(TITLE_CATEGORY)};
+  const discoveryLabelMap = ${JSON.stringify(DISCOVERY_LABEL_MAP)};
   const categoryPath = category => '/pages/video-list.html?category=' + encodeURIComponent(category);
   const normalize = value => (value || '').replace(/\\s+/g, ' ').trim();
-  const findId = card => {
-    if (!card) return null;
-    const direct = card.closest('[data-video-id]');
-    if (direct?.dataset.videoId) return Number(direct.dataset.videoId);
-    const title = normalize(card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent);
-    return ids[title] || null;
-  };
   const findCategory = card => {
     if (!card) return null;
     const explicit = card.dataset.category || card.getAttribute('data-category');
     if (explicit && categoryMap[explicit]) return categoryMap[explicit];
     const title = normalize(card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent);
     if (titleCategory[title]) return titleCategory[title];
+    const label = normalize(card.querySelector('strong,.recommendation-meta span,.category')?.textContent);
+    if (discoveryLabelMap[label]) return discoveryLabelMap[label];
     const text = normalize(card.textContent).toUpperCase();
     for (const [key, value] of Object.entries(categoryMap)) {
       if (text.includes(String(key).toUpperCase())) return value;
     }
+    for (const [key, value] of Object.entries(discoveryLabelMap)) {
+      if (text.includes(String(key).toUpperCase())) return value;
+    }
     return null;
   };
-  const isDiscoverySection = card => {
-    const section = card.closest('section');
-    if (!section) return false;
-    const text = normalize(section.textContent);
-    return section.classList.contains('genre-rail')
-      || section.classList.contains('genre-recommendations')
-      || text.includes('気分から選ぶ')
-      || text.includes('ジャンル別オススメ')
-      || text.includes('カテゴリから探す');
+  const discoveryCard = target => target?.closest('.genre-rail .genre-card, .genre-recommendations .recommendation-card, .cat');
+  const markDiscoveryCards = () => {
+    document.querySelectorAll('.genre-rail .genre-card, .genre-recommendations .recommendation-card, .cat').forEach(card => {
+      if (!findCategory(card)) return;
+      card.style.cursor = 'pointer';
+      card.setAttribute('role', 'link');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'カテゴリー一覧を見る');
+    });
   };
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
-    const card = target?.closest('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card, [data-video-id]');
-    if (!card || !isDiscoverySection(card)) return;
+    const card = discoveryCard(target);
+    if (!card) return;
     const category = findCategory(card);
     if (!category) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     window.location.assign(categoryPath(category));
   }, true);
-  document.querySelectorAll('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card, [data-video-id]').forEach(card => {
-    if (isDiscoverySection(card) && findCategory(card)) {
-      card.style.cursor = 'pointer';
-      card.setAttribute('aria-label', 'カテゴリー一覧を見る');
-    }
-  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const card = discoveryCard(event.target instanceof Element ? event.target : null);
+    if (!card) return;
+    const category = findCategory(card);
+    if (!category) return;
+    event.preventDefault();
+    window.location.assign(categoryPath(category));
+  }, true);
+  markDiscoveryCards();
 })();
 </script>`;
 
