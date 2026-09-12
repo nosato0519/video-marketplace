@@ -20,9 +20,9 @@ try{
   const navScripts=home.match(/<script id="site-navigation-integration">[\s\S]*?<\/script>/gi)||[];
   if(navScripts.length!==1)throw new Error(`canonical homepage navigation count invalid: ${navScripts.length}`);
   const nav=navScripts[0];
-  const required=[['販売者デモ','/pages/creator-studio.html'],['購入者デモ','/pages/account.html'],['販売者ログイン','/pages/creator-studio.html'],['購入者ログイン','/pages/account.html']];
+  const required=[['販売者デモ','/pages/creator-studio.html'],['購入者デモ','/pages/account.html'],['販売者ログイン','/pages/login.html'],['購入者ログイン','/pages/login.html']];
   for(const [label,target] of required)if(!nav.includes(label)||!nav.includes(target))throw new Error(`homepage mapping missing: ${label} -> ${target}`);
-  if(nav.includes('/pages/video-list.html')&&nav.includes('購入者デモ')&&!/購入者デモ[\s\S]*?\/pages\/account\.html/.test(nav))throw new Error('buyer demo route is not canonical');
+  if(/if\(text==='ログイン'\)\{[^}]*go\(/.test(nav))throw new Error('parent login trigger must not navigate');
   const list=await request('/pages/video-list.html');
   if((list.match(/class="card"/g)||[]).length<1)throw new Error('video list cards missing');
   const detail=await request('/pages/product-detail.html?product=7');
@@ -31,5 +31,6 @@ try{
   console.log(`all ${routes.length} routes load through the canonical navigation proxy: PASS`);
   console.log('homepage has one canonical navigation integration: PASS');
   console.log('buyer/seller demo + login mappings: PASS');
+  console.log('parent login remains dropdown-only: PASS');
   console.log('video list + detail integrations: PASS');
 }finally{if(child.pid){try{process.kill(-child.pid,'SIGTERM');}catch{try{child.kill('SIGTERM');}catch{}}}}
