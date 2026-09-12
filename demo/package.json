@@ -1,10 +1,10 @@
 {
   "name": "video-marketplace-functional-demo",
   "private": true,
-  "version": "1.2.5",
+  "version": "1.2.6",
   "type": "module",
   "scripts": {
-    "start": "node homepage-navigation-guard.mjs",
+    "start": "node safe-proxy.mjs",
     "verify": "node functional-e2e.mjs && node navigation-e2e.mjs"
   },
   "engines": { "node": ">=20" }
