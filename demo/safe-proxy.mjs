@@ -105,6 +105,26 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
       card.setAttribute('aria-label', 'カテゴリー一覧を見る');
     });
   };
+  const wireHomeDemoLinks = () => {
+    if (location.pathname !== '/' && location.pathname !== '/index.html') return;
+    document.querySelectorAll('a,button').forEach(el => {
+      const text = normalize(el.textContent);
+      if (text === '購入者デモ') {
+        el.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.location.assign('/pages/account.html');
+        }, true);
+      }
+      if (text === '販売者ログイン') {
+        el.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.location.assign('/pages/creator-studio.html');
+        }, true);
+      }
+    });
+  };
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
     const discovery = discoveryCard(target);
@@ -144,6 +164,7 @@ const NAV_SCRIPT = `<script id="safe-video-navigation">
     window.location.assign(detailPath(id));
   }, true);
   markDiscoveryCards();
+  wireHomeDemoLinks();
 })();
 </script>`;
 
