@@ -38,30 +38,80 @@ const DETAIL_DATA = {
   14:{title:'THE CRAFTSMEN',category:'DOCUMENTARY',quality:'4K',duration:'1:34:02',durationLong:'94 min 02 sec',seller:'FIELD NOTE',rating:'4.8',price:'¥1,680',avatar:'F',lead:'ものづくりの現場に密着し、職人の技と想いを丁寧に記録した長編作品です。',image:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=88'}
 };
 
+const CATEGORY_MAP = {
+  'EDUCATION':'教育', 'LEARNING':'教育', 'FILM':'映像作品', 'DOCUMENTARY':'映像作品', 'TRAVEL':'映像作品', 'CULTURE':'映像作品',
+  'BUSINESS':'ビジネス', 'CREATIVE':'クリエイティブ', 'LIFESTYLE':'ライフスタイル', 'MUSIC':'音楽', 'ADULT':'アダルト',
+  '教育':'教育', '学び':'教育', '映像作品':'映像作品', '映画':'映像作品', 'ドキュメンタリー':'映像作品', '旅行':'映像作品',
+  'ビジネス':'ビジネス', 'クリエイティブ':'クリエイティブ', 'ライフスタイル':'ライフスタイル', '音楽':'音楽', 'アダルト':'アダルト'
+};
+
+const TITLE_CATEGORY = Object.fromEntries(Object.entries(IDS).map(([title, id]) => [title, CATEGORY_MAP[DETAIL_DATA[id]?.category || ''] || '映像作品']));
+
 const NAV_SCRIPT = `<script id="safe-video-navigation">
 (() => {
   const ids = ${JSON.stringify(IDS)};
-  const go = id => window.location.assign('/pages/product-detail.html?product=' + encodeURIComponent(id));
+  const categoryMap = ${JSON.stringify(CATEGORY_MAP)};
+  const titleCategory = ${JSON.stringify(TITLE_CATEGORY)};
+  const categoryPath = category => '/pages/video-list.html?category=' + encodeURIComponent(category);
+  const normalize = value => (value || '').replace(/\\s+/g, ' ').trim();
   const findId = card => {
     if (!card) return null;
     const direct = card.closest('[data-video-id]');
     if (direct?.dataset.videoId) return Number(direct.dataset.videoId);
-    const title = (card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent || '').replace(/\\s+/g, ' ').trim();
+    const title = normalize(card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent);
     return ids[title] || null;
+  };
+  const findCategory = card => {
+    if (!card) return null;
+    const explicit = card.dataset.category || card.getAttribute('data-category');
+    if (explicit && categoryMap[explicit]) return categoryMap[explicit];
+    const title = normalize(card.querySelector('h3,h2,[data-video-title],.showcase-label,.title')?.textContent);
+    if (titleCategory[title]) return titleCategory[title];
+    const text = normalize(card.textContent).toUpperCase();
+    for (const [key, value] of Object.entries(categoryMap)) {
+      if (text.includes(String(key).toUpperCase())) return value;
+    }
+    return null;
+  };
+  const isDiscoverySection = card => {
+    const section = card.closest('section');
+    if (!section) return false;
+    const text = normalize(section.textContent);
+    return section.classList.contains('genre-rail')
+      || section.classList.contains('genre-recommendations')
+      || text.includes('気分から選ぶ')
+      || text.includes('ジャンル別オススメ')
+      || text.includes('カテゴリから探す');
   };
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
-    const card = target?.closest('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card');
-    if (!card) return;
-    const id = findId(card);
-    if (!id) return;
+    const card = target?.closest('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card, [data-video-id]');
+    if (!card || !isDiscoverySection(card)) return;
+    const category = findCategory(card);
+    if (!category) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    go(id);
+    window.location.assign(categoryPath(category));
   }, true);
-  document.querySelectorAll('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card').forEach(card => {
-    if (findId(card)) card.style.cursor = 'pointer';
+  document.querySelectorAll('.video-card, .card, .showcase-card, .recommendation-card, .mosaic-card, [data-video-id]').forEach(card => {
+    if (isDiscoverySection(card) && findCategory(card)) {
+      card.style.cursor = 'pointer';
+      card.setAttribute('aria-label', 'カテゴリー一覧を見る');
+    }
   });
+})();
+</script>`;
+
+const CATEGORY_QUERY_SCRIPT = `<script id="safe-category-filter">
+(() => {
+  if (location.pathname !== '/pages/video-list.html') return;
+  const category = new URLSearchParams(location.search).get('category');
+  if (!category) return;
+  const filters = [...document.querySelectorAll('.filters .filter')];
+  const target = filters.find(el => (el.textContent || '').trim() === category);
+  if (!target) return;
+  target.click();
+  document.querySelector('.hero')?.scrollIntoView({block:'start'});
 })();
 </script>`;
 
@@ -114,6 +164,9 @@ const server = createServer((req, res) => {
           html = html.includes('</body>') ? html.replace('</body>', `${DETAIL_SCRIPT}</body>`) : html;
         }
         html = html.includes('</body>') ? html.replace('</body>', `${NAV_SCRIPT}</body>`) : html;
+        if (req.url.split('?')[0] === '/pages/video-list.html') {
+          html = html.includes('</body>') ? html.replace('</body>', `${CATEGORY_QUERY_SCRIPT}</body>`) : `${html}${CATEGORY_QUERY_SCRIPT}`;
+        }
         body = Buffer.from(html, 'utf8');
       }
       const headers = { ...response.headers, 'content-length': String(body.length), 'cache-control': 'no-store' };
