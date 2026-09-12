@@ -22,6 +22,7 @@ if (platformStart >= 0) {
   }
 }
     html = html.replaceAll('VIDORA', 'VIDEO MARKETPLACE');
+    html = html.replace('<a class="primary" href="#">販売を始める →</a>', '<a class="primary" href="/pages/login.html?role=seller">販売を始める →</a>');
     html = html.replace('</head>', '<style id="live-hero-size">.hero{height:512px!important;min-height:512px!important}.hero .hero-copy{transform:scale(1.25)!important;transform-origin:left top!important}.hero .hero-mosaic{transform:scale(1.25)!important;transform-origin:top right!important}@media(max-width:760px){.hero{height:700px!important;min-height:700px!important}.hero .hero-copy{transform:scale(1.25)!important;transform-origin:left top!important}.hero .hero-mosaic{transform:scale(1.25)!important;transform-origin:top right!important}}</style></head>');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'}); res.end(html); return;
   }
