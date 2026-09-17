@@ -10,12 +10,15 @@ spawn(process.execPath, ['safe-proxy.mjs'], {
   stdio: 'inherit',
 });
 
+const STABLE_HOME_NAV = `<script id="stable-home-navigation">(()=>{const apply=()=>{if(location.pathname!=='/'&&location.pathname!=='/index.html')return;const links=[...document.querySelectorAll('a.system')];for(const el of links){const text=(el.textContent||'').replace(/\\s+/g,' ').trim();if(text==='販売者デモ'){el.href='/pages/creator-studio.html';el.removeAttribute('onclick')}if(text==='購入者デモ'){el.href='/pages/account.html';el.removeAttribute('onclick')}}const buttons=[...document.querySelectorAll('.login-dropdown button')];for(const el of buttons){const text=(el.textContent||'').replace(/\\s+/g,' ').trim();if(text==='販売者ログイン'){el.onclick=()=>{location.href='/pages/login.html?role=seller'}}if(text==='購入者ログイン'){el.onclick=()=>{location.href='/pages/login.html?role=buyer'}}}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();window.addEventListener('pageshow',apply);window.addEventListener('load',apply)})()</script>`;
+
 function patchHomepage(html) {
   return html
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>\s*販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>\s*購入者デモ<\/a>/, '<a class="system" href="/pages/account.html">購入者デモ</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<button type="button" onclick="location.href=\'/pages/login.html?role=seller\'">販売者ログイン</button>')
-    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<button type="button" onclick="location.href=\'/pages/login.html?role=buyer\'">購入者ログイン</button>');
+    .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<button type="button" onclick="location.href=\'/pages/login.html?role=buyer\'">購入者ログイン</button>')
+    .replace('</body>', `${STABLE_HOME_NAV}</body>`);
 }
 
 const server = createServer((req, res) => {
@@ -35,7 +38,13 @@ const server = createServer((req, res) => {
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html') && type.includes('text/html')) {
         body = Buffer.from(patchHomepage(body.toString('utf8')), 'utf8');
       }
-      const headers = { ...response.headers, 'content-length': String(body.length), 'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate', pragma: 'no-cache', expires: '0' };
+      const headers = {
+        ...response.headers,
+        'content-length': String(body.length),
+        'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        pragma: 'no-cache',
+        expires: '0',
+      };
       delete headers['transfer-encoding'];
       res.writeHead(response.statusCode || 200, headers);
       res.end(body);
