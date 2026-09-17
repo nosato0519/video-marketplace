@@ -1,15 +1,15 @@
 name: Fix homepage navigation
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
 
 permissions:
   contents: write
 
 jobs:
   fix:
-    if: ${{ !contains(github.event.head_commit.message, 'fix: restore homepage demo and login navigation') }}
+    if: ${{ !contains(github.event.pull_request.title, 'restore homepage demo and login navigation') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,24 +17,32 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
           p = Path('demo/index.html')
           s = p.read_text(encoding='utf-8')
-          old = '''<a class="system" href="#" onclick="event.preventDefault()">\n          >販売者デモ</a\n        ><a class="system" href="#" onclick="event.preventDefault()">\n          >購入者デモ</a>'''
-          new = '''<a class="system" href="/pages/creator-studio.html">\n          >販売者デモ</a\n        ><a class="system" href="/pages/account.html">\n          >購入者デモ</a>'''
-          if old not in s:
-              raise SystemExit('seller/buyer navigation pattern not found')
-          s = s.replace(old, new, 1)
-          old2 = '''<button type="button" onclick="event.preventDefault()">\n              販売者ログイン</button>\n            ><button type="button" onclick="event.preventDefault()">\n              購入者ログイン\n            </button>'''
-          new2 = '''<button type="button" onclick="location.href='/pages/login.html?role=seller'">\n              販売者ログイン</button>\n            ><button type="button" onclick="location.href='/pages/login.html?role=buyer'">\n              購入者ログイン\n            </button>'''
-          if old2 not in s:
-              raise SystemExit('login navigation pattern not found')
-          s = s.replace(old2, new2, 1)
-          p.write_text(s, encoding='utf-8')
+          s2, n1 = re.subn(r'<a class="system" href="#" onclick="event\.preventDefault\(\)">\s*>販売者デモ</a\s*><a class="system" href="#" onclick="event\.preventDefault\(\)">\s*>購入者デモ</a>', '<a class="system" href="/pages/creator-studio.html">販売者デモ</a><a class="system" href="/pages/account.html">購入者デモ</a>', s, count=1)
+          s2, n2 = re.subn(r'<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン</button\s*><button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*</button>', '<button type="button" onclick="location.href=\'/pages/login.html?role=seller\'">販売者ログイン</button><button type="button" onclick="location.href=\'/pages/login.html?role=buyer\'">購入者ログイン</button>', s2, count=1)
+          if n1 != 1 or n2 != 1:
+              raise SystemExit(f'navigation patterns not found: seller/buyer={n1}, login={n2}')
+          p.write_text(s2, encoding='utf-8')
+      - name: Verify exact navigation patch
+        shell: python
+        run: |
+          from pathlib import Path
+          s = Path('demo/index.html').read_text(encoding='utf-8')
+          checks = [
+              '/pages/creator-studio.html',
+              '/pages/account.html',
+              "/pages/login.html?role=seller",
+              "/pages/login.html?role=buyer",
+          ]
+          if any(x not in s for x in checks):
+              raise SystemExit('homepage navigation verification failed')
       - name: Commit exact navigation fix and remove one-time workflow
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/fix-home-navigation.yml
+          git rm .github/workflows/fix-home-navigation.yml NAVIGATION_FIX_TRIGGER.txt
           git add demo/index.html
           git commit -m 'fix: restore homepage demo and login navigation'
           git push
