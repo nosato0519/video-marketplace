@@ -1,0 +1,44 @@
+name: Fix seller review flow
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: contains(github.event.head_commit.message, 'fix: update seller demo to submit for review')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch seller demo
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('demo/pages/creator-studio.html')
+          s = p.read_text()
+          replacements = [
+            ('動画の登録からアップロード、公開、売上確認、報酬受取', '動画の登録からアップロード、審査提出、売上確認、報酬受取'),
+            ('<div class="step" id="step4">04　公開</div>', '<div class="step" id="step4">04　審査提出</div>'),
+            ('アップロードして公開する →', 'アップロードして審査に提出する →'),
+            ('商品作成 → メディア受付 → 公開の状態遷移', '商品作成 → メディア受付 → 審査提出の状態遷移'),
+            ('UPLOAD → VALIDATE → PUBLISH', 'UPLOAD → VALIDATE → SUBMIT FOR REVIEW'),
+            ("progress('公開完了',100)", "progress('審査提出完了',100)"),
+            ('<strong>公開完了</strong>', '<strong>審査提出完了</strong>'),
+            ('✓ 公開状態　${uploaded.product.status}', '✓ 審査状態　審査待ち'),
+            ('<span class="status live">公開中</span>`;$', '<span class="status">審査待ち</span>`;$'),
+          ]
+          for a,b in replacements:
+            s = s.replace(a,b)
+          s = s.replace('<span class="status live">公開中</span>`;$', '<span class="status">審査待ち</span>`;$')
+          s = s.replace('<span class="status live">公開中</span>`;$', '<span class="status">審査待ち</span>`;$')
+          # Force the newly created seller row to remain in review regardless of the API demo status.
+          s = s.replace("<span class=\"status live\">公開中</span>`;$(\'productList\')", "<span class=\"status\">審査待ち</span>`;$(\'productList\')")
+          p.write_text(s)
+          PY
+      - name: Commit patched file
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo/pages/creator-studio.html
+          git diff --cached --quiet || git commit -m 'fix: seller demo submits products for review [skip ci]'
+          git push
