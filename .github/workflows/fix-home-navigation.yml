@@ -1,14 +1,15 @@
 name: Fix homepage navigation
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  push:
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
   fix:
+    if: ${{ !contains(github.event.head_commit.message, 'fix: restore homepage demo and login navigation') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
