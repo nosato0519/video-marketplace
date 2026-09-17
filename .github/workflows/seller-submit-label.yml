@@ -1,0 +1,42 @@
+name: finalize seller submit labels
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: "!contains(github.event.head_commit.message, 'demo: finalize seller submit flow')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update seller submission wording
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('demo/pages/creator-studio.html')
+          s=p.read_text()
+          replacements={
+            '販売者が動画の登録からアップロード、公開、売上確認、報酬受取までを一つの画面で管理できるクリエイター向けStudioです。':'販売者が動画の登録からアップロード、審査提出、売上確認、報酬受取までを一つの画面で管理できるクリエイター向けStudioです。',
+            '<div class="step" id="step4">04　公開</div>':'<div class="step" id="step4">04　審査提出</div>',
+            'アップロードして公開する →':'アップロードして審査に提出する →',
+            '商品作成 → メディア受付 → 公開の状態遷移を確認できます。':'商品作成 → メディア受付 → 審査提出の状態遷移を確認できます。',
+            "progress('公開完了',100);step(4);$('lifeTitle').textContent=uploaded.product.title;":"progress('審査提出完了',100);step(4);$('lifeTitle').textContent=uploaded.product.title;",
+            '<strong>公開完了</strong>':'<strong>審査提出完了</strong>',
+            '<div class="step done">✓ 公開状態　${uploaded.product.status}</div>':'<div class="step done">✓ 審査状態　審査待ち</div>',
+            '<span class="status live">公開中</span>`;$('productList').prepend(row);':'<span class="status">審査待ち</span>`;$('productList').prepend(row);',
+            'UPLOAD → VALIDATE → PUBLISH':'UPLOAD → VALIDATE → SUBMIT FOR REVIEW'
+          }
+          for a,b in replacements.items():
+              if a not in s:
+                  raise SystemExit(f'missing expected text: {a[:80]}')
+              s=s.replace(a,b)
+          p.write_text(s)
+          PY
+      - name: Commit patch and remove one-time workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo/pages/creator-studio.html
+          git commit -m 'demo: finalize seller submit flow' || exit 0
+          git push
