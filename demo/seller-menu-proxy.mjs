@@ -17,7 +17,7 @@ const SELLER_MENU_STYLE = `<style id="seller-menu-ui">
 const SELLER_MENU = `${SELLER_MENU_STYLE}<nav class="seller-menu" aria-label="販売者メニュー"><div class="seller-menu-inner"><span class="seller-menu-label">SELLER MENU</span><a class="seller-menu-link active" href="/pages/creator-studio.html">ダッシュボード</a><a class="seller-menu-link" href="/pages/creator-studio.html#products">動画管理</a><a class="seller-menu-link" href="/pages/sales-history.html">売上履歴</a><a class="seller-menu-link" href="/pages/view-analytics.html">視聴分析</a><a class="seller-menu-link" href="/pages/payout-settings.html">振込・受取設定</a><a class="seller-menu-link" href="/pages/seller-account.html">会員情報</a><a class="seller-menu-link" href="/pages/messages.html?role=seller">メッセージ <span class="seller-menu-badge">未返信 1</span></a><a class="seller-menu-link" href="/pages/support.html">運営サポート <span class="seller-menu-badge">対応中 1</span></a></div></nav>`;
 
 function injectSellerMenu(html, pathname){
-  if(pathname !== '/pages/creator-studio.html' || !/<body[\\s\\S]*<\\/body>/i.test(html)) return html;
+  if(pathname !== '/pages/creator-studio.html' || !/<body[\s\S]*<\/body>/i.test(html)) return html;
   if(html.includes('seller-menu-ui')) return html;
   return html.replace(/<body([^>]*)>/i, `<body$1>${SELLER_MENU}`);
 }
