@@ -1,0 +1,40 @@
+name: One-time homepage navigation fix
+
+on:
+  push:
+    paths:
+      - NAVIGATION_FIX_TRIGGER.txt
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch homepage navigation only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('demo/index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('<a class="system" href="#" onclick="event.preventDefault()">\n          販売者デモ</a>', '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
+          s = s.replace('<a class="system" href="#" onclick="event.preventDefault()">\n          購入者デモ</a>', '<a class="system" href="/pages/account.html">購入者デモ</a>')
+          s = s.replace('<button type="button" onclick="event.preventDefault()">\n              販売者ログイン</button>', '<button type="button" onclick="location.href=\'/pages/login.html?role=seller\'">販売者ログイン</button>')
+          s = s.replace('<button type="button" onclick="event.preventDefault()">\n              購入者ログイン\n            </button>', '<button type="button" onclick="location.href=\'/pages/login.html?role=buyer\'">購入者ログイン</button>')
+          p.write_text(s, encoding='utf-8')
+          PY
+          grep -F '/pages/creator-studio.html' demo/index.html
+          grep -F '/pages/account.html' demo/index.html
+          grep -F "/pages/login.html?role=seller" demo/index.html
+          grep -F "/pages/login.html?role=buyer" demo/index.html
+      - name: Commit isolated fix and remove temporary files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm NAVIGATION_FIX_TRIGGER.txt .github/workflows/one-time-home-nav-fix.yml
+          git add demo/index.html
+          git commit -m 'fix: restore homepage demo and login navigation'
+          git push
