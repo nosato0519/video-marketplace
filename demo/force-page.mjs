@@ -39,10 +39,14 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
       const text = (a.textContent || '').trim();
       if (text.includes('動画を探す')) a.onclick = e => { e.preventDefault(); go('/pages/video-list.html'); };
       if (text.includes('クリエイターになる')) a.onclick = e => { e.preventDefault(); go('/pages/creator-studio.html'); };
-      if (text === '販売者デモ') a.onclick = e => { e.preventDefault(); go('/pages/creator-studio.html'); };
-      if (text === '購入者デモ') a.onclick = e => { e.preventDefault(); go('/pages/library.html'); };
+      if (text === '販売者デモ') { a.href = '/pages/creator-studio.html'; a.onclick = e => { e.preventDefault(); go('/pages/creator-studio.html'); }; }
+      if (text === '購入者デモ') { a.href = '/pages/account.html'; a.onclick = e => { e.preventDefault(); go('/pages/account.html'); }; }
     });
-    document.querySelectorAll('.login-dropdown button').forEach(b => b.onclick = e => { e.preventDefault(); go('/pages/login.html'); });
+    document.querySelectorAll('.login-dropdown button').forEach(b => {
+      const text = (b.textContent || '').trim();
+      const target = text === '販売者ログイン' ? '/pages/login.html?role=seller' : text === '購入者ログイン' ? '/pages/login.html?role=buyer' : '/pages/login.html';
+      b.onclick = e => { e.preventDefault(); go(target); };
+    });
   }
 
   if (path === '/pages/video-list.html') {
@@ -61,74 +65,30 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     grid?.appendChild(empty);
     const categoryMap = {'映像作品':'FILM','教育':'EDUCATION','ビジネス':'BUSINESS','クリエイティブ':'CREATIVE','ライフスタイル':'LIFESTYLE','音楽':'MUSIC','アダルト':'ADULT'};
     let activeCategory = '';
-    const parseDuration = value => {
-      const parts = value.split(':').map(Number);
-      return parts.length === 2 ? parts[0] * 60 + parts[1] : 0;
-    };
+    const parseDuration = value => { const parts = value.split(':').map(Number); return parts.length === 2 ? parts[0] * 60 + parts[1] : 0; };
     const apply = () => {
       const q = (input?.value || '').trim().toLowerCase();
-      const wants4k = sideChecks[0]?.checked;
-      const wants1080 = sideChecks[1]?.checked;
-      const wantsUnder30 = sideChecks[2]?.checked;
-      const wants30to90 = sideChecks[3]?.checked;
-      const wantsOver90 = sideChecks[4]?.checked;
-      const wantsHighRating = sideChecks[5]?.checked;
+      const wants4k = sideChecks[0]?.checked, wants1080 = sideChecks[1]?.checked, wantsUnder30 = sideChecks[2]?.checked, wants30to90 = sideChecks[3]?.checked, wantsOver90 = sideChecks[4]?.checked, wantsHighRating = sideChecks[5]?.checked;
       let visible = 0;
       cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        const cat = card.querySelector('.cat')?.textContent.trim() || '';
-        const badge = card.querySelector('.badge')?.textContent.trim() || '';
-        const duration = parseDuration(card.querySelector('.duration')?.textContent.trim() || '0:00');
-        const rating = parseFloat(card.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
-        const durationMatch = !wantsUnder30 && !wants30to90 && !wantsOver90
-          || (wantsUnder30 && duration < 30 * 60)
-          || (wants30to90 && duration >= 30 * 60 && duration <= 90 * 60)
-          || (wantsOver90 && duration > 90 * 60);
-        const qualityMatch = (!wants4k && !wants1080)
-          || (wants4k && badge === '4K')
-          || (wants1080 && badge === '1080P');
-        const ratingMatch = !wantsHighRating || rating >= 4.5;
-        const matchQ = !q || text.includes(q);
-        const matchCat = !activeCategory || cat === activeCategory;
+        const text = card.textContent.toLowerCase(), cat = card.querySelector('.cat')?.textContent.trim() || '', badge = card.querySelector('.badge')?.textContent.trim() || '', duration = parseDuration(card.querySelector('.duration')?.textContent.trim() || '0:00'), rating = parseFloat(card.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
+        const durationMatch = !wantsUnder30 && !wants30to90 && !wantsOver90 || (wantsUnder30 && duration < 30 * 60) || (wants30to90 && duration >= 30 * 60 && duration <= 90 * 60) || (wantsOver90 && duration > 90 * 60);
+        const qualityMatch = (!wants4k && !wants1080) || (wants4k && badge === '4K') || (wants1080 && badge === '1080P');
+        const ratingMatch = !wantsHighRating || rating >= 4.5, matchQ = !q || text.includes(q), matchCat = !activeCategory || cat === activeCategory;
         const matched = matchQ && matchCat && qualityMatch && durationMatch && ratingMatch;
-        card.style.display = matched ? '' : 'none';
-        if (matched) visible++;
+        card.style.display = matched ? '' : 'none'; if (matched) visible++;
       });
       empty.style.display = visible ? 'none' : 'block';
     };
-    searchButton?.addEventListener('click', apply);
-    input?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
-    filters.forEach(f => f.addEventListener('click', () => {
-      filters.forEach(x => x.classList.remove('active'));
-      f.classList.add('active');
-      activeCategory = categoryMap[f.textContent.trim()] || '';
-      apply();
-    }));
+    searchButton?.addEventListener('click', apply); input?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
+    filters.forEach(f => f.addEventListener('click', () => { filters.forEach(x => x.classList.remove('active')); f.classList.add('active'); activeCategory = categoryMap[f.textContent.trim()] || ''; apply(); }));
     sideChecks.forEach(check => check.addEventListener('change', apply));
-    sort?.addEventListener('change', () => {
-      const mode = sort.value;
-      const value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0;
-      const rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
-      const title = c => c.querySelector('.title')?.textContent.trim() || '';
-      const ordered = mode === 'おすすめ順' ? [...originalOrder] : [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b)));
-      ordered.forEach(c => grid.appendChild(c));
-      grid.appendChild(empty);
-    });
-    cards.forEach(card => card.addEventListener('click', () => go('/pages/product-detail.html')));
-    more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
+    sort?.addEventListener('change', () => { const mode = sort.value, value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0, rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0'), title = c => c.querySelector('.title')?.textContent.trim() || ''; const ordered = mode === 'おすすめ順' ? [...originalOrder] : [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b))); ordered.forEach(c => grid.appendChild(c)); grid.appendChild(empty); });
+    cards.forEach(card => card.addEventListener('click', () => go('/pages/product-detail.html'))); more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
   }
-
-  if (path === '/pages/creator-studio.html') {
-    document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
-  }
-  if (path === '/pages/admin.html') {
-    document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
-  }
-  if (path === '/pages/account.html' || path === '/pages/login.html' || path === '/pages/register.html') {
-    document.querySelectorAll('button').forEach(b => {
-      if (!b.closest('.login-dropdown')) b.addEventListener('click', () => alert('デモ版のため、実際の認証処理は行いません。'));
-    });
-  }
+  if (path === '/pages/creator-studio.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
+  if (path === '/pages/admin.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
+  if (path === '/pages/account.html' || path === '/pages/login.html' || path === '/pages/register.html') document.querySelectorAll('button').forEach(b => { if (!b.closest('.login-dropdown')) b.addEventListener('click', () => alert('デモ版のため、実際の認証処理は行いません。')); });
 })();
 </script>`;
 
@@ -161,31 +121,17 @@ function servePage(pathname, res) {
     const body = Buffer.from(html, 'utf8');
     res.writeHead(200, {'content-type':'text/html; charset=utf-8','content-length':body.length,'cache-control':'no-store'});
     res.end(body);
-  }).catch(err => {
-    res.writeHead(500, {'content-type':'text/plain; charset=utf-8'});
-    res.end(`Page error: ${err.message}`);
-  });
+  }).catch(err => { res.writeHead(500, {'content-type':'text/plain; charset=utf-8'}); res.end(`Page error: ${err.message}`); });
   return true;
 }
 
 function proxy(req, res) {
   if (servePage(req.url.split('?')[0], res)) return;
   const upstream = httpRequest({hostname:'127.0.0.1',port:upstreamPort,path:req.url,method:req.method,headers:req.headers}, (upstreamRes) => {
-    const chunks = [];
-    upstreamRes.on('data', c => chunks.push(c));
-    upstreamRes.on('end', () => {
-      const body = Buffer.concat(chunks);
-      const isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html');
-      if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) {
-        const html = finalize(body.toString('utf8'));
-        const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v35'};
-        delete headers['transfer-encoding'];
-        res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html);
-      } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); }
-    });
+    const chunks = []; upstreamRes.on('data', c => chunks.push(c));
+    upstreamRes.on('end', () => { const body = Buffer.concat(chunks), isHome = req.method === 'GET' && (req.url === '/' || req.url === '/index.html'); if (isHome && String(upstreamRes.headers['content-type'] || '').includes('text/html')) { const html = finalize(body.toString('utf8')); const headers = {...upstreamRes.headers,'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-demo-version':'20260907-v35'}; delete headers['transfer-encoding']; res.writeHead(upstreamRes.statusCode || 200, headers); res.end(html); } else { res.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers); res.end(body); } });
   });
-  upstream.on('error', err => { res.statusCode=502; res.end(`Upstream error: ${err.message}`); });
-  req.pipe(upstream);
+  upstream.on('error', err => { res.statusCode=502; res.end(`Upstream error: ${err.message}`); }); req.pipe(upstream);
 }
 
 createServer(proxy).listen(port,'0.0.0.0',() => console.log(`VIDEO MARKETPLACE force-page listening on http://0.0.0.0:${port}`));
