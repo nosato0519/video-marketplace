@@ -16,12 +16,14 @@ const SELLER_MENU_STYLE = `<style id="seller-menu-ui">
 
 const SELLER_MENU = `${SELLER_MENU_STYLE}<nav class="seller-menu" aria-label="販売者メニュー"><div class="seller-menu-inner"><span class="seller-menu-label">SELLER MENU</span><a class="seller-menu-link active" href="/pages/creator-studio.html">ダッシュボード</a><a class="seller-menu-link" href="/pages/creator-studio.html#products">動画管理</a><a class="seller-menu-link" href="/pages/sales-history.html">売上履歴</a><a class="seller-menu-link" href="/pages/view-analytics.html">視聴分析</a><a class="seller-menu-link" href="/pages/payout-settings.html">振込・受取設定</a><a class="seller-menu-link" href="/pages/seller-account.html">会員情報</a><a class="seller-menu-link" href="/pages/messages.html?role=seller">メッセージ <span class="seller-menu-badge">未返信 1</span></a><a class="seller-menu-link" href="/pages/support.html">運営サポート <span class="seller-menu-badge">対応中 1</span></a></div></nav>`;
 
+const SELLER_EDIT_SCRIPT = `<style id="seller-edit-ui">.seller-edit-button{display:inline-flex;align-items:center;justify-content:center;margin-top:9px;padding:7px 11px;border:1px solid #4a474d;background:#111216;color:#d9b45f;font-size:9px;font-weight:800;letter-spacing:.06em;cursor:pointer}.seller-edit-button:hover{border-color:#d9b45f;background:#15130f}.product .seller-edit-button{grid-column:2;justify-self:start}</style><script>(function(){function addEditButtons(){const list=document.getElementById('productList');if(!list)return;const storeKey='vm_seller_products';let store={};try{store=JSON.parse(localStorage.getItem(storeKey)||'{}')}catch{return}list.querySelectorAll('.product').forEach(card=>{if(card.querySelector('.seller-edit-button'))return;const title=card.querySelector('h3')?.textContent?.trim();if(!title)return;let key=Object.keys(store).find(k=>String(store[k]?.title||'').trim()===title);let item=key?store[key]:null;if(!item){key=Object.keys(store).find(k=>String(k).trim()===title);item=key?store[key]:null}if(!key)return;const id=item?.id||item?.productId||key;const a=document.createElement('a');a.className='seller-edit-button';a.href='/pages/product-edit.html?productId='+encodeURIComponent(id);a.textContent='この動画を編集';card.appendChild(a)})}document.addEventListener('DOMContentLoaded',addEditButtons);new MutationObserver(addEditButtons).observe(document.body,{childList:true,subtree:true});setTimeout(addEditButtons,500)})();<\/script>`;
+
 function injectSellerMenu(html, pathname){
   if(pathname !== '/pages/creator-studio.html' || !/<body[\s\S]*<\/body>/i.test(html)) return html;
   if(html.includes('seller-menu-ui')) return html;
   const hero = /(<section class="head">[\s\S]*?<\/section>)/i;
-  if(hero.test(html)) return html.replace(hero, `$1${SELLER_MENU}`);
-  return html.replace(/<body([^>]*)>/i, `<body$1>${SELLER_MENU}`);
+  const withMenu = hero.test(html) ? html.replace(hero, `$1${SELLER_MENU}`) : html.replace(/<body([^>]*)>/i, `<body$1>${SELLER_MENU}`);
+  return withMenu.replace(/<\/body>/i, `${SELLER_EDIT_SCRIPT}</body>`);
 }
 
 const server=createServer((req,res)=>{
