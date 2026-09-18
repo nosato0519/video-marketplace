@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 4173);
-const upstreamPort = port === 4173 ? 4174 : 4173;
+const upstreamPort = port + 1;
 const SYSTEM_BLOCK = await readFile(join(ROOT, 'system-block.html'), 'utf8');
 
 spawn(process.execPath, ['launcher.mjs'], { cwd: ROOT, env: { ...process.env, PORT: String(upstreamPort) }, stdio: 'inherit' });
