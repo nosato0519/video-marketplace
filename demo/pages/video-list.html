@@ -46,6 +46,7 @@
     });
     const count=document.querySelector('.count');
     if(count)count.textContent=(6248+items.length).toLocaleString()+'作品';
+    window.dispatchEvent(new Event('video-marketplace-seller-products-added'));
   }catch(e){}
 })();
 </script>
