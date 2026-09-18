@@ -16,5 +16,75 @@
 <aside class="side"><b>YOUR ACCESS</b><h2>購入済みコンテンツ</h2><p>この作品は購入済みです。マイライブラリからいつでも視聴できます。</p><div class="actions"><a class="btn primary" href="/pages/library.html">ライブラリへ</a><a class="btn" href="#" onclick="event.preventDefault();alert('デモ版では実ファイルのダウンロードは行いません。');">↓ DOWNLOAD</a></div></aside></section>
 </main>
 <script>
-(async()=>{const id=new URLSearchParams(location.search).get('product')||'';if(!id)return;try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;const d=await r.json();const p=(d.sellerProducts||[]).find(x=>String(x.id)===String(id));if(!p)return;document.querySelector('.player-label').textContent=String(p.title||'VIDEO')+' / PURCHASED';document.querySelector('.title').textContent=p.title||'動画';document.querySelector('.meta').textContent=(p.seller||'Demo Creator')+'　•　'+(p.category||'VIDEO')+'　•　¥'+Number(p.price||0).toLocaleString();const desc=document.querySelector('.desc');if(desc)desc.textContent=p.description||'購入済みのデジタル動画コンテンツです。';const center=document.querySelector('.center');if(center)center.onclick=()=>{const v=document.createElement('video');v.controls=true;v.autoplay=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:3';v.src='/api/demo/media/'+encodeURIComponent(String(p.id));document.querySelector('.player').appendChild(v);};}catch(e){}})();
+const params=new URLSearchParams(location.search);
+const id=params.get('product')||'';
+
+function openVideoDB(){
+  return new Promise((resolve,reject)=>{
+    const r=indexedDB.open('vm_media',1);
+    r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('videos'))r.result.createObjectStore('videos')};
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+async function getSellerVideoBlob(key){
+  try{
+    const db=await openVideoDB();
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction('videos','readonly');
+      const req=tx.objectStore('videos').get(String(key));
+      req.onsuccess=()=>resolve(req.result||null);
+      req.onerror=()=>reject(req.error);
+    });
+  }catch(e){return null}
+}
+function setVideo(blobOrUrl){
+  const player=document.querySelector('.player');
+  const center=document.querySelector('.center');
+  if(!player)return;
+  center?.remove();
+  const video=document.createElement('video');
+  video.controls=true;
+  video.playsInline=true;
+  video.preload='metadata';
+  video.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:3';
+  video.src=blobOrUrl;
+  player.appendChild(video);
+}
+async function loadWatch(){
+  if(!id)return;
+  if(localStorage.getItem('vm_auth_role')!=='buyer'){
+    location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));
+    return;
+  }
+  try{
+    const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});
+    if(!r.ok)throw new Error('STATE_FAILED');
+    const d=await r.json();
+    const purchased=new Set((d.purchases||[]).map(String));
+    if(!purchased.has(String(id))){
+      document.querySelector('.player-label').textContent='PURCHASE REQUIRED';
+      document.querySelector('.center').onclick=()=>location.href='/pages/product-detail.html?sellerProductId='+encodeURIComponent(id);
+      return;
+    }
+    const all=[...(d.products||[]),...(d.sellerProducts||[])];
+    const p=all.find(x=>String(x.id)===String(id));
+    if(!p)throw new Error('PRODUCT_NOT_FOUND');
+    document.querySelector('.player-label').textContent=String(p.title||'VIDEO')+' / PURCHASED';
+    document.querySelector('.title').textContent=p.title||'動画';
+    document.querySelector('.meta').textContent=(p.seller||'Demo Creator')+'　•　'+(p.category||'VIDEO')+'　•　¥'+Number(p.price||0).toLocaleString();
+    const desc=document.querySelector('.desc');
+    if(desc)desc.textContent=p.description||'購入済みのデジタル動画コンテンツです。';
+    const isSeller=String(p.id).startsWith('USR-');
+    if(isSeller){
+      const blob=await getSellerVideoBlob(p.id);
+      if(blob){setVideo(URL.createObjectURL(blob));return;}
+    }
+    const center=document.querySelector('.center');
+    if(center)center.onclick=()=>setVideo('/api/demo/media/'+encodeURIComponent(String(p.id)));
+  }catch(e){
+    console.error(e);
+  }
+}
+loadWatch();
 </script></body></html>
