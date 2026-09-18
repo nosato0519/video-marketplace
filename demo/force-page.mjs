@@ -49,43 +49,6 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     });
   }
 
-  if (path === '/pages/video-list.html') {
-    const grid = document.querySelector('.grid');
-    const input = document.querySelector('.search input');
-    const searchButton = document.querySelector('.search button');
-    const filters = [...document.querySelectorAll('.filters .filter')];
-    const sideChecks = [...document.querySelectorAll('.side input[type="checkbox"]')];
-    const sort = document.querySelector('.sort');
-    const more = document.querySelector('.more');
-    const cards = grid ? [...grid.querySelectorAll('.card')] : [];
-    const originalOrder = [...cards];
-    const empty = document.createElement('div');
-    empty.style.cssText = 'display:none;grid-column:1/-1;padding:48px 24px;border:1px solid #34353a;background:linear-gradient(145deg,#15161a,#0f1013);text-align:center;color:#aaa6a0;font-size:13px;line-height:1.9';
-    empty.innerHTML = '<strong style="display:block;color:#f3f0e9;font-size:18px;margin-bottom:8px">該当する作品がありません。</strong><span>条件を変更するか、別のキーワードで検索してください。</span>';
-    grid?.appendChild(empty);
-    const categoryMap = {'映像作品':'FILM','教育':'EDUCATION','ビジネス':'BUSINESS','クリエイティブ':'CREATIVE','ライフスタイル':'LIFESTYLE','音楽':'MUSIC','アダルト':'ADULT'};
-    let activeCategory = '';
-    const parseDuration = value => { const parts = value.split(':').map(Number); return parts.length === 2 ? parts[0] * 60 + parts[1] : 0; };
-    const apply = () => {
-      const q = (input?.value || '').trim().toLowerCase();
-      const wants4k = sideChecks[0]?.checked, wants1080 = sideChecks[1]?.checked, wantsUnder30 = sideChecks[2]?.checked, wants30to90 = sideChecks[3]?.checked, wantsOver90 = sideChecks[4]?.checked, wantsHighRating = sideChecks[5]?.checked;
-      let visible = 0;
-      cards.forEach(card => {
-        const text = card.textContent.toLowerCase(), cat = card.querySelector('.cat')?.textContent.trim() || '', badge = card.querySelector('.badge')?.textContent.trim() || '', duration = parseDuration(card.querySelector('.duration')?.textContent.trim() || '0:00'), rating = parseFloat(card.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0');
-        const durationMatch = !wantsUnder30 && !wants30to90 && !wantsOver90 || (wantsUnder30 && duration < 30 * 60) || (wants30to90 && duration >= 30 * 60 && duration <= 90 * 60) || (wantsOver90 && duration > 90 * 60);
-        const qualityMatch = (!wants4k && !wants1080) || (wants4k && badge === '4K') || (wants1080 && badge === '1080P');
-        const ratingMatch = !wantsHighRating || rating >= 4.5, matchQ = !q || text.includes(q), matchCat = !activeCategory || cat === activeCategory;
-        const matched = matchQ && matchCat && qualityMatch && durationMatch && ratingMatch;
-        card.style.display = matched ? '' : 'none'; if (matched) visible++;
-      });
-      empty.style.display = visible ? 'none' : 'block';
-    };
-    searchButton?.addEventListener('click', apply); input?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
-    filters.forEach(f => f.addEventListener('click', () => { filters.forEach(x => x.classList.remove('active')); f.classList.add('active'); activeCategory = categoryMap[f.textContent.trim()] || ''; apply(); }));
-    sideChecks.forEach(check => check.addEventListener('change', apply));
-    sort?.addEventListener('change', () => { const mode = sort.value, value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0, rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0'), title = c => c.querySelector('.title')?.textContent.trim() || ''; const ordered = mode === 'おすすめ順' ? [...originalOrder] : [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b))); ordered.forEach(c => grid.appendChild(c)); grid.appendChild(empty); });
-    // Keep each card's existing product URL so product IDs are preserved. more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
-  }
   if (path === '/pages/creator-studio.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
   if (path === '/pages/admin.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
   if (path === '/pages/account.html' || path === '/pages/login.html' || path === '/pages/register.html') document.querySelectorAll('button').forEach(b => { if (!b.closest('.login-dropdown')) b.addEventListener('click', () => alert('デモ版のため、実際の認証処理は行いません。')); });
