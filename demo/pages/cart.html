@@ -18,7 +18,7 @@ const fallback={
   5:{id:'5',title:'Designing Ideas',category:'LEARNING',seller:'Frame Lab',price:2480,meta:'COURSE • 64:12',thumb:'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80'},
   6:{id:'6',title:'Mountain Silence',category:'LIFESTYLE',seller:'YAMA FILM',price:1200,meta:'NEW • 42:05',thumb:'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80'}
 };
-function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch{return[]}}
+function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?[...new Set(x.map(String))]:[]}catch{return[]}}
 function write(items){localStorage.setItem(KEY,JSON.stringify(items));render()}
 let remoteSellerProducts={};
 function sellerProducts(){try{return JSON.parse(localStorage.getItem('vm_seller_products')||'{}')}catch{return{}}}
