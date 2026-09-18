@@ -12,10 +12,30 @@
 <main class="wrap">
 <div class="eyebrow">MY LIBRARY / PURCHASED CONTENT</div><h1 class="title">マイライブラリ。</h1><p class="lead">購入した動画を、ここからいつでも管理・視聴できます。購入日、視聴、ダウンロードまで購入後の体験をひとつの画面にまとめています。</p>
 <div class="status"><span>購入済み 2作品</span><span>視聴可能</span><span>ダウンロード対応</span></div>
-<section class="grid">
-<article class="card"><div class="thumb t1"><div class="tag">PURCHASED</div><div class="play">▶</div></div><div class="body"><h2>Creator Masterclass</h2><div class="meta">Nova Studio　•　4K • 78:14　•　★ 4.9</div><div class="row"><div class="date">購入日　2026.09.08</div><div class="actions"><a class="btn" href="/pages/watch.html">視聴する</a><a class="btn primary" href="#" onclick="event.preventDefault();alert('デモ版では実ファイルのダウンロードは行いません。');">↓ DOWNLOAD</a></div></div></div></article>
-<article class="card"><div class="thumb t2"><div class="tag">PURCHASED</div><div class="play">▶</div></div><div class="body"><h2>Cinematic Travel Pack</h2><div class="meta">Luma Collective　•　4K • 52:08　•　★ 4.8</div><div class="row"><div class="date">購入日　2026.09.08</div><div class="actions"><a class="btn" href="/pages/watch.html">視聴する</a><a class="btn primary" href="#" onclick="event.preventDefault();alert('デモ版では実ファイルのダウンロードは行いません。');">↓ DOWNLOAD</a></div></div></div></article>
+<section class="grid" id="libraryGrid">
+<article class="card"><div class="thumb t1"><div class="tag">PURCHASED</div><div class="play">▶</div></div><div class="body"><h2>Creator Masterclass</h2><div class="meta">Nova Studio　•　4K • 78:14　•　★ 4.9</div><div class="row"><div class="date">購入済み</div><div class="actions"><a class="btn" href="/pages/watch.html?product=1">視聴する</a></div></div></div></article>
+<article class="card"><div class="thumb t2"><div class="tag">PURCHASED</div><div class="play">▶</div></div><div class="body"><h2>Cinematic Travel Pack</h2><div class="meta">Luma Collective　•　4K • 52:08　•　★ 4.8</div><div class="row"><div class="date">購入済み</div><div class="actions"><a class="btn" href="/pages/watch.html?product=2">視聴する</a></div></div></div></article>
 </section>
 <div class="empty">購入した作品はこの画面で一覧管理できます。視聴ボタンから専用プレイヤーへ進み、購入済みコンテンツだけを安全に視聴できる構成です。</div>
 </main>
-</body></html>
+<script>
+(async()=>{
+  try{
+    if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));return;}
+    const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;
+    const d=await r.json();const ids=Array.isArray(d.purchases)?d.purchases.map(String):[];
+    const builtins=Array.isArray(d.products)?d.products:[];
+    const sellers=Array.isArray(d.sellerProducts)?d.sellerProducts:[];
+    const all=[...builtins,...sellers];const purchased=ids.map(id=>all.find(p=>String(p.id)===id)).filter(Boolean);
+    const grid=document.getElementById('libraryGrid');if(!grid)return;
+    if(!purchased.length)return;
+    const thumbs={1:'https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1200&q=80',2:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80',3:'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80',4:'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1200&q=80',5:'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80',6:'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80'};
+    const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    grid.innerHTML=purchased.map(p=>{
+      const id=String(p.id),src=p.thumbnailData||p.thumbnail||thumbs[id]||thumbs[1];
+      return '<article class="card"><div class="thumb" style="background-image:url(\''+esc(src)+'\')"><div class="tag">PURCHASED</div><div class="play">▶</div></div><div class="body"><h2>'+esc(p.title||'動画')+'</h2><div class="meta">'+esc(p.seller||'Demo Creator')+'　•　'+esc(p.category||'VIDEO')+'　•　★ '+esc(p.rating||'—')+'</div><div class="row"><div class="date">購入済み・視聴可能</div><div class="actions"><a class="btn primary" href="/pages/watch.html?product='+encodeURIComponent(id)+'">視聴する</a></div></div></div></article>';
+    }).join('');
+    const first=document.querySelector('.status span');if(first)first.textContent='購入済み '+purchased.length+'作品';
+  }catch(e){}
+})();
+</script></body></html>
