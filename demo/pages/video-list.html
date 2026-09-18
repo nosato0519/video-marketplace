@@ -17,7 +17,7 @@
 <div class="layout">
 <aside class="side"><h2>FILTER</h2><label><input type="checkbox"> 4K対応</label><label><input type="checkbox"> 1080p</label><label><input type="checkbox"> 30分以内</label><label><input type="checkbox"> 30〜90分</label><label><input type="checkbox"> 90分以上</label><label><input type="checkbox"> 評価4.5以上</label></aside>
 <main><div class="results-head"><span class="count">6,248作品</span><select class="sort"><option>おすすめ順</option><option>新着順</option><option>価格の安い順</option><option>評価の高い順</option></select></div>
-<div class="grid">
+<div class="grid" id="videoGrid">
 <article class="card" onclick="location.href='/pages/product-detail.html?product=1'" style="cursor:pointer"><div class="thumb t1"><span class="badge">4K</span><span class="duration">78:14</span></div><div class="info"><div class="cat">EDUCATION</div><div class="title">Creator Masterclass</div><div class="seller">by Nova Studio</div><div class="meta"><span>★ 4.9</span><span class="price">¥2,980</span></div></div></article>
 <article class="card" onclick="location.href='/pages/product-detail.html?product=2'" style="cursor:pointer"><div class="thumb t2"><span class="badge">4K</span><span class="duration">52:08</span></div><div class="info"><div class="cat">FILM</div><div class="title">Cinematic Travel Pack</div><div class="seller">by Luma Collective</div><div class="meta"><span>★ 4.8</span><span class="price">¥2,280</span></div></div></article>
 <article class="card" onclick="location.href='/pages/product-detail.html?product=3'" style="cursor:pointer"><div class="thumb t3"><span class="badge">1080P</span><span class="duration">96:20</span></div><div class="info"><div class="cat">BUSINESS</div><div class="title">Build Your Digital Product</div><div class="seller">by Alex Rivera</div><div class="meta"><span>★ 5.0</span><span class="price">¥3,480</span></div></div></article>
@@ -26,4 +26,26 @@
 <article class="card" onclick="location.href='/pages/product-detail.html?product=6'" style="cursor:pointer"><div class="thumb t6"><span class="badge">NEW</span><span class="duration">42:05</span></div><div class="info"><div class="cat">LIFESTYLE</div><div class="title">Mountain Silence</div><div class="seller">by YAMA FILM</div><div class="meta"><span>★ 4.8</span><span class="price">¥1,200</span></div></div></article>
 </div><div class="more">LOAD MORE</div></main>
 </div></div>
-<script>try{const n=JSON.parse(localStorage.getItem('vm_cart')||'[]');document.getElementById('cartCount').textContent=Array.isArray(n)?n.length:0}catch(e){}</script></body></html>
+<script>try{const n=JSON.parse(localStorage.getItem('vm_cart')||'[]');document.getElementById('cartCount').textContent=Array.isArray(n)?n.length:0}catch(e){}</script><script>
+(async()=>{
+  try{
+    const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    const items=Array.isArray(d.sellerProducts)?d.sellerProducts.filter(p=>p&&p.status==='published'):[];
+    const grid=document.getElementById('videoGrid');
+    if(!grid||!items.length)return;
+    const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    items.forEach((p)=>{
+      const card=document.createElement('article');
+      card.className='card';
+      card.style.cursor='pointer';
+      card.innerHTML='<div class="thumb" style="background-image:url(\''+esc(p.thumbnailData||'')+'\')"><span class="badge">SELLER</span><span class="duration">販売者作品</span></div><div class="info"><div class="cat">'+esc(p.category||'VIDEO').toUpperCase()+'</div><div class="title">'+esc(p.title||'販売者動画')+'</div><div class="seller">by '+esc(p.seller||'Demo Creator')+'</div><div class="meta"><span>★ '+esc(p.rating||'—')+'</span><span class="price">¥'+Number(p.price||0).toLocaleString()+'</span></div></div>';
+      card.addEventListener('click',()=>{location.href='/pages/product-detail.html?sellerProductId='+encodeURIComponent(String(p.id));});
+      grid.appendChild(card);
+    });
+    const count=document.querySelector('.count');
+    if(count)count.textContent=(6248+items.length).toLocaleString()+'作品';
+  }catch(e){}
+})();
+</script></body></html>
