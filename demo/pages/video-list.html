@@ -55,35 +55,40 @@
   const input=document.querySelector('.search input');
   const searchButton=document.querySelector('.search button');
   const filterButtons=[...document.querySelectorAll('.filters .filter')];
+  const sideChecks=[...document.querySelectorAll('.side input[type="checkbox"]')];
   const sort=document.querySelector('.sort');
   const grid=document.getElementById('videoGrid');
   const count=document.querySelector('.count');
+  if(!grid)return;
   let activeCategory='すべて';
-  let query='';
-  function apply(){
-    if(!grid)return;
+  const categoryMap={'映像作品':['FILM','DOCUMENTARY','TRAVEL','CULTURE'],'教育':['EDUCATION','LEARNING'],'ビジネス':['BUSINESS'],'クリエイティブ':['CREATIVE'],'ライフスタイル':['LIFESTYLE'],'音楽':['MUSIC'],'アダルト':['ADULT']};
+  const parseDuration=value=>{const p=String(value||'').split(':').map(Number);return p.length===2?p[0]*60+p[1]:p.length===3?p[0]*3600+p[1]*60+p[2]:0;};
+  const apply=()=>{
+    const q=(input?.value||'').trim().toLowerCase();
+    const checks=sideChecks.map(x=>!!x.checked);
     const cards=[...grid.querySelectorAll('.card')];
     cards.forEach(card=>{
       const text=card.textContent.toLowerCase();
-      const category=(card.querySelector('.cat')?.textContent||'').trim().toLowerCase();
-      const q=query.trim().toLowerCase();
-      const categoryOk=activeCategory==='すべて'||category===activeCategory.toLowerCase()||category.includes(activeCategory.toLowerCase());
-      const queryOk=!q||text.includes(q);
-      card.style.display=categoryOk&&queryOk?'':'none';
+      const cat=(card.querySelector('.cat')?.textContent||'').trim().toUpperCase();
+      const badge=(card.querySelector('.badge')?.textContent||'').trim().toUpperCase();
+      const duration=parseDuration(card.querySelector('.duration')?.textContent||'');
+      const rating=parseFloat((card.querySelector('.meta')?.textContent||'').match(/[0-9]+(?:\.[0-9]+)?/)?.[0]||'0');
+      const categoryOk=activeCategory==='すべて'||cat===activeCategory.toUpperCase()||(categoryMap[activeCategory]||[]).includes(cat);
+      const qualityOk=(!checks[0]&&!checks[1])||(checks[0]&&badge==='4K')||(checks[1]&&badge==='1080P');
+      const durationOk=(!checks[2]&&!checks[3]&&!checks[4])||(checks[2]&&duration<1800)||(checks[3]&&duration>=1800&&duration<=5400)||(checks[4]&&duration>5400);
+      const ratingOk=!checks[5]||rating>=4.5;
+      card.style.display=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk?'':'none';
     });
-    const visible=cards.filter(card=>card.style.display!=='none');
-    const value=sort?.value||'おすすめ順';
-    visible.sort((a,b)=>{
-      const priceA=Number((a.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
-      const priceB=Number((b.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
-      const ratingA=parseFloat((a.querySelector('.meta span')?.textContent||'').replace(/[^0-9.]/g,''))||0;
-      const ratingB=parseFloat((b.querySelector('.meta span')?.textContent||'').replace(/[^0-9.]/g,''))||0;
-      if(value==='価格の安い順')return priceA-priceB;
-      if(value==='評価の高い順')return ratingB-ratingA;
-      return 0;
-    }).forEach(card=>grid.appendChild(card));
+    const visible=cards.filter(c=>c.style.display!=='none');
+    const mode=sort?.value||'おすすめ順';
+    const price=c=>Number((c.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
+    const rating=c=>parseFloat((c.querySelector('.meta')?.textContent||'').match(/[0-9]+(?:\.[0-9]+)?/)?.[0]||'0');
+    if(mode==='価格の安い順')visible.sort((a,b)=>price(a)-price(b));
+    else if(mode==='評価の高い順')visible.sort((a,b)=>rating(b)-rating(a));
+    else if(mode==='新着順')visible.sort((a,b)=>(b.querySelector('.badge')?.textContent.trim()==='NEW')-(a.querySelector('.badge')?.textContent.trim()==='NEW'));
+    visible.forEach(card=>grid.appendChild(card));
     if(count)count.textContent=visible.length+'作品';
-  }
+  };
   searchButton?.addEventListener('click',apply);
   input?.addEventListener('keydown',e=>{if(e.key==='Enter')apply()});
   sort?.addEventListener('change',apply);
@@ -92,6 +97,7 @@
     filterButtons.forEach(b=>b.classList.toggle('active',b===btn));
     apply();
   }));
+  sideChecks.forEach(check=>check.addEventListener('change',apply));
   apply();
 })();
 </script></body></html>
