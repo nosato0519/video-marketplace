@@ -27,4 +27,18 @@
 </section>
 <div class="footerline">ADMIN ACCESS　•　MODERATION ACTIVE　•　PAYMENTS MONITORED　•　SECURITY MONITORED</div>
 </main>
-</body></html>
+<script>
+(async()=>{
+  const api=async(path,options={})=>{const r=await fetch(path,{credentials:'same-origin',...options,headers:{'content-type':'application/json',...(options.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d};
+  try{
+    await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
+    const d=await api('/api/demo/state');
+    const moderation=Array.isArray(d.moderationQueue)?d.moderationQueue.filter(x=>x.status==='pending'):[], sellers=Array.isArray(d.sellerApplications)?d.sellerApplications.filter(x=>x.status==='pending'):[];
+    const rows=[...document.querySelectorAll('.row')];
+    const creatorRow=rows.find(r=>r.querySelector('h3')?.textContent.includes('新規クリエイター申請'));
+    const videoRow=rows.find(r=>r.querySelector('h3')?.textContent.includes('動画コンテンツ審査'));
+    if(creatorRow){const s=creatorRow.querySelector('.status');if(s)s.textContent=sellers.length+'件';const b=creatorRow.querySelector('.action');if(b)b.addEventListener('click',async()=>{if(!sellers.length){alert('現在、審査待ちの販売者申請はありません。');return}const item=sellers[0];const ok=confirm(item.seller+' の販売者申請を承認しますか？');if(!ok)return;try{await api('/api/demo/admin/seller-approval',{method:'POST',body:JSON.stringify({id:item.id,action:'approve'})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}})}
+    if(videoRow){const s=videoRow.querySelector('.status');if(s)s.textContent=moderation.length+'件';const b=videoRow.querySelector('.action');if(b)b.addEventListener('click',async()=>{if(!moderation.length){alert('現在、審査待ちの動画はありません。');return}const item=moderation[0];const ok=confirm('「'+item.title+'」を公開承認しますか？');if(!ok)return;try{await api('/api/demo/admin/moderation',{method:'POST',body:JSON.stringify({id:item.id,action:'approve'})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}})}
+  }catch(e){console.error(e)}
+})();
+</script></body></html>
