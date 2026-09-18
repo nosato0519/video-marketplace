@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="page">
-<header class="top"><div class="logo">VIDEO MARKETPLACE</div><div style="display:flex;align-items:center;gap:18px"><a class="back" href="/pages/cart.html">🛒 カート <span id="cartCount">0</span></a><a class="back" href="/">← TOP</a></div></header>
+<header class="top"><div class="logo">VIDEO MARKETPLACE</div><div style="display:flex;align-items:center;gap:18px"><a class="back" href="/pages/cart.html">🛒 カート <span id="cartCount">0</span></a><a class="back" href="/" id="topLink">← TOP</a></div></header>
 <section class="hero"><div><div class="kicker">DISCOVER VIDEO</div><h1>動画を探す。</h1></div><p>映画、学び、クリエイター作品、ビジネス、ライフスタイルまで。<br>あなたが観たい一本を、カテゴリーや条件から自由に見つけられます。</p></section>
 <div class="search"><input aria-label="動画を検索" placeholder="作品名・クリエイター・キーワードで検索"><button>検索</button></div>
 <div class="filters"><span class="filter active">すべて</span><span class="filter">映像作品</span><span class="filter">教育</span><span class="filter">ビジネス</span><span class="filter">クリエイティブ</span><span class="filter">ライフスタイル</span><span class="filter">音楽</span><span class="filter">アダルト</span></div>
@@ -95,4 +95,4 @@
   if(grid)observer.observe(grid,{childList:true});
   apply();
 })();
-</script></body></html>
+</script><script>document.getElementById("topLink")?.addEventListener("click",e=>{e.preventDefault();location.assign("/");});</script></body></html>
