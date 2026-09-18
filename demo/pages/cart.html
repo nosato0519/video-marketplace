@@ -8,6 +8,7 @@
 <section class="hero"><div class="kicker">SHOPPING CART</div><h1>カート</h1><p>あとで購入したい動画をまとめて管理できます。複数の商品を一度に確認して、そのまままとめて購入できます。</p></section>
 <div id="app"></div></div>
 <script>
+if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));}
 const KEY='vm_cart';
 const fallback={
   1:{id:'1',title:'Creator Masterclass',category:'EDUCATION',seller:'Nova Studio',price:2980,meta:'4K • 78:14',thumb:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80'},
