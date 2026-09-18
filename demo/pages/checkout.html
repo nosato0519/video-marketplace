@@ -34,11 +34,13 @@ function applySingle(p){
  document.querySelector('.pay').textContent='¥'+Number(p.price||0).toLocaleString()+' を購入する';
  const thumb=p.thumbnailData||p.thumbnail||'';if(thumb)document.querySelector('.thumb').style.backgroundImage="url('"+thumb.replace(/'/g,'%27')+"')";
 }
-function setupCartCheckout(){
+async function setupCartCheckout(){
  if(!isCart)return;
  const ids=getCart();if(!ids.length){location.href='/pages/cart.html';return;}
  const store=getSellerStore();
- const items=ids.map(id=>{const p=store[id];if(p)return{id,title:p.title||'販売者動画',seller:p.seller||'Demo Creator',price:Number(p.price||0)};const b=base[id];return b?{id,title:b[0],seller:b[1],price:b[2]}:null}).filter(Boolean);
+ let remote={};
+ try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(r.ok){const d=await r.json();(d.sellerProducts||[]).forEach(p=>{remote[String(p.id)]=p})}}catch(e){}
+ const items=ids.map(id=>{const p=remote[id]||store[id];if(p)return{id,title:p.title||'販売者動画',seller:p.seller||'Demo Creator',price:Number(p.price||0)};const b=base[id];return b?{id,title:b[0],seller:b[1],price:b[2]}:null}).filter(Boolean);
  if(!items.length){location.href='/pages/cart.html';return;}
  const total=items.reduce((sum,p)=>sum+p.price,0);
  document.querySelector('.item h3').textContent=items.length===1?items[0].title:items.length+'件の商品';
@@ -49,7 +51,7 @@ function setupCartCheckout(){
  const n=document.getElementById('cartNotice');if(n){n.style.display='block';n.textContent=items.length+'件の商品をまとめて購入します。';}
  window.__cartItems=items;
 }
-setupCartCheckout();loadRemoteSeller();
+setupCartCheckout().then(()=>loadRemoteSeller());
 async function completePurchase(){
  const sellerProductId=params.get('sellerProductId')||'',productId=params.get('product')||'1';
  const fields=[['card-name','card-name-error'],['card-number','card-number-error'],['expiry','expiry-error'],['security-code','security-code-error']];let valid=true;
