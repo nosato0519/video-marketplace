@@ -48,4 +48,50 @@
     if(count)count.textContent=(6248+items.length).toLocaleString()+'作品';
   }catch(e){}
 })();
-</script></body></html>
+<script>
+(()=> {
+  const input=document.querySelector('.search input');
+  const searchButton=document.querySelector('.search button');
+  const filterButtons=[...document.querySelectorAll('.filters .filter')];
+  const sort=document.querySelector('.sort');
+  const grid=document.getElementById('videoGrid');
+  const count=document.querySelector('.count');
+  let activeCategory='すべて';
+  let query='';
+  function apply(){
+    if(!grid)return;
+    const cards=[...grid.querySelectorAll('.card')];
+    cards.forEach(card=>{
+      const text=card.textContent.toLowerCase();
+      const category=(card.querySelector('.cat')?.textContent||'').trim().toLowerCase();
+      const q=query.trim().toLowerCase();
+      const categoryOk=activeCategory==='すべて'||category===activeCategory.toLowerCase()||category.includes(activeCategory.toLowerCase());
+      const queryOk=!q||text.includes(q);
+      card.style.display=categoryOk&&queryOk?'':'none';
+    });
+    const visible=cards.filter(card=>card.style.display!=='none');
+    const value=sort?.value||'おすすめ順';
+    visible.sort((a,b)=>{
+      const priceA=Number((a.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
+      const priceB=Number((b.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
+      const ratingA=parseFloat((a.querySelector('.meta span')?.textContent||'').replace(/[^0-9.]/g,''))||0;
+      const ratingB=parseFloat((b.querySelector('.meta span')?.textContent||'').replace(/[^0-9.]/g,''))||0;
+      if(value==='価格の安い順')return priceA-priceB;
+      if(value==='評価の高い順')return ratingB-ratingA;
+      return 0;
+    }).forEach(card=>grid.appendChild(card));
+    if(count)count.textContent=visible.length+'作品';
+  }
+  searchButton?.addEventListener('click',apply);
+  input?.addEventListener('keydown',e=>{if(e.key==='Enter')apply()});
+  sort?.addEventListener('change',apply);
+  filterButtons.forEach(btn=>btn.addEventListener('click',()=>{
+    activeCategory=btn.textContent.trim();
+    filterButtons.forEach(b=>b.classList.toggle('active',b===btn));
+    apply();
+  }));
+  const observer=new MutationObserver(()=>apply());
+  if(grid)observer.observe(grid,{childList:true});
+  apply();
+})();
+</script></script></body></html>
