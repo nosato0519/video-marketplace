@@ -91,7 +91,14 @@
     filterButtons.forEach(b=>b.classList.toggle('active',b===btn));
     apply();
   }));
-  const observer=new MutationObserver(()=>apply());
+  let applying=false;
+  const observer=new MutationObserver(mutations=>{
+    if(applying)return;
+    const added=mutations.some(m=>m.addedNodes&&m.addedNodes.length);
+    if(!added)return;
+    applying=true;
+    try{apply();}finally{applying=false;}
+  });
   if(grid)observer.observe(grid,{childList:true});
   apply();
 })();
