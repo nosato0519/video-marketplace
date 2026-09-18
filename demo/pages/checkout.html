@@ -17,7 +17,7 @@
 </div></main>
 <script>
 function completePurchase(){
-  const fields=[
+  const params=new URLSearchParams(location.search);const sellerProductId=params.get('sellerProductId')||'';const productId=params.get('product')||'1';let sellerStore={};try{sellerStore=JSON.parse(localStorage.getItem('vm_seller_products')||'{}')}catch{}const custom=sellerProductId?sellerStore[sellerProductId]:null;if(custom){document.querySelector('.item h3').textContent=custom.title;document.querySelector('.item .meta').innerHTML=`${custom.seller||'Demo Creator'}<br>${custom.category||'VIDEO'}<br>デジタル動画コンテンツ`;document.querySelector('.price').innerHTML='<span>商品価格</span><span>¥'+Number(custom.price||0).toLocaleString()+'</span>';document.querySelector('.total').innerHTML='<span>お支払い合計</span><span>¥'+Number(custom.price||0).toLocaleString()+'</span>';document.querySelector('.pay').textContent='¥'+Number(custom.price||0).toLocaleString()+' を購入する';const thumb=custom.thumbnail;if(thumb)document.querySelector('.thumb').style.backgroundImage=`url('${thumb}')`;}const fields=[
     ['card-name','card-name-error'],
     ['card-number','card-number-error'],
     ['expiry','expiry-error'],
