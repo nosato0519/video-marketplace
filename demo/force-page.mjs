@@ -84,7 +84,7 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
     filters.forEach(f => f.addEventListener('click', () => { filters.forEach(x => x.classList.remove('active')); f.classList.add('active'); activeCategory = categoryMap[f.textContent.trim()] || ''; apply(); }));
     sideChecks.forEach(check => check.addEventListener('change', apply));
     sort?.addEventListener('change', () => { const mode = sort.value, value = c => c.querySelector('.price')?.textContent.replace(/[^0-9]/g,'') * 1 || 0, rating = c => parseFloat(c.querySelector('.meta')?.textContent.match(/([0-9.]+)/)?.[1] || '0'), title = c => c.querySelector('.title')?.textContent.trim() || ''; const ordered = mode === 'おすすめ順' ? [...originalOrder] : [...cards].sort((a,b) => mode === '価格の安い順' ? value(a)-value(b) : mode === '評価の高い順' ? rating(b)-rating(a) : mode === '新着順' ? (b.querySelector('.badge')?.textContent === 'NEW')-(a.querySelector('.badge')?.textContent === 'NEW') : title(a).localeCompare(title(b))); ordered.forEach(c => grid.appendChild(c)); grid.appendChild(empty); });
-    cards.forEach(card => card.addEventListener('click', () => go('/pages/product-detail.html'))); more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
+    // Keep each card's existing product URL so product IDs are preserved. more?.addEventListener('click', () => alert('デモ版では代表6作品を表示しています。'));
   }
   if (path === '/pages/creator-studio.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
   if (path === '/pages/admin.html') document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alert('デモ版のため、この操作は画面上の演出のみです。')));
