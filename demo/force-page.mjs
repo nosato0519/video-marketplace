@@ -50,6 +50,14 @@ const DEMO_FUNCTION_SCRIPT = `<script id="demo-function-integration">
   }
 
   if (path === '/pages/video-list.html') {
+    // Keep TOP navigation authoritative even when page-level scripts add click handlers.
+    document.addEventListener('click', e => {
+      const link = e.target.closest('#topLink');
+      if (!link) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.location.assign('/');
+    }, true);
     const grid = document.querySelector('.grid');
     const input = document.querySelector('.search input');
     const searchButton = document.querySelector('.search button');
