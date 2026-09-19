@@ -7,7 +7,6 @@
         if (!r.ok) throw new Error(d.error || 'request failed');
         return d;
       });
-      await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
       const state = await api('/api/demo/state');
       const esc = v => String(v ?? '').replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
       const productMap = new Map((state.products||[]).map(p=>[String(p.id),p]));
