@@ -92,11 +92,11 @@
   const api=async(path,options={})=>{const r=await fetch(path,{credentials:'same-origin',...options,headers:{'content-type':'application/json',...(options.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d};
   await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
   const d=await api('/api/demo/state'), esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-  const orders=Array.isArray(d.orders)?d.orders:[], sessions=[];
+  const orders=Array.isArray(d.orders)?d.orders:[], sessions=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
   const seen=new Set();
-  orders.forEach(o=>{if(!seen.has(o.sessionId)){seen.add(o.sessionId);sessions.push(o.sessionId)}});
+  orders.forEach(o=>seen.add(o.sessionId));
   const buyerEl=document.getElementById('buyerList'), orderEl=document.getElementById('orderList');
-  buyerEl.innerHTML=sessions.length?sessions.map((id,i)=>'<div class="buyer-row"><div><strong>購入者 '+(i+1)+'</strong><small>セッション '+esc(id)+'　/　注文 '+orders.filter(o=>o.sessionId===id).length+'件</small></div><span class="status ok">ACTIVE</span></div>').join(''):'<div class="notice">購入者の注文データはまだありません。</div>';
+  buyerEl.innerHTML=sessions.length?sessions.map((x,i)=>'<div class="buyer-row"><div><strong>購入者 '+(i+1)+'</strong><small>'+esc(x.account?.email||'')+'　/　購入 '+x.purchases.length+'件　/　カート '+x.cart.length+'件　/　注文 '+x.orderCount+'件</small></div><span class="status ok">ACTIVE</span></div>').join(''):'<div class="notice">購入者の注文データはまだありません。</div>';
   orderEl.innerHTML=orders.length?orders.map(o=>'<div class="buyer-row"><div><strong>'+esc(o.id)+'</strong><small>商品ID '+esc(o.productId)+'　/　¥'+Number(o.total||0).toLocaleString()+'　/　'+esc(o.createdAt||'')+'</small></div><span class="status ok">'+esc(o.status)+'</span></div>').join(''):'<div class="notice">注文はありません。</div>';
  }catch(e){console.error('buyer admin',e)}
 })();
