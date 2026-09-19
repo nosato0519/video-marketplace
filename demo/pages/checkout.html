@@ -29,7 +29,6 @@ async function ensureBuyerSession(){
  }
  return true;
 }
-const buyerSessionReady=ensureBuyerSession();
 let serverCart=[];
 async function getCart(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return[];const d=await r.json();serverCart=Array.isArray(d.cart)?d.cart.map(String):[];return serverCart}catch{return[]}}
 function getSellerStore(){try{const x=JSON.parse(localStorage.getItem('vm_seller_products')||'{}');const list=Array.isArray(x)?x:(x&&Array.isArray(x.products)?x.products:Object.values(x&&typeof x==='object'?x:{}));return Object.fromEntries(list.filter(p=>p&&p.id!=null).map(p=>[String(p.id),p]));}catch{return{}}}
@@ -64,12 +63,15 @@ async function setupCartCheckout(){
  const n=document.getElementById('cartNotice');if(n){n.style.display='block';n.textContent=items.length+'件の商品をまとめて購入します。';}
  window.__cartItems=items;
 }
-const checkoutReady=Promise.all([
- buyerSessionReady,
- setupCartCheckout().then(()=>loadRemoteSeller())
-]);
+const checkoutReady=(async()=>{
+ const buyerReady=await ensureBuyerSession();
+ if(!buyerReady)return false;
+ await setupCartCheckout();
+ await loadRemoteSeller();
+ return true;
+})();
 async function completePurchase(){
- const [buyerReady]=await checkoutReady;
+ const buyerReady=await checkoutReady;
  if(!buyerReady)return;
  const sellerProductId=params.get('sellerProductId')||'',productId=params.get('product')||'1';
  const fields=[['card-name','card-name-error'],['card-number','card-number-error'],['expiry','expiry-error'],['security-code','security-code-error']];let valid=true;
