@@ -57,18 +57,18 @@
 (()=> {
   const input=document.querySelector('.search input');
   const searchButton=document.querySelector('.search button');
-  grid.addEventListener('click',e=>{
-    const card=e.target.closest('.card');
-    if(!card||!grid.contains(card))return;
-    const target=card.dataset.productUrl;
-    if(target)location.href=target;
-  });
   const filterButtons=[...document.querySelectorAll('.filters .filter')];
   const sideChecks=[...document.querySelectorAll('.side input[type="checkbox"]')];
   const sort=document.querySelector('.sort');
   const grid=document.getElementById('videoGrid');
   const count=document.querySelector('.count');
   if(!grid)return;
+  grid.addEventListener('click',e=>{
+    const card=e.target.closest('.card');
+    if(!card||!grid.contains(card))return;
+    const target=card.dataset.productUrl;
+    if(target)location.href=target;
+  });
   let activeCategory='すべて';
   let listExpanded=false;
   const categoryMap={'映像作品':['FILM','DOCUMENTARY','TRAVEL','CULTURE'],'教育':['EDUCATION','LEARNING'],'ビジネス':['BUSINESS'],'クリエイティブ':['CREATIVE'],'ライフスタイル':['LIFESTYLE'],'音楽':['MUSIC'],'アダルト':['ADULT']};
