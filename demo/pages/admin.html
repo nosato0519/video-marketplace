@@ -17,7 +17,7 @@
 <header class="top"><a class="logo" href="/">VIDEO MARKETPLACE</a><a class="back" href="/">← TOP</a></header>
 <main class="wrap">
 <div class="eyebrow">ADMIN / CONTROL CENTER</div>
-<section class="head"><div><h1 class="title">サイトを、管理する。</h1><p class="lead">動画・販売者・購入者・売上・審査・セキュリティまで、マーケットプレイス全体を一つの管理画面から確認・運用できる管理者向けダッシュボードです。</p></div><span class="badge">SYSTEM HEALTH　● OPERATIONAL</span></section>
+<section class="head"><div><h1 class="title">サイトを、管理する。</h1><p class="lead">動画・販売者・購入者・売上・審査・セキュリティまで、マーケットプレイス全体を一つの管理画面から確認・運用できる管理者向けダッシュボードです。</p></div><span class="badge" id="systemHealth">SYSTEM HEALTH　● CHECKING</span></section>
 <nav class="admin-links" aria-label="管理画面ショートカット">
 <a href="/pages/creator-studio.html"><b>販売者</b><span>登録・動画・売上・分析</span></a>
 <a href="/pages/video-list.html"><b>購入者</b><span>一覧・検索・カート・購入</span></a>
@@ -75,6 +75,9 @@
   document.getElementById('queueSellers').textContent=sellers.filter(x=>x.status==='pending').length+'件';
   document.getElementById('queueVideos').textContent=(Array.isArray(d.moderationQueue)?d.moderationQueue:[]).filter(x=>x.status==='pending').length+'件';
   document.getElementById('queuePayouts').textContent=(Array.isArray(d.payouts)?d.payouts:[]).filter(x=>x.status==='reviewing').length+'件';
+  const pendingModeration=(Array.isArray(d.moderationQueue)?d.moderationQueue:[]).filter(x=>x.status==='pending').length;
+  document.getElementById('queueReports').textContent='0件';
+  document.getElementById('systemHealth').textContent='SYSTEM HEALTH　● OPERATIONAL';
   const list=document.getElementById('adminVideoList');
   const items=[...(Array.isArray(d.products)?d.products:[]),...(Array.isArray(d.sellerProducts)?d.sellerProducts:[])];
   const mods=Array.isArray(d.moderationQueue)?d.moderationQueue:[];
