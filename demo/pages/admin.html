@@ -32,11 +32,11 @@
 <div class="panel"><div class="panel-head"><strong>審査・運営キュー</strong><span>REVIEW QUEUE</span></div>
 <div class="row"><div><h3>新規クリエイター申請</h3><p>本人確認・販売条件・振込先情報の確認</p></div><span class="status">8件</span><button class="action" type="button">確認する →</button></div>
 <div class="row"><div><h3>動画コンテンツ審査</h3><p>公開前コンテンツの審査待ち</p></div><span class="status">24件</span><button class="action" type="button">審査する →</button></div>
-<div class="row"><div><h3>報告・通報</h3><p>ユーザーから報告されたコンテンツ・アカウント</p></div><span class="status ok">3件</span><button class="action" type="button">対応する →</button></div>
+<div class="row"><div><h3>報告・通報</h3><p>ユーザーから報告されたコンテンツ・アカウント</p></div><span class="status">0件</span><button class="action" type="button">対応する →</button></div>
 <div class="row"><div><h3>出金申請</h3><p>クリエイターからの売上出金リクエスト</p></div><span class="status">11件</span><button class="action" type="button">処理する →</button></div>
 </div>
 <div class="stack">
-<aside class="panel"><div class="eyebrow">TODAY</div><div class="list"><div class="item"><span>新規購入</span><span>184件</span></div><div class="item"><span>新規登録</span><span>67件</span></div><div class="item"><span>動画公開</span><span>31件</span></div><div class="item"><span>出金処理</span><span>¥284,000</span></div></div></aside>
+<aside class="panel"><div class="eyebrow">TODAY</div><div class="list"><div class="item"><span>新規購入</span><span id="todayOrders">0件</span></div><div class="item"><span>新規登録</span><span id="todayUsers">0件</span></div><div class="item"><span>動画公開</span><span id="todayPublished">0件</span></div><div class="item"><span>出金処理</span><span id="todayPayout">¥0</span></div></div></aside>
 <aside class="panel"><div class="eyebrow">PLATFORM HEALTH</div><div class="bars"><div><div class="bar"><span>動画配信</span><span>99.98%</span></div><div class="track"><i style="width:99.98%"></i></div></div><div><div class="bar"><span>決済</span><span>99.99%</span></div><div class="track"><i style="width:99.99%"></i></div></div><div><div class="bar"><span>ストレージ</span><span>68%</span></div><div class="track"><i style="width:68%"></i></div></div></div><div class="notice">認証・決済・コンテンツ審査・出金の主要フローを監視中。異常は管理者へ通知される想定です。</div></aside>
 </div>
 </section>
@@ -67,6 +67,11 @@
   document.getElementById('metricUsers').textContent=buyers.length.toLocaleString();
   document.getElementById('metricCreators').textContent=creatorNames.size.toLocaleString();
   document.getElementById('metricContent').textContent=allProducts.filter(p=>p.status==='published').length.toLocaleString();
+  const today=new Date().toISOString().slice(0,10), todayOrders=orders.filter(o=>String(o.createdAt||'').slice(0,10)===today), todayPayouts=(Array.isArray(d.payouts)?d.payouts:[]).filter(p=>String(p.createdAt||'').slice(0,10)===today);
+  document.getElementById('todayOrders').textContent=todayOrders.length+'件';
+  document.getElementById('todayUsers').textContent=buyers.length+'件';
+  document.getElementById('todayPublished').textContent=allProducts.filter(p=>p.status==='published').length+'件';
+  document.getElementById('todayPayout').textContent='¥'+todayPayouts.reduce((n,p)=>n+Number(p.amount||0),0).toLocaleString();
   const list=document.getElementById('adminVideoList');
   const items=[...(Array.isArray(d.products)?d.products:[]),...(Array.isArray(d.sellerProducts)?d.sellerProducts:[])];
   const mods=Array.isArray(d.moderationQueue)?d.moderationQueue:[];
