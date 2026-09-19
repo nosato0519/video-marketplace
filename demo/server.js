@@ -27,6 +27,18 @@ const moderationQueue = [{ id: 'MOD-1001', title: 'New Creator Course', seller: 
 const sellerApplications = [{ id: 'SEL-1001', seller: 'Demo Creator', status: 'pending' }];
 function json(res, status, value) { const body = JSON.stringify(value); res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(body); }
 function page(res) { readFile(INDEX).then(body => { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }); res.end(body); }).catch(() => json(res, 500, { error: 'demo page unavailable' })); }
+const DEMO_PAGES = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/cart.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html','/pages/sales-history.html','/pages/product-edit.html']);
+async function demoPage(res, pathname) {
+  if (!DEMO_PAGES.has(pathname)) return false;
+  try {
+    const body = await readFile(join(ROOT, pathname.slice(1)));
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    res.end(body);
+  } catch {
+    json(res, 404, { error: 'PAGE_NOT_FOUND' });
+  }
+  return true;
+}
 function session(req, res) { const cookie = req.headers.cookie || ''; const match = cookie.match(/vidora_demo=([^;]+)/); if (match && sessions.has(match[1])) return sessions.get(match[1]); const id = randomUUID(); const value = { id, role: 'buyer', purchases: new Set(), cart: new Set(), uploaded: [], account: { email: 'demo-buyer@example.test', verified: true } }; sessions.set(id, value); res.setHeader('set-cookie', `vidora_demo=${id}; Path=/; HttpOnly; SameSite=Lax`); return value; }
 async function body(req) { let data = ''; for await (const chunk of req) data += chunk; if (!data) return {}; try { return JSON.parse(data); } catch { return {}; } }
 function requireRole(s, role, res) { if (s.role !== role) { json(res, 403, { error: 'ROLE_REQUIRED', role }); return false; } return true; }
@@ -34,6 +46,7 @@ function state(s) { return { role: s.role, account: s.account, products: product
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`); const s = session(req, res);
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return page(res);
+  if (req.method === 'GET' && await demoPage(res, url.pathname)) return;
   if (req.method === 'GET' && url.pathname === '/api/demo/state') return json(res, 200, state(s));
   if (req.method === 'POST' && url.pathname === '/api/demo/cart') {
     const data=await body(req),action=String(data.action||'add'),productId=String(data.productId||'');
