@@ -60,7 +60,7 @@
 (async()=>{
  try{
   const api=window.demoApi;
-  const d=await api('/api/demo/state');
+  const d=await window.demoState;
   const products=Array.isArray(d.products)?d.products:[], sellerProducts=Array.isArray(d.sellerProducts)?d.sellerProducts:[], orders=Array.isArray(d.orders)?d.orders:[], sellers=Array.isArray(d.sellerApplications)?d.sellerApplications:[], buyers=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
   const allProducts=[...products,...sellerProducts], sales=orders.reduce((n,o)=>n+Number(o.total||0),0), creatorNames=new Set(sellerProducts.map(p=>p.seller||'販売者未設定'));
   document.getElementById('metricSales').textContent='¥'+sales.toLocaleString();
@@ -112,7 +112,7 @@
 (async()=>{
  try{
   const api=window.demoApi;
-  const d=await api('/api/demo/state'), esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  const d=await window.demoState, esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const orders=Array.isArray(d.orders)?d.orders:[], sessions=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
   const buyerEl=document.getElementById('buyerList'), orderEl=document.getElementById('orderList');
   buyerEl.innerHTML=sessions.length?sessions.map((x,i)=>'<div class="buyer-row"><div><strong>購入者 '+(i+1)+'</strong><small>'+esc(x.account?.email||'')+'　/　購入 '+x.purchases.length+'件　/　カート '+x.cart.length+'件　/　注文 '+x.orderCount+'件</small></div><span class="status ok">ACTIVE</span></div>').join(''):'<div class="notice">購入者の注文データはまだありません。</div>';
@@ -124,7 +124,7 @@
  try{
   const api=window.demoApi;
   await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
-  const d=await api('/api/demo/state'), orders=Array.isArray(d.orders)?d.orders:[], products=[...(d.products||[]),...(d.sellerProducts||[])], payouts=Array.isArray(d.payouts)?d.payouts:[];
+  const d=await window.demoState, orders=Array.isArray(d.orders)?d.orders:[], products=[...(d.products||[]),...(d.sellerProducts||[])], payouts=Array.isArray(d.payouts)?d.payouts:[];
   const sellerMap=new Map(); orders.forEach(o=>{const p=products.find(x=>String(x.id)===String(o.productId));if(!p)return;const key=p.seller||'販売者未設定';const x=sellerMap.get(key)||{seller:key,count:0,total:0};x.count++;x.total+=Number(o.total||p.price||0);sellerMap.set(key,x)});
   const yen=n=>'¥'+Number(n||0).toLocaleString(), sales=[...sellerMap.values()].sort((x,y)=>y.total-x.total);
   document.getElementById('adminTotalSales').textContent=yen(orders.reduce((n,o)=>n+Number(o.total||0),0));
@@ -138,7 +138,7 @@
 (async()=>{
  try{
   const api=window.demoApi;
-  const d=await api('/api/demo/state'), products=Array.isArray(d.sellerProducts)?d.sellerProducts:[], esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  const d=await window.demoState, products=Array.isArray(d.sellerProducts)?d.sellerProducts:[], esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const map=new Map(); products.forEach(p=>{const key=p.seller||'販売者未設定',x=map.get(key)||{seller:key,products:[]};x.products.push(p);map.set(key,x)});
   const list=[...map.values()];
   document.getElementById('sellerDirectory').innerHTML=list.length?list.map(x=>{
