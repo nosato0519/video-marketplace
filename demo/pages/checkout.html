@@ -85,10 +85,19 @@ async function completePurchase(){
  const freshCart=Array.isArray(stateData.cart)?stateData.cart.map(String):[];
  const targets=isCart?freshCart.map(id=>({id})):[{id:sellerProductId||productId}];
  if(!targets.length)throw new Error('CART_EMPTY');
+ const localSeller=getSellerStore();
+ const snapshotFor=id=>{
+  const key=String(id);
+  if(remoteSeller&&String(remoteSeller.id)===key)return remoteSeller;
+  const cartItem=Array.isArray(window.__cartItems)?window.__cartItems.find(x=>String(x.id)===key):null;
+  if(cartItem)return cartItem;
+  return localSeller[key]||null;
+ };
  try{
   const results=[];
   for(const x of targets){
-   const r=await fetch('/api/demo/purchase',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({productId:String(x.id)})});
+   const snapshot=snapshotFor(x.id);
+   const r=await fetch('/api/demo/purchase',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({productId:String(x.id),product:snapshot&&String(x.id).startsWith('USR-')?{id:String(x.id),title:snapshot.title||'販売者動画',category:snapshot.category||'Education',price:Number(snapshot.price||0),seller:snapshot.seller||'Demo Creator',status:'published'}:null})});
    const d=await r.json();if(!r.ok)throw new Error(d.error||'PURCHASE_FAILED');results.push(d);
   }
   if(isCart){await fetch('/api/demo/cart',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action:'clear'})});serverCart=[];}
