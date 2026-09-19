@@ -9,20 +9,11 @@
 <div id="app"></div></div>
 <script>
 if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));}
-const KEY='vm_cart';
-const fallback={
-  1:{id:'1',title:'Creator Masterclass',category:'EDUCATION',seller:'Nova Studio',price:2980,meta:'4K • 78:14',thumb:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80'},
-  2:{id:'2',title:'Cinematic Travel Pack',category:'FILM',seller:'Luma Collective',price:2280,meta:'4K • 52:08',thumb:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80'},
-  3:{id:'3',title:'Build Your Digital Product',category:'BUSINESS',seller:'Alex Rivera',price:3480,meta:'1080P • 96:20',thumb:'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=80'},
-  4:{id:'4',title:'Motion Design Toolkit',category:'CREATIVE',seller:'Mika Chen',price:1780,meta:'4K • 41:22',thumb:'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=800&q=80'},
-  5:{id:'5',title:'Designing Ideas',category:'LEARNING',seller:'Frame Lab',price:2480,meta:'COURSE • 64:12',thumb:'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80'},
-  6:{id:'6',title:'Mountain Silence',category:'LIFESTYLE',seller:'YAMA FILM',price:1200,meta:'NEW • 42:05',thumb:'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80'}
-};
-function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?[...new Set(x.map(String))]:[]}catch{return[]}}
-function write(items){localStorage.setItem(KEY,JSON.stringify(items));render()}
-let remoteSellerProducts={};
-function sellerProducts(){try{const x=JSON.parse(localStorage.getItem('vm_seller_products')||'{}');const list=Array.isArray(x)?x:(x&&Array.isArray(x.products)?x.products:Object.values(x&&typeof x==='object'?x:{}));return Object.fromEntries(list.filter(p=>p&&p.id!=null).map(p=>[String(p.id),p]));}catch{return{}}}
-function all(){const custom={...sellerProducts(),...remoteSellerProducts};return Object.values(custom).reduce((acc,p)=>{acc[String(p.id)]={id:String(p.id),title:p.title||'販売者動画',category:p.category||'VIDEO',seller:p.seller||'Demo Creator',price:Number(p.price||0),meta:'販売者登録動画',thumb:p.thumbnailData||p.thumbnail||'',sellerProductId:String(p.id)};return acc},Object.fromEntries(Object.entries(fallback).map(([k,v])=>[k,v])))}
+let cartIds=[],catalog={};
+async function loadCartState(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;const d=await r.json();cartIds=Array.isArray(d.cart)?d.cart.map(String):[];catalog={};(Array.isArray(d.products)?d.products:[]).forEach(v=>{if(v&&v.id!=null)catalog[String(v.id)]=v});(Array.isArray(d.sellerProducts)?d.sellerProducts:[]).forEach(v=>{if(v&&v.id!=null)catalog[String(v.id)]=v});render();}catch(e){}}
+function read(){return cartIds}
+async function write(items){const target=[...new Set(items.map(String))],current=new Set(cartIds);for(const id of current)if(!target.includes(id))await fetch('/api/demo/cart',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action:'remove',productId:id})});for(const id of target)if(!current.has(id))await fetch('/api/demo/cart',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action:'add',productId:id})});cartIds=target;render()}
+function all(){return Object.fromEntries(Object.entries(catalog).map(([id,p])=>[id,{id:String(p.id),title:p.title||'販売者動画',category:p.category||'VIDEO',seller:p.seller||'Demo Creator',price:Number(p.price||0),meta:p.meta||'動画コンテンツ',thumb:p.thumbnailData||p.thumbnail||''}]))}
 function render(){const items=read().map(String);const data=all();const valid=[...new Set(items)].map(id=>data[id]).filter(Boolean);const app=document.getElementById('app');if(!valid.length){app.innerHTML='<section class="panel empty"><strong>カートは空です。</strong><span>気になる動画を追加して、まとめて購入できます。</span><br><a href="/pages/video-list.html">動画を探す →</a></section>';return}
 const total=valid.reduce((s,p)=>s+p.price,0);
 app.innerHTML='<div class="layout"><section class="panel"><h2>カートの商品 <span style="font-size:11px;color:#77746f">('+valid.length+'件)</span></h2>'+valid.map(p=>'<article class="cart-item"><div class="thumb" style="background-image:url(\''+String(p.thumb).replace(/'/g,'%27')+'\')"></div><div><div class="cat">'+String(p.category).toUpperCase()+'</div><div class="title">'+escapeHtml(p.title)+'</div><div class="meta">'+escapeHtml(p.seller)+'<br>'+escapeHtml(p.meta)+'</div><button class="remove" type="button" data-remove="'+escapeHtml(p.id)+'">カートから削除</button></div><div class="price">¥'+p.price.toLocaleString()+'</div></article>').join('')+'</section><aside class="panel summary"><h2>注文概要</h2><div class="line"><span>商品数</span><span>'+valid.length+'件</span></div><div class="line"><span>商品合計</span><span>¥'+total.toLocaleString()+'</span></div><div class="line"><span>手数料</span><span>¥0</span></div><div class="line total"><span>合計</span><span>¥'+total.toLocaleString()+'</span></div><a class="checkout" href="/pages/checkout.html?cart=1">まとめて購入する →</a><button class="clear" type="button" id="clearCart">カートを空にする</button></aside></div>';
@@ -30,6 +21,5 @@ document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click'
 document.getElementById('clearCart').addEventListener('click',()=>{if(confirm('カートを空にしますか？'))write([])});
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-render();
-(async()=>{try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;const d=await r.json();(d.sellerProducts||[]).forEach(p=>{remoteSellerProducts[String(p.id)]=p});render()}catch(e){}})();
+loadCartState();
 </script></body></html>
