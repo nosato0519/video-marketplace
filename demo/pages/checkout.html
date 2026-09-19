@@ -21,7 +21,7 @@ const params=new URLSearchParams(location.search),isCart=params.get('cart')==='1
 let serverCart=[];
 async function getCart(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return[];const d=await r.json();serverCart=Array.isArray(d.cart)?d.cart.map(String):[];return serverCart}catch{return[]}}
 function getSellerStore(){try{const x=JSON.parse(localStorage.getItem('vm_seller_products')||'{}');const list=Array.isArray(x)?x:(x&&Array.isArray(x.products)?x.products:Object.values(x&&typeof x==='object'?x:{}));return Object.fromEntries(list.filter(p=>p&&p.id!=null).map(p=>[String(p.id),p]));}catch{return{}}}
-const base={1:['Creator Masterclass','Nova Studio',2980],2:['Cinematic Travel Pack','Luma Collective',2280],3:['Build Your Digital Product','Alex Rivera',3480],4:['Motion Design Toolkit','Mika Chen',1780],5:['Designing Ideas','Frame Lab',2480],6:['Mountain Silence','YAMA FILM',1200]};
+const base={1:['Creator Masterclass','Nova Studio',2980],2:['Cinematic Travel Pack','Luma Collective',2280],3:['Build Your Digital Product','Alex Rivera',3480],4:['Motion Design Toolkit','Mika Chen',1780],5:['18+ After Dark Collection','Velvet Studio',2200],6:['Mountain Silence','YAMA FILM',1200],7:['Future Sound Sessions','Pulse Works',1600],8:['Visual Storytelling Lab','Frame House',1800]};
 let remoteSeller=null;
 async function loadRemoteSeller(){
  const id=params.get('sellerProductId');if(!id)return;
