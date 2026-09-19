@@ -15,6 +15,9 @@ const products = [
   { id: 3, title: 'Build Your Digital Product', category: 'Business', seller: 'Alex Rivera', price: 29, rating: 5, meta: '1080p • 96 min', kind: 'biz' },
   { id: 4, title: 'Motion Design Toolkit', category: 'Creative', seller: 'Mika Chen', price: 15, rating: 4.7, meta: '4K • 41 min', kind: 'creative' },
   { id: 5, title: '18+ After Dark Collection', category: 'Adult', seller: 'Velvet Studio', price: 22, rating: 4.8, meta: 'HD • 64 min • 18+', kind: 'adult' },
+  { id: 6, title: 'Mountain Silence', category: 'Lifestyle', seller: 'YAMA FILM', price: 12, rating: 4.8, meta: 'HD • 42 min', kind: 'lifestyle' },
+  { id: 7, title: 'Future Sound Sessions', category: 'Music', seller: 'Pulse Works', price: 16, rating: 4.9, meta: '4K • 58 min', kind: 'music' },
+  { id: 8, title: 'Visual Storytelling Lab', category: 'Creative', seller: 'Frame House', price: 18, rating: 4.8, meta: '1080p • 72 min', kind: 'story' },
 ];
 const sessions = new Map();
 const orders = [];
