@@ -123,7 +123,6 @@
 (async()=>{
  try{
   const api=window.demoApi;
-  await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
   const d=await window.demoState, orders=Array.isArray(d.orders)?d.orders:[], products=[...(d.products||[]),...(d.sellerProducts||[])], payouts=Array.isArray(d.payouts)?d.payouts:[];
   const sellerMap=new Map(); orders.forEach(o=>{const p=products.find(x=>String(x.id)===String(o.productId));if(!p)return;const key=p.seller||'販売者未設定';const x=sellerMap.get(key)||{seller:key,count:0,total:0};x.count++;x.total+=Number(o.total||p.price||0);sellerMap.set(key,x)});
   const yen=n=>'¥'+Number(n||0).toLocaleString(), sales=[...sellerMap.values()].sort((x,y)=>y.total-x.total);
