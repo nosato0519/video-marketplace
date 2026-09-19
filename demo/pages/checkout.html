@@ -64,9 +64,12 @@ async function setupCartCheckout(){
  const n=document.getElementById('cartNotice');if(n){n.style.display='block';n.textContent=items.length+'件の商品をまとめて購入します。';}
  window.__cartItems=items;
 }
-setupCartCheckout().then(()=>loadRemoteSeller());
+const checkoutReady=Promise.all([
+ buyerSessionReady,
+ setupCartCheckout().then(()=>loadRemoteSeller())
+]);
 async function completePurchase(){
- const buyerReady=await buyerSessionReady;
+ const [buyerReady]=await checkoutReady;
  if(!buyerReady)return;
  const sellerProductId=params.get('sellerProductId')||'',productId=params.get('product')||'1';
  const fields=[['card-name','card-name-error'],['card-number','card-number-error'],['expiry','expiry-error'],['security-code','security-code-error']];let valid=true;
