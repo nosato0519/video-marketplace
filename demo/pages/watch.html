@@ -53,10 +53,6 @@ function setVideo(blobOrUrl){
 }
 async function loadWatch(){
   if(!id)return;
-  if(localStorage.getItem('vm_auth_role')!=='buyer'){
-    location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));
-    return;
-  }
   try{
     const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});
     if(!r.ok)throw new Error('STATE_FAILED');
