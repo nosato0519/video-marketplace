@@ -57,6 +57,12 @@
 (()=> {
   const input=document.querySelector('.search input');
   const searchButton=document.querySelector('.search button');
+  grid.addEventListener('click',e=>{
+    const card=e.target.closest('.card');
+    if(!card||!grid.contains(card))return;
+    const target=card.dataset.productUrl;
+    if(target)location.href=target;
+  });
   const filterButtons=[...document.querySelectorAll('.filters .filter')];
   const sideChecks=[...document.querySelectorAll('.side input[type="checkbox"]')];
   const sort=document.querySelector('.sort');
@@ -83,6 +89,8 @@
       const ratingOk=!checks[5]||rating>=4.5;
       const match=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk;
       const position=cards.indexOf(card);
+      const inlineTarget=card.getAttribute('onclick')?.match(/product=([^'&]+)/)?.[1];
+      if(inlineTarget)card.dataset.productUrl='/pages/product-detail.html?product='+encodeURIComponent(inlineTarget);
       card.dataset.match=match?'1':'0';
       card.style.display=match&&(listExpanded||position<6)?'':'none';
     });
