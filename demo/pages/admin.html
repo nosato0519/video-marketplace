@@ -36,7 +36,7 @@
 <div class="row"><div><h3>出金申請</h3><p>クリエイターからの売上出金リクエスト</p></div><span class="status" id="queuePayouts">0件</span><button class="action" type="button">処理する →</button></div>
 </div>
 <div class="stack">
-<aside class="panel"><div class="eyebrow">TODAY</div><div class="list"><div class="item"><span>新規購入</span><span id="todayOrders">0件</span></div><div class="item"><span>新規登録</span><span id="todayUsers">0件</span></div><div class="item"><span>動画公開</span><span id="todayPublished">0件</span></div><div class="item"><span>出金処理</span><span id="todayPayout">¥0</span></div></div></aside>
+<aside class="panel"><div class="eyebrow">CURRENT</div><div class="list"><div class="item"><span>購入件数</span><span id="todayOrders">0件</span></div><div class="item"><span>登録ユーザー数</span><span id="todayUsers">0件</span></div><div class="item"><span>公開コンテンツ数</span><span id="todayPublished">0件</span></div><div class="item"><span>出金申請額</span><span id="todayPayout">¥0</span></div></div></aside>
 <aside class="panel"><div class="eyebrow">PLATFORM HEALTH</div><div class="bars"><div><div class="bar"><span>コンテンツデータ</span><span id="healthContent">CHECKING</span></div><div class="track"><i id="healthContentBar" style="width:0%"></i></div></div><div><div class="bar"><span>注文・決済データ</span><span id="healthPayments">CHECKING</span></div><div class="track"><i id="healthPaymentsBar" style="width:0%"></i></div></div><div><div class="bar"><span>販売者・出金データ</span><span id="healthStorage">CHECKING</span></div><div class="track"><i id="healthStorageBar" style="width:0%"></i></div></div></div><div class="notice" id="healthNotice">システム状態を確認しています。</div></aside>
 </div>
 </section>
@@ -67,7 +67,7 @@
   document.getElementById('metricUsers').textContent=buyers.length.toLocaleString();
   document.getElementById('metricCreators').textContent=creatorNames.size.toLocaleString();
   document.getElementById('metricContent').textContent=allProducts.filter(p=>p.status==='published').length.toLocaleString();
-  const today=new Date().toISOString().slice(0,10), todayOrders=orders.filter(o=>String(o.createdAt||'').slice(0,10)===today), todayPayouts=(Array.isArray(d.payouts)?d.payouts:[]).filter(p=>String(p.createdAt||'').slice(0,10)===today);
+  const todayOrders=orders, todayPayouts=Array.isArray(d.payouts)?d.payouts:[];
   document.getElementById('todayOrders').textContent=todayOrders.length+'件';
   document.getElementById('todayUsers').textContent=buyers.length+'件';
   document.getElementById('todayPublished').textContent=allProducts.filter(p=>p.status==='published').length+'件';
