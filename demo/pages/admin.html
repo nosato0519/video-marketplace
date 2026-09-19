@@ -68,30 +68,8 @@
   document.getElementById('healthNotice').textContent='管理API・コンテンツ・注文・出金データの接続を確認しました。';
  }catch(e){const el=document.getElementById('adminVideoList');if(el)el.innerHTML='<div class="notice">動画管理データの取得に失敗しました。</div>';console.error(e)}
 })();
-</script><script>
-(async()=>{
- try{
-  const api=window.demoApi;
-  const d=await window.demoState, esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-  const apps=(d.sellerApplications||[]), payouts=(d.payouts||[]);
-  const appEl=document.getElementById('sellerApplications'), payEl=document.getElementById('payoutRequests');
-  appEl.innerHTML=apps.length?apps.map(x=>'<div class="seller-row"><div><strong>'+esc(x.seller)+'</strong><small>申請ID '+esc(x.id)+'　/　状態 '+esc(x.status)+'</small></div><div class="seller-row-actions">'+(x.status==='pending'?'<button class="approve" data-seller="'+esc(x.id)+'" data-action="approve">承認</button><button data-seller="'+esc(x.id)+'" data-action="reject">却下</button>':'<span class="status">'+esc(x.status)+'</span>')+'</div></div>').join(''):'<div class="notice">販売者申請はありません。</div>';
-  payEl.innerHTML=payouts.length?payouts.map(x=>'<div class="seller-row"><div><strong>¥'+Number(x.amount||0).toLocaleString()+'</strong><small>申請ID '+esc(x.id)+'　/　状態 '+esc(x.status)+'</small></div><span class="status">'+esc(x.status)+'</span></div>').join(''):'<div class="notice">出金申請はありません。</div>';
-  appEl.querySelectorAll('[data-seller]').forEach(btn=>btn.addEventListener('click',async()=>{const action=btn.dataset.action,id=btn.dataset.seller;if(!confirm(action==='approve'?'この販売者申請を承認しますか？':'この販売者申請を却下しますか？'))return;try{await api('/api/demo/admin/seller-approval',{method:'POST',body:JSON.stringify({id,action})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)} }));
- }catch(e){console.error('seller admin',e)}
-})();
-</script><script>
-(async()=>{
- try{
-  const api=window.demoApi;
-  const d=await window.demoState, esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-  const orders=Array.isArray(d.orders)?d.orders:[], sessions=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
-  const buyerEl=document.getElementById('buyerList'), orderEl=document.getElementById('orderList');
-  buyerEl.innerHTML=sessions.length?sessions.map((x,i)=>'<div class="buyer-row"><div><strong>購入者 '+(i+1)+'</strong><small>'+esc(x.account?.email||'')+'　/　購入 '+x.purchases.length+'件　/　カート '+x.cart.length+'件　/　注文 '+x.orderCount+'件</small></div><span class="status ok">ACTIVE</span></div>').join(''):'<div class="notice">購入者の注文データはまだありません。</div>';
-  orderEl.innerHTML=orders.length?orders.map(o=>'<div class="buyer-row"><div><strong>'+esc(o.id)+'</strong><small>商品ID '+esc(o.productId)+'　/　¥'+Number(o.total||0).toLocaleString()+'　/　'+esc(o.createdAt||'')+'</small></div><span class="status ok">'+esc(o.status)+'</span></div>').join(''):'<div class="notice">注文はありません。</div>';
- }catch(e){console.error('buyer admin',e)}
-})();
-</script><script>
+</script>
+<script>
 (async()=>{
  try{
   const api=window.demoApi;
@@ -105,7 +83,8 @@
   document.getElementById('adminPayoutList').innerHTML=payouts.length?payouts.map(x=>'<div class="finance-row"><div><strong>'+String(x.id).replace(/[&<>]/g,'')+'</strong><small>申請者セッション '+String(x.sessionId).replace(/[&<>]/g,'')+'</small></div><div><strong>'+yen(x.amount)+'</strong><small>'+String(x.status).replace(/[&<>]/g,'')+'</small>'+(x.status==='reviewing'?'<div class="seller-row-actions"><button class="approve" data-payout="'+String(x.id).replace(/[&<>]/g,'')+'" data-action="approve">承認</button><button data-payout="'+String(x.id).replace(/[&<>]/g,'')+'" data-action="reject">却下</button></div>':'')+'</div></div>').join(''):'<div class="notice">出金申請はありません。</div>'; document.querySelectorAll('[data-payout]').forEach(btn=>btn.addEventListener('click',async()=>{const action=btn.dataset.action,id=btn.dataset.payout;if(!confirm(action==='approve'?'この出金申請を承認しますか？':'この出金申請を却下しますか？'))return;try{await api('/api/demo/admin/payout',{method:'POST',body:JSON.stringify({id,action})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}}));
  }catch(e){console.error('finance admin',e)}
 })();
-</script><script>
+</script>
+<script>
 (async()=>{
  try{
   const api=window.demoApi;
@@ -119,4 +98,5 @@
   }).join(''):'<div class="notice">登録販売者動画はありません。</div>';
  }catch(e){console.error('seller directory',e)}
 })();
-</script><script src="/admin-enhancements.js"></script></body></html>
+</script>
+<script src="/admin-enhancements.js"></script></body></html>
