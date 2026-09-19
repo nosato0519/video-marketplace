@@ -1,7 +1,7 @@
 (() => {
 const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=async(path,opt={})=>{const r=await fetch(path,{credentials:'same-origin',...opt,headers:{'content-type':'application/json',...(opt.headers||{})}});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d};
-const ps=()=>demoState?.products||[];const p=id=>ps().find(x=>x.id===Number(id));
+const ps=()=>[...(demoState?.products||[]),...(demoState?.sellerProducts||[])];const p=id=>ps().find(x=>String(x.id)===String(id));
 async function sync(){demoState=await api('/api/demo/state');return demoState}
 async function role(r){demoState=await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:r})});closeModal();r==='buyer'?library():r==='seller'?seller('overview'):admin('overview')}
 window.login=()=>openModal(`<div class="ey">DEMO LOGIN</div><h2>Choose a role</h2><p class="muted">No credentials are stored. Each role uses the same functional demo session.</p><div class="steps"><button class="step" onclick="demoRole('buyer')"><b>Buyer</b><span>Browse, purchase, library, watch, download</span></button><button class="step" onclick="demoRole('seller')"><b>Seller</b><span>Products, media, earnings, payouts, profile</span></button><button class="step" onclick="demoRole('admin')"><b>Admin</b><span>Moderation, seller verification, payouts, security</span></button></div>`);
