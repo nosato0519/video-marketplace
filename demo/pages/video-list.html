@@ -83,6 +83,7 @@
       const ratingOk=!checks[5]||rating>=4.5;
       const match=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk;
       const position=cards.indexOf(card);
+      card.dataset.match=match?'1':'0';
       card.style.display=match&&(listExpanded||position<6)?'':'none';
     });
     const matched=cards.filter(c=>c.dataset.match==='1');
