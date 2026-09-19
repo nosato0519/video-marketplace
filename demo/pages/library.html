@@ -21,9 +21,8 @@
 <script>
 (async()=>{
   try{
-    if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));return;}
     const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;
-    const d=await r.json();const ids=Array.isArray(d.purchases)?d.purchases.map(String):[];
+    const d=await r.json();if(d.role!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));return;}const ids=Array.isArray(d.purchases)?d.purchases.map(String):[];
     const builtins=Array.isArray(d.products)?d.products:[];
     const sellers=Array.isArray(d.sellerProducts)?d.sellerProducts:[];
     const all=[...builtins,...sellers];const purchased=ids.map(id=>all.find(p=>String(p.id)===id)).filter(Boolean);
