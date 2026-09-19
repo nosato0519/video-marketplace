@@ -44,20 +44,6 @@
 </main>
 <script>
 (async()=>{
-  const api=window.demoApi=window.demoApi||async(path,options={})=>{const r=await fetch(path,{credentials:'same-origin',...options,headers:{'content-type':'application/json',...(options.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d};window.demoState=window.demoState||(async()=>{await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});return api('/api/demo/state')})();
-  try{
-      const d=await window.demoState;
-    const moderation=Array.isArray(d.moderationQueue)?d.moderationQueue.filter(x=>x.status==='pending'):[], sellers=Array.isArray(d.sellerApplications)?d.sellerApplications.filter(x=>x.status==='pending'):[];
-    const rows=[...document.querySelectorAll('.row')];
-    const creatorRow=rows.find(r=>r.querySelector('h3')?.textContent.includes('新規クリエイター申請'));
-    const videoRow=rows.find(r=>r.querySelector('h3')?.textContent.includes('動画コンテンツ審査'));
-    if(creatorRow){const s=creatorRow.querySelector('.status');if(s)s.textContent=sellers.length+'件';const b=creatorRow.querySelector('.action');if(b)b.addEventListener('click',async()=>{if(!sellers.length){alert('現在、審査待ちの販売者申請はありません。');return}const item=sellers[0];const ok=confirm(item.seller+' の販売者申請を承認しますか？');if(!ok)return;try{await api('/api/demo/admin/seller-approval',{method:'POST',body:JSON.stringify({id:item.id,action:'approve'})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}})}
-    if(videoRow){const s=videoRow.querySelector('.status');if(s)s.textContent=moderation.length+'件';const b=videoRow.querySelector('.action');if(b)b.addEventListener('click',async()=>{if(!moderation.length){alert('現在、審査待ちの動画はありません。');return}const item=moderation[0];const ok=confirm('「'+item.title+'」を公開承認しますか？');if(!ok)return;try{await api('/api/demo/admin/moderation',{method:'POST',body:JSON.stringify({id:item.id,action:'approve'})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}})}
-    const payoutQueue=document.getElementById('queuePayouts'); if(payoutQueue){const row=payoutQueue.closest('.row'); const b=row?.querySelector('.action'); if(b)b.addEventListener('click',()=>{document.getElementById('adminPayoutList')?.scrollIntoView({behavior:'smooth',block:'center'});});}
-  }catch(e){console.error(e)}
-})();
-</script><script>
-(async()=>{
  try{
   const api=window.demoApi;
   const d=await window.demoState;
@@ -80,20 +66,6 @@
   document.getElementById('healthPayments').textContent='CONNECTED'; document.getElementById('healthPaymentsBar').style.width='100%';
   document.getElementById('healthStorage').textContent='CONNECTED'; document.getElementById('healthStorageBar').style.width='100%';
   document.getElementById('healthNotice').textContent='管理API・コンテンツ・注文・出金データの接続を確認しました。';
-  const list=document.getElementById('adminVideoList');
-  const items=[...(Array.isArray(d.products)?d.products:[]),...(Array.isArray(d.sellerProducts)?d.sellerProducts:[])];
-  const mods=Array.isArray(d.moderationQueue)?d.moderationQueue:[];
-  const esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-  const rows=items.map(p=>{
-   const id=String(p.id), mod=mods.find(x=>String(x.productId||'')===id), pending=mod?.status==='pending', seller=id.startsWith('USR-');
-   const detail=seller?'/pages/product-detail.html?sellerProductId='+encodeURIComponent(id):'/pages/product-detail.html?product='+encodeURIComponent(id);
-   return '<div class="video-admin-row"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.category||'VIDEO')+'　/　'+esc(p.seller||'')+'　/　¥'+Number(p.price||0).toLocaleString()+'</small></div><span class="status '+(pending?'':'ok')+'">'+esc(p.status||'published')+'</span><a class="action" href="'+detail+'">詳細 →</a>'+(pending?'<div class="video-admin-actions"><button class="approve" data-mod="'+esc(mod.id)+'" data-action="approve">公開</button><button data-mod="'+esc(mod.id)+'" data-action="reject">却下</button></div>':'<div></div>')+'</div>';
-  }).join('');
-  list.innerHTML=rows||'<div class="notice">動画はありません。</div>';
-  list.querySelectorAll('[data-mod]').forEach(btn=>btn.addEventListener('click',async()=>{
-   const action=btn.dataset.action, id=btn.dataset.mod, ok=confirm(action==='approve'?'この動画を公開しますか？':'この動画を却下しますか？');if(!ok)return;
-   try{await api('/api/demo/admin/moderation',{method:'POST',body:JSON.stringify({id,action})});location.reload()}catch(e){alert('処理に失敗しました：'+e.message)}
-  }));
  }catch(e){const el=document.getElementById('adminVideoList');if(el)el.innerHTML='<div class="notice">動画管理データの取得に失敗しました。</div>';console.error(e)}
 })();
 </script><script>
