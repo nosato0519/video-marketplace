@@ -18,6 +18,9 @@ const products = [
   { id: 6, title: 'Mountain Silence', category: 'Lifestyle', seller: 'YAMA FILM', price: 1200, rating: 4.8, meta: 'HD • 42 min', kind: 'lifestyle' },
   { id: 7, title: 'Future Sound Sessions', category: 'Music', seller: 'Pulse Works', price: 1600, rating: 4.9, meta: '4K • 58 min', kind: 'music' },
   { id: 8, title: 'Visual Storytelling Lab', category: 'Creative', seller: 'Frame House', price: 1800, rating: 4.8, meta: '1080p • 72 min', kind: 'story' },
+  { id: 9, title: 'Build Your Brand', category: 'Business', seller: 'MIKA', price: 1480, rating: 4.7, meta: '1080p • 72 min', kind: 'biz' },
+  { id: 10, title: 'BLUE HORIZON', category: 'Film', seller: 'North Coast', price: 780, rating: 4.9, meta: '4K • 36 min', kind: 'film' },
+  { id: 11, title: 'Mastering Motion', category: 'Creative', seller: 'FRAME LAB', price: 2400, rating: 4.9, meta: 'HD • 59 min', kind: 'creative' },
 ];
 const sessions = new Map();
 const orders = [];
