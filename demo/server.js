@@ -10,14 +10,14 @@ const DEMO_VIDEO_BASE64 = 'GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZ
 const PORT = Number(process.env.PORT || 4173);
 
 const products = [
-  { id: 1, title: 'Creator Masterclass', category: 'Education', seller: 'Nova Studio', price: 24, rating: 4.9, meta: '4K • 78 min', kind: 'edu' },
-  { id: 2, title: 'Cinematic Travel Pack', category: 'Film', seller: 'Luma Collective', price: 19, rating: 4.8, meta: '4K • 52 min', kind: 'film' },
-  { id: 3, title: 'Build Your Digital Product', category: 'Business', seller: 'Alex Rivera', price: 29, rating: 5, meta: '1080p • 96 min', kind: 'biz' },
-  { id: 4, title: 'Motion Design Toolkit', category: 'Creative', seller: 'Mika Chen', price: 15, rating: 4.7, meta: '4K • 41 min', kind: 'creative' },
-  { id: 5, title: '18+ After Dark Collection', category: 'Adult', seller: 'Velvet Studio', price: 22, rating: 4.8, meta: 'HD • 64 min • 18+', kind: 'adult' },
-  { id: 6, title: 'Mountain Silence', category: 'Lifestyle', seller: 'YAMA FILM', price: 12, rating: 4.8, meta: 'HD • 42 min', kind: 'lifestyle' },
-  { id: 7, title: 'Future Sound Sessions', category: 'Music', seller: 'Pulse Works', price: 16, rating: 4.9, meta: '4K • 58 min', kind: 'music' },
-  { id: 8, title: 'Visual Storytelling Lab', category: 'Creative', seller: 'Frame House', price: 18, rating: 4.8, meta: '1080p • 72 min', kind: 'story' },
+  { id: 1, title: 'Creator Masterclass', category: 'Education', seller: 'Nova Studio', price: 2980, rating: 4.9, meta: '4K • 78 min', kind: 'edu' },
+  { id: 2, title: 'Cinematic Travel Pack', category: 'Film', seller: 'Luma Collective', price: 2280, rating: 4.8, meta: '4K • 52 min', kind: 'film' },
+  { id: 3, title: 'Build Your Digital Product', category: 'Business', seller: 'Alex Rivera', price: 3480, rating: 5, meta: '1080p • 96 min', kind: 'biz' },
+  { id: 4, title: 'Motion Design Toolkit', category: 'Creative', seller: 'Mika Chen', price: 1780, rating: 4.7, meta: '4K • 41 min', kind: 'creative' },
+  { id: 5, title: '18+ After Dark Collection', category: 'Adult', seller: 'Velvet Studio', price: 2200, rating: 4.8, meta: 'HD • 64 min • 18+', kind: 'adult' },
+  { id: 6, title: 'Mountain Silence', category: 'Lifestyle', seller: 'YAMA FILM', price: 1200, rating: 4.8, meta: 'HD • 42 min', kind: 'lifestyle' },
+  { id: 7, title: 'Future Sound Sessions', category: 'Music', seller: 'Pulse Works', price: 1600, rating: 4.9, meta: '4K • 58 min', kind: 'music' },
+  { id: 8, title: 'Visual Storytelling Lab', category: 'Creative', seller: 'Frame House', price: 1800, rating: 4.8, meta: '1080p • 72 min', kind: 'story' },
 ];
 const sessions = new Map();
 const orders = [];
