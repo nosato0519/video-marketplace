@@ -85,15 +85,20 @@
       const position=cards.indexOf(card);
       card.style.display=match&&(listExpanded||position<6)?'':'none';
     });
-    const visible=cards.filter(c=>c.style.display!=='none');
+    const matched=cards.filter(c=>c.dataset.match==='1');
     const mode=sort?.value||'おすすめ順';
     const price=c=>Number((c.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
     const rating=c=>parseFloat((c.querySelector('.meta')?.textContent||'').match(/[0-9]+(?:\.[0-9]+)?/)?.[0]||'0');
-    if(mode==='価格の安い順')visible.sort((a,b)=>price(a)-price(b));
-    else if(mode==='評価の高い順')visible.sort((a,b)=>rating(b)-rating(a));
-    else if(mode==='新着順')visible.sort((a,b)=>(b.querySelector('.badge')?.textContent.trim()==='NEW')-(a.querySelector('.badge')?.textContent.trim()==='NEW'));
-    visible.forEach(card=>grid.appendChild(card));
-    if(count)count.textContent=visible.length+'作品';
+    if(mode==='価格の安い順')matched.sort((a,b)=>price(a)-price(b));
+    else if(mode==='評価の高い順')matched.sort((a,b)=>rating(b)-rating(a));
+    else if(mode==='新着順')matched.sort((a,b)=>(b.querySelector('.badge')?.textContent.trim()==='NEW')-(a.querySelector('.badge')?.textContent.trim()==='NEW'));
+    matched.forEach(card=>grid.appendChild(card));
+    const matchedSet=new Set(matched);
+    cards.filter(card=>!matchedSet.has(card)).forEach(card=>grid.appendChild(card));
+    matched.forEach((card,position)=>{
+      card.style.display=listExpanded||position<6?'':'none';
+    });
+    if(count)count.textContent=matched.length+'作品';
     const more=document.getElementById('loadMore');
     if(more){more.style.display=cards.length>6?'block':'none';more.textContent=listExpanded?'CLOSE':'READ MORE';}
   };
