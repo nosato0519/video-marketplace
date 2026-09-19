@@ -16,6 +16,7 @@ function patchHomepage(html) {
   return html
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>\s*販売者デモ<\/a>/, '<a class="system" href="/pages/creator-studio.html">販売者デモ</a>')
     .replace(/<a class="system" href="#" onclick="event\.preventDefault\(\)"\s*>\s*購入者デモ<\/a>/, '<a class="system" href="/pages/account.html">購入者デモ</a>')
+    .replace(/(<a class="system" href="\/pages\/account\.html">購入者デモ<\/a>)/, '$1<a class="system" href="/pages/admin.html">管理者デモ</a>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*販売者ログイン<\/button>/, '<button type="button" onclick="location.href=\'/pages/login.html?role=seller\'">販売者ログイン</button>')
     .replace(/<button type="button" onclick="event\.preventDefault\(\)">\s*購入者ログイン\s*<\/button>/, '<button type="button" onclick="location.href=\'/pages/login.html?role=buyer\'">購入者ログイン</button>')
     .replace('</body>', `${STABLE_HOME_NAV}</body>`);
