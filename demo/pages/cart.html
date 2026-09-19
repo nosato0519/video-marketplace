@@ -21,7 +21,7 @@ const fallback={
 function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?[...new Set(x.map(String))]:[]}catch{return[]}}
 function write(items){localStorage.setItem(KEY,JSON.stringify(items));render()}
 let remoteSellerProducts={};
-function sellerProducts(){try{return JSON.parse(localStorage.getItem('vm_seller_products')||'{}')}catch{return{}}}
+function sellerProducts(){try{const x=JSON.parse(localStorage.getItem('vm_seller_products')||'{}');const list=Array.isArray(x)?x:(x&&Array.isArray(x.products)?x.products:Object.values(x&&typeof x==='object'?x:{}));return Object.fromEntries(list.filter(p=>p&&p.id!=null).map(p=>[String(p.id),p]));}catch{return{}}}
 function all(){const custom={...sellerProducts(),...remoteSellerProducts};return Object.values(custom).reduce((acc,p)=>{acc[String(p.id)]={id:String(p.id),title:p.title||'販売者動画',category:p.category||'VIDEO',seller:p.seller||'Demo Creator',price:Number(p.price||0),meta:'販売者登録動画',thumb:p.thumbnailData||p.thumbnail||'',sellerProductId:String(p.id)};return acc},Object.fromEntries(Object.entries(fallback).map(([k,v])=>[k,v])))}
 function render(){const items=read().map(String);const data=all();const valid=[...new Set(items)].map(id=>data[id]).filter(Boolean);const app=document.getElementById('app');if(!valid.length){app.innerHTML='<section class="panel empty"><strong>カートは空です。</strong><span>気になる動画を追加して、まとめて購入できます。</span><br><a href="/pages/video-list.html">動画を探す →</a></section>';return}
 const total=valid.reduce((s,p)=>s+p.price,0);
