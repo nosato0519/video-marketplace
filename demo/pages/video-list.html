@@ -70,7 +70,7 @@
     const q=(input?.value||'').trim().toLowerCase();
     const checks=sideChecks.map(x=>!!x.checked);
     const cards=[...grid.querySelectorAll('.card')];
-    cards.forEach(card=>{
+    const matched=cards.filter(card=>{
       const text=card.textContent.toLowerCase();
       const cat=(card.querySelector('.cat')?.textContent||'').trim().toUpperCase();
       const badge=(card.querySelector('.badge')?.textContent||'').trim().toUpperCase();
@@ -81,26 +81,23 @@
       const durationOk=(!checks[2]&&!checks[3]&&!checks[4])||(checks[2]&&duration<1800)||(checks[3]&&duration>=1800&&duration<=5400)||(checks[4]&&duration>5400);
       const ratingOk=!checks[5]||rating>=4.5;
       const match=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk;
-      const position=cards.indexOf(card);
       card.dataset.match=match?'1':'0';
-      card.style.display=match&&(listExpanded||position<6)?'':'none';
+      return match;
     });
-    const matched=cards.filter(c=>c.dataset.match==='1');
     const mode=sort?.value||'おすすめ順';
     const price=c=>Number((c.querySelector('.price')?.textContent||'').replace(/[^0-9]/g,''))||0;
     const rating=c=>parseFloat((c.querySelector('.meta')?.textContent||'').match(/[0-9]+(?:\.[0-9]+)?/)?.[0]||'0');
     if(mode==='価格の安い順')matched.sort((a,b)=>price(a)-price(b));
     else if(mode==='評価の高い順')matched.sort((a,b)=>rating(b)-rating(a));
     else if(mode==='新着順')matched.sort((a,b)=>(b.querySelector('.badge')?.textContent.trim()==='NEW')-(a.querySelector('.badge')?.textContent.trim()==='NEW'));
-    matched.forEach(card=>grid.appendChild(card));
     const matchedSet=new Set(matched);
+    matched.forEach(card=>grid.appendChild(card));
     cards.filter(card=>!matchedSet.has(card)).forEach(card=>grid.appendChild(card));
-    matched.forEach((card,position)=>{
-      card.style.display=listExpanded||position<6?'':'none';
-    });
+    matched.forEach((card,position)=>{card.style.display=listExpanded||position<6?'':'none';});
+    cards.filter(card=>!matchedSet.has(card)).forEach(card=>{card.style.display='none';});
     if(count)count.textContent=matched.length+'作品';
     const more=document.getElementById('loadMore');
-    if(more){more.style.display=cards.length>6?'block':'none';more.textContent=listExpanded?'CLOSE':'READ MORE';}
+    if(more){more.style.display=matched.length>6?'block':'none';more.textContent=listExpanded?'CLOSE':'READ MORE';}
   };
   searchButton?.addEventListener('click',apply);
   input?.addEventListener('keydown',e=>{if(e.key==='Enter')apply()});
