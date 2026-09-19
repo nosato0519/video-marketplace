@@ -104,6 +104,7 @@
   }));
   sideChecks.forEach(check=>check.addEventListener('change',apply));
   document.getElementById('loadMore')?.addEventListener('click',()=>{listExpanded=!listExpanded;apply();});
+  window.addEventListener('video-marketplace-seller-products-added',apply);
   apply();
 })();
 </script></body></html>
