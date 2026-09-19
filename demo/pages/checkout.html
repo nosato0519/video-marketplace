@@ -16,8 +16,20 @@
 <section class="panel"><h2>デモ決済</h2><div class="field"><label for="card-name">カード名義</label><input id="card-name" value="DEMO USER" autocomplete="cc-name"><div class="field-error" id="card-name-error">カード名義を入力してください。</div></div><div class="field"><label for="card-number">カード番号</label><input id="card-number" value="4242 4242 4242 4242" inputmode="numeric" autocomplete="cc-number"><div class="field-error" id="card-number-error">カード番号を入力してください。</div></div><div class="row"><div class="field"><label for="expiry">有効期限</label><input id="expiry" value="12 / 30" autocomplete="cc-exp"><div class="field-error" id="expiry-error">有効期限を入力してください。</div></div><div class="field"><label for="security-code">セキュリティコード</label><input id="security-code" value="123" inputmode="numeric" autocomplete="cc-csc"><div class="field-error" id="security-code-error">セキュリティコードを入力してください。</div></div></div><div class="demo-note">これはデモ環境です。入力内容は実際の決済処理には送信されません。</div><div class="secure"><b>✓</b> 購入後はマイライブラリから視聴できます。</div><button class="pay" onclick="completePurchase()">¥2,980 を購入する</button><div class="fine">購入ボタンを押すとデモ上の購入完了画面へ進みます。</div></section>
 </div></main>
 <script>
-if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));}
 const params=new URLSearchParams(location.search),isCart=params.get('cart')==='1';
+async function ensureBuyerSession(){
+ try{
+  const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});
+  const d=await r.json();
+  if(!r.ok||d.role!=='buyer') throw new Error('BUYER_REQUIRED');
+ }catch{
+  localStorage.removeItem('vm_auth_role');
+  location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));
+  return false;
+ }
+ return true;
+}
+ensureBuyerSession();
 let serverCart=[];
 async function getCart(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return[];const d=await r.json();serverCart=Array.isArray(d.cart)?d.cart.map(String):[];return serverCart}catch{return[]}}
 function getSellerStore(){try{const x=JSON.parse(localStorage.getItem('vm_seller_products')||'{}');const list=Array.isArray(x)?x:(x&&Array.isArray(x.products)?x.products:Object.values(x&&typeof x==='object'?x:{}));return Object.fromEntries(list.filter(p=>p&&p.id!=null).map(p=>[String(p.id),p]));}catch{return{}}}
