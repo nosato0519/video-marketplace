@@ -8,7 +8,7 @@
 <section class="hero"><div class="kicker">SHOPPING CART</div><h1>カート</h1><p>あとで購入したい動画をまとめて管理できます。複数の商品を一度に確認して、そのまままとめて購入できます。</p></section>
 <div id="app"></div></div>
 <script>
-if(localStorage.getItem('vm_auth_role')!=='buyer'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));}
+async function ensureBuyerSession(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(r.ok&&d.role==='buyer')return true;}catch(e){}location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));return false;}
 let cartIds=[],catalog={};
 async function loadCartState(){try{const r=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;const d=await r.json();cartIds=Array.isArray(d.cart)?d.cart.map(String):[];catalog={};(Array.isArray(d.products)?d.products:[]).forEach(v=>{if(v&&v.id!=null)catalog[String(v.id)]=v});(Array.isArray(d.sellerProducts)?d.sellerProducts:[]).forEach(v=>{if(v&&v.id!=null)catalog[String(v.id)]=v});render();}catch(e){}}
 function read(){return cartIds}
@@ -21,5 +21,5 @@ document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click'
 document.getElementById('clearCart').addEventListener('click',()=>{if(confirm('カートを空にしますか？'))write([])});
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-loadCartState();
+ensureBuyerSession().then(ok=>{if(ok)loadCartState();});
 </script></body></html>
