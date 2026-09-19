@@ -42,9 +42,10 @@
 </section>
 <div class="footerline">ADMIN ACCESS　•　MODERATION ACTIVE　•　PAYMENTS MONITORED　•　SECURITY MONITORED</div>
 </main>
-<script>
+<script src="/admin-enhancements.js"></script><script>
 (async()=>{
  try{
+  await window.demoReady;
   const api=window.demoApi;
   const d=await window.demoState;
   const products=Array.isArray(d.products)?d.products:[], sellerProducts=Array.isArray(d.sellerProducts)?d.sellerProducts:[], orders=Array.isArray(d.orders)?d.orders:[], sellers=Array.isArray(d.sellerApplications)?d.sellerApplications:[], buyers=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
@@ -99,4 +100,4 @@
  }catch(e){console.error('seller directory',e)}
 })();
 </script>
-<script src="/admin-enhancements.js"></script></body></html>
+</body></html>
