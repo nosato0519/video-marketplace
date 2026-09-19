@@ -34,6 +34,8 @@ function setReviewRating(n){selectedReviewRating=n;document.querySelectorAll('#r
 document.querySelectorAll('#reviewStars button').forEach(b=>b.addEventListener('click',()=>setReviewRating(Number(b.dataset.rating))));
 document.getElementById('reviewForm')?.addEventListener('submit',e=>{e.preventDefault();if(!requireBuyer(location.href))return;if(!selectedReviewRating){alert('評価を選択してください。');return}const text=document.getElementById('reviewText')?.value.trim();if(!text){alert('レビュー本文を入力してください。');return}const all=readReviews();const key=reviewProductKey();const items=Array.isArray(all[key])?all[key]:[];items.unshift({rating:selectedReviewRating,text,name:'Demo User',date:new Date().toLocaleDateString('ja-JP')});all[key]=items.slice(0,50);localStorage.setItem(REVIEW_KEY,JSON.stringify(all));document.getElementById('reviewText').value='';setReviewRating(0);renderReviews()});
 renderReviews();
+function isBuyerLoggedIn(){return localStorage.getItem('vm_auth_role')==='buyer'}
+function requireBuyer(next){if(isBuyerLoggedIn())return true;const target=next||location.href;location.href='/pages/register.html?returnTo='+encodeURIComponent(target);return false}
 const VIEW_HISTORY_KEY='vm_view_history';
 const FAVORITES_KEY='vm_favorites';
 function readFavorites(){try{const x=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return[]}}
