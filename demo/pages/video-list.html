@@ -60,7 +60,8 @@
   const grid=document.getElementById('videoGrid');
   const count=document.querySelector('.count');
   if(!grid)return;
-  let activeCategory='すべて';\n  let listExpanded=false;
+  let activeCategory='すべて';
+  let listExpanded=false;
   const categoryMap={'映像作品':['FILM','DOCUMENTARY','TRAVEL','CULTURE'],'教育':['EDUCATION','LEARNING'],'ビジネス':['BUSINESS'],'クリエイティブ':['CREATIVE'],'ライフスタイル':['LIFESTYLE'],'音楽':['MUSIC'],'アダルト':['ADULT']};
   const parseDuration=value=>{const p=String(value||'').split(':').map(Number);return p.length===2?p[0]*60+p[1]:p.length===3?p[0]*3600+p[1]*60+p[2]:0;};
   const apply=()=>{
@@ -77,7 +78,9 @@
       const qualityOk=(!checks[0]&&!checks[1])||(checks[0]&&badge==='4K')||(checks[1]&&badge==='1080P');
       const durationOk=(!checks[2]&&!checks[3]&&!checks[4])||(checks[2]&&duration<1800)||(checks[3]&&duration>=1800&&duration<=5400)||(checks[4]&&duration>5400);
       const ratingOk=!checks[5]||rating>=4.5;
-      const match=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk;\n      const position=cards.indexOf(card);\n      card.style.display=match&&(listExpanded||position<6)?'':'none';
+      const match=categoryOk&&(!q||text.includes(q))&&qualityOk&&durationOk&&ratingOk;
+      const position=cards.indexOf(card);
+      card.style.display=match&&(listExpanded||position<6)?'':'none';
     });
     const visible=cards.filter(c=>c.style.display!=='none');
     const mode=sort?.value||'おすすめ順';
@@ -87,7 +90,9 @@
     else if(mode==='評価の高い順')visible.sort((a,b)=>rating(b)-rating(a));
     else if(mode==='新着順')visible.sort((a,b)=>(b.querySelector('.badge')?.textContent.trim()==='NEW')-(a.querySelector('.badge')?.textContent.trim()==='NEW'));
     visible.forEach(card=>grid.appendChild(card));
-    if(count)count.textContent=visible.length+'作品';\n    const more=document.getElementById('loadMore');\n    if(more){more.style.display=cards.length>6?'block':'none';more.textContent=listExpanded?'CLOSE':'READ MORE';}
+    if(count)count.textContent=visible.length+'作品';
+    const more=document.getElementById('loadMore');
+    if(more){more.style.display=cards.length>6?'block':'none';more.textContent=listExpanded?'CLOSE':'READ MORE';}
   };
   searchButton?.addEventListener('click',apply);
   input?.addEventListener('keydown',e=>{if(e.key==='Enter')apply()});
@@ -97,7 +102,8 @@
     filterButtons.forEach(b=>b.classList.toggle('active',b===btn));
     apply();
   }));
-  sideChecks.forEach(check=>check.addEventListener('change',apply));\n  document.getElementById('loadMore')?.addEventListener('click',()=>{listExpanded=!listExpanded;apply();});
+  sideChecks.forEach(check=>check.addEventListener('change',apply));
+  document.getElementById('loadMore')?.addEventListener('click',()=>{listExpanded=!listExpanded;apply();});
   apply();
 })();
 </script></body></html>
