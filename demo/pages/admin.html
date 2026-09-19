@@ -44,9 +44,9 @@
 </main>
 <script>
 (async()=>{
-  const api=window.demoApi=window.demoApi||async(path,options={})=>{const r=await fetch(path,{credentials:'same-origin',...options,headers:{'content-type':'application/json',...(options.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d};
+  const api=window.demoApi=window.demoApi||async(path,options={})=>{const r=await fetch(path,{credentials:'same-origin',...options,headers:{'content-type':'application/json',...(options.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d};window.demoState=window.demoState||api('/api/demo/state');
   try{
-      const d=await api('/api/demo/state');
+      const d=await window.demoState;
     const moderation=Array.isArray(d.moderationQueue)?d.moderationQueue.filter(x=>x.status==='pending'):[], sellers=Array.isArray(d.sellerApplications)?d.sellerApplications.filter(x=>x.status==='pending'):[];
     const rows=[...document.querySelectorAll('.row')];
     const creatorRow=rows.find(r=>r.querySelector('h3')?.textContent.includes('新規クリエイター申請'));
@@ -100,7 +100,7 @@
 (async()=>{
  try{
   const api=window.demoApi;
-  const d=await api('/api/demo/state'), esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  const d=await window.demoState, esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const apps=(d.sellerApplications||[]), payouts=(d.payouts||[]);
   const appEl=document.getElementById('sellerApplications'), payEl=document.getElementById('payoutRequests');
   appEl.innerHTML=apps.length?apps.map(x=>'<div class="seller-row"><div><strong>'+esc(x.seller)+'</strong><small>申請ID '+esc(x.id)+'　/　状態 '+esc(x.status)+'</small></div><div class="seller-row-actions">'+(x.status==='pending'?'<button class="approve" data-seller="'+esc(x.id)+'" data-action="approve">承認</button><button data-seller="'+esc(x.id)+'" data-action="reject">却下</button>':'<span class="status">'+esc(x.status)+'</span>')+'</div></div>').join(''):'<div class="notice">販売者申請はありません。</div>';
