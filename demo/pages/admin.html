@@ -75,7 +75,6 @@
   document.getElementById('queueSellers').textContent=sellers.filter(x=>x.status==='pending').length+'件';
   document.getElementById('queueVideos').textContent=(Array.isArray(d.moderationQueue)?d.moderationQueue:[]).filter(x=>x.status==='pending').length+'件';
   document.getElementById('queuePayouts').textContent=(Array.isArray(d.payouts)?d.payouts:[]).filter(x=>x.status==='reviewing').length+'件';
-  const pendingModeration=(Array.isArray(d.moderationQueue)?d.moderationQueue:[]).filter(x=>x.status==='pending').length;
   document.getElementById('queueReports').textContent='0件';
   document.getElementById('systemHealth').textContent='SYSTEM HEALTH　● OPERATIONAL';
   document.getElementById('healthContent').textContent='CONNECTED'; document.getElementById('healthContentBar').style.width='100%';
@@ -117,8 +116,6 @@
   await api('/api/demo/login',{method:'POST',body:JSON.stringify({role:'admin'})});
   const d=await api('/api/demo/state'), esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const orders=Array.isArray(d.orders)?d.orders:[], sessions=Array.isArray(d.buyerSessions)?d.buyerSessions:[];
-  const seen=new Set();
-  orders.forEach(o=>seen.add(o.sessionId));
   const buyerEl=document.getElementById('buyerList'), orderEl=document.getElementById('orderList');
   buyerEl.innerHTML=sessions.length?sessions.map((x,i)=>'<div class="buyer-row"><div><strong>購入者 '+(i+1)+'</strong><small>'+esc(x.account?.email||'')+'　/　購入 '+x.purchases.length+'件　/　カート '+x.cart.length+'件　/　注文 '+x.orderCount+'件</small></div><span class="status ok">ACTIVE</span></div>').join(''):'<div class="notice">購入者の注文データはまだありません。</div>';
   orderEl.innerHTML=orders.length?orders.map(o=>'<div class="buyer-row"><div><strong>'+esc(o.id)+'</strong><small>商品ID '+esc(o.productId)+'　/　¥'+Number(o.total||0).toLocaleString()+'　/　'+esc(o.createdAt||'')+'</small></div><span class="status ok">'+esc(o.status)+'</span></div>').join(''):'<div class="notice">注文はありません。</div>';
