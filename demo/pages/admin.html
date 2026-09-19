@@ -37,7 +37,7 @@
 </div>
 <div class="stack">
 <aside class="panel"><div class="eyebrow">TODAY</div><div class="list"><div class="item"><span>新規購入</span><span id="todayOrders">0件</span></div><div class="item"><span>新規登録</span><span id="todayUsers">0件</span></div><div class="item"><span>動画公開</span><span id="todayPublished">0件</span></div><div class="item"><span>出金処理</span><span id="todayPayout">¥0</span></div></div></aside>
-<aside class="panel"><div class="eyebrow">PLATFORM HEALTH</div><div class="bars"><div><div class="bar"><span>動画配信</span><span>99.98%</span></div><div class="track"><i style="width:99.98%"></i></div></div><div><div class="bar"><span>決済</span><span>99.99%</span></div><div class="track"><i style="width:99.99%"></i></div></div><div><div class="bar"><span>ストレージ</span><span>68%</span></div><div class="track"><i style="width:68%"></i></div></div></div><div class="notice">認証・決済・コンテンツ審査・出金の主要フローを監視中。異常は管理者へ通知される想定です。</div></aside>
+<aside class="panel"><div class="eyebrow">PLATFORM HEALTH</div><div class="bars"><div><div class="bar"><span>動画配信</span><span id="healthContent">CHECKING</span></div><div class="track"><i id="healthContentBar" style="width:0%"></i></div></div><div><div class="bar"><span>決済</span><span id="healthPayments">CHECKING</span></div><div class="track"><i id="healthPaymentsBar" style="width:0%"></i></div></div><div><div class="bar"><span>ストレージ</span><span id="healthStorage">CHECKING</span></div><div class="track"><i id="healthStorageBar" style="width:0%"></i></div></div></div><div class="notice" id="healthNotice">システム状態を確認しています。</div></aside>
 </div>
 </section>
 <div class="footerline">ADMIN ACCESS　•　MODERATION ACTIVE　•　PAYMENTS MONITORED　•　SECURITY MONITORED</div>
@@ -78,6 +78,10 @@
   const pendingModeration=(Array.isArray(d.moderationQueue)?d.moderationQueue:[]).filter(x=>x.status==='pending').length;
   document.getElementById('queueReports').textContent='0件';
   document.getElementById('systemHealth').textContent='SYSTEM HEALTH　● OPERATIONAL';
+  document.getElementById('healthContent').textContent='CONNECTED'; document.getElementById('healthContentBar').style.width='100%';
+  document.getElementById('healthPayments').textContent='CONNECTED'; document.getElementById('healthPaymentsBar').style.width='100%';
+  document.getElementById('healthStorage').textContent='CONNECTED'; document.getElementById('healthStorageBar').style.width='100%';
+  document.getElementById('healthNotice').textContent='管理API・注文・出金・審査データの接続を確認しました。';
   const list=document.getElementById('adminVideoList');
   const items=[...(Array.isArray(d.products)?d.products:[]),...(Array.isArray(d.sellerProducts)?d.sellerProducts:[])];
   const mods=Array.isArray(d.moderationQueue)?d.moderationQueue:[];
