@@ -78,18 +78,24 @@ async function completePurchase(){
  fields.forEach(([fid,eid])=>{const f=document.getElementById(fid),err=document.getElementById(eid),ok=Boolean(f?.value.trim());f?.classList.toggle('invalid',!ok);err?.classList.toggle('show',!ok);if(!ok)valid=false;});
  if(!valid){document.querySelector('.invalid')?.focus();return;}
  const pay=document.querySelector('.pay');if(pay){pay.disabled=true;pay.textContent='購入処理中…';}
- const targets=(isCart&&Array.isArray(window.__cartItems))?window.__cartItems:[{id:sellerProductId||productId}];
+ const stateResponse=await fetch('/api/demo/state',{credentials:'same-origin',cache:'no-store'});
+ if(!stateResponse.ok)throw new Error('BUYER_SESSION_REQUIRED');
+ const stateData=await stateResponse.json();
+ if(stateData.role!=='buyer')throw new Error('BUYER_SESSION_REQUIRED');
+ const freshCart=Array.isArray(stateData.cart)?stateData.cart.map(String):[];
+ const targets=isCart?freshCart.map(id=>({id})):[{id:sellerProductId||productId}];
+ if(!targets.length)throw new Error('CART_EMPTY');
  try{
   const results=[];
   for(const x of targets){
    const r=await fetch('/api/demo/purchase',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({productId:String(x.id)})});
-   const d=await r.json();if(!r.ok)throw new Error(d.error||'購入に失敗しました。');results.push(d);
+   const d=await r.json();if(!r.ok)throw new Error(d.error||'PURCHASE_FAILED');results.push(d);
   }
   if(isCart){await fetch('/api/demo/cart',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action:'clear'})});serverCart=[];}
   const last=results[results.length-1]||{},product=last.product||remoteSeller||{};
   const title=String(product.title||'動画').replace(/[&<>"']/g,'');
   document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:30px;background:#090a0d;color:#f4f1eb;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"><div style="max-width:620px;text-align:center;border:1px solid rgba(217,180,95,.38);background:linear-gradient(145deg,#17181c,#0e0f12);padding:60px 42px;border-radius:22px"><div style="font-size:10px;letter-spacing:.28em;color:#d9b45f;font-weight:800">PURCHASE COMPLETE</div><h1 style="font-size:42px;margin:18px 0 12px">購入が完了しました。</h1><p style="color:#aaa6a0;line-height:1.9">'+title+' がマイライブラリに追加されました。購入後の視聴まで、ひとつの流れで確認できます。</p><a href="/pages/library.html" style="display:inline-block;margin-top:25px;padding:14px 24px;border:1px solid #d9b45f;background:#d9b45f;color:#101114;border-radius:9px;font-weight:800">マイライブラリへ →</a></div></div>';
- }catch(err){if(pay){pay.disabled=false;pay.textContent='購入する';}alert('購入に失敗しました：'+err.message);}
+ }catch(err){if(pay){pay.disabled=false;pay.textContent='購入する';}if(err.message==='BUYER_SESSION_REQUIRED'){location.replace('/pages/register.html?returnTo='+encodeURIComponent(location.href));return;}alert('購入処理を完了できませんでした：'+err.message);}
 }
 </script>
 </body></html>
