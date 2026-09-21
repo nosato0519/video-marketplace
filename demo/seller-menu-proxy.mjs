@@ -1,5 +1,10 @@
 import { createServer, request as httpRequest } from 'node:http';
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 const port = Number(process.env.PORT || 10000);
 const upstreamPort = port + 1;
@@ -26,8 +31,16 @@ function injectSellerMenu(html, pathname){
   return withMenu.replace(/<\/body>/i, `${SELLER_EDIT_SCRIPT}</body>`);
 }
 
-const server=createServer((req,res)=>{
+const server=createServer(async (req,res)=>{
   const pathname=(req.url||'/').split('?')[0];
+  if(req.method==='GET'&&(pathname==='/'||pathname==='/index.html')){
+    try{
+      const body=await readFile(join(ROOT,'index.html'));
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','content-length':String(body.length),'cache-control':'no-store, no-cache, must-revalidate, proxy-revalidate'});
+      res.end(body);
+    }catch(error){res.writeHead(500,{'content-type':'text/plain; charset=utf-8'});res.end(String(error));}
+    return;
+  }
   const upstream=httpRequest({hostname:'127.0.0.1',port:upstreamPort,path:req.url,method:req.method,headers:req.headers},response=>{
     const chunks=[];response.on('data',c=>chunks.push(c));response.on('end',()=>{
       let body=Buffer.concat(chunks);
