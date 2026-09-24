@@ -3,225 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="VIDEO MARKETPLACE — 動画を売るためのマーケットプレイスシステム。">
-<title>VIDEO MARKETPLACE — New Concept</title>
+<title>VIDEO MARKETPLACE — Independent Video Commerce</title>
 <style>
-:root{
-  --bg:#0a0a0b;--paper:#f2efe8;--white:#fff;--muted:#96938d;
-  --line:rgba(255,255,255,.16);--acid:#d9ff45;--orange:#ff6338;
-  --max:1440px
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:#fff;font-family:Arial,Helvetica,sans-serif}
+:root{--ink:#111;--paper:#eeeae1;--blue:#1647ff;--red:#ff3d20;--line:#111;--pad:28px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
 a{color:inherit;text-decoration:none}
-.header{height:76px;padding:0 34px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(10,10,11,.72);backdrop-filter:blur(16px)}
-.logo{font-size:12px;font-weight:900;letter-spacing:.16em}
-.nav{display:flex;gap:30px;font-size:9px;letter-spacing:.12em;color:#b8b5af}
-.nav a:hover{color:#fff}
-.header-cta{border:1px solid #fff;padding:12px 17px;font-size:9px;font-weight:900;letter-spacing:.1em}
-.hero{min-height:100vh;padding:126px 34px 34px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
-.hero:before{content:"";position:absolute;width:58vw;height:58vw;max-width:850px;max-height:850px;border-radius:50%;right:-18vw;top:8vh;background:radial-gradient(circle at 35% 35%,#ffb18f 0,#ff6338 27%,#42150c 61%,transparent 72%);opacity:.8;filter:blur(4px)}
-.hero:after{content:"";position:absolute;width:38vw;height:38vw;border-radius:50%;left:-20vw;bottom:-18vw;background:var(--acid);filter:blur(100px);opacity:.12}
-.hero-inner{max-width:var(--max);width:100%;margin:auto;position:relative;z-index:2}
-.hero-meta{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:16px;color:#aaa;font-size:9px;letter-spacing:.15em}
-.hero-main{padding:55px 0 45px;display:grid;grid-template-columns:1.35fr .65fr;gap:50px;align-items:end}
-.hero h1{font-size:clamp(76px,12.8vw,190px);line-height:.76;letter-spacing:-.1em;margin:0;font-weight:900}
-.hero h1 span{display:block;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.72)}
-.hero h1 em{font-style:normal;color:var(--acid)}
-.hero-copy{max-width:380px;padding-bottom:7px}
-.hero-copy .eyebrow{font-size:9px;letter-spacing:.18em;color:var(--acid);font-weight:900}
-.hero-copy p{font-size:17px;line-height:1.75;color:#d1cec8;margin:18px 0 28px}
-.hero-actions{display:flex;gap:8px}
-.btn{padding:15px 19px;font-size:9px;font-weight:900;letter-spacing:.1em;border:1px solid #fff}
-.btn.primary{background:var(--acid);color:#0a0a0b;border-color:var(--acid)}
-.hero-bottom{display:grid;grid-template-columns:1fr auto;align-items:end;gap:30px}
-.hero-line{height:1px;background:var(--line)}
-.scroll{font-size:9px;letter-spacing:.18em;color:#8f8c87}
-.scroll b{color:#fff;margin-left:10px}
-
-.stage{background:var(--paper);color:#111;padding:34px;position:relative;overflow:hidden}
-.stage-head{max-width:var(--max);margin:auto;display:flex;justify-content:space-between;align-items:center;padding-bottom:25px}
-.stage-head span{font-size:9px;letter-spacing:.15em;font-weight:900}
-.stage-head small{font-size:8px;color:#777}
-.product-frame{max-width:var(--max);margin:auto;display:grid;grid-template-columns:1.55fr .45fr;min-height:650px;background:#111;gap:1px}
-.product-screen{background:#e8e5de;padding:16px}
-.browser{height:100%;background:#fff;overflow:hidden}
-.browser-top{height:38px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:6px;padding:0 14px}
-.dot{width:7px;height:7px;border-radius:50%;background:#bbb}
-.sitebar{height:62px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;border-bottom:1px solid #e5e5e5}
-.sitebar b{font-size:12px;letter-spacing:.12em}.sitebar span{font-size:8px;color:#777}
-.market{padding:30px;background:#f3f1ec;height:calc(100% - 100px)}
-.market-title{display:flex;justify-content:space-between;align-items:end;margin-bottom:25px}
-.market-title h2{font-size:43px;line-height:.9;letter-spacing:-.07em;margin:0}
-.market-title small{font-size:8px;color:#777}
-.video-grid{display:grid;grid-template-columns:1.35fr .8fr .8fr;grid-template-rows:1fr 1fr;gap:10px;height:470px}
-.v{background:#151515;position:relative;overflow:hidden}
-.v.big{grid-row:1/3}
-.v:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#101010,#3b3b3b 48%,#111)}
-.v:nth-child(2):before{background:linear-gradient(140deg,#ff6338,#9a2110)}
-.v:nth-child(3):before{background:linear-gradient(140deg,#2747c7,#a7baff)}
-.v:nth-child(4):before{background:linear-gradient(140deg,#8b7351,#e6cda7)}
-.v:nth-child(5):before{background:linear-gradient(140deg,#111,#626262)}
-.v-info{position:absolute;left:16px;right:16px;bottom:15px;color:#fff;z-index:2}
-.v-info strong{font-size:17px;display:block;letter-spacing:-.03em}
-.v-info small{font-size:7px;color:#ddd;letter-spacing:.08em}
-.play{position:absolute;right:14px;top:14px;width:29px;height:29px;border:1px solid rgba(255,255,255,.65);border-radius:50%;display:grid;place-items:center;font-size:9px;z-index:2}
-.product-aside{background:var(--acid);color:#111;padding:28px;display:flex;flex-direction:column;justify-content:space-between}
-.product-aside small{font-size:8px;font-weight:900;letter-spacing:.13em}
-.product-aside h2{font-size:70px;line-height:.78;letter-spacing:-.08em;margin:22px 0}
-.product-aside p{font-size:10px;line-height:1.7;max-width:200px}
-.price{border-top:1px solid #111;padding-top:15px;font-size:39px;font-weight:900;letter-spacing:-.05em}
-.price small{display:block;margin-top:6px;font-size:7px}
-
-.manifesto{padding:150px 34px;background:#0a0a0b}
-.manifesto-inner{max-width:var(--max);margin:auto}
-.overline{font-size:9px;letter-spacing:.18em;color:var(--acid);font-weight:900}
-.manifesto h2{font-size:clamp(58px,8vw,118px);line-height:.82;letter-spacing:-.09em;margin:20px 0 65px;max-width:1050px}
-.manifesto h2 i{font-style:normal;color:transparent;-webkit-text-stroke:1px #fff}
-.manifesto-grid{display:grid;grid-template-columns:.6fr 1.4fr;gap:100px;border-top:1px solid var(--line);padding-top:28px}
-.manifesto-grid p{font-size:11px;line-height:1.8;color:#8e8b86;max-width:290px}
-.statement{display:grid;grid-template-columns:repeat(3,1fr);gap:1px}
-.statement article{border-left:1px solid var(--line);padding:0 25px;min-height:180px}
-.statement article:first-child{border-left:0}
-.statement b{font-size:9px;color:#777;letter-spacing:.14em}
-.statement h3{font-size:25px;letter-spacing:-.04em;margin:58px 0 10px}
-.statement p{font-size:10px;color:#777;line-height:1.65}
-
-.control{display:grid;grid-template-columns:1fr 1fr;min-height:750px}
-.control-visual{background:#e9e6df;color:#111;padding:40px;position:relative;overflow:hidden}
-.control-visual:before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:#d9ff45;left:-230px;bottom:-300px}
-.panel{position:relative;z-index:2;background:#151515;color:#fff;margin:70px 4% 0;padding:15px;box-shadow:30px 35px 70px rgba(0,0,0,.25)}
-.panel-top{height:35px;border-bottom:1px solid #444;display:flex;justify-content:space-between;align-items:center;font-size:7px;color:#aaa}
-.panel-body{display:grid;grid-template-columns:150px 1fr;min-height:390px}
-.panel-menu{border-right:1px solid #444;padding:22px 15px;display:grid;align-content:start;gap:12px}
-.panel-menu span{font-size:8px;color:#777}.panel-menu span:first-child{color:#fff}
-.analytics{padding:22px}.analytics h3{font-size:24px;margin:0 0 20px}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.metric{background:#222;padding:14px;height:76px}.metric small{font-size:7px;color:#777}.metric strong{display:block;font-size:20px;margin-top:8px}
-.graph{height:170px;margin-top:8px;background:linear-gradient(165deg,transparent 60%,rgba(217,255,69,.12) 61%),repeating-linear-gradient(0deg,#222 0,#222 1px,transparent 1px,transparent 42px);position:relative}
-.graph:after{content:"";position:absolute;left:5%;right:5%;top:58%;height:2px;background:var(--acid);transform:skewY(-8deg) rotate(-4deg);box-shadow:80px -26px 0 -1px var(--acid),160px -48px 0 -1px var(--acid),240px -16px 0 -1px var(--acid)}
-.control-copy{background:#f2efe8;color:#111;padding:90px 10%;display:flex;flex-direction:column;justify-content:center}
-.control-copy h2{font-size:clamp(58px,7vw,105px);line-height:.78;letter-spacing:-.09em;margin:18px 0 30px}
-.control-copy p{font-size:15px;line-height:1.8;color:#555;max-width:470px}
-.list{margin-top:35px;max-width:520px}
-.list div{border-top:1px solid #c7c3ba;padding:15px 0;display:flex;justify-content:space-between;font-size:10px;font-weight:900}
-.list span{color:#777}
-
-.use{padding:145px 34px;background:#ff6338;color:#111;overflow:hidden}
-.use-inner{max-width:var(--max);margin:auto}
-.use-top{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid rgba(17,17,17,.3);padding-bottom:30px}
-.use h2{font-size:clamp(60px,8vw,120px);line-height:.78;letter-spacing:-.09em;margin:20px 0 70px}
-.use-intro{font-size:13px;line-height:1.7;max-width:300px}
-.use-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.use-card{min-height:340px;background:#f2efe8;padding:24px;display:flex;flex-direction:column;justify-content:space-between}
-.use-card:nth-child(2){transform:translateY(45px);background:#0a0a0b;color:#fff}
-.use-card:nth-child(3){transform:translateY(-25px)}
-.use-card:nth-child(4){transform:translateY(65px);background:var(--acid)}
-.use-card small{font-size:8px;letter-spacing:.12em;color:#777}.use-card:nth-child(2) small{color:#999}
-.use-card strong{font-size:34px;line-height:.85;letter-spacing:-.06em}
-.use-card p{font-size:10px;line-height:1.65;max-width:210px}
-
-.offer{padding:150px 34px;background:#f2efe8;color:#111}
-.offer-inner{max-width:var(--max);margin:auto;display:grid;grid-template-columns:1.2fr .8fr;gap:90px;align-items:end}
-.offer h2{font-size:clamp(72px,11vw,165px);line-height:.72;letter-spacing:-.1em;margin:18px 0 40px}
-.offer h2 span{color:var(--orange)}
-.offer p{font-size:15px;line-height:1.8;max-width:580px;color:#555}
-.buybox{background:#0a0a0b;color:#fff;padding:32px}
-.buybox small{font-size:8px;color:#aaa;letter-spacing:.15em}
-.buybox strong{display:block;font-size:67px;letter-spacing:-.08em;color:var(--acid);margin:18px 0}
-.buybox p{font-size:9px;color:#aaa;margin:0 0 25px}
-.buybox a{display:block;background:#fff;color:#111;text-align:center;padding:17px;font-size:10px;font-weight:900}
-
-.footer{background:#0a0a0b;color:#777;padding:28px 34px;display:flex;justify-content:space-between;font-size:8px;letter-spacing:.1em}
-.footer b{color:#fff;font-size:11px}
-
-@media(max-width:900px){
-  .nav{display:none}.hero-main,.product-frame,.manifesto-grid,.control,.offer-inner{grid-template-columns:1fr}
-  .hero-main{gap:25px}.hero h1{font-size:clamp(72px,18vw,150px)}
-  .hero-copy{max-width:520px}.product-frame{min-height:0}.product-aside{min-height:360px}
-  .statement{grid-template-columns:1fr}.statement article{border-left:0;border-top:1px solid var(--line);padding:25px 0;min-height:0}.statement article:first-child{border-top:0}
-  .control-visual{min-height:650px}.control-copy{padding:75px 8%}.use-grid{grid-template-columns:1fr 1fr}.use-card:nth-child(n){transform:none}.offer-inner{gap:45px}
-}
-@media(max-width:600px){
-  .header{height:64px;padding:0 18px}.header-cta{padding:10px 12px}
-  .hero,.stage,.manifesto,.use,.offer{padding-left:20px;padding-right:20px}
-  .hero{padding-top:100px}.hero-meta{font-size:7px}.hero-main{padding-top:45px}.hero h1{font-size:70px}
-  .hero-copy p{font-size:14px}.hero-bottom{grid-template-columns:1fr}
-  .stage-head{display:block}.stage-head small{display:block;margin-top:9px}.product-frame{margin-left:-20px;margin-right:-20px}.product-screen{padding:9px}
-  .market{padding:18px}.market-title h2{font-size:31px}.video-grid{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:390px}.v.big{grid-row:auto}.v:nth-child(5){display:none}
-  .product-aside h2{font-size:55px}.manifesto{padding-top:100px;padding-bottom:100px}.manifesto h2{font-size:57px}.manifesto-grid{gap:40px}
-  .control-visual{padding:20px;min-height:560px}.panel{margin:55px 0 0}.panel-body{grid-template-columns:85px 1fr}.metrics{grid-template-columns:1fr 1fr}.metric:nth-child(3){display:none}.graph{height:130px}
-  .control-copy{padding:70px 20px}.use{padding-top:100px;padding-bottom:110px}.use-top{display:block}.use-intro{margin-top:20px}.use h2{font-size:63px;margin-bottom:55px}.use-grid{grid-template-columns:1fr}
-  .offer{padding-top:100px;padding-bottom:100px}.offer h2{font-size:77px}.buybox strong{font-size:54px}.footer{padding:24px 20px;display:block}.footer small{display:block;margin-top:10px}
-}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.06;background-image:radial-gradient(#111 .7px,transparent .7px);background-size:7px 7px;z-index:50}
+.rail{position:fixed;left:0;top:0;bottom:0;width:58px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:22px 0;z-index:20;background:var(--paper)}
+.rail b{font-size:10px;writing-mode:vertical-rl;letter-spacing:.14em}.rail span{font-size:8px;writing-mode:vertical-rl;letter-spacing:.18em}
+.page{margin-left:58px}.topbar{height:72px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 var(--pad);font-size:9px;letter-spacing:.14em;font-weight:900}.toplinks{display:flex;gap:28px}.toplinks a:hover{color:var(--blue)}
+.hero{min-height:calc(100vh - 72px);display:grid;grid-template-columns:1.65fr .75fr;grid-template-rows:auto 1fr auto;padding:26px var(--pad) 20px;position:relative;overflow:hidden}
+.kicker{grid-column:1/-1;display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;border-bottom:1px solid var(--line);padding-bottom:13px}
+.hero-title{align-self:center;position:relative;z-index:3}
+.hero-title h1{font-size:clamp(88px,14vw,210px);line-height:.76;letter-spacing:-.11em;margin:35px 0 0;font-weight:900}
+.hero-title h1 span{display:block}.hero-title h1 .outline{color:transparent;-webkit-text-stroke:2px var(--ink)}.hero-title h1 .blue{color:var(--blue)}
+.hero-note{align-self:end;max-width:310px;margin:0 0 30px auto;border-left:3px solid var(--blue);padding-left:18px;position:relative;z-index:3}.hero-note strong{display:block;font-size:11px;letter-spacing:.1em}.hero-note p{font-size:14px;line-height:1.7;margin:12px 0 20px}.link{display:inline-block;border-bottom:2px solid var(--ink);padding-bottom:5px;font-size:9px;font-weight:900;letter-spacing:.12em}
+.hero-art{position:absolute;width:min(49vw,720px);height:min(49vw,720px);right:4vw;top:15%;background:var(--blue);transform:rotate(-7deg);z-index:1}
+.hero-art:before{content:"";position:absolute;inset:28px;background:var(--paper);transform:rotate(10deg)}
+.hero-art:after{content:"PLAY";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(10deg);width:130px;height:130px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:.1em;box-shadow:0 0 0 14px var(--paper),0 0 0 15px var(--ink)}
+.hero-stamp{position:absolute;right:5%;bottom:8%;z-index:4;background:var(--red);color:#fff;padding:13px 16px;font-size:9px;font-weight:900;letter-spacing:.13em;transform:rotate(5deg)}
+.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;font-size:clamp(30px,4.5vw,68px);font-weight:900;letter-spacing:-.06em;padding:8px 0;background:var(--ink);color:var(--paper)}
+.marquee span{display:inline-block;margin-right:35px}.marquee i{font-style:normal;color:var(--blue)}
+.manifest{display:grid;grid-template-columns:1fr 2fr;border-bottom:1px solid var(--line)}
+.manifest-aside{padding:30px var(--pad);border-right:1px solid var(--line);font-size:9px;font-weight:900;letter-spacing:.14em}
+.manifest-main{padding:80px var(--pad) 95px}.manifest-main h2{font-size:clamp(54px,8vw,120px);line-height:.82;letter-spacing:-.1em;margin:0;max-width:1000px}.manifest-main h2 em{font-style:normal;color:var(--blue)}
+.manifest-main p{max-width:530px;font-size:15px;line-height:1.8;margin:45px 0 0}
+.catalog{background:var(--ink);color:var(--paper);padding:28px var(--pad) 70px}
+.catalog-head{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #555;padding-bottom:14px}.catalog-head b{font-size:10px;letter-spacing:.14em}.catalog-head span{font-size:8px;color:#aaa}
+.cards{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:10px;margin-top:12px;align-items:start}
+.card{min-height:480px;position:relative;overflow:hidden;padding:18px;display:flex;flex-direction:column;justify-content:space-between}.card:nth-child(1){background:var(--blue);min-height:610px}.card:nth-child(2){background:#d7d1c4;color:var(--ink);margin-top:75px}.card:nth-child(3){background:var(--red);color:#fff;margin-top:150px}
+.card:before{content:"";position:absolute;width:72%;aspect-ratio:1;border:1px solid currentColor;border-radius:50%;right:-22%;top:15%;opacity:.45}.card:after{content:"";position:absolute;width:48%;aspect-ratio:1;border:1px solid currentColor;left:-12%;bottom:-15%;opacity:.3}
+.card-top,.card-bottom{position:relative;z-index:2}.card-num{font-size:9px;letter-spacing:.16em}.card h3{font-size:clamp(42px,5vw,78px);line-height:.78;letter-spacing:-.08em;margin:0;max-width:90%}.card p{font-size:10px;line-height:1.6;max-width:240px;margin:0}.card-price{font-size:14px;font-weight:900}
+.system{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.system-copy{padding:80px var(--pad);border-right:1px solid var(--line)}.system-copy h2{font-size:clamp(60px,8vw,115px);line-height:.78;letter-spacing:-.1em;margin:18px 0 35px}.system-copy p{font-size:14px;line-height:1.8;max-width:450px}
+.specs{padding:80px var(--pad)}.spec{border-top:1px solid var(--line);padding:20px 0;display:grid;grid-template-columns:70px 1fr;gap:20px}.spec:first-child{border-top:0}.spec b{font-size:9px;color:#777}.spec h3{font-size:25px;margin:0 0 8px;letter-spacing:-.04em}.spec p{font-size:10px;line-height:1.6;margin:0;max-width:390px}
+.purchase{background:var(--blue);color:#fff;min-height:75vh;display:grid;grid-template-columns:1.5fr .5fr;position:relative;overflow:hidden}.purchase-main{padding:90px var(--pad);position:relative;z-index:2}.purchase-main small{font-size:9px;letter-spacing:.15em;font-weight:900}.purchase-main h2{font-size:clamp(85px,14vw,210px);line-height:.72;letter-spacing:-.11em;margin:28px 0}.purchase-main h2 span{color:var(--ink)}.purchase-main p{font-size:15px;line-height:1.7;max-width:450px}.buy{align-self:end;background:var(--paper);color:var(--ink);padding:28px;margin:0 28px 28px 0;position:relative;z-index:3}.buy small{font-size:8px;letter-spacing:.13em}.buy strong{display:block;font-size:58px;letter-spacing:-.08em;margin:18px 0}.buy a{display:block;background:var(--ink);color:#fff;padding:17px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.12em}.purchase:after{content:"98";position:absolute;right:-3vw;top:-8vw;font-size:45vw;line-height:1;font-weight:900;color:rgba(255,255,255,.08);letter-spacing:-.12em}
+footer{padding:20px var(--pad);display:flex;justify-content:space-between;font-size:8px;letter-spacing:.12em;font-weight:900}
+@media(max-width:900px){.rail{display:none}.page{margin-left:0}.hero{grid-template-columns:1fr}.hero-note{margin:30px 0 20px}.hero-art{width:75vw;height:75vw;right:-15vw;top:20%;opacity:.75}.cards{grid-template-columns:1fr}.card:nth-child(n){margin-top:0;min-height:430px}.system,.purchase{grid-template-columns:1fr}.system-copy{border-right:0;border-bottom:1px solid var(--line)}.buy{margin:0 var(--pad) var(--pad)}}
+@media(max-width:600px){:root{--pad:18px}.toplinks{display:none}.hero{min-height:calc(100vh - 62px);padding-top:18px}.hero-title h1{font-size:72px}.hero-art{width:92vw;height:92vw;top:29%;right:-28vw}.manifest-main{padding:55px var(--pad) 70px}.manifest-main h2{font-size:55px}.catalog{padding-bottom:40px}.card h3{font-size:54px}.system-copy,.specs{padding:60px var(--pad)}.purchase-main{padding:70px var(--pad)}.purchase-main h2{font-size:86px}.buy strong{font-size:48px}footer{display:block}footer span{display:block;margin-top:8px}}
 </style>
 </head>
 <body>
-<header class="header">
-<a class="logo" href="#top">VIDEO MARKETPLACE</a>
-<nav class="nav"><a href="#product">PRODUCT</a><a href="#system">SYSTEM</a><a href="#control">CONTROL</a><a href="#use">USE CASES</a></nav>
-<a class="header-cta" href="#offer">¥98,000 / PRODUCT</a>
-</header>
-
-<main id="top">
+<aside class="rail"><b>VIDEO MARKETPLACE</b><span>SCROLL ↓</span></aside>
+<div class="page">
+<header class="topbar"><strong>VM / 001</strong><nav class="toplinks"><a href="#catalog">PRODUCTS</a><a href="#system">SYSTEM</a><a href="#buy">LICENSE</a></nav><span>INDEPENDENT VIDEO COMMERCE</span></header>
+<main>
 <section class="hero">
-<div class="hero-inner">
-<div class="hero-meta"><span>01 / DIGITAL COMMERCE SYSTEM</span><span>VIDEO MARKETPLACE / 2026</span></div>
-<div class="hero-main">
-<div><h1>VIDEO<br><span>IS THE</span><em>PRODUCT.</em></h1></div>
-<div class="hero-copy"><div class="eyebrow">NOT JUST A VIDEO SITE.</div><p>動画を見る場所ではなく、動画を「商品」として売るためのマーケットプレイス。</p><div class="hero-actions"><a class="btn primary" href="#product">EXPLORE SYSTEM ↗</a><a class="btn" href="#offer">¥98,000</a></div></div>
-</div>
-<div class="hero-bottom"><div class="hero-line"></div><div class="scroll">SCROLL <b>↓</b></div></div>
-</div>
+<div class="kicker"><span>THE VIDEO COMMERCE SYSTEM</span><span>NOT A TEMPLATE / NOT A THEME</span></div>
+<div class="hero-title"><h1><span>VIDEO</span><span class="outline">IS A</span><span class="blue">BUSINESS.</span></h1></div>
+<div class="hero-note"><strong>SELL WHAT YOU MAKE.</strong><p>動画を「見るサイト」ではなく、動画そのものを商品として販売するためのマーケットプレイス。</p><a class="link" href="#catalog">ENTER THE MARKET ↗</a></div>
+<div class="hero-art"></div><div class="hero-stamp">¥98,000 / SYSTEM</div>
 </section>
-
-<section class="stage" id="product">
-<div class="stage-head"><span>02 / PRODUCT EXPERIENCE</span><small>BUY / WATCH / SELL / MANAGE</small></div>
-<div class="product-frame">
-<div class="product-screen"><div class="browser"><div class="browser-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="sitebar"><b>VIDEO MARKETPLACE</b><span>DISCOVER　 CATEGORIES　 CART　 ACCOUNT</span></div><div class="market"><div class="market-title"><h2>Find something<br>worth watching.</h2><small>NEW / POPULAR / FEATURED</small></div><div class="video-grid">
-<article class="v big"><div class="play">▶</div><div class="v-info"><strong>THE LAST SIGNAL</strong><small>DOCUMENTARY / ¥2,800</small></div></article>
-<article class="v"><div class="play">▶</div><div class="v-info"><strong>BLUE HOUR</strong><small>FILM / ¥1,800</small></div></article>
-<article class="v"><div class="play">▶</div><div class="v-info"><strong>FIELD NOTES</strong><small>COURSE / ¥3,500</small></div></article>
-<article class="v"><div class="play">▶</div><div class="v-info"><strong>AFTER LIGHT</strong><small>CREATIVE / ¥2,200</small></div></article>
-<article class="v"><div class="play">▶</div><div class="v-info"><strong>BUILD / 01</strong><small>BUSINESS / ¥4,800</small></div></article>
-</div></div></div></div>
-<aside class="product-aside"><div><small>THE BUSINESS LAYER</small><h2>SELL<br>YOUR<br>VIDEO.</h2><p>商品登録から購入、視聴、注文、売上管理まで。動画販売に必要な体験を一つのシステムへ。</p></div><div><div class="price">¥98,000</div><small>SYSTEM / PRODUCT LICENSE</small></div></aside>
-</div>
-</section>
-
-<section class="manifesto" id="system"><div class="manifesto-inner">
-<div class="overline">03 / THE IDEA</div>
-<h2>DON'T BUILD A<br><i>VIDEO SITE.</i><br>BUILD A BUSINESS.</h2>
-<div class="manifesto-grid"><p>テンプレートの見た目を売るのではなく、動画販売というビジネスを動かすための土台を一つの商品として設計する。</p>
-<div class="statement">
-<article><b>01 / MARKET</b><h3>DISCOVER.</h3><p>カテゴリー、詳細、関連動画。購入者が商品を見つける。</p></article>
-<article><b>02 / CREATOR</b><h3>SELL.</h3><p>動画、画像、価格、説明を登録し、販売者として公開する。</p></article>
-<article><b>03 / CUSTOMER</b><h3>WATCH.</h3><p>購入、注文履歴、購入後の視聴までを一つの流れにする。</p></article>
-</div></div>
+<div class="marquee"><span>BUY</span><i>→</i><span>SELL</span><i>→</i><span>WATCH</span><i>→</i><span>MANAGE</span><i>→</i><span>BUY</span><i>→</i><span>SELL</span></div>
+<section class="manifest"><div class="manifest-aside">WHY VIDEO MARKETPLACE?</div><div class="manifest-main"><h2>ONE PRODUCT.<br><em>REAL COMMERCE.</em><br>ZERO NOISE.</h2><p>販売者、購入者、運営者。それぞれの体験を別々に作るのではなく、一つのマーケットプレイスとしてつなげる。商品登録から購入、視聴、注文、売上管理までを一つの流れに。</p></div></section>
+<section class="catalog" id="catalog"><div class="catalog-head"><b>01 / WHAT CAN YOU SELL?</b><span>THE CONTENT CHANGES. THE SYSTEM DOESN'T.</span></div><div class="cards">
+<article class="card"><div class="card-top"><span class="card-num">A01 / CREATOR</span></div><div class="card-bottom"><h3>VIDEO<br>STORE</h3><p>作品、限定映像、イベント、クリエイターコンテンツ。</p><div class="card-price">FILM / CREATIVE / FAN</div></div></article>
+<article class="card"><div class="card-top"><span class="card-num">B02 / EDUCATION</span></div><div class="card-bottom"><h3>ONLINE<br>COURSE</h3><p>講座、研修、ノウハウ、会員向け学習コンテンツ。</p><div class="card-price">LEARN / TRAIN / TEACH</div></div></article>
+<article class="card"><div class="card-top"><span class="card-num">C03 / ASSET</span></div><div class="card-bottom"><h3>STOCK<br>VIDEO</h3><p>映像素材、デジタルコンテンツ、業務向け動画。</p><div class="card-price">ASSET / PRO / DIGITAL</div></div></article>
 </div></section>
-
-<section class="control" id="control">
-<div class="control-visual"><div class="panel"><div class="panel-top"><span>ADMIN / OVERVIEW</span><span>LIVE DATA</span></div><div class="panel-body"><div class="panel-menu"><span>Overview</span><span>Videos</span><span>Orders</span><span>Users</span><span>Sales</span></div><div class="analytics"><h3>Performance</h3><div class="metrics"><div class="metric"><small>ORDERS</small><strong>248</strong></div><div class="metric"><small>SALES</small><strong>¥1.84M</strong></div><div class="metric"><small>USERS</small><strong>3.8K</strong></div></div><div class="graph"></div></div></div></div></div>
-<div class="control-copy"><span class="overline">04 / CONTROL CENTER</span><h2>RUN THE<br>WHOLE<br>MARKET.</h2><p>販売者だけではなく、運営者側の管理まで含めて一つのシステムとして考える。商品、ユーザー、注文、売上をまとめて扱える。</p><div class="list"><div>CONTENT MANAGEMENT <span>↗</span></div><div>SELLER DASHBOARD <span>↗</span></div><div>BUYER EXPERIENCE <span>↗</span></div><div>ORDER / SALES <span>↗</span></div></div></div>
-</section>
-
-<section class="use" id="use"><div class="use-inner">
-<div class="use-top"><div class="overline">05 / USE CASES</div><div class="use-intro">販売する動画が変わっても、マーケットプレイスという土台は変わらない。</div></div>
-<h2>ONE SYSTEM.<br>DIFFERENT<br>BUSINESSES.</h2>
-<div class="use-grid">
-<article class="use-card"><small>01 / EDUCATION</small><strong>ONLINE<br>COURSE</strong><p>講座・研修・ノウハウ動画を販売。</p></article>
-<article class="use-card"><small>02 / CREATOR</small><strong>VIDEO<br>STORE</strong><p>作品・限定映像・クリエイターコンテンツ。</p></article>
-<article class="use-card"><small>03 / BUSINESS</small><strong>PRO<br>CONTENT</strong><p>企業向け専門コンテンツを提供。</p></article>
-<article class="use-card"><small>04 / ASSET</small><strong>STOCK<br>VIDEO</strong><p>映像素材・デジタルコンテンツを販売。</p></article>
-</div>
+<section class="system" id="system"><div class="system-copy"><small>02 / INSIDE THE PRODUCT</small><h2>EVERYTHING<br>CONNECTED.</h2><p>動画販売に必要な機能を、購入者・販売者・運営者の三つの視点から一つのシステムに。見た目だけのテンプレートではなく、運営を想定した商品として設計。</p></div><div class="specs">
+<div class="spec"><b>01</b><div><h3>BUYER EXPERIENCE</h3><p>会員登録、商品詳細、カート、購入、注文履歴、購入後の視聴。</p></div></div>
+<div class="spec"><b>02</b><div><h3>SELLER CONTROL</h3><p>動画・サムネイル・紹介画像・価格・カテゴリー・説明を登録し、販売状況を管理。</p></div></div>
+<div class="spec"><b>03</b><div><h3>ADMIN CENTER</h3><p>商品、ユーザー、注文、売上などマーケットプレイス全体を管理。</p></div></div>
+<div class="spec"><b>04</b><div><h3>OPEN TO CUSTOMIZE</h3><p>用途に合わせてデザイン、機能、販売形態を拡張できるベース。</p></div></div>
 </div></section>
-
-<section class="offer" id="offer"><div class="offer-inner">
-<div><div class="overline">06 / PRODUCT</div><h2>BUILD<br>YOUR<br><span>MARKET.</span></h2><p>そのまま運営できる土台として。必要に応じてカスタマイズできるシステムとして。動画販売ビジネスのベースを一つの商品に。</p></div>
-<div class="buybox"><small>VIDEO MARKETPLACE SYSTEM</small><strong>¥98,000</strong><p>VIDEO COMMERCE / DIGITAL PRODUCT</p><a href="#top">VIEW PRODUCT ↗</a></div>
-</div></section>
+<section class="purchase" id="buy"><div class="purchase-main"><small>03 / DIGITAL PRODUCT LICENSE</small><h2>MAKE<br><span>YOUR</span><br>MARKET.</h2><p>このまま動画販売サービスの土台として。あるいは自分のブランドに合わせて作り込むためのベースとして。</p></div><div class="buy"><small>VIDEO MARKETPLACE SYSTEM</small><strong>¥98,000</strong><a href="#top">VIEW PRODUCT ↗</a></div></section>
 </main>
-<footer class="footer"><b>VIDEO MARKETPLACE</b><small>© 2026 VIDEO MARKETPLACE SYSTEM</small></footer>
+<footer><b>VIDEO MARKETPLACE / 001</b><span>© 2026 DIGITAL COMMERCE SYSTEM</span></footer>
+</div>
 </body>
 </html>
