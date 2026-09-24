@@ -1,59 +1,63 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VIDEO MARKETPLACE</title>
-<link rel="stylesheet" href="/blueprint-exact.css">
-</head>
-<body>
-<section class="hero" id="top">
-  <div class="wrap nav">
-    <a class="brand" href="#top"><span class="brand-mark"></span>VIDEO MARKETPLACE</a>
-    <nav class="nav-links"><a href="#top">ホーム</a><a href="#categories">カテゴリー</a><a href="#popular">ランキング</a><a href="#creator">クリエイター</a><a href="#why">ヘルプ</a></nav>
-    <div class="nav-tools"><a class="search" href="#search">⌕</a><a class="cart" href="/cart.html" aria-label="カート">🛒</a><a class="login" href="/login.html">ログイン</a><a class="register" href="/register.html">会員登録</a></div>
-  </div>
-  <div class="hero-content">
-    <h1>見つける。<br>買う。楽しむ。</h1>
-    <p class="hero-copy">ここには、あなたの「好き」がきっとある。<br>最高の動画コンテンツが集まるマーケットプレイス。</p>
-    <div class="searchbar" id="search"><span>⌕　キーワードで動画を検索...</span><a class="search-btn" href="#popular">⌕</a></div>
-    <div class="keywords"><span>人気のキーワード</span><a class="tag" href="#popular">映画</a><a class="tag" href="#popular">AI</a><a class="tag" href="#popular">ドキュメンタリー</a><a class="tag" href="#popular">ビジネス</a><a class="tag" href="#popular">クリエイティブ</a></div>
-  </div>
-  <div class="scroll">Scroll</div>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIDEO MARKETPLACE — 見つける。買う。楽しむ。</title>
+<style>
+:root{--navy:#03131d;--navy2:#061b27;--white:#fff;--muted:#b9c3c9;--line:rgba(255,255,255,.14);--blue:#294cff;--purple:#9c4dff;--gold:#f7bf27;--max:1400px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--navy);color:#fff;font-family:"Noto Sans JP",Inter,Arial,sans-serif}a{text-decoration:none;color:inherit}button,input{font:inherit}
+.nav{position:absolute;z-index:20;top:0;left:0;right:0;height:64px;display:flex;align-items:center;gap:30px;padding:0 68px;background:linear-gradient(rgba(0,0,0,.28),transparent);font-size:11px}.logo{font-weight:900;letter-spacing:.06em;white-space:nowrap;display:flex;align-items:center;gap:8px}.logo:before{content:"";width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:12px solid #fff}.navlinks{display:flex;gap:27px;margin-left:25px;color:#f1f4f5}.navlinks a{white-space:nowrap}.navright{margin-left:auto;display:flex;align-items:center;gap:20px}.search-icon{font-size:18px;line-height:1}.cart{font-size:16px;line-height:1}.login{white-space:nowrap}.signup{background:#2347ff;border-radius:22px;padding:9px 18px;font-weight:800;white-space:nowrap}
+.hero{height:432px;position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(2,12,19,.86) 0%,rgba(2,12,19,.55) 40%,rgba(2,12,19,.04) 78%),url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=88") center 58%/cover}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(3,19,29,.55),transparent 45%)}.hero-inner{position:relative;z-index:2;max-width:var(--max);height:100%;margin:auto;padding:91px 0 35px}.hero-copy{width:520px}.hero h1{font-family:"Klee One","Yuji Syuku","Hiragino Mincho ProN",cursive;font-weight:500;font-size:64px;line-height:1.02;letter-spacing:-.055em;margin:0 0 22px;text-shadow:0 2px 18px rgba(0,0,0,.35)}.hero p{font-size:13px;line-height:1.8;font-weight:600;margin:0 0 18px}.search{height:42px;width:442px;background:#fff;border-radius:23px;padding:4px 5px 4px 17px;display:flex;align-items:center}.search input{border:0;outline:0;flex:1;color:#555;font-size:11px;background:transparent}.search button{width:34px;height:34px;border:0;border-radius:50%;background:linear-gradient(135deg,#2148ff,#8c4cff);color:#fff;font-size:17px}.keywords{display:flex;align-items:center;gap:7px;margin-top:13px;font-size:10px}.keywords b{font-weight:600;margin-right:3px}.tag{border:1px solid rgba(255,255,255,.5);padding:5px 11px;border-radius:16px;background:rgba(0,0,0,.18)}
+main{background:var(--navy)}.section{max-width:var(--max);margin:auto;padding:27px 0 30px}.head{display:flex;align-items:end;justify-content:space-between;margin-bottom:17px}.head small{display:block;font-size:8px;letter-spacing:.12em;color:#d7e0e5;margin-bottom:5px}.head h2{font-size:20px;line-height:1;margin:0;font-weight:800}.more{font-size:9px;color:#fff}
+.categories{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.cat{height:144px;border:1px solid rgba(255,255,255,.18);border-radius:5px;overflow:hidden;position:relative;background:#12232d}.cat img{width:100%;height:100%;object-fit:cover}.cat:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,8,13,.84),rgba(0,0,0,.05) 65%)}.cat-info{position:absolute;z-index:2;left:14px;right:13px;bottom:11px}.cat-info h3{margin:0;font-size:15px}.cat-icon{font-size:14px;margin-right:3px}.cat-info p{margin:4px 0 0;font-size:8px;color:#d8dee1}.cat-info span{float:right;font-size:17px}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.thumb{height:111px;position:relative;border-radius:4px;overflow:hidden;background:#142631}.thumb img{width:100%;height:100%;object-fit:cover}.heart{position:absolute;right:8px;top:7px;font-size:18px;text-shadow:0 1px 5px #000}.duration{position:absolute;right:7px;bottom:6px;background:rgba(0,0,0,.75);font-size:7px;padding:3px 5px;border-radius:3px}.product h3{font-size:11px;margin:8px 0 5px}.meta{display:flex;justify-content:space-between;color:#b7c0c5;font-size:7px}.rating{color:var(--gold)}.price{font-size:11px;font-weight:900;margin-top:8px}
+.creator{height:250px;max-width:100%;position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(1,12,18,.9),rgba(1,12,18,.1)),url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2000&q=88") center/cover}.creator-inner{max-width:var(--max);height:100%;margin:auto;display:flex;align-items:center}.creator-copy{width:540px}.creator-copy h2{font-family:"Klee One","Yuji Syuku","Hiragino Mincho ProN",cursive;font-size:40px;line-height:1.12;font-weight:500;margin:0 0 17px}.creator-copy p{font-size:10px;line-height:1.8;margin:0 0 15px}.gradient-btn{display:inline-flex;align-items:center;justify-content:center;height:37px;padding:0 22px;border-radius:20px;background:linear-gradient(100deg,#2044ff,#a449ff);font-size:10px;font-weight:800}
+.reasons-wrap{background:#f7f8f9;color:#13212b;padding:25px 0 28px}.reasons{max-width:var(--max);margin:auto}.reasons .head{margin-bottom:19px}.reasons .head small{color:#77838a}.reason-grid{display:grid;grid-template-columns:repeat(4,1fr)}.reason{display:grid;grid-template-columns:36px 1fr;gap:11px;padding:7px 24px;border-right:1px solid #d8dde0}.reason:first-child{padding-left:0}.reason:last-child{border-right:0}.icon{width:28px;height:28px;border:2px solid #294cff;border-radius:8px;display:grid;place-items:center;color:#294cff;font-size:14px}.reason h3{font-size:10px;margin:0 0 4px}.reason p{font-size:7px;line-height:1.5;color:#78848b;margin:0}
+.final{height:175px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(rgba(2,14,22,.56),rgba(2,14,22,.7)),url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=82") center/cover;padding-top:23px}.final small{font-size:8px;letter-spacing:.1em}.final h2{font-size:18px;margin:7px 0 3px}.final p{font-size:8px;color:#e0e5e8;margin:0 0 11px}.final .gradient-btn{height:34px;min-width:150px}
+footer{height:42px;display:flex;align-items:center;justify-content:space-between;max-width:var(--max);margin:auto;color:#71808a;font-size:8px}
+@media(max-width:900px){.nav{padding:0 24px}.navlinks{gap:14px;margin-left:0}.hero-inner,.section,.creator-inner,.reasons,.footer{padding-left:24px;padding-right:24px}.categories,.products{gap:12px}.hero h1{font-size:50px}.search{width:400px}}
+@media(max-width:650px){.nav{height:56px;padding:0 15px}.navlinks{display:none}.navright{gap:10px}.cart,.search-icon{display:none}.hero{height:500px}.hero-inner{padding:82px 18px 28px}.hero-copy{width:100%}.hero h1{font-size:48px}.search{width:100%}.keywords{flex-wrap:wrap}.categories,.products{grid-template-columns:1fr 1fr}.cat{height:120px}.thumb{height:auto;aspect-ratio:16/10}.creator{height:320px}.creator-inner{padding:0 18px}.creator-copy h2{font-size:33px}.reason-grid{grid-template-columns:1fr 1fr}.reason{padding:12px;border-bottom:1px solid #d8dde0}.reason:nth-child(2){border-right:0}.reason:first-child{padding-left:12px}.final{height:190px}footer{padding:0 18px}}
+</style>
+<header class="nav">
+<a class="logo" href="#">VIDEO MARKETPLACE</a>
+<nav class="navlinks"><a href="#">ホーム</a><a href="#categories">カテゴリー</a><a href="#products">ランキング</a><a href="#creator">クリエイター</a><a href="#reasons">ヘルプ</a></nav>
+<div class="navright"><span class="search-icon">⌕</span><span class="cart">🛒</span><a class="login" href="#">ログイン</a><a class="signup" href="#">会員登録</a></div>
+</header>
+<section class="hero">
+<div class="hero-inner"><div class="hero-copy">
+<h1>見つける。<br>買う。楽しむ。</h1>
+<p>ここには、あなたの「好き」がきっとある。<br>最高の動画コンテンツが集まるマーケットプレイス。</p>
+<div class="search"><input placeholder="キーワードで動画を検索..."><button>⌕</button></div>
+<div class="keywords"><b>人気のキーワード</b><span class="tag">映画</span><span class="tag">AI</span><span class="tag">ドキュメンタリー</span><span class="tag">ビジネス</span><span class="tag">クリエイティブ</span></div>
+</div></div>
+<main>
+<section class="section" id="categories">
+<div class="head"><div><small>BROWSE BY CATEGORY</small><h2>カテゴリーから探す</h2></div><a class="more" href="#">すべてのカテゴリーを見る →</a></div>
+<div class="categories">
+<a class="cat" href="#"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80"><div class="cat-info"><h3><span class="cat-icon">▣</span> 映画</h3><p>映画・ショートフィルム・ドラマ <span>→</span></p></div></a>
+<a class="cat" href="#"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"><div class="cat-info"><h3><span class="cat-icon">▤</span> 学び</h3><p>ビジネス・スキル・語学 <span>→</span></p></div></a>
+<a class="cat" href="#"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80"><div class="cat-info"><h3><span class="cat-icon">◇</span> ドキュメンタリー</h3><p>自然・社会・歴史 <span>→</span></p></div></a>
+<a class="cat" href="#"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80"><div class="cat-info"><h3><span class="cat-icon">▧</span> クリエイティブ</h3><p>デザイン・映像制作・アート <span>→</span></p></div></a>
+</div>
 </section>
-<section class="dark-section section" id="categories">
-  <div class="wrap">
-    <div class="section-head"><div><p class="eyebrow">BROWSE BY CATEGORY</p><h2>カテゴリーから探す</h2></div><a class="view-all" href="/library.html">すべてのカテゴリーを見る</a></div>
-    <div class="cards">
-      <a class="category-card cat1" href="/library.html"><div class="cat-text"><div class="cat-title"><span class="cat-icon">▣</span> 映画</div><div class="cat-sub">映画・ショートフィルム・ドラマ</div></div><span class="cat-arrow">→</span></a>
-      <a class="category-card cat2" href="/library.html"><div class="cat-text"><div class="cat-title"><span class="cat-icon">▤</span> 学び</div><div class="cat-sub">ビジネス・スキル・語学</div></div><span class="cat-arrow">→</span></a>
-      <a class="category-card cat3" href="/library.html"><div class="cat-text"><div class="cat-title"><span class="cat-icon">◇</span> ドキュメンタリー</div><div class="cat-sub">自然・社会・歴史</div></div><span class="cat-arrow">→</span></a>
-      <a class="category-card cat4" href="/library.html"><div class="cat-text"><div class="cat-title"><span class="cat-icon">▧</span> クリエイティブ</div><div class="cat-sub">デザイン・映像制作・アート</div></div><span class="cat-arrow">→</span></a>
-    </div>
-    <div class="recommended" id="popular">
-      <div class="section-head"><div><h2>おすすめの動画</h2><p class="section-note">今、人気のコンテンツをピックアップ</p></div><a class="view-all" href="/library.html">もっと見る</a></div>
-      <div class="video-grid">
-        <a class="video-card" href="/product.html?id=1"><div class="thumb v1"><span class="heart">♡</span><span class="duration">12:34</span></div><h3>THE LAST SIGNAL</h3><div class="meta">映画　サスペンス</div><div class="price-row"><span class="price">¥3,980</span><span class="rating">★ 4.8 (124)</span></div></a>
-        <a class="video-card" href="/product.html?id=2"><div class="thumb v2"><span class="heart">♡</span><span class="duration">08:42</span></div><h3>Tokyo After Hours</h3><div class="meta">映画　ドキュメンタリー</div><div class="price-row"><span class="price">¥2,980</span><span class="rating">★ 4.6 (98)</span></div></a>
-        <a class="video-card" href="/product.html?id=3"><div class="thumb v3"><span class="heart">♡</span><span class="duration">15:20</span></div><h3>Build Your Brand</h3><div class="meta">学び　ビジネス</div><div class="price-row"><span class="price">¥4,980</span><span class="rating">★ 4.7 (156)</span></div></a>
-        <a class="video-card" href="/product.html?id=4"><div class="thumb v4"><span class="heart">♡</span><span class="duration">10:15</span></div><h3>BLUE HORIZON</h3><div class="meta">ドキュメンタリー　自然</div><div class="price-row"><span class="price">¥3,480</span><span class="rating">★ 4.9 (203)</span></div></a>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="creator" id="creator">
-  <div class="wrap creator-inner"><div class="creator-copy"><h2>あなたの作品を、<br>世界に届けよう。</h2><p>動画を販売して、あなたのクリエイティブを収益に変える。<br>今すぐクリエイターとしてはじめましょう。</p><a class="cta" href="/seller-login.html">クリエイターになる →</a></div></div>
-</section>
-<section class="why" id="why">
-  <div class="wrap"><h2>選ばれる理由</h2><p>動画販売に必要なすべてが、ひとつのシステムに。</p>
-    <div class="why-grid">
-      <div class="why-item"><div class="why-icon">♧</div><div><div class="why-title">簡単な販売プロセス</div><div class="why-sub">登録から販売までスムーズに。</div></div></div>
-      <div class="why-item"><div class="why-icon">◇</div><div><div class="why-title">安心の決済システム</div><div class="why-sub">複数の決済方法に対応。</div></div></div>
-      <div class="why-item"><div class="why-icon">▷</div><div><div class="why-title">購入後すぐに視聴可能</div><div class="why-sub">すぐにコンテンツを楽しめる。</div></div></div>
-      <div class="why-item"><div class="why-icon">↗</div><div><div class="why-title">売上管理ダッシュボード</div><div class="why-sub">収益の確認も簡単に。</div></div></div>
-    </div>
-  </div>
-</section>
-<section class="final">
-  <div class="final-inner"><p class="eyebrow">VIDEO MARKETPLACE</p><h2>動画でつながる、クリエイターと視聴者の新しいカタチ。</h2><p>今すぐ始めて、あなたのコンテンツを世界に届けよう。</p><a class="cta" href="/register.html">今すぐ登録する →</a></div>
-</section>
-</body></html>
+<section class="section" id="products">
+<div class="head"><div><h2>おすすめの動画</h2><small>今、人気のコンテンツをピックアップ</small></div><a class="more" href="#">もっと見る →</a></div>
+<div class="products">
+<article class="product"><div class="thumb"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80"><span class="heart">♡</span><span class="duration">12:34</span></div><h3>THE LAST SIGNAL</h3><div class="meta"><span>映画　ドラマ</span><span class="rating">★ 4.8 (124)</span></div><div class="price">¥3,980</div></article>
+<article class="product"><div class="thumb"><img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1000&q=80"><span class="heart">♡</span><span class="duration">06:42</span></div><h3>Tokyo After Hours</h3><div class="meta"><span>ドキュメンタリー</span><span class="rating">★ 4.5 (98)</span></div><div class="price">¥2,980</div></article>
+<article class="product"><div class="thumb"><img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1000&q=80"><span class="heart">♡</span><span class="duration">15:20</span></div><h3>Build Your Brand</h3><div class="meta"><span>学び　ビジネス</span><span class="rating">★ 4.7 (156)</span></div><div class="price">¥4,980</div></article>
+<article class="product"><div class="thumb"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80"><span class="heart">♡</span><span class="duration">10:15</span></div><h3>BLUE HORIZON</h3><div class="meta"><span>ドキュメンタリー　自然</span><span class="rating">★ 4.9 (203)</span></div><div class="price">¥3,480</div></article>
+</div>
+<div class="creator-inner"><div class="creator-copy"><h2>あなたの作品を、<br>世界に届けよう。</h2><p>動画を販売して、あなたのクリエイティブを収益に変える。<br>今すぐクリエイターとしてはじめましょう。</p><a class="gradient-btn" href="#">クリエイターになる →</a></div></div>
+<section class="reasons-wrap" id="reasons"><div class="reasons">
+<div class="head"><div><small>WHY CHOOSE US</small><h2>選ばれる理由</h2><small>動画販売に必要なすべてが、ひとつのシステムに。</small></div></div>
+<div class="reason-grid">
+<div class="reason"><div class="icon">♧</div><div><h3>簡単な販売プロセス</h3><p>登録から販売までスムーズに。</p></div></div>
+<div class="reason"><div class="icon">◇</div><div><h3>安心の決済システム</h3><p>複数の決済方法に対応。</p></div></div>
+<div class="reason"><div class="icon">▷</div><div><h3>購入後すぐに視聴可能</h3><p>すぐにコンテンツを楽しめる。</p></div></div>
+<div class="reason"><div class="icon">↗</div><div><h3>売上管理ダッシュボード</h3><p>収益の確認も簡単に。</p></div></div>
+</div>
+</div></section>
+<section class="final"><small>VIDEO MARKETPLACE</small><h2>動画でつながる、クリエイターと視聴者の新しいカタチ。</h2><p>今すぐ始めて、あなたのコンテンツを世界中に届けよう。</p><a class="gradient-btn" href="#">今すぐ登録する →</a></section>
+<footer><b>VIDEO MARKETPLACE</b><span>© 2026 VIDEO MARKETPLACE. ALL RIGHTS RESERVED.</span></footer>
+</main>
+</body>
+</html>
