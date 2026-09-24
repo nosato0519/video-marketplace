@@ -16,23 +16,24 @@ main{background:var(--navy)}.section{max-width:var(--max);margin:auto;padding:27
 .reasons-wrap{background:#f7f8f9;color:#13212b;padding:25px 0 28px}.reasons{max-width:var(--max);margin:auto}.reasons .head{margin-bottom:19px}.reasons .head small{color:#77838a}.reason-grid{display:grid;grid-template-columns:repeat(4,1fr)}.reason{display:grid;grid-template-columns:36px 1fr;gap:11px;padding:7px 24px;border-right:1px solid #d8dde0}.reason:first-child{padding-left:0}.reason:last-child{border-right:0}.icon{width:28px;height:28px;border:2px solid #294cff;border-radius:8px;display:grid;place-items:center;color:#294cff;font-size:14px}.reason h3{font-size:10px;margin:0 0 4px}.reason p{font-size:7px;line-height:1.5;color:#78848b;margin:0}
 .final{height:175px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(rgba(2,14,22,.56),rgba(2,14,22,.7)),url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=82") center/cover;padding-top:23px}.final small{font-size:8px;letter-spacing:.1em}.final h2{font-size:18px;margin:7px 0 3px}.final p{font-size:8px;color:#e0e5e8;margin:0 0 11px}.final .gradient-btn{height:34px;min-width:150px}
 footer{height:42px;display:flex;align-items:center;justify-content:space-between;max-width:var(--max);margin:auto;color:#71808a;font-size:8px}
-@media(max-width:900px){.nav{padding:0 24px}.navlinks{gap:14px;margin-left:0}.hero-inner,.section,.creator-inner,.reasons,.footer{padding-left:24px;padding-right:24px}.categories,.products{gap:12px}.hero h1{font-size:50px}.search{width:400px}}
-@media(max-width:650px){.nav{height:56px;padding:0 15px}.navlinks{display:none}.navright{gap:10px}.cart,.search-icon{display:none}.hero{height:500px}.hero-inner{padding:82px 18px 28px}.hero-copy{width:100%}.hero h1{font-size:48px}.search{width:100%}.keywords{flex-wrap:wrap}.categories,.products{grid-template-columns:1fr 1fr}.cat{height:120px}.thumb{height:auto;aspect-ratio:16/10}.creator{height:320px}.creator-inner{padding:0 18px}.creator-copy h2{font-size:33px}.reason-grid{grid-template-columns:1fr 1fr}.reason{padding:12px;border-bottom:1px solid #d8dde0}.reason:nth-child(2){border-right:0}.reason:first-child{padding-left:12px}.final{height:190px}footer{padding:0 18px}}
+.scroll-cue{position:absolute;right:8px;bottom:28px;z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;font-size:9px;letter-spacing:.02em}.scroll-cue i{display:block;width:1px;height:44px;background:rgba(255,255,255,.72);position:relative}.scroll-cue i:after{content:"";position:absolute;left:-4px;bottom:-1px;width:7px;height:7px;border:1px solid #fff;border-radius:50%;background:rgba(3,19,29,.7)}
+@media(max-width:900px){.nav{padding:0 24px}.navlinks{gap:14px;margin-left:0}.hero-inner,.section,.creator-inner,.reasons,footer{padding-left:24px;padding-right:24px}.categories,.products{gap:12px}.hero h1{font-size:50px}.search{width:400px}.scroll-cue{right:20px}}
+@media(max-width:650px){.nav{height:56px;padding:0 15px}.navlinks{display:none}.navright{gap:10px}.cart,.search-icon{display:none}.hero{height:500px}.hero-inner{padding:82px 18px 28px}.hero-copy{width:100%}.hero h1{font-size:48px}.scroll-cue{display:none}.search{width:100%}.keywords{flex-wrap:wrap}.categories,.products{grid-template-columns:1fr 1fr}.cat{height:120px}.thumb{height:auto;aspect-ratio:16/10}.creator{height:320px}.creator-inner{padding:0 18px}.creator-copy h2{font-size:33px}.reason-grid{grid-template-columns:1fr 1fr}.reason{padding:12px;border-bottom:1px solid #d8dde0}.reason:nth-child(2){border-right:0}.reason:first-child{padding-left:12px}.final{height:190px}footer{padding:0 18px}}
 </style>
 </head>
 <body>
 <header class="nav">
 <a class="logo" href="#">VIDEO MARKETPLACE</a>
 <nav class="navlinks"><a href="#">ホーム</a><a href="#categories">カテゴリー</a><a href="#products">ランキング</a><a href="#creator">クリエイター</a><a href="#reasons">ヘルプ</a></nav>
-<div class="navright"><span class="search-icon">⌕</span><span class="cart">🛒</span><a class="login" href="#">ログイン</a><a class="signup" href="#">会員登録</a></div>
+<div class="navright"><span class="search-icon" aria-label="検索">⌕</span><span class="cart" aria-label="カート">🛒</span><a class="login" href="#">ログイン</a><a class="signup" href="#">会員登録</a></div>
 </header>
 <section class="hero">
 <div class="hero-inner"><div class="hero-copy">
 <h1>見つける。<br>買う。楽しむ。</h1>
 <p>ここには、あなたの「好き」がきっとある。<br>最高の動画コンテンツが集まるマーケットプレイス。</p>
-<div class="search"><input placeholder="キーワードで動画を検索..."><button>⌕</button></div>
+<div class="search"><input placeholder="キーワードで動画を検索…"><button>⌕</button></div>
 <div class="keywords"><b>人気のキーワード</b><span class="tag">映画</span><span class="tag">AI</span><span class="tag">ドキュメンタリー</span><span class="tag">ビジネス</span><span class="tag">クリエイティブ</span></div>
-</div></div>
+</div><div class="scroll-cue" aria-hidden="true"><span>Scroll</span><i></i></div></div>
 </section>
 <main>
 <section class="section" id="categories">
