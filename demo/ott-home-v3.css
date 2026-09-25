@@ -1479,3 +1479,8 @@ header.nav .logo .logo-wordmark i{display:block!important;margin:0!important;fon
 
 /* CTA image must not inherit the CTA content wrapper spacing/layout */
 .cta-image{margin:0!important;display:block!important;}
+
+
+/* CTA palette — switch gold accent to cinematic blue */
+.cta h2 em{color:#8bd7ff!important;text-shadow:0 0 28px rgba(139,215,255,.16)!important}
+.cta{background:radial-gradient(circle at 50% 50%,rgba(139,215,255,.08),transparent 38%)}
