@@ -1335,3 +1335,62 @@ footer .logo{
 /* CTA silver + gold title treatment */
 .cta h2{color:#d7dbe0;}
 .cta h2 em{color:#d9b45f;}
+
+/* Refined cinematic wordmark logo */
+.logo{
+  min-width:188px;
+  gap:12px;
+}
+.logo-symbol{
+  width:31px;
+  height:31px;
+  position:relative;
+  display:block;
+  flex:0 0 31px;
+  border:1px solid rgba(217,180,95,.72);
+  border-radius:50%;
+  box-sizing:border-box;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.09),rgba(0,0,0,.18) 62%);
+}
+.logo-symbol:before{
+  content:"";
+  position:absolute;
+  left:8px;
+  top:8px;
+  width:10px;
+  height:10px;
+  border-left:1px solid #e5d19a;
+  border-bottom:1px solid #e5d19a;
+  transform:rotate(45deg);
+}
+.logo-symbol:after{
+  content:"";
+  position:absolute;
+  right:5px;
+  top:5px;
+  width:5px;
+  height:5px;
+  border-top:1px solid #d9b45f;
+  border-right:1px solid #d9b45f;
+}
+.logo-symbol i{
+  position:absolute;
+  left:14px;
+  bottom:5px;
+  width:1px;
+  height:6px;
+  background:#d9b45f;
+}
+.logo-wordmark{
+  gap:4px!important;
+}
+.logo-wordmark b{
+  font-size:13px!important;
+  letter-spacing:3px!important;
+  font-weight:800!important;
+}
+.logo-wordmark i{
+  font-size:6px!important;
+  letter-spacing:3.8px!important;
+  color:#8f969d!important;
+}
