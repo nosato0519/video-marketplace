@@ -1331,3 +1331,7 @@ footer .logo{
   .logo .logo-mark{font-size:9px!important}
   .logo .logo-wordmark{font-size:inherit!important}
 }
+
+/* CTA silver + gold title treatment */
+.cta h2{color:#d7dbe0;}
+.cta h2 em{color:#d9b45f;}
