@@ -1231,3 +1231,6 @@
 }
 .complete-system-card.admin small{color:#e0c794}
 .complete-system-card.admin a{color:#ead19a}
+
+/* COMPLETE SYSTEM — intro description color */
+.complete-system .section-head > p{color:#5d6874;}
