@@ -1129,6 +1129,13 @@
 @media(max-width:1050px){.complete-system-grid{grid-template-columns:1fr}.complete-system .section-head{padding-left:5vw;padding-right:5vw}.complete-system-grid{padding-left:5vw;padding-right:5vw}}
 @media(max-width:700px){.complete-system{margin-top:65px;padding-bottom:65px}.complete-system .section-head{padding-top:65px}.complete-system-grid{grid-template-columns:1fr}.complete-system-card{min-height:395px}}
 
+/* COMPLETE SYSTEM — preserve section design */
+.complete-system{
+  background:linear-gradient(135deg,#eef1f4 0%,#e7ebef 52%,#f3eee6 100%);
+  border-top:1px solid rgba(20,30,45,.08);
+}
+.complete-system .section-head h2{color:#111923}
+.complete-system .section-kicker{color:#526171}
 /* COMPLETE SYSTEM — card colors only */
 .complete-system-card{
   background:#f7f5f0;
