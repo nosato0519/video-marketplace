@@ -1137,45 +1137,60 @@
 .complete-system .section-head h2{color:#111923}
 .complete-system .section-kicker{color:#526171}
 
-/* COMPLETE SYSTEM — cute cards only */
+/* COMPLETE SYSTEM — luxury cards only */
 .complete-system-card{
-  background:#fffaf2;
-  color:#4b3f36;
-  border-color:#f0d8c8;
-  border-top:4px solid #f3b6a5;
-  border-radius:24px;
-  box-shadow:0 14px 32px rgba(120,90,70,.10);
+  background:linear-gradient(145deg,#25282b 0%,#17191b 100%);
+  color:#f4efe5;
+  border:1px solid rgba(214,191,139,.28);
+  border-top:1px solid rgba(214,191,139,.65);
+  border-radius:4px;
+  box-shadow:0 18px 48px rgba(15,18,20,.18);
 }
 .complete-system-card:hover{
-  border-color:#efb9a9;
-  box-shadow:0 20px 40px rgba(120,90,70,.15);
+  border-color:rgba(224,201,148,.62);
+  box-shadow:0 24px 58px rgba(15,18,20,.25);
 }
-.complete-system-card small{color:#d88776}
-.complete-system-card h3{color:#40352f}
-.complete-system-card p{color:#786c64}
-.complete-system-card li{color:#5c514a;border-bottom-color:#f1dfd4}
+.complete-system-card small{
+  color:#d8bd82;
+  letter-spacing:2.4px;
+}
+.complete-system-card h3{
+  color:#f8f3e9;
+}
+.complete-system-card p{
+  color:#bdb7ad;
+}
+.complete-system-card li{
+  color:#ddd7cd;
+  border-bottom-color:rgba(232,216,184,.13);
+}
 .complete-system-card a{
-  color:#d47767;
-  font-weight:900;
+  color:#e2c98f;
 }
 .complete-system-card.seller{
-  background:#fff0ed;
-  color:#55403d;
-  border-color:#f4c8c0;
-  border-top-color:#f09b8d;
-  box-shadow:0 14px 34px rgba(205,120,105,.13);
+  background:linear-gradient(145deg,#111315 0%,#202326 100%);
+  color:#f7f1e5;
+  border-color:rgba(224,201,148,.30);
+  border-top-color:#e0c794;
+  box-shadow:0 20px 54px rgba(10,12,14,.28);
 }
-.complete-system-card.seller p{color:#806864}
-.complete-system-card.seller li{color:#66514e;border-bottom-color:#f1d2cc}
-.complete-system-card.seller a{color:#d66f61}
+.complete-system-card.seller p{color:#bbb5ab}
+.complete-system-card.seller li{
+  color:#e3ddd2;
+  border-bottom-color:rgba(232,216,184,.13);
+}
+.complete-system-card.seller a{color:#e5ca8f}
 .complete-system-card.admin{
-  background:#eef7ff;
-  color:#3e4c5a;
-  border-color:#c9e1f5;
-  border-top-color:#91c5eb;
-  box-shadow:0 14px 34px rgba(100,155,195,.13);
+  background:linear-gradient(145deg,#292b2d 0%,#17191b 100%);
+  color:#f7f1e5;
+  border-color:rgba(224,201,148,.30);
+  border-top-color:#e0c794;
+  box-shadow:0 20px 54px rgba(10,12,14,.24);
 }
-.complete-system-card.admin p{color:#687785}
-.complete-system-card.admin li{color:#4f606e;border-bottom-color:#d9eaf7}
-.complete-system-card.admin small{color:#5c9bcb}
-.complete-system-card.admin a{color:#4b8fbd}
+.complete-system-card.admin p{color:#c3bdb3}
+.complete-system-card.admin li{
+  color:#e8e1d7;
+  border-bottom-color:rgba(232,216,184,.13);
+}
+.complete-system-card.admin small{color:#e0c794}
+.complete-system-card.admin a{color:#ead19a}
