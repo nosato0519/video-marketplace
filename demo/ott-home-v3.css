@@ -1458,3 +1458,15 @@ footer .logo{
 }
 .cta h2{color:#ece8df!important;}
 .cta h2 em{color:#c7a86a!important;}
+
+/* FINAL OVERRIDE — logo + CTA */
+header.nav .logo{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;min-width:190px!important;height:40px!important;color:#f4f1eb!important;line-height:1!important;letter-spacing:0!important}
+header.nav .logo .logo-symbol{display:grid!important;place-items:center!important;width:32px!important;height:32px!important;min-width:32px!important;flex:0 0 32px!important;margin:0!important;border:1px solid #d8bd7d!important;border-radius:50%!important;background:linear-gradient(145deg,#25292e,#0b0e12)!important;box-shadow:0 6px 20px rgba(0,0,0,.32)!important}
+header.nav .logo .logo-symbol:before{content:""!important;position:static!important;width:0!important;height:0!important;border-top:6px solid transparent!important;border-bottom:6px solid transparent!important;border-left:9px solid #e7d39a!important;transform:none!important;background:none!important}
+header.nav .logo .logo-symbol:after,header.nav .logo .logo-symbol i{display:none!important}
+header.nav .logo .logo-wordmark{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;color:#f4f1eb!important;line-height:1!important}
+header.nav .logo .logo-wordmark b{display:block!important;font-size:13px!important;line-height:1!important;letter-spacing:3px!important;font-weight:800!important;color:#f4f1eb!important}
+header.nav .logo .logo-wordmark i{display:block!important;margin:0!important;font-size:6px!important;line-height:1!important;letter-spacing:3.6px!important;font-style:normal!important;color:#9299a1!important}
+.cta h2{color:#f1f2f3!important;text-shadow:0 12px 35px rgba(0,0,0,.35)!important}
+.cta h2 em{display:inline-block!important;color:#d8bd7d!important;background:none!important;font-style:normal!important;text-shadow:0 0 28px rgba(216,189,125,.16)!important}
+.cta p{color:#aeb5bd!important}
