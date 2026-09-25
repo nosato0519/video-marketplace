@@ -1484,3 +1484,9 @@ header.nav .logo .logo-wordmark i{display:block!important;margin:0!important;fon
 /* CTA palette — switch gold accent to cinematic blue */
 .cta h2 em{color:#8bd7ff!important;text-shadow:0 0 28px rgba(139,215,255,.16)!important}
 .cta{background:radial-gradient(circle at 50% 50%,rgba(139,215,255,.08),transparent 38%)}
+
+
+/* CTA final palette — neutral cinematic monochrome */
+.cta{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.045),transparent 38%)!important}
+.cta h2 em{color:#c8ced6!important;text-shadow:0 0 24px rgba(255,255,255,.08)!important}
+.cta .primary{background:#e7eaee!important;color:#080a0d!important}
