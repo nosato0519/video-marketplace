@@ -1146,55 +1146,78 @@
   border-radius:4px;
   box-shadow:0 18px 48px rgba(15,18,20,.18);
   overflow:hidden;
+  isolation:isolate;
 }
 .complete-system-card::before{
   content:"";
   display:block;
-  width:34px;
+  width:42px;
   height:1px;
   background:#d9bd82;
   margin-bottom:24px;
+  transition:width .35s ease;
 }
+.complete-system-card::after{
+  content:"01";
+  position:absolute;
+  top:12px;
+  right:18px;
+  z-index:-1;
+  font-size:82px;
+  line-height:1;
+  letter-spacing:-7px;
+  font-weight:300;
+  color:rgba(224,201,148,.055);
+  pointer-events:none;
+}
+.complete-system-card:nth-child(2)::after{content:"02"}
+.complete-system-card:nth-child(3)::after{content:"03"}
 .complete-system-card:hover{
   border-color:rgba(224,201,148,.55);
   box-shadow:0 24px 58px rgba(15,18,20,.25);
 }
+.complete-system-card:hover::before{width:76px}
 .complete-system-card small{
   color:#d8bd82;
   letter-spacing:2.4px;
+  position:relative;
 }
 .complete-system-card h3{
   color:#f8f3e9;
+  position:relative;
+  letter-spacing:-1.2px;
 }
 .complete-system-card p{
   color:#bdb7ad;
+  position:relative;
 }
 .complete-system-card ul{
   position:relative;
-}
-.complete-system-card ul::before{
-  content:"";
-  position:absolute;
-  top:-2px;
-  right:0;
-  font-size:56px;
-  line-height:1;
-  letter-spacing:-4px;
-  color:rgba(224,201,148,.08);
-  font-weight:300;
+  margin-top:18px;
 }
 .complete-system-card li{
   color:#ddd7cd;
   border-bottom-color:rgba(232,216,184,.13);
+  transition:padding-left .25s ease,border-color .25s ease;
+}
+.complete-system-card li:hover{
+  padding-left:6px;
+  border-bottom-color:rgba(224,201,148,.32);
 }
 .complete-system-card a{
   color:#e2c98f;
   letter-spacing:.4px;
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
 }
 .complete-system-card a::after{
-  content:"  →";
+  content:"→";
   color:#d9bd82;
+  transition:transform .25s ease;
 }
+.complete-system-card a:hover::after{transform:translateX(4px)}
 .complete-system-card.seller{
   background:linear-gradient(145deg,#111315 0%,#202326 100%);
   color:#f7f1e5;
@@ -1220,7 +1243,7 @@
 .complete-system-card.admin p{color:#c3bdb3}
 .complete-system-card.admin li{
   color:#e8e1d7;
-  border-bottom-color:rgba(232,216,184,.13);
+  border-bottom-color:rgba(232,216,184,.11);
 }
 .complete-system-card.admin small{color:#e0c794}
 .complete-system-card.admin a{color:#ead19a}
