@@ -1394,3 +1394,67 @@ footer .logo{
   letter-spacing:3.8px!important;
   color:#8f969d!important;
 }
+
+/* Final logo visibility + refined CTA palette */
+.logo .logo-symbol{
+  display:block!important;
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  flex:0 0 32px!important;
+  margin:0!important;
+  padding:0!important;
+  position:relative!important;
+  opacity:1!important;
+  visibility:visible!important;
+  border:1px solid rgba(224,199,148,.78)!important;
+  border-radius:50%!important;
+  background:linear-gradient(145deg,#20242a,#0b0e12)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 7px 22px rgba(0,0,0,.28)!important;
+}
+.logo .logo-symbol:before{
+  content:""!important;
+  position:absolute!important;
+  left:11px!important;
+  top:8px!important;
+  width:0!important;
+  height:0!important;
+  border-top:7px solid transparent!important;
+  border-bottom:7px solid transparent!important;
+  border-left:10px solid #e5d19a!important;
+  transform:none!important;
+  background:none!important;
+}
+.logo .logo-symbol:after{
+  content:""!important;
+  position:absolute!important;
+  left:7px!important;
+  bottom:5px!important;
+  width:18px!important;
+  height:1px!important;
+  background:#d9b45f!important;
+  border:0!important;
+}
+.logo .logo-symbol i{display:none!important}
+.logo .logo-wordmark{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  margin:0!important;
+  gap:4px!important;
+  color:#f4f1eb!important;
+}
+.logo .logo-wordmark b{
+  display:block!important;
+  color:#f4f1eb!important;
+  font-size:13px!important;
+  letter-spacing:3px!important;
+}
+.logo .logo-wordmark i{
+  display:block!important;
+  color:#969ca3!important;
+  font-size:6px!important;
+  letter-spacing:3.8px!important;
+}
+.cta h2{color:#ece8df!important;}
+.cta h2 em{color:#c7a86a!important;}
