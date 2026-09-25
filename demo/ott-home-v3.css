@@ -1158,20 +1158,25 @@
   transition:width .35s ease;
 }
 .complete-system-card::after{
-  content:"01";
+  content:"購入者";
   position:absolute;
-  top:12px;
-  right:18px;
+  top:18px;
+  right:20px;
   z-index:-1;
-  font-size:82px;
+  font-size:28px;
   line-height:1;
-  letter-spacing:-7px;
-  font-weight:300;
-  color:rgba(224,201,148,.055);
+  letter-spacing:1px;
+  font-weight:500;
+  color:rgba(224,201,148,.16);
   pointer-events:none;
 }
-.complete-system-card:nth-child(2)::after{content:"02"}
-.complete-system-card:nth-child(3)::after{content:"03"}
+.complete-system-card::before{
+  content:"BUYER";
+}
+.complete-system-card:nth-child(2)::after{content:"販売者"}
+.complete-system-card:nth-child(2)::before{content:"SELLER"}
+.complete-system-card:nth-child(3)::after{content:"運営者"}
+.complete-system-card:nth-child(3)::before{content:"ADMIN"}
 .complete-system-card:hover{
   border-color:rgba(224,201,148,.55);
   box-shadow:0 24px 58px rgba(15,18,20,.25);
