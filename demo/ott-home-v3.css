@@ -1470,17 +1470,3 @@ header.nav .logo .logo-wordmark i{display:block!important;margin:0!important;fon
 .cta h2{color:#f1f2f3!important;text-shadow:0 12px 35px rgba(0,0,0,.35)!important}
 .cta h2 em{display:inline-block!important;color:#d8bd7d!important;background:none!important;font-style:normal!important;text-shadow:0 0 28px rgba(216,189,125,.16)!important}
 .cta p{color:#aeb5bd!important}
-
-/* CTA — use the existing cinematic image behind the phrase only */
-.cta h2{position:relative;isolation:isolate;overflow:visible}
-.cta h2::before{content:"";position:absolute;left:-72px;right:-72px;top:-22px;bottom:-22px;z-index:-1;background:url('/assets/cta-cinematic-strip.svg') center/cover no-repeat;opacity:.22;pointer-events:none}
-
-
-/* CTA — image layer only; preserve existing CTA layout */
-.cta h2{
-  background-image:linear-gradient(rgba(7,9,13,.48),rgba(7,9,13,.48)),url('/assets/cta-cinematic-strip.svg');
-  background-position:center;
-  background-size:cover;
-  background-repeat:no-repeat;
-}
-.cta h2::before{content:none!important}
