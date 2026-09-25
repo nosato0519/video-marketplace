@@ -1313,3 +1313,21 @@ footer .logo{
   .logo-wordmark b{font-size:12px;letter-spacing:1.8px}
   .logo-wordmark i{font-size:5px;letter-spacing:2.6px}
 }
+
+/* Premium logo specificity fixes */
+.logo .logo-mark{
+  font-size:10px!important;
+  letter-spacing:-.5px!important;
+  color:#e8d39b!important;
+  margin-top:0!important;
+}
+.logo .logo-wordmark{
+  font-size:inherit!important;
+  letter-spacing:0!important;
+  color:#f7f3ea!important;
+  margin-top:0!important;
+}
+@media(max-width:760px){
+  .logo .logo-mark{font-size:9px!important}
+  .logo .logo-wordmark{font-size:inherit!important}
+}
