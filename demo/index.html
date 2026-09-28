@@ -54,9 +54,10 @@
   </head>
   <body>
     <header class="nav">
-      <a class="logo" href="#"
-        >VIDEO MARKETPLACE<span>VIDEO MARKETPLACE</span></a
-      >
+      <a class="logo" href="#" aria-label="VIDEO MARKETPLACE">
+        <span class="logo-symbol" aria-hidden="true"><i></i></span>
+        <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+      </a>
       <nav>
         <a href="#guide">機能・システム</a><a href="#popular">人気の動画</a
         ><a href="#search">動画を探す</a><a href="#creators">クリエイター</a>
@@ -81,7 +82,9 @@
       <button class="hamb">☰</button>
     </header>
     <main>
-      <section class="hero">
+      
+
+<section class="hero">
         <div class="hero-bg"></div>
         <div class="hero-copy">
           <div class="eyebrow">
@@ -139,94 +142,60 @@
           ><span><strong>保護された配信</strong> 購入者専用アクセス</span>
         </div>
       </section>
-      <section
-        class="section"
-        id="guide"
-        style="
-          scroll-margin-top: 100px;
-          padding-top: 96px;
-          padding-bottom: 96px;
-        "
-      >
+      <section class="complete-system" id="system">
         <div class="section-head">
           <div>
-            <span class="section-kicker"
-              >COMPLETE VIDEO MARKETPLACE SYSTEM</span
-            >
-            <h2>
-              動画販売に必要なすべてを、<br /><em>ひとつのシステムに。</em>
-            </h2>
+            <small>02 / COMPLETE SYSTEM</small>
+            <h2>売るために必要な機能を、<br><em>最初から一つに。</em></h2>
           </div>
+          <p>購入者向け・販売者向け・運営者向け。それぞれの画面と機能をつなげ、実際の運営をイメージできる構成に。</p>
         </div>
-        <p
-          style="
-            max-width: 860px;
-            margin: 0 0 42px;
-            line-height: 2;
-            font-size: 1.05rem;
-            opacity: 0.82;
-          "
-        >
-          販売者・購入者・運営者。それぞれに必要な機能をひとつにまとめた、動画販売マーケットプレイスシステムです。動画の登録・販売、会員登録・購入、決済、購入後の視聴、売上管理、サイト運営まで、一連の流れをシステム内で完結できます。
-        </p>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-          "
-        >
-          <article class="role">
-            <span class="num">01 / SELLER</span>
-            <h3>販売者は、動画を販売。</h3>
-            <p>
-              販売者はアカウントを登録し、動画・商品を登録して販売できます。販売状況や売上も管理できます。
-            </p>
-            <div class="tags">
-              <span>会員登録</span><span>商品登録</span><span>動画販売</span
-              ><span>売上管理</span>
-            </div>
+        <div class="complete-system-grid">
+          <article class="complete-system-card buyer">
+            <small>01 / BUYER</small>
+            <h3>購入者<br>エクスペリエンス</h3>
+            <p>動画を探すところから購入後の視聴まで。</p>
+            <ul>
+              <li>動画検索・カテゴリー</li>
+              <li>商品詳細・関連動画</li>
+              <li>カート・購入フロー</li>
+              <li>会員登録・ログイン</li>
+              <li>購入履歴・マイライブラリ</li>
+              <li>購入後の動画視聴</li>
+            </ul>
+            <a href="https://videomarketplacedemo-gg4ltyfz.b4a.run/pages/video-list.html">購入者デモを見る →</a>
           </article>
-          <article class="role creator-role">
-            <span class="num">02 / BUYER</span>
-            <h3>購入者は、動画を購入。</h3>
-            <p>
-              購入者は会員登録後、動画を探して購入。購入した作品はマイライブラリから視聴・ダウンロードできます。
-            </p>
-            <div class="tags">
-              <span>会員登録</span><span>検索</span><span>購入・決済</span
-              ><span>視聴・DL</span>
-            </div>
+          <article class="complete-system-card seller">
+            <small>02 / SELLER</small>
+            <h3>販売者<br>Creator Studio</h3>
+            <p>動画を商品として登録し、販売・売上まで管理。</p>
+            <ul>
+              <li>販売者ログイン</li>
+              <li>動画・サムネイル登録</li>
+              <li>4枚の紹介画像</li>
+              <li>価格・カテゴリー・説明</li>
+              <li>審査・公開・編集</li>
+              <li>売上・購入数・分析</li>
+            </ul>
+            <a href="https://videomarketplacedemo-gg4ltyfz.b4a.run/pages/creator-studio.html">販売者デモを見る →</a>
           </article>
-          <article class="role admin-role">
-            <span class="num">03 / ADMIN</span>
-            <h3>あなたは、そのサイトを運営。</h3>
-            <p>
-              運営者は管理画面からユーザー、販売者、商品、動画、注文、決済、売上、出金などを一元管理できます。
-            </p>
-            <div class="tags">
-              <span>ユーザー管理</span><span>商品管理</span><span>決済管理</span
-              ><span>運営管理</span>
-            </div>
+          <article class="complete-system-card admin">
+            <small>03 / ADMIN</small>
+            <h3>運営者<br>Admin Console</h3>
+            <p>サイト全体を運営するための管理機能。</p>
+            <ul>
+              <li>ユーザー管理</li>
+              <li>商品・公開状態管理</li>
+              <li>審査・承認</li>
+              <li>注文・決済管理</li>
+              <li>売上・出金管理</li>
+              <li>運営状況の確認</li>
+            </ul>
+            <a href="/pages/admin.html">運営者デモを見る →</a>
           </article>
-        </div>
-        <div
-          style="
-            margin-top: 28px;
-            padding: 28px 30px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.035);
-          "
-        >
-          <strong style="display: block; margin-bottom: 10px"
-            >必要な仕組みを、最初から。</strong
-          >
-          <p style="margin: 0; line-height: 1.9; opacity: 0.8">
-            販売者が動画を販売し、購入者が動画を購入する。そのマーケットプレイス全体を、あなたが運営する。会員・権限管理、商品・動画管理、購入・決済、購入者ごとの利用権限、保護された動画配信、売上・出金管理、管理者機能など、動画販売サイトの運営に必要となる主要な仕組みをまとめています。
-          </p>
         </div>
       </section>
+        
       <section
         class="section"
         id="features"
@@ -237,55 +206,6 @@
             <span class="section-kicker">FEATURES</span>
             <h2>動画販売を支える、<br /><em>充実した機能。</em></h2>
           </div>
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-          "
-        >
-          <article class="role">
-            <span class="num">BUYER / 購入者</span>
-            <h3>購入・視聴を、スムーズに。</h3>
-            <div class="tags">
-              <span>会員登録・ログイン</span><span>プロフィール</span
-              ><span>動画検索</span><span>キーワード検索</span
-              ><span>カテゴリー</span><span>商品一覧</span><span>商品詳細</span
-              ><span>プレビュー</span><span>カート</span><span>購入</span
-              ><span>決済</span><span>購入確認</span><span>マイライブラリ</span
-              ><span>購入履歴</span><span>購入済み作品の視聴</span
-              ><span>ダウンロード</span><span>視聴ページ</span
-              ><span>保護された動画配信</span>
-            </div>
-          </article>
-          <article class="role creator-role">
-            <span class="num">CREATOR / 販売者</span>
-            <h3>作品を登録して、販売。</h3>
-            <div class="tags">
-              <span>販売者登録</span><span>販売者プロフィール</span
-              ><span>商品登録</span><span>動画登録・アップロード</span
-              ><span>サムネイル</span><span>商品画像</span><span>タイトル</span
-              ><span>説明</span><span>カテゴリー設定</span><span>価格設定</span
-              ><span>公開・非公開</span><span>商品管理</span
-              ><span>販売状況</span><span>売上確認</span><span>売上管理</span
-              ><span>出金申請</span>
-            </div>
-          </article>
-          <article class="role admin-role">
-            <span class="num">ADMIN / 運営</span>
-            <h3>サイト全体を、一元管理。</h3>
-            <div class="tags">
-              <span>管理画面</span><span>ユーザー管理</span
-              ><span>販売者管理</span><span>販売者承認</span
-              ><span>商品管理</span><span>商品審査</span><span>公開管理</span
-              ><span>動画管理</span><span>カテゴリー管理</span
-              ><span>注文管理</span><span>決済管理</span><span>売上管理</span
-              ><span>出金管理</span><span>メディア管理</span
-              ><span>サイト管理</span><span>セキュリティ管理</span
-              ><span>運営全体の一元管理</span>
-            </div>
-          </article>
         </div>
         <div class="roles" style="margin-top: 20px">
           <article class="role">
@@ -379,6 +299,7 @@
             <span class="section-kicker">CURATED VIDEO COLLECTION</span>
             <h2>作品との出会いを、<br /><em>もっと自由に。</em></h2>
           </div>
+          <p style="max-width: 880px; line-height: 2; margin: 18px 0 34px; color: #737d86;">ひとつの作品だけではなく、いろんなクリエイターの映像を眺めながら、次に観たい一本を見つける。</p>
         </div>
         <div class="video-grid">
           <article class="video-card">
@@ -451,39 +372,17 @@
               </div>
             </div>
           </article>
-          <article class="video-card">
-            <div class="thumb t6">
-              <span class="quality">4K</span><span class="duration">42:05</span
-              ><button>▶</button>
-            </div>
-            <div class="card-info">
-              <span class="category">ライフスタイル</span>
-              <h3>Mountain Silence</h3>
-              <p>静かな山の時間を切り取った映像作品。</p>
-              <div class="card-bottom">
-                <span>by YAMA FILM ★ 4.8</span><b>¥1,200</b>
-              </div>
-            </div>
-          </article>
+
         </div>
-        <div class="trustbar" style="margin-top: 34px">
-          <div>
-            <b>✓</b><span><strong>安全な決済</strong> 安心して購入</span>
-          </div>
-          <div>
-            <b>▶</b><span><strong>購入後すぐ視聴</strong> すぐに楽しめる</span>
-          </div>
-          <div>
-            <b>↧</b
-            ><span><strong>ダウンロード対応</strong> 購入作品を保存</span>
-          </div>
-          <div>
-            <b>◉</b
-            ><span><strong>保護された配信</strong> 購入者専用アクセス</span>
-          </div>
+        
+        <div style="margin-top: 34px; padding-top: 22px; border-top: 1px solid #1112; display:flex; justify-content:space-between; align-items:center; gap:20px; font-size:10px; letter-spacing:2px; font-weight:900;">
+          <span>DISCOVER / WATCH / PURCHASE</span><span>VIDEO MARKETPLACE</span>
         </div>
       </section>
-      <section class="section" id="popular">
+      
+      
+
+<section class="section" id="popular">
         <div class="section-head">
           <div>
             <span class="section-kicker">DISCOVER</span>
@@ -620,6 +519,8 @@
           </article>
         </div>
       </section>
+
+      
       <section class="platform">
         <div class="platform-head">
           <div>
@@ -805,9 +706,10 @@
         </div>
       </section>
       <section class="cta">
-        <span class="section-kicker">VIDEO MARKETPLACE</span>
-        <h2>見たい作品が、<br /><em>ここにある。</em></h2>
-        <p>いろんなクリエイターの作品から、あなたの一本を見つけよう。</p>
+        <div class="cta-image" aria-hidden="true"></div>
+        <span class="section-kicker">DISCOVER YOUR NEXT STORY</span>
+        <h2>まだ知らない映像と、<br /><em>出会う。</em></h2>
+        <p>いろんなクリエイターの作品から、あなたの次の一本を見つけよう。</p>
         <div>
           <a class="primary" href="#popular">動画を探す →</a
           ><a class="secondary" href="#creator">販売を始める</a>
@@ -816,7 +718,7 @@
     </main>
     <footer>
       <div class="footer-top">
-        <a class="logo">VIDEO MARKETPLACE<span>VIDEO MARKETPLACE</span></a>
+        <a class="logo" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
         <p>見つける。買う。楽しむ。</p>
       </div>
       <div class="footer-cols">
