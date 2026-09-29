@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>THE LAST SIGNAL | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .detail-gallery-image{cursor:pointer}
+    .detail-gallery-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.9);align-items:center;justify-content:center;padding:40px}
+    .detail-gallery-modal.open{display:flex}
+    .detail-gallery-modal img{max-width:min(1000px,90vw);max-height:82vh;object-fit:contain}
+    .detail-gallery-close,.detail-gallery-prev,.detail-gallery-next{position:absolute;border:1px solid #39414a;background:rgba(10,10,12,.85);color:#f3f0e9;cursor:pointer}
+    .detail-gallery-close{top:18px;right:20px;width:44px;height:44px;font-size:28px}.detail-gallery-prev,.detail-gallery-next{top:50%;transform:translateY(-50%);width:48px;height:64px;font-size:38px}.detail-gallery-prev{left:20px}.detail-gallery-next{right:20px}
+    .detail-gallery-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#aaa6a0;font-size:11px}
+    @media(max-width:600px){.detail-gallery-modal{padding:24px 56px}.detail-gallery-prev{left:8px}.detail-gallery-next{right:8px}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+    <div class="nav-right"><nav><a href="/pages/video-list.html">動画を購入する</a><a href="#">動画を販売する</a></nav><div class="login-menu"><button class="sell login-trigger" type="button">ログイン</button><div class="login-dropdown"><a href="/pages/seller-login.html">販売者ログイン</a><a href="/pages/buyer-login.html">購入者ログイン</a></div></div></div>
+  </header>
+
+  <main class="detail-page">
+    <div class="detail-breadcrumb">HOME / VIDEO / FILM / THE LAST SIGNAL</div>
+    <section class="detail-hero">
+      <div class="detail-media">
+        <div class="detail-media-image"><span class="detail-badge">4K</span><span class="detail-duration">01:24:16</span></div>
+        <div class="detail-gallery" id="detailGallery"><div class="detail-gallery-image detail-gallery-1"></div><div class="detail-gallery-image detail-gallery-2"></div><div class="detail-gallery-image detail-gallery-3"></div><div class="detail-gallery-image detail-gallery-4"></div></div>
+      </div>
+      <div class="detail-info">
+        <div class="detail-kicker">FILM · 4K</div><h1>THE LAST<br> SIGNAL</h1><p class="detail-lead">静かな街に残された最後の信号を追う、シネマティック・ドキュメンタリー。光と音で描く、終わりと始まりの物語。</p>
+        <div class="detail-rating"><span>★★★★★ 4.9</span><span>by North Frame</span></div>
+        <div class="detail-buybox"><div class="detail-price">¥2,980</div><div class="detail-tax">税込・買い切り</div><a class="detail-favorite" href="/pages/favorites.html" style="display:block;box-sizing:border-box;position:relative;z-index:2;">♡ お気に入りに追加</a><div class="detail-actions"><a href="/pages/buyer-login.html" class="detail-buy-primary">この動画を購入する →</a><a href="/pages/cart.html" class="detail-buy-secondary">カートに入れる</a></div><div class="detail-safe"><span>✓ 安全な決済</span><span>✓ 購入後すぐ視聴</span><span>✓ 購入履歴を保存</span></div></div>
+      </div>
+    </section>
+
+    <section class="detail-section"><div class="detail-section-label">ABOUT THIS VIDEO</div><h2>作品について</h2><p>都市の夜に残るわずかな光を手がかりに、忘れられた場所とそこに生きる人々を描いた映像作品です。映像・音楽・編集を一つの作品として仕上げています。</p></section>
+    <section class="detail-section"><div class="detail-section-label">DETAILS</div><h2>作品情報</h2><div class="detail-facts"><div><small>QUALITY</small><strong>4K UHD</strong></div><div><small>DURATION</small><strong>84 min 16 sec</strong></div><div><small>LANGUAGE</small><strong>日本語</strong></div><div><small>ACCESS</small><strong>購入後すぐ</strong></div></div></section>
+    <section class="detail-section"><div class="detail-section-label">CREATOR</div><h2>クリエイター</h2><div class="detail-creator"><div class="detail-avatar">N</div><div><strong>North Frame</strong><span>Film / Documentary</span></div></div></section>
+    <section class="detail-section"><div class="detail-section-head"><div><div class="detail-section-label">REVIEWS</div><h2>レビュー</h2></div><a href="#">レビューを書く →</a></div><div style="display:grid;gap:12px;margin-top:18px;"><div style="padding:18px;border:1px solid #252b33;background:#11161c;"><div style="display:flex;justify-content:space-between;gap:16px;align-items:center;"><strong>★★★★★</strong><small style="color:#7f8994;">購入者 · 2026.09.24</small></div><p style="margin:10px 0 0;color:#b7bec7;">映像と音の作り込みが素晴らしく、最後まで一気に見られました。</p></div><div style="padding:18px;border:1px solid #252b33;background:#11161c;"><div style="display:flex;justify-content:space-between;gap:16px;align-items:center;"><strong>★★★★★</strong><small style="color:#7f8994;">購入者 · 2026.09.20</small></div><p style="margin:10px 0 0;color:#b7bec7;">作品の世界観が印象的でした。購入後すぐに視聴できるのも便利です。</p></div></div></section>
+    <section class="detail-section"><div class="detail-section-head"><div><div class="detail-section-label">SHARE</div><h2>この作品をシェア</h2></div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;"><a href="#" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #39414a;background:#151a20;color:#c5ccd4;text-decoration:none;font-family:inherit;font-size:11px;">リンクをコピー</a><a href="#" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #39414a;background:#151a20;color:#c5ccd4;text-decoration:none;font-family:inherit;font-size:11px;">シェアする</a></div></section>
+    <section class="detail-section"><div class="detail-section-head"><div><div class="detail-section-label">VIEW HISTORY</div><h2>最近見た動画</h2></div><a href="/pages/library.html">ライブラリ →</a></div><div class="detail-related" style="margin-top:18px;"><a href="/pages/product-detail.html" class="detail-related-card"><div class="detail-related-thumb detail-related-2"></div><div><small>CREATIVE</small><strong>Mastering Motion</strong><span>最近見た作品</span><b>¥2,400</b></div></a><a href="/pages/product-detail.html" class="detail-related-card"><div class="detail-related-thumb detail-related-3"></div><div><small>DOCUMENTARY</small><strong>Mountain Silence</strong><span>最近見た作品</span><b>¥1,200</b></div></a></div></section>
+    <section class="detail-section"><div class="detail-section-head"><div><div class="detail-section-label">RELATED VIDEOS</div><h2>関連する動画</h2></div><a href="/pages/video-list.html">動画一覧 →</a></div><div class="detail-related"><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-1"></div><div><small>FILM</small><strong>Tokyo After Hours</strong><span>by Urban Frame</span><b>¥1,980</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-2"></div><div><small>CREATIVE</small><strong>Mastering Motion</strong><span>by Frame Lab</span><b>¥2,400</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-3"></div><div><small>DOCUMENTARY</small><strong>Mountain Silence</strong><span>by YAMA FILM</span><b>¥1,200</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-4"></div><div><small>CREATIVE</small><strong>Visual Storytelling Lab</strong><span>by Frame House</span><b>¥1,800</b></div></a></div></section>
+    <section class="detail-section"><div class="detail-section-head"><div><div class="detail-section-label">NEW VIDEOS</div><h2>新着動画</h2></div><a href="/pages/video-list.html">すべて見る →</a></div><div class="detail-related"><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-4"></div><div><small>CREATIVE</small><strong>Visual Storytelling Lab</strong><span>by Frame House</span><b>¥1,800</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-2"></div><div><small>CREATIVE</small><strong>Mastering Motion</strong><span>by Frame Lab</span><b>¥2,400</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-3"></div><div><small>DOCUMENTARY</small><strong>Mountain Silence</strong><span>by YAMA FILM</span><b>¥1,200</b></div></a><a href="#" class="detail-related-card"><div class="detail-related-thumb detail-related-1"></div><div><small>FILM</small><strong>Tokyo After Hours</strong><span>by Urban Frame</span><b>¥1,980</b></div></a></div></section>
+  </main>
+
+  <div class="detail-gallery-modal" id="detailGalleryModal" aria-hidden="true"><button class="detail-gallery-close" type="button" aria-label="閉じる">×</button><button class="detail-gallery-prev" type="button" aria-label="前の画像">‹</button><img id="detailGalleryImage" src="" alt="作品紹介画像"><button class="detail-gallery-next" type="button" aria-label="次の画像">›</button><div class="detail-gallery-count" id="detailGalleryCount"></div></div>
+  <script>
+    const galleryItems=[...document.querySelectorAll('#detailGallery .detail-gallery-image')],galleryModal=document.getElementById('detailGalleryModal'),galleryImage=document.getElementById('detailGalleryImage'),galleryCount=document.getElementById('detailGalleryCount');let galleryIndex=0;
+    function showGallery(i){galleryIndex=(i+galleryItems.length)%galleryItems.length;const item=galleryItems[galleryIndex],bg=getComputedStyle(item).backgroundImage;galleryImage.src=bg.slice(5,-2);galleryModal.classList.add('open');galleryModal.setAttribute('aria-hidden','false');galleryCount.textContent=(galleryIndex+1)+' / '+galleryItems.length}
+    galleryItems.forEach((item,i)=>item.addEventListener('click',()=>showGallery(i)));
+    document.querySelector('.detail-gallery-close').addEventListener('click',()=>{galleryModal.classList.remove('open');galleryModal.setAttribute('aria-hidden','true')});
+    document.querySelector('.detail-gallery-prev').addEventListener('click',()=>showGallery(galleryIndex-1));document.querySelector('.detail-gallery-next').addEventListener('click',()=>showGallery(galleryIndex+1));galleryModal.addEventListener('click',e=>{if(e.target===galleryModal)galleryModal.classList.remove('open')});
+    document.addEventListener('keydown',e=>{if(!galleryModal.classList.contains('open'))return;if(e.key==='Escape')document.querySelector('.detail-gallery-close').click();if(e.key==='ArrowLeft')showGallery(galleryIndex-1);if(e.key==='ArrowRight')showGallery(galleryIndex+1)});
+  </script>
+</body>
+</html>
