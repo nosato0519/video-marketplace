@@ -1,16 +1,111 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Seller Dashboard — Video Market</title><style>:root{font-family:Inter,system-ui,sans-serif;color:#171a1f;background:#f6f7f9}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:32px 20px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:24px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-block;border:1px solid #d7dce2;background:#fff;border-radius:8px;padding:9px 12px;text-decoration:none;color:#171a1f;cursor:pointer}.btn.primary{background:#171a1f;color:#fff;border-color:#171a1f}.btn:disabled{opacity:.5;cursor:not-allowed}.muted{color:#69717d}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card,.panel{background:#fff;border:1px solid #e1e5e9;border-radius:12px}.card{padding:16px}.metric{font-size:24px;font-weight:800;margin-top:7px}.label{font-size:12px;color:#69717d;text-transform:uppercase;letter-spacing:.06em}.panel{padding:18px;margin-bottom:18px}.panel h2{margin:0 0 14px;font-size:18px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:700}.field input{border:1px solid #d7dce2;border-radius:8px;padding:10px 11px;font:inherit}.status{display:inline-block;font-size:12px;border-radius:999px;padding:5px 8px;background:#eef1f4}.status.submitted,.status.under_review{color:#7a5600;background:#fff4cf}.status.verified{color:#166534;background:#dcfce7}.status.rejected{color:#991b1b;background:#fee2e2}.msg{padding:10px 12px;border-radius:8px;border:1px solid #e1e5e9;background:#fff;margin-bottom:16px}.msg.error{border-color:#d99;color:#8a1c1c}.msg.success{border-color:#b7d8c3;color:#166534}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf0f2;font-size:13px}th{font-size:11px;color:#69717d;text-transform:uppercase}.scroll{overflow:auto}.note{font-size:12px;margin-top:8px}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.two,.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}@media(max-width:520px){.grid{grid-template-columns:1fr}.top{flex-direction:column}}
-</style></head><body><main class="wrap"><div class="top"><div><h1>Seller Dashboard</h1><p class="muted">Manage your seller profile, verification, earnings and payout requests.</p></div><div class="actions"><a class="btn" href="/seller/products.html">Products</a><a class="btn" href="/">Storefront</a></div></div><div id="message" hidden class="msg" role="alert" aria-live="polite"></div><section class="grid"><div class="card"><div class="label">Earned</div><div id="earned" class="metric">—</div></div><div class="card"><div class="label">Available</div><div id="available" class="metric">—</div></div><div class="card"><div class="label">Paid</div><div id="paid" class="metric">—</div></div><div class="card"><div class="label">Sales</div><div id="sales" class="metric">—</div></div></section><section class="panel"><h2>Seller profile</h2><form id="profileForm" class="form-grid"><div class="field"><label for="displayName">Display name</label><input id="displayName" maxlength="120" required></div><div class="field"><label for="legalName">Legal name</label><input id="legalName" maxlength="200" required></div><div class="field"><label for="countryCode">Country code</label><input id="countryCode" maxlength="2" placeholder="JP" required></div><div class="field"><label>Verification</label><div id="verification" class="status">—</div><div id="verificationNote" class="note muted"></div></div><div class="field full"><div class="actions"><button class="btn primary" type="submit">Save profile</button><button class="btn" id="verifyBtn" type="button">Submit for verification</button></div></div></form></section><div class="two"><section class="panel"><h2>Request payout</h2><form id="payoutForm" class="form-grid"><div class="field"><label for="amount">Amount</label><input id="amount" type="number" min="0.01" step="0.01" required></div><div class="field"><label for="currency">Currency</label><input id="currency" maxlength="3" value="JPY" required></div><div class="field full"><button class="btn primary" type="submit">Request payout</button></div></form></section><section class="panel"><h2>Payout history</h2><div class="scroll"><table><thead><tr><th>Amount</th><th>Currency</th><th>Status</th><th>Requested</th></tr></thead><tbody id="payoutRows"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody></table></div></section></div><section class="panel"><h2>Recent earnings</h2><div class="scroll"><table><thead><tr><th>Order</th><th>Gross</th><th>Fee</th><th>Net</th><th>Currency</th><th>Status</th><th>Date</th></tr></thead><tbody id="earningRows"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody></table></div></section></main><script>
-const $=id=>document.getElementById(id),message=$('message');
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function showMessage(text,type='success'){message.hidden=false;message.className='msg '+type;message.textContent=text}
-async function api(url,options={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const d=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403)throw new Error('Seller sign-in or seller permissions are required.');throw new Error(d.error?.message||d.error||d.reasons?.join(', ')||`Request failed (${r.status})`)}return d}
-function money(v,currency){const n=Number(v);return Number.isFinite(n)?`${esc(currency||'')} ${n.toFixed(2)}`:'—'}
-async function loadProfile(){const d=await api('/api/seller/profile');const p=d.profile||{};$('displayName').value=p.display_name||p.displayName||'';$('legalName').value=p.legal_name||p.legalName||'';$('countryCode').value=p.country_code||p.countryCode||'';const status=p.verification_status||p.verificationStatus||'not_started';$('verification').textContent=status;$('verification').className='status '+status;$('verificationNote').textContent=p.verification_note||p.verificationNote||'';$('verifyBtn').disabled=['submitted','under_review','verified'].includes(status)}
-async function loadEarnings(){const d=await api('/api/seller/earnings');const s=d.summary||{};$('earned').textContent=money(s.earned_amount,'');$('available').textContent=money(s.available_amount,'');$('paid').textContent=money(s.paid_amount,'');$('sales').textContent=esc(s.sale_count??0);const rows=d.earnings||[];$('earningRows').innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.order_id)}</td><td>${money(x.gross_amount,x.currency)}</td><td>${money(x.platform_fee,x.currency)}</td><td>${money(x.net_amount,x.currency)}</td><td>${esc(x.currency)}</td><td>${esc(x.status)}</td><td>${esc(x.created_at||'')}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">No earnings yet.</td></tr>'}
-async function loadPayouts(){const d=await api('/api/seller/payouts');const rows=d.payouts||[];$('payoutRows').innerHTML=rows.length?rows.map(x=>`<tr><td>${money(x.amount,x.currency)}</td><td>${esc(x.currency)}</td><td>${esc(x.status)}</td><td>${esc(x.requested_at||'')}</td></tr>`).join(''):'<tr><td colspan="4" class="muted">No payout requests yet.</td></tr>'}
-$('profileForm').addEventListener('submit',async e=>{e.preventDefault();try{await api('/api/seller/profile',{method:'PATCH',body:JSON.stringify({displayName:$('displayName').value,legalName:$('legalName').value,countryCode:$('countryCode').value})});showMessage('Seller profile saved.');await loadProfile()}catch(err){showMessage(err.message,'error')}});
-$('verifyBtn').addEventListener('click',async()=>{try{await api('/api/seller/profile/submit-verification',{method:'POST'});showMessage('Verification submitted.');await loadProfile()}catch(err){showMessage(err.message,'error')}});
-$('payoutForm').addEventListener('submit',async e=>{e.preventDefault();try{await api('/api/seller/payouts',{method:'POST',body:JSON.stringify({amount:$('amount').value,currency:$('currency').value})});showMessage('Payout request created.');$('amount').value='';await Promise.all([loadEarnings(),loadPayouts()])}catch(err){showMessage(err.message,'error')}});
-(async()=>{try{await Promise.all([loadProfile(),loadEarnings(),loadPayouts()])}catch(err){showMessage(err.message,'error')}})();
-</script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>販売者マイページ | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page seller-dashboard-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を探す</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main id="seller-info" class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">SELLER ACCOUNT</span>
+        <h1>販売者マイページ</h1>
+        <p>登録した動画、販売状況、売上をここからまとめて管理できます。</p>
+      </div>
+      <div class="seller-products-links">
+        <a href="/seller/creator.html">販売者ページ →</a>
+        <a class="buyer-account" href="/seller/product-editor.html">＋ 新しい動画を登録する</a>
+      </div>
+    </div>
+
+    <section class="buyer-summary">
+      <div><span>公開作品</span><strong>12</strong><small>VIDEOS</small></div>
+      <div><span>販売数</span><strong>48</strong><small>SALES</small></div>
+      <div><span>売上</span><strong>¥248,600</strong><small>EARNINGS</small></div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">QUICK ACCESS</span><h2>販売者メニュー</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <a href="/seller/products.html" class="buyer-menu-card message-card"><span>01</span><strong>動画を管理</strong><small>登録・編集・翻訳をまとめて管理</small><b>確認 →</b></a>
+        <a href="/seller/sales.html" class="buyer-menu-card message-card"><span>02</span><strong>売上管理</strong><small>販売数・売上・販売分析をまとめて確認</small><b>確認 →</b></a>
+        <a href="/seller/profile.html" class="buyer-menu-card message-card"><span>03</span><strong>販売者情報</strong><small>プロフィール・登録情報の確認・編集</small><b>確認 →</b></a>
+      </div>
+    </section>
+
+    <section id="sales" class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">SALES SUMMARY</span><h2>売上サマリー</h2></div>
+        <a href="/seller/sales.html">売上管理を見る →</a>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>TODAY</span><strong>¥18,600</strong><small>今日の売上　6件</small></div>
+        <div class="buyer-menu-card"><span>THIS MONTH</span><strong>¥86,400</strong><small>今月の売上　32件</small></div>
+        <div class="buyer-menu-card"><span>LAST MONTH</span><strong>¥74,200</strong><small>先月の売上　28件</small></div>
+      </div>
+    </section>
+
+    <section class="buyer-section" id="messages">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">MESSAGES</span><h2>メッセージ</h2></div>
+        <a href="/seller/messages.html">メッセージ管理を見る →</a>
+      </div>
+      <div class="buyer-menu-grid">
+        <a href="/seller/messages.html" class="buyer-menu-card message-card"><span>UNREAD · 2</span><strong>新着メッセージ</strong><small>購入者・運営から届いた未読メッセージを確認</small><b>未読 2件</b></a>
+        <a href="/seller/messages.html" class="buyer-menu-card message-card"><span>BUYER</span><strong>購入者からの連絡</strong><small>購入作品に関する質問や問い合わせを確認</small><b>確認 →</b></a>
+        <a href="/seller/messages.html" class="buyer-menu-card message-card"><span>ADMIN</span><strong>運営からのお知らせ</strong><small>審査・販売・アカウントに関する連絡を確認</small><b>確認 →</b></a>
+      </div>
+    </section>
+
+    <section class="buyer-section" id="payout">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">PAYOUT</span><h2>出金申請</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <a href="/seller/withdrawal-account-edit.html" class="buyer-menu-card message-card">
+          <span>RECEIVING ACCOUNT</span>
+          <strong>受取口座</strong>
+          <small>登録中の受取口座を確認し、変更申請を行います。変更は運営の承認後に反映されます。</small>
+          <b>受取口座を確認 →</b>
+        </a>
+        <a href="/seller/withdrawal.html" class="buyer-menu-card message-card">
+          <span>WITHDRAWAL REQUEST</span>
+          <strong>出金申請</strong>
+          <small>現在の出金可能額を確認し、出金額を指定して申請します。</small>
+          <b>出金申請へ →</b>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>
