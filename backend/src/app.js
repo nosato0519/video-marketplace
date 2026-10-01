@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import helmet from 'helmet';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
@@ -34,6 +36,7 @@ import contentReportRoutes from './content-report-routes.js';
 
 export function createApp() {
   const app = express();
+  const webRoot = path.resolve(fileURLToPath(new URL('../../app', import.meta.url)));
   app.disable('x-powered-by');
   app.use(helmet());
 
@@ -87,6 +90,11 @@ export function createApp() {
   app.use('/api/admin', adminManagementRoutes);
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
+  app.use(express.static(webRoot));
+  app.get('*splat', (req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
+    return res.sendFile(path.join(webRoot, 'index.html'));
+  });
 
   app.use((error, _req, res, _next) => {
     console.error(error);
