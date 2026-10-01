@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>購入履歴 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">PURCHASE HISTORY</span>
+        <h1>購入履歴</h1>
+        <p>これまでに購入した動画と注文内容を確認できます。</p>
+      </div>
+    </div>
+
+    <nav class="buyer-page-nav" aria-label="購入者メニュー">
+        <a href="/pages/buyer.html">マイページ</a>
+        <a class="" href="/pages/library.html">マイライブラリ</a>
+        <a class="active" href="/pages/purchase-history.html">購入履歴</a>
+        <a class="" href="/pages/favorites.html">お気に入り</a>
+        <a href="/pages/account-settings.html">アカウント設定</a>
+      </nav>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">ORDERS</span><h2>購入した動画</h2></div>
+        <a href="/pages/library.html">マイライブラリ →</a>
+      </div>
+      <div class="buyer-history-list">
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t1"></div>
+          <div class="buyer-history-info"><strong>THE LAST SIGNAL</strong><span>購入日 2026.09.18</span><small>¥2,980　・　4K　・　18:42</small></div>
+          <a href="/pages/order-detail.html">注文詳細を見る →</a>
+        </article>
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t2"></div>
+          <div class="buyer-history-info"><strong>Tokyo After Hours</strong><span>購入日 2026.09.12</span><small>¥1,980　・　4K　・　12:16</small></div>
+          <a href="/pages/library.html">ライブラリで見る →</a>
+        </article>
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t3"></div>
+          <div class="buyer-history-info"><strong>Build Your Brand</strong><span>購入日 2026.09.08</span><small>¥2,480　・　Full HD　・　24:08</small></div>
+          <a href="/pages/library.html">ライブラリで見る →</a>
+        </article>
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t4"></div>
+          <div class="buyer-history-info"><strong>BLUE HORIZON</strong><span>購入日 2026.08.29</span><small>¥1,680　・　4K　・　16:35</small></div>
+          <a href="/pages/library.html">ライブラリで見る →</a>
+        </article>
+      </div>
+    </section>
+
+
+    <nav class="catalog-pagination buyer-pagination" data-pagination data-per-page="16" data-item-selector=".buyer-history-card"></nav>
+    <script>
+      (() => {
+        const root = document.querySelector('[data-pagination]');
+        const list = document.querySelector('.buyer-history-list');
+        if (!root || !list) return;
+        const items = Array.from(list.querySelectorAll('.buyer-history-card'));
+        const perPage = 16;
+        const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+        const params = new URLSearchParams(window.location.search);
+        let page = Number(params.get('page')) || 1;
+        page = Math.min(Math.max(page, 1), totalPages);
+        items.forEach((item, index) => {
+          item.hidden = index < (page - 1) * perPage || index >= page * perPage;
+        });
+        root.hidden = false;
+        const makeLink = (label, target, active = false) => {
+          const a = document.createElement('a');
+          a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
+          a.textContent = label;
+          if (active) a.className = 'active';
+          return a;
+        };
+        if (page > 1) root.appendChild(makeLink('‹', page - 1));
+        for (let i = 1; i <= totalPages; i++) root.appendChild(makeLink(String(i), i, i === page));
+        if (page < totalPages) root.appendChild(makeLink('›', page + 1));
+      })();
+    </script>
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>

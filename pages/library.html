@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>マイライブラリ | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="library-main">
+    <div class="library-head">
+      <div class="library-head-copy">
+        <span class="section-kicker">MY LIBRARY</span>
+        <h1>マイライブラリ</h1>
+        <p>購入した動画を、ここからいつでも楽しめます。</p>
+      </div>
+      <span class="library-account-divider">マイライブラリ</span>
+    </div>
+
+    <nav class="buyer-page-nav" aria-label="購入者メニュー">
+        <a href="/pages/buyer.html">マイページ</a>
+        <a class="active" href="/pages/library.html">マイライブラリ</a>
+        <a class="" href="/pages/purchase-history.html">購入履歴</a>
+        <a class="" href="/pages/favorites.html">お気に入り</a>
+        <a href="/pages/account-settings.html">アカウント設定</a>
+      </nav>
+
+    <nav class="library-tabs" aria-label="ライブラリ">
+      <a class="library-tab active" href="#">すべて</a>
+      <a class="library-tab" href="#">視聴中</a>
+      <a class="library-tab" href="#">未視聴</a>
+      <a class="library-tab" href="#">ダウンロード</a>
+    </nav>
+
+    <section class="library-grid" aria-label="購入済み動画">
+      <article class="library-card">
+        <div class="library-thumb catalog-t1"></div>
+        <div class="library-card-body">
+          <h2>THE LAST SIGNAL</h2>
+          <div class="library-card-meta"><span>購入日 2026.09.18</span><span>4K / 18:42</span></div>
+          <div class="library-progress"><span></span></div>
+          <div class="library-card-actions"><a class="library-watch" href="/pages/watch.html">視聴する →</a><a class="library-link" href="#">ダウンロード</a></div>
+        </div>
+      </article>
+
+      <article class="library-card">
+        <div class="library-thumb catalog-t2"></div>
+        <div class="library-card-body">
+          <h2>Tokyo After Hours</h2>
+          <div class="library-card-meta"><span>購入日 2026.09.12</span><span>4K / 12:16</span></div>
+          <div class="library-progress"><span style="width:24%"></span></div>
+          <div class="library-card-actions"><a class="library-watch" href="/pages/watch.html">視聴する →</a><a class="library-link" href="#">ダウンロード</a></div>
+        </div>
+      </article>
+
+      <article class="library-card">
+        <div class="library-thumb catalog-t3"></div>
+        <div class="library-card-body">
+          <h2>Build Your Brand</h2>
+          <div class="library-card-meta"><span>購入日 2026.09.08</span><span>HD / 24:08</span></div>
+          <div class="library-progress"><span style="width:0"></span></div>
+          <div class="library-card-actions"><a class="library-watch" href="/pages/watch.html">視聴する →</a><a class="library-link" href="#">ダウンロード</a></div>
+        </div>
+      </article>
+
+      <article class="library-card">
+        <div class="library-thumb catalog-t4"></div>
+        <div class="library-card-body">
+          <h2>BLUE HORIZON</h2>
+          <div class="library-card-meta"><span>購入日 2026.08.29</span><span>4K / 31:20</span></div>
+          <div class="library-progress"><span style="width:42%"></span></div>
+          <div class="library-card-actions"><a class="library-watch" href="/pages/watch.html">視聴する →</a><a class="library-link" href="#">ダウンロード</a></div>
+        </div>
+      </article>
+    </section>
+
+
+    <nav class="catalog-pagination buyer-pagination" data-pagination data-per-page="16" data-item-selector=".library-card"></nav>
+    <script>
+      (() => {
+        const root = document.querySelector('[data-pagination]');
+        const list = document.querySelector('.library-grid');
+        if (!root || !list) return;
+        const items = Array.from(list.querySelectorAll('.library-card'));
+        const perPage = 16;
+        const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+        const params = new URLSearchParams(window.location.search);
+        let page = Number(params.get('page')) || 1;
+        page = Math.min(Math.max(page, 1), totalPages);
+        items.forEach((item, index) => {
+          item.hidden = index < (page - 1) * perPage || index >= page * perPage;
+        });
+        root.hidden = false;
+        const makeLink = (label, target, active = false) => {
+          const a = document.createElement('a');
+          a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
+          a.textContent = label;
+          if (active) a.className = 'active';
+          return a;
+        };
+        if (page > 1) root.appendChild(makeLink('‹', page - 1));
+        for (let i = 1; i <= totalPages; i++) root.appendChild(makeLink(String(i), i, i === page));
+        if (page < totalPages) root.appendChild(makeLink('›', page + 1));
+      })();
+    </script>
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>

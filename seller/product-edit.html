@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>動画を編集 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav><a href="/pages/video-list.html">動画を探す</a><a href="/pages/seller-register.html">動画を販売する</a></nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">VIDEO EDITOR</span>
+        <h1>動画を編集</h1>
+        <p>アップロード済みの動画情報、ファイル、紹介画像、公開状態を編集します。</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a class="buyer-account" href="/seller/products.html">動画管理へ →</a>
+        <a class="buyer-account" href="/seller/dashboard.html">販売者マイページへ →</a>
+      </div>
+    </div>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">BASIC INFORMATION</span><h2>作品情報</h2></div>
+        <span class="seller-video-status is-published">公開中</span>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card product-input-card">
+          <span>01 / TITLE</span><strong>作品タイトル</strong><small>購入者に表示する動画タイトル</small>
+          <input class="product-input" type="text" value="THE LAST SIGNAL">
+        </div>
+        <div class="buyer-menu-card product-input-card">
+          <span>02 / CATEGORY</span><strong>カテゴリー</strong><small>作品に合うジャンル</small>
+          <select class="product-input"><option>映画</option><option>学び</option><option>ドキュメンタリー</option><option>クリエイティブ</option></select>
+        </div>
+        <div class="buyer-menu-card product-input-card">
+          <span>03 / PRICE</span><strong>販売価格</strong><small>購入者に表示する価格</small>
+          <input class="product-input" type="text" value="¥4,800">
+        </div>
+        <div class="buyer-menu-card product-input-card">
+          <span>04 / DESCRIPTION</span><strong>作品説明</strong><small>作品の内容や見どころ</small>
+          <textarea class="product-input product-description-input" rows="6">作品の世界観とストーリーを紹介する作品説明です。</textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">VIDEO</span><h2>アップロード済みファイル</h2></div></div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card">
+          <span>MAIN VIDEO</span><strong>the-last-signal.mp4</strong><small>アップロード済み　4.2 GB</small>
+          <input type="file" accept="video/*" aria-label="動画ファイルを変更">
+        </div>
+        <div class="buyer-menu-card">
+          <span>THUMBNAIL</span><strong>the-last-signal.jpg</strong><small>現在のサムネイルを変更</small>
+          <input type="file" accept="image/*" aria-label="サムネイルを変更">
+        </div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">INTRO IMAGES</span><h2>紹介画像</h2></div><span>最大4枚</span></div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>IMAGE 01</span><strong>紹介画像 1</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
+        <div class="buyer-menu-card"><span>IMAGE 02</span><strong>紹介画像 2</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
+        <div class="buyer-menu-card"><span>IMAGE 03</span><strong>紹介画像 3</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
+        <div class="buyer-menu-card"><span>IMAGE 04</span><strong>紹介画像 4</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">TRANSLATIONS</span><h2>多言語設定</h2></div></div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card product-input-card"><span>JAPANESE / JA</span><strong>日本語</strong><small>タイトル・説明</small><input class="product-input" type="text" value="THE LAST SIGNAL"><textarea class="product-input product-description-input" rows="4">作品の世界観とストーリーを紹介する作品説明です。</textarea></div>
+        <div class="buyer-menu-card product-input-card"><span>ENGLISH / EN</span><strong>English</strong><small>Title / Description</small><input class="product-input" type="text" value="THE LAST SIGNAL"><textarea class="product-input product-description-input" rows="4">A cinematic story presented for an international audience.</textarea></div>
+        <div class="buyer-menu-card product-input-card"><span>CHINESE / ZH</span><strong>中文</strong><small>标题・简介</small><input class="product-input" type="text" placeholder="中文标题"><textarea class="product-input product-description-input" rows="4" placeholder="中文简介"></textarea></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">PUBLISHING</span><h2>公開状態</h2></div></div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>STATUS</span><strong>公開中</strong><small>現在の販売状態</small></div>
+        <div class="buyer-menu-card"><span>REVIEW</span><strong>再申請</strong><small>変更内容を審査へ申請します。</small><b>審査を申請 →</b></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">ACTIONS</span><h2>変更を保存する</h2></div></div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>SAVE</span><strong>変更を保存する</strong><small>編集内容を保存して動画管理へ戻ります。</small><b>保存する →</b></div>
+        <div class="buyer-menu-card"><span>CANCEL</span><strong>変更を破棄する</strong><small>保存せずに動画管理へ戻ります。</small><b><a href="/seller/products.html" style="font:inherit;color:inherit;text-decoration:none;">動画管理へ戻る →</a></b></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+</body>
+</html>

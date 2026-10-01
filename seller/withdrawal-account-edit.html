@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>受取口座の変更申請 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を探す</a>
+        <a href="/seller/product-editor.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main seller-profile-page">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">RECEIVING ACCOUNT</span>
+        <h1>受取口座</h1>
+        <p>登録中の受取口座を確認し、変更を申請できます。</p>
+      </div>
+      <div class="seller-products-links">
+        <a href="/seller/dashboard.html">販売者マイページ →</a>
+        <a class="buyer-account" href="/seller/withdrawal.html">出金申請 →</a>
+      </div>
+    </div>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div>
+          <span class="section-kicker">CURRENT ACCOUNT</span>
+          <h2>現在の受取口座</h2>
+        </div>
+      </div>
+      <div class="seller-profile-status">
+        <span>REGISTERED ACCOUNT</span>
+        <strong>三井住友銀行　渋谷支店</strong>
+        <small>普通　＊＊＊＊1234　／　MICHAEL BENNETT</small>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div>
+          <span class="section-kicker">NEW ACCOUNT</span>
+          <h2>変更後の受取口座</h2>
+        </div>
+      </div>
+      <div class="seller-profile-form">
+        <div class="seller-profile-field">
+          <label for="bank-name">金融機関名</label>
+          <input id="bank-name" class="product-input" type="text" placeholder="例：三井住友銀行">
+        </div>
+        <div class="seller-profile-field">
+          <label for="branch-name">支店名</label>
+          <input id="branch-name" class="product-input" type="text" placeholder="例：渋谷支店">
+        </div>
+        <div class="seller-profile-field">
+          <label for="account-type">口座種別</label>
+          <select id="account-type" class="product-input">
+            <option>普通</option>
+            <option>当座</option>
+          </select>
+        </div>
+        <div class="seller-profile-field">
+          <label for="account-number">口座番号</label>
+          <input id="account-number" class="product-input" type="text" inputmode="numeric" placeholder="例：1234567">
+        </div>
+        <div class="seller-profile-field">
+          <label for="account-holder">口座名義</label>
+          <input id="account-holder" class="product-input" type="text" placeholder="例：MICHAEL BENNETT">
+          <small>登録されている販売者本人の名義で申請してください。</small>
+        </div>
+        <div class="seller-profile-actions seller-profile-save-action">
+          <button class="sell" type="button">運営へ変更申請を提出する</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div>
+          <span class="section-kicker">REVIEW STATUS</span>
+          <h2>変更申請の状態</h2>
+        </div>
+      </div>
+      <div class="seller-profile-status">
+        <span>STATUS</span>
+        <strong>現在の申請はありません</strong>
+        <small>申請後は運営による確認・承認が完了するまで、現在の受取口座が使用されます。</small>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>

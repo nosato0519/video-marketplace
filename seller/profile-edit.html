@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>プロフィールを編集 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav><a href="/pages/video-list.html">動画を探す</a><a href="/seller/product-editor.html">動画を販売する</a></nav>
+      <div class="login-menu"><button class="sell login-trigger" type="button">ログイン</button><div class="login-dropdown"><a href="/pages/seller-login.html">販売者ログイン</a><a href="/pages/buyer-login.html">購入者ログイン</a></div></div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main seller-profile-page">
+    <div class="buyer-head">
+      <div><span class="section-kicker">PROFILE EDITOR</span><h1>プロフィールを編集</h1><p>販売者ページに表示する情報と、登録情報を編集します。</p></div>
+      <div class="seller-products-links"><a href="/seller/profile.html">販売者情報へ →</a><a class="buyer-account" href="/seller/dashboard.html">販売者マイページ →</a></div>
+    </div>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">PUBLIC PROFILE</span><h2>公開プロフィール</h2></div></div>
+      <div class="seller-profile-form">
+        <div class="seller-profile-field"><label for="creator-name">名前</label><small>販売者ページ・動画詳細ページに表示される名前</small><input id="creator-name" class="product-input" type="text" value="Michael Bennett"></div>
+        <div class="seller-profile-field seller-profile-field-large"><label for="creator-bio">自己紹介</label><small>販売者ページに表示される自己紹介文</small><textarea id="creator-bio" class="product-input product-description-input">I am a filmmaker and editor based in the United States. I create documentary films, short-form visual stories, and brand films, with a focus on atmosphere, storytelling, and honest moments.</textarea></div>
+        <div class="seller-profile-field"><label for="creator-country">国</label><small>販売者ページに表示される国名</small><input id="creator-country" class="product-input" type="text" value="United States"></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">PRIVATE INFORMATION</span><h2>非公開情報</h2></div></div>
+      <div class="seller-profile-form seller-private-form">
+        <div class="seller-profile-field"><label for="real-name">本名</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="real-name" class="product-input" type="text" value="Michael Bennett"></div>
+        <div class="seller-profile-field"><label for="address">住所</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="address" class="product-input" type="text" value="Los Angeles, California, United States"></div>
+        <div class="seller-profile-field"><label for="postal-code">郵便番号</label><small>国によって形式は異なります。購入者には表示されません。</small><input id="postal-code" class="product-input" type="text" value="90012"></div>
+        <div class="seller-profile-field"><label for="phone">電話番号</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="phone" class="product-input" type="text" value="+1 213-555-0187"></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">ACTIONS</span><h2>変更を保存</h2></div></div>
+      <div class="seller-profile-actions seller-profile-save-action"><button class="sell" type="button">変更を保存</button></div>
+    </section>
+  </main>
+
+  <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+</body>
+</html>

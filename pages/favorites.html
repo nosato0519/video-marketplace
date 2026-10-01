@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>お気に入り | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">FAVORITES</span>
+        <h1>お気に入り</h1>
+        <p>気になる動画を、ここからいつでも確認できます。</p>
+      </div>
+    </div>
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">SAVED VIDEOS</span><h2>お気に入りの動画</h2></div>
+        <a href="/pages/video-list.html">動画を探す →</a>
+      </div>
+      <nav class="buyer-page-nav" aria-label="購入者メニュー">
+        <a href="/pages/buyer.html">マイページ</a>
+        <a href="/pages/library.html">マイライブラリ</a>
+        <a href="/pages/purchase-history.html">購入履歴</a>
+        <a class="active" href="/pages/favorites.html">お気に入り</a>
+        <a href="/pages/account-settings.html">アカウント設定</a>
+      </nav>
+      <div class="library-grid">
+        <article class="library-card">
+          <div class="library-thumb catalog-t1"></div>
+          <div class="library-card-body"><h2>THE LAST SIGNAL</h2><div class="library-card-meta"><span>映画・映像</span><span>4K / 18:42</span></div><div class="library-card-actions"><a class="library-watch" href="/pages/product-detail.html">作品を見る</a><a class="library-link" href="#">お気に入りから削除</a></div></div>
+        </article>
+        <article class="library-card">
+          <div class="library-thumb catalog-t2"></div>
+          <div class="library-card-body"><h2>Tokyo After Hours</h2><div class="library-card-meta"><span>ドキュメンタリー</span><span>4K / 12:16</span></div><div class="library-card-actions"><a class="library-watch" href="/pages/product-detail.html">作品を見る</a><a class="library-link" href="#">お気に入りから削除</a></div></div>
+        </article>
+        <article class="library-card">
+          <div class="library-thumb catalog-t3"></div>
+          <div class="library-card-body"><h2>Build Your Brand</h2><div class="library-card-meta"><span>学び</span><span>Full HD / 24:08</span></div><div class="library-card-actions"><a class="library-watch" href="/pages/product-detail.html">作品を見る</a><a class="library-link" href="#">お気に入りから削除</a></div></div>
+        </article>
+        <article class="library-card">
+          <div class="library-thumb catalog-t4"></div>
+          <div class="library-card-body"><h2>BLUE HORIZON</h2><div class="library-card-meta"><span>映画・映像</span><span>4K / 16:35</span></div><div class="library-card-actions"><a class="library-watch" href="/pages/product-detail.html">作品を見る</a><a class="library-link" href="#">お気に入りから削除</a></div></div>
+        </article>
+      </div>
+    </section>
+
+
+    <nav class="catalog-pagination buyer-pagination" data-pagination data-per-page="16" data-item-selector=".library-card"></nav>
+    <script>
+      (() => {
+        const root = document.querySelector('[data-pagination]');
+        const list = document.querySelector('.library-grid');
+        if (!root || !list) return;
+        const items = Array.from(list.querySelectorAll('.library-card'));
+        const perPage = 16;
+        const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+        const params = new URLSearchParams(window.location.search);
+        let page = Number(params.get('page')) || 1;
+        page = Math.min(Math.max(page, 1), totalPages);
+        items.forEach((item, index) => {
+          item.hidden = index < (page - 1) * perPage || index >= page * perPage;
+        });
+        root.hidden = false;
+        const makeLink = (label, target, active = false) => {
+          const a = document.createElement('a');
+          a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
+          a.textContent = label;
+          if (active) a.className = 'active';
+          return a;
+        };
+        if (page > 1) root.appendChild(makeLink('‹', page - 1));
+        for (let i = 1; i <= totalPages; i++) root.appendChild(makeLink(String(i), i, i === page));
+        if (page < totalPages) root.appendChild(makeLink('›', page + 1));
+      })();
+    </script>
+  </main>
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>

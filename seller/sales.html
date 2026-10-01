@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>売上管理 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を探す</a><a href="/seller/product-editor.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">SALES MANAGEMENT</span>
+        <h1>売上管理</h1>
+        <p>作品ごとの販売状況、売上履歴、販売分析をここから確認できます。</p>
+      </div>
+      <a class="buyer-account" href="/seller/dashboard.html">販売者マイページ →</a>
+    </div>
+
+    <section class="buyer-summary">
+      <div><span>今日の売上</span><strong>¥18,600</strong><small>TODAY</small></div>
+      <div><span>今月の売上</span><strong>¥86,400</strong><small>THIS MONTH</small></div>
+      <div><span>先月の売上</span><strong>¥74,200</strong><small>LAST MONTH</small></div>
+      <div><span>販売数</span><strong>32</strong><small>SALES</small></div>
+    </section>
+
+    <section class="buyer-section" id="history">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">SALES HISTORY</span><h2>売上履歴</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <a href="/seller/sales-monthly.html" class="buyer-menu-card message-card">
+          <span>THIS MONTH</span>
+          <strong>今月の売上履歴</strong>
+          <small>今月売れた日付・動画タイトル・金額・手数料・利益を確認</small>
+          <b>確認 →</b>
+        </a>
+        <a href="/seller/sales-history.html" class="buyer-menu-card message-card">
+          <span>ALL MONTHS</span>
+          <strong>これまでの売上履歴</strong>
+          <small>月ごとの売上・手数料・利益をまとめて確認</small>
+          <b>確認 →</b>
+        </a>
+        <a href="/seller/sales-videos.html" class="buyer-menu-card message-card">
+          <span>SOLD VIDEOS</span>
+          <strong>今まで売れた動画</strong>
+          <small>販売日・動画タイトル・金額・手数料・利益を確認</small>
+          <b>確認 →</b>
+        </a>
+        <a href="/seller/payment-history.html" class="buyer-menu-card message-card">
+          <span>PAYMENTS</span>
+          <strong>入金履歴</strong>
+          <small>入金日・入金金額・今後の入金予定を確認</small>
+          <b>確認 →</b>
+        </a>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">SALES ANALYSIS</span><h2>販売分析</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>TOP PRODUCT</span><strong>THE LAST SIGNAL</strong><small>販売 24件　売上 ¥115,200</small><b>作品別</b></div>
+        <div class="buyer-menu-card"><span>SALES COUNT</span><strong>32件</strong><small>今月の販売数</small><b>期間別</b></div>
+        <div class="buyer-menu-card"><span>AVERAGE</span><strong>¥2,700</strong><small>1作品あたりの平均売上</small><b>平均</b></div>
+        <div class="buyer-menu-card"><span>NET EARNINGS</span><strong>¥86,400</strong><small>手数料差引後の受取額</small><b>受取</b></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>

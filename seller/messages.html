@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>メッセージ管理 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を探す</a><a href="/seller/product-editor.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">MESSAGE CENTER</span>
+        <h1>メッセージ管理</h1>
+        <p>購入者や運営から届いたメッセージをここから確認できます。</p>
+      </div>
+      <a class="buyer-account" href="/seller/dashboard.html">販売者マイページ →</a>
+    </div>
+
+    <section class="buyer-summary">
+      <div><span>未読</span><strong>2</strong><small>UNREAD</small></div>
+      <div><span>購入者</span><strong>1</strong><small>BUYER</small></div>
+      <div><span>運営</span><strong>1</strong><small>ADMIN</small></div>
+      <div><span>対応中</span><strong>2</strong><small>OPEN</small></div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">NEW MESSAGES</span><h2>新着メッセージ</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>BUYER · UNREAD</span><strong>購入者からの連絡</strong><small>THE LAST SIGNALについての質問があります。</small><b>未読 · 確認</b></div>
+        <div class="buyer-menu-card"><span>ADMIN · UNREAD</span><strong>運営からのお知らせ</strong><small>登録作品の審査結果を確認してください。</small><b>未読 · 確認</b></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">BUYER MESSAGES</span><h2>購入者からの連絡</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>THE LAST SIGNAL</span><strong>購入者からの質問</strong><small>動画の内容について問い合わせがあります。</small><b>対応中</b></div>
+        <div class="buyer-menu-card"><span>TOKYO AFTER HOURS</span><strong>購入後の連絡</strong><small>購入者から届いたメッセージを確認できます。</small><b>確認済み</b></div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div><span class="section-kicker">ADMIN MESSAGES</span><h2>運営からのお知らせ</h2></div>
+      </div>
+      <div class="buyer-menu-grid">
+        <div class="buyer-menu-card"><span>REVIEW</span><strong>審査結果のお知らせ</strong><small>登録した作品の審査状況を確認してください。</small><b>未読</b></div>
+        <div class="buyer-menu-card"><span>ACCOUNT</span><strong>販売者向けのお知らせ</strong><small>販売・アカウントに関する最新のお知らせです。</small><b>確認済み</b></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>
