@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>購入者ログイン | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を購入する</a>
+        <a href="#">動画を販売する</a>
+      </nav>
+    </div>
+  </header>
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="login-title">
+      <div class="auth-kicker">BUYER ACCOUNT</div>
+      <h1 id="login-title">購入者ログイン</h1>
+      <p class="auth-lead">購入した動画を楽しむアカウントにログインしてください。</p>
+      <form>
+        <label for="email">メールアドレス</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+        <label for="password">パスワード</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="パスワードを入力">
+        <div class="auth-options">
+          <label class="auth-check"><input type="checkbox" name="remember"> ログイン状態を保持する</label>
+          <a href="/pages/password-reset.html">パスワードを忘れた方</a>
+        </div>
+        <a class="auth-submit" href="/pages/buyer.html">ログイン</a>
+      </form>
+      <div class="auth-divider"><span>ACCOUNT</span></div>
+      <p class="auth-register">アカウントをお持ちでない方</p>
+      <a class="auth-register-link" href="/pages/buyer-register.html">会員登録はこちら</a>
+    </section>
+  </main>
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>
