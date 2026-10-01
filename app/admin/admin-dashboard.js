@@ -1,37 +1,37 @@
-const sections = [
-  ['overview', 'Overview', 'Sales, orders and important alerts'],
-  ['products', 'Products', 'Create, edit, publish or pause products'],
-  ['sellers', 'Sellers', 'Review sellers and verification status'],
-  ['seller-applications', 'Seller applications', 'Review creator applications before granting seller privileges'],
-  ['orders', 'Orders & sales', 'Review orders, refunds and revenue'],
-  ['payouts', 'Payouts', 'Review seller payout requests'],
-  ['moderation', 'Moderation', 'Review content and reports'],
-  ['localization', 'Languages & currencies', 'Manage supported locales and currencies'],
-  ['regions', 'Regions', 'Control country availability'],
-  ['settings', 'Settings', 'Manage site configuration'],
-  ['activity', 'Security & activity', 'Review important administrative actions'],
-  ['help', 'Help', 'Guided help and troubleshooting']
-];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=(v,c='JPY')=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:c}).format(Number(v||0));
+async function api(path,options={}){const r=await fetch('/api'+path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const b=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(b?.error?.message||b?.error||'request_failed');e.status=r.status;e.body=b;throw e;}return b;}
+const label=s=>({published:'公開',approved:'承認済み',submitted:'申請済み',under_review:'審査中',suspended:'停止',draft:'下書き',pending:'保留',paid:'支払済み',failed:'失敗',active:'有効'}[s]||s||'-');
 
-export function renderAdminDashboard() {
-  return `<main class="admin-shell">
-    <header class="admin-header">
-      <div><p class="eyebrow">Operator</p><h1>Admin dashboard</h1><p>Routine marketplace management without code.</p></div>
-      <a class="button secondary" href="#/">View site</a>
-    </header>
-    <section class="admin-alert" aria-live="polite">
-      <strong>Action queue</strong>
-      <span>Review pending moderation, seller applications and payout requests first.</span>
-    </section>
-    <section class="admin-stats" aria-label="Overview">
-      <article><span>Today’s sales</span><strong>Not connected</strong></article>
-      <article><span>Pending review</span><strong>Not connected</strong></article>
-      <article><span>Payout requests</span><strong>Not connected</strong></article>
-      <article><span>System status</span><strong>Not checked</strong></article>
-    </section>
-    <section class="admin-grid" aria-label="Management sections">
-      ${sections.map(([id, title, description]) => `<a class="admin-card" href="#/admin/${id}"><strong>${title}</strong><span>${description}</span></a>`).join('')}
-    </section>
-    <p class="admin-footnote">Dashboard metrics remain explicitly unavailable until their authenticated live-data endpoints and health checks are wired. Never display placeholder values as real production status.</p>
-  </main>`;
+export async function renderAdminDashboard(root){
+ root.innerHTML='<section class="loading-state"><p>運営者データを読み込んでいます…</p></section>';
+ try{
+  const d=await api('/admin/dashboard');
+  const productRows=d.recent.products.map(p=>'<tr><td><strong>'+esc(p.title||'無題')+'</strong></td><td>'+esc(p.seller_email)+'</td><td><span class="admin-badge">'+label(p.status)+'</span></td><td>'+money(p.price_amount,p.price_currency)+'</td><td>'+(p.status==='approved'?'<button class="admin-btn" data-product-action="publish" data-product="'+esc(p.id)+'">公開</button>':p.status==='published'?'<button class="admin-btn danger" data-product-action="suspend" data-product="'+esc(p.id)+'">停止</button>':p.status==='suspended'?'<button class="admin-btn" data-product-action="restore" data-product="'+esc(p.id)+'">復帰</button>':'-')+'</td></tr>').join('');
+  const sellerRows=d.recent.sellers.map(s=>'<tr><td>'+esc(s.display_name||s.email)+'</td><td>'+label(s.verification_status)+'</td><td>'+label(s.status)+'</td><td>'+(s.status==='active'?'<button class="admin-btn danger" data-user-action="suspended" data-user="'+esc(s.id)+'">停止</button>':'<button class="admin-btn" data-user-action="active" data-user="'+esc(s.id)+'">復帰</button>')+'</td></tr>').join('');
+  const orderRows=d.recent.orders.map(o=>'<tr><td>'+esc(o.buyer_email)+'</td><td>'+esc(o.product_title)+'</td><td>'+money(o.amount,o.currency)+'</td><td>'+label(o.status)+'</td></tr>').join('');
+  const buyerRows=d.recent.buyers.map(b=>'<tr><td>'+esc(b.email)+'</td><td>'+label(b.status)+'</td><td>'+esc(new Date(b.created_at).toLocaleDateString('ja-JP'))+'</td></tr>').join('');
+  root.innerHTML='<section class="admin-page"><style>'+
+  '.admin-page{max-width:1180px;margin:0 auto;padding:38px 20px 70px}.admin-hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:26px}.admin-hero h1{font-size:clamp(32px,5vw,52px);margin:6px 0}.admin-muted{color:#8d96a3}.admin-panel{background:#11161d;border:1px solid #252c35;border-radius:16px;padding:18px}.admin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.admin-kpi{min-height:104px;display:flex;flex-direction:column;justify-content:space-between}.admin-kpi strong{font-size:28px}.admin-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.admin-table{width:100%;border-collapse:collapse;font-size:14px}.admin-table th,.admin-table td{padding:11px 8px;border-bottom:1px solid #252c35;text-align:left;vertical-align:middle}.admin-table th{color:#8d96a3;font-size:12px;text-transform:uppercase}.admin-badge{display:inline-flex;padding:4px 8px;border:1px solid #303946;border-radius:999px;font-size:12px}.admin-queue{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.admin-queue a{display:block;text-decoration:none;color:inherit}.admin-queue strong{font-size:22px}.admin-section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.admin-section-title h2{margin:0;font-size:18px}.admin-btn{border:1px solid #343d49;background:#171d25;color:#fff;border-radius:8px;padding:7px 10px;cursor:pointer}.admin-btn.danger{border-color:#6b3940}.admin-links{display:flex;gap:12px;flex-wrap:wrap}.admin-links a{color:#c8d0da}.admin-note{font-size:12px;color:#8d96a3;margin-top:12px}@media(max-width:900px){.admin-kpis{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}.admin-queue{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.admin-kpis,.admin-queue{grid-template-columns:1fr}.admin-hero{align-items:flex-start;flex-direction:column}.admin-table{min-width:650px}.admin-panel{overflow:auto}}'+
+  '</style><div class="admin-hero"><div><p class="eyebrow">OPERATOR / CONTROL CENTER</p><h1>サイトを、管理する。</h1><p class="admin-muted">販売・購入・動画・販売者・審査・出金を、この画面から確認できます。</p></div><div><a class="button secondary" href="#/">サイトを見る</a> <button class="admin-btn" id="admin-refresh">更新</button></div></div>'+
+  '<div class="admin-panel"><div class="admin-section-title"><h2>運営キュー</h2><span class="admin-muted">対応が必要な項目</span></div><div class="admin-queue">'+
+  '<a href="#/admin/seller-applications"><span class="admin-muted">販売者申請</span><strong>'+d.queue.seller_applications+'</strong></a>'+
+  '<a href="#/admin/verification"><span class="admin-muted">販売者認証</span><strong>'+d.queue.seller_verifications+'</strong></a>'+
+  '<a href="#/admin/moderation"><span class="admin-muted">動画審査</span><strong>'+d.queue.content_reviews+'</strong></a>'+
+  '<a href="#/admin/moderation"><span class="admin-muted">通報</span><strong>'+d.queue.reports+'</strong></a></div></div>'+
+  '<div class="admin-kpis">'+
+  '<div class="admin-panel admin-kpi"><span class="admin-muted">累計売上</span><strong>'+(d.sales.length?d.sales.map(x=>money(x.total,x.currency)).join(' / '):'¥0')+'</strong><span class="admin-muted">'+d.orders.paid+'件の支払済み注文</span></div>'+
+  '<div class="admin-panel admin-kpi"><span class="admin-muted">登録ユーザー</span><strong>'+d.users.total+'</strong><span class="admin-muted">購入者 '+d.users.buyers+' / 販売者 '+d.users.sellers+'</span></div>'+
+  '<div class="admin-panel admin-kpi"><span class="admin-muted">公開動画</span><strong>'+d.products.published+'</strong><span class="admin-muted">全 '+d.products.total+' 件</span></div>'+
+  '<div class="admin-panel admin-kpi"><span class="admin-muted">出金処理中</span><strong>'+d.payouts.pending+'</strong><span class="admin-muted">支払済み '+d.payouts.paid+'件</span></div></div>'+
+  '<div class="admin-grid"><section class="admin-panel"><div class="admin-section-title"><h2>動画管理</h2><a href="#/admin/moderation">審査・通報 →</a></div><table class="admin-table"><thead><tr><th>動画</th><th>販売者</th><th>状態</th><th>価格</th><th>操作</th></tr></thead><tbody>'+(productRows||'<tr><td colspan="5">動画はありません。</td></tr>')+'</tbody></table></section>'+
+  '<section class="admin-panel"><div class="admin-section-title"><h2>販売者管理</h2><a href="#/admin/seller-applications">申請 →</a></div><table class="admin-table"><thead><tr><th>販売者</th><th>認証</th><th>状態</th><th>操作</th></tr></thead><tbody>'+(sellerRows||'<tr><td colspan="4">販売者はありません。</td></tr>')+'</tbody></table></section></div>'+
+  '<div class="admin-grid"><section class="admin-panel"><div class="admin-section-title"><h2>購入者・注文管理</h2><span class="admin-muted">直近8件</span></div><table class="admin-table"><thead><tr><th>購入者</th><th>商品</th><th>金額</th><th>状態</th></tr></thead><tbody>'+(orderRows||'<tr><td colspan="4">注文はありません。</td></tr>')+'</tbody></table></section>'+
+  '<section class="admin-panel"><div class="admin-section-title"><h2>購入者一覧</h2><span class="admin-muted">'+d.users.buyers+'人</span></div><table class="admin-table"><thead><tr><th>メール</th><th>状態</th><th>登録日</th></tr></thead><tbody>'+(buyerRows||'<tr><td colspan="3">購入者はありません。</td></tr>')+'</tbody></table></section></div>'+
+  '<section class="admin-panel" style="margin-top:14px"><div class="admin-section-title"><h2>売上・出金</h2><a href="#/admin/payouts">出金管理 →</a></div><div class="admin-links">'+(d.sales.map(s=>'<span>'+esc(s.currency)+' 売上 <strong>'+money(s.total,s.currency)+'</strong></span>').join('')||'<span class="admin-muted">売上データはありません。</span>')+'<span>支払済み出金 <strong>'+money(d.payouts.paid_amount,'JPY')+'</strong></span></div></section>'+
+  '<section class="admin-panel" style="margin-top:14px"><div class="admin-section-title"><h2>運営ショートカット</h2></div><div class="admin-links"><a href="#/admin/seller-applications">販売者申請</a><a href="#/admin/verification">販売者認証</a><a href="#/admin/moderation">動画審査・通報</a><a href="#/admin/payouts">出金処理</a><a href="#/admin/localization">言語・通貨</a></div><p class="admin-note">既存の管理APIと同じ本番DBを参照しています。</p></section><p id="admin-message" class="microcopy" aria-live="polite"></p></section>';
+  root.querySelector('#admin-refresh')?.addEventListener('click',()=>renderAdminDashboard(root));
+  root.querySelectorAll('[data-product-action]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await api('/admin/products/'+encodeURIComponent(btn.dataset.product)+'/status',{method:'POST',body:JSON.stringify({action:btn.dataset.productAction})});await renderAdminDashboard(root);}catch(e){root.querySelector('#admin-message').textContent=e.body?.error||'動画状態の更新に失敗しました。';btn.disabled=false;}}));
+  root.querySelectorAll('[data-user-action]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await api('/admin/users/'+encodeURIComponent(btn.dataset.user)+'/status',{method:'POST',body:JSON.stringify({status:btn.dataset.userAction})});await renderAdminDashboard(root);}catch(e){root.querySelector('#admin-message').textContent=e.body?.error||'ユーザー状態の更新に失敗しました。';btn.disabled=false;}}));
+ }catch(e){root.innerHTML=e.status===401||e.status===403?'<section class="empty-state"><h2>Admin access required</h2><p>管理者権限が必要です。</p></section>':'<section class="empty-state"><h2>運営者ページを読み込めません</h2><p>しばらくしてから再試行してください。</p></section>';}
 }
