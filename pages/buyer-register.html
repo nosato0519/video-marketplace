@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>会員登録 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/video-list.html">動画を購入する</a>
+        <a href="#">動画を販売する</a>
+      </nav>
+    </div>
+  </header>
+  <main class="auth-main">
+    <section class="auth-card auth-register-card" aria-labelledby="register-title">
+      <div class="auth-kicker">BUYER ACCOUNT</div>
+      <h1 id="register-title">会員登録</h1>
+      <p class="auth-lead">購入した動画を楽しむためのアカウントを作成してください。</p>
+      <form>
+        <label for="name">お名前</label>
+        <input id="name" name="name" type="text" autocomplete="name" placeholder="お名前を入力">
+        <label for="email">メールアドレス</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+        <label for="password">パスワード</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" placeholder="8文字以上">
+        <label for="password-confirm">パスワード（確認）</label>
+        <input id="password-confirm" name="password-confirm" type="password" autocomplete="new-password" placeholder="もう一度入力">
+        <label class="auth-terms"><input type="checkbox" name="terms"> 利用規約・プライバシーポリシーに同意する</label>
+        <button class="auth-submit" type="submit">アカウントを作成</button>
+      </form>
+      <div class="auth-divider"><span>ACCOUNT</span></div>
+      <p class="auth-register">すでにアカウントをお持ちの方</p>
+      <a class="auth-register-link" href="/pages/buyer-login.html">購入者ログインはこちら</a>
+    </section>
+  </main>
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>
