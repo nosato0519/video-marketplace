@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>カート | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
+      <span class="logo-symbol" aria-hidden="true"><i></i></span>
+      <span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span>
+    </a>
+    <div class="nav-right">
+      <nav>
+        <a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a>
+      </nav>
+      <div class="login-menu">
+        <button class="sell login-trigger" type="button">ログイン</button>
+        <div class="login-dropdown">
+          <a href="/pages/seller-login.html">販売者ログイン</a>
+          <a href="/pages/buyer-login.html">購入者ログイン</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main">
+    <div class="buyer-head">
+      <div>
+        <span class="section-kicker">SHOPPING CART</span>
+        <h1>カート</h1>
+        <p>購入する動画を確認できます。</p>
+      </div>
+    </div>
+
+    <nav class="buyer-page-nav" aria-label="購入者メニュー">
+      <a href="/pages/buyer.html">マイページ</a>
+      <a href="/pages/library.html">マイライブラリ</a>
+      <a href="/pages/purchase-history.html">購入履歴</a>
+      <a href="/pages/favorites.html">お気に入り</a>
+      <a href="/pages/account-settings.html">アカウント設定</a>
+    </nav>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head">
+        <div>
+          <span class="section-kicker">CART ITEMS</span>
+          <h2>カートの商品</h2>
+        </div>
+        <span>2作品</span>
+      </div>
+
+      <div class="buyer-history-list">
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t1"></div>
+          <div class="buyer-history-info">
+            <strong>THE LAST SIGNAL</strong>
+            <span>4K / 18:42</span>
+            <small>¥2,980</small>
+          </div>
+          <div class="cart-item-actions"><a class="cart-view-link" href="/pages/product-detail.html">作品を見る →</a><a class="cart-remove-link" href="#" style="display:inline-flex;align-items:center;justify-content:center;margin-top:7px;padding:7px 11px;border:1px solid #39414a;border-radius:4px;background:#151a20;color:#aeb7c1;text-decoration:none;font-family:inherit;font-size:10px;line-height:1.2;white-space:nowrap;">削除</a></div>
+        </article>
+
+        <article class="buyer-history-card">
+          <div class="library-thumb catalog-t2"></div>
+          <div class="buyer-history-info">
+            <strong>Tokyo After Hours</strong>
+            <span>4K / 12:16</span>
+            <small>¥1,980</small>
+          </div>
+          <div class="cart-item-actions"><a class="cart-view-link" href="/pages/product-detail.html">作品を見る →</a><a class="cart-remove-link" href="#" style="display:inline-flex;align-items:center;justify-content:center;margin-top:7px;padding:7px 11px;border:1px solid #39414a;border-radius:4px;background:#151a20;color:#aeb7c1;text-decoration:none;font-family:inherit;font-size:10px;line-height:1.2;white-space:nowrap;">削除</a></div>
+        </article>
+      </div>
+
+      <div class="buyer-summary" style="margin-top:28px">
+        <div>
+          <span>商品数</span>
+          <strong>2</strong>
+          <small>作品</small>
+        </div>
+        <div>
+          <span>小計</span>
+          <strong>¥4,960</strong>
+          <small>税込</small>
+        </div>
+        <div>
+          <span>決済</span>
+          <strong>未購入</strong>
+          <small>システム接続前</small>
+        </div>
+        <div>
+          <span>購入後</span>
+          <strong>視聴可能</strong>
+          <small>ライブラリへ追加</small>
+        </div>
+      </div>
+      <div class="cart-checkout">
+        <a class="cart-clear-link" href="#" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #39414a;border-radius:4px;background:transparent;color:#aeb7c1;text-decoration:none;font-family:inherit;font-size:10px;line-height:1.2;white-space:nowrap;">カートを空にする</a>
+        <a class="primary" href="#">購入手続きへ</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>VIDEO MARKETPLACE</div>
+    <span>© 2026 VIDEO MARKETPLACE</span>
+  </footer>
+</body>
+</html>
