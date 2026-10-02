@@ -75,27 +75,47 @@
       <button class="btn primary" type="button" id="homepage-add-section">セクションを追加</button>
     </div>
 
+    <div class="policy-actions">
+      <button class="btn primary" type="button" id="save-page">ページを保存</button>
+      <button class="btn" type="button" id="cancel-page">キャンセル</button>
+      <span class="muted" id="editor-status">画面デモ用の設定です。</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="section-editor" hidden>
+  <div class="section-head">
+    <div><h2 id="section-editor-title">セクションを編集</h2><p>選択したセクションの内容とデザインを編集します。</p></div>
+    <button class="btn" type="button" id="close-section-editor">ページ編集に戻る</button>
+  </div>
+  <div class="panel page-editor">
+    <div class="panel-head"><strong>ページの編集</strong><span>PAGE CONTENT</span></div>
+    <div class="page-form-grid">
+      <label>セクション名<input id="section-edit-name" type="text"></label>
+      <label>表示状態<select id="section-edit-status"><option value="表示">表示</option><option value="非表示">非表示</option></select></label>
+    </div>
+
     <div class="panel-head"><strong>ページデザイン</strong><span>DESIGN</span></div>
     <div class="setting-grid page-design-grid">
       <div class="setting-card">
         <h3>カラー</h3>
         <p>このページで使用する背景色とアクセントカラーを設定します。</p>
         <div class="homepage-theme-controls">
-          <label>背景色 <input type="color" id="theme-bg" value="#07090d"></label>
-          <label>アクセントカラー <input type="color" id="theme-accent" value="#d9b45f"></label>
+          <label>背景色 <input type="color" id="section-theme-bg" value="#07090d"></label>
+          <label>アクセントカラー <input type="color" id="section-theme-accent" value="#d9b45f"></label>
         </div>
       </div>
       <div class="setting-card">
         <h3>カードの形</h3>
         <p>カードやコンテンツ枠の角の形を設定します。</p>
-        <label class="page-design-select">カードの角<select id="theme-radius"><option value="rounded">角丸</option><option value="square">角ばった形</option></select></label>
+        <label class="page-design-select">カードの角<select id="section-theme-radius"><option value="rounded">角丸</option><option value="square">角ばった形</option></select></label>
       </div>
     </div>
 
     <div class="policy-actions">
-      <button class="btn primary" type="button" id="save-page">ページを保存</button>
-      <button class="btn" type="button" id="cancel-page">キャンセル</button>
-      <span class="muted" id="editor-status">画面デモ用の設定です。</span>
+      <button class="btn primary" type="button" id="save-section">ページを保存</button>
+      <button class="btn" type="button" id="cancel-section">キャンセル</button>
+      <span class="muted" id="section-editor-status">画面デモ用の設定です。</span>
     </div>
   </div>
 </section>
@@ -123,7 +143,9 @@ const defaults=[
 ];
 const list=document.getElementById('page-list'),search=document.getElementById('page-search'),status=document.getElementById('page-status'),count=document.getElementById('page-count'),empty=document.getElementById('page-empty');
 const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
-const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('homepage-add-type'),bg=document.getElementById('theme-bg'),accent=document.getElementById('theme-accent'),radius=document.getElementById('theme-radius');
+const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('homepage-add-type');
+const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionEditorStatus=document.getElementById('section-editor-status');
+let editingSectionIndex=null;
 let pages=[],editingId=null,sectionState=[];
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
@@ -144,7 +166,6 @@ function fillParents(currentId){parentInput.replaceChildren();const none=documen
 function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,label:d.label,hidden:false,order:i}));}
 function loadPageSettings(id){
 try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+id)||'null');const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null'):null;sectionState=Array.isArray(saved)?saved:(Array.isArray(legacy)?legacy:defaultSections());}catch(e){sectionState=defaultSections();}
-try{const theme=JSON.parse(localStorage.getItem(THEME_PREFIX+id)||'null');const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-theme')||'null'):null;const current=theme||legacy;bg.value=current?.bg||'#07090d';accent.value=current?.accent||'#d9b45f';radius.value=current?.radius||'rounded';}catch(e){bg.value='#07090d';accent.value='#d9b45f';radius.value='rounded';}
 renderSections();}
 function renderSections(){sectionList.replaceChildren();sectionState.forEach((item,index)=>{
 const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');
@@ -153,22 +174,44 @@ const actions=document.createElement('div');actions.className='homepage-section-
 const up=document.createElement('button');up.type='button';up.className='btn';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>moveSection(index,-1));
 const down=document.createElement('button');down.type='button';down.className='btn';down.textContent='↓';down.disabled=index===sectionState.length-1;down.addEventListener('click',()=>moveSection(index,1));
 const toggle=document.createElement('button');toggle.type='button';toggle.className='btn'+(item.hidden?'':' primary');toggle.textContent=item.hidden?'非表示':'表示';toggle.addEventListener('click',()=>{item.hidden=!item.hidden;renderSections();});
+const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
 const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x.id!==item.id);renderSections();});
-actions.append(up,down,toggle,remove);row.append(title,actions);sectionList.append(row);});}
+actions.append(up,down,toggle,edit,remove);row.append(title,actions);sectionList.append(row);});}
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
+function openSectionEditor(index){
+const item=sectionState[index];if(!item)return;
+editingSectionIndex=index;
+sectionEditorTitle.textContent=item.label+'を編集';
+sectionName.value=item.label;
+sectionStatus.value=item.hidden?'非表示':'表示';
+const theme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'null');
+sectionBg.value=theme?.bg||'#07090d';sectionAccent.value=theme?.accent||'#d9b45f';sectionRadius.value=theme?.radius||'rounded';
+editor.hidden=true;sectionEditor.hidden=false;sectionEditor.scrollIntoView({behavior:'smooth',block:'start'});sectionName.focus();
+}
+function closeSectionEditor(){sectionEditor.hidden=true;editor.hidden=false;editingSectionIndex=null;editor.scrollIntoView({behavior:'smooth',block:'start'});}
+function saveSection(){
+if(editingSectionIndex===null)return;
+const item=sectionState[editingSectionIndex];const label=sectionName.value.trim();if(!label){sectionEditorStatus.textContent='セクション名を入力してください。';return;}
+item.label=label;item.hidden=sectionStatus.value==='非表示';
+try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value}));}catch(e){}
+renderSections();sectionEditorStatus.textContent='セクション設定をこのブラウザに保存しました。';
+}
 function openEditor(page){editingId=page.id;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
-function newPage(){editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();bg.value='#07090d';accent.value='#d9b45f';radius.value='rounded';renderSections();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function newPage(){editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
 const data={name,url,status:statusInput.value,parent:parentInput.value};let pageId=editingId;
 if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
 sectionState.forEach((item,i)=>item.order=i);
-try{const theme={bg:bg.value,accent:accent.value,radius:radius.value};localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));localStorage.setItem(THEME_PREFIX+pageId,JSON.stringify(theme));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));localStorage.setItem('vm-demo-homepage-theme',JSON.stringify(theme));}}catch(e){}
+try{localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}}catch(e){}
 editorStatus.textContent=save()?'ページ設定をこのブラウザに保存しました。':'保存できませんでした。';render();openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
 document.getElementById('new-page').addEventListener('click',newPage);
 document.getElementById('close-editor').addEventListener('click',closeEditor);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').addEventListener('click',savePage);
+document.getElementById('close-section-editor').addEventListener('click',closeSectionEditor);
+document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
+document.getElementById('save-section').addEventListener('click',saveSection);
 search.addEventListener('input',render);status.addEventListener('change',render);
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
 load();render();
