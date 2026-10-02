@@ -30,7 +30,7 @@
   <div class="top-actions"><a class="btn" href="/">サイトを見る</a><a class="btn primary" href="/pages/admin-customize.html">サイト設定</a></div>
 </header>
 
-<section class="section"><div class="section-head"><div><h2>サイトの基本情報</h2><p>サイト運営に必要な基本項目をまとめて管理</p></div></div>
+<section class="section"><p class="preview-note">以下は設定項目の画面案です。保存先・決済・通知との接続はシステム連携時に実装します。</p><div class="section-head"><div><h2>サイトの基本情報</h2><p>サイト運営に必要な基本項目をまとめて管理</p></div></div>
 <div class="setting-grid">
 <div class="setting-card"><h3>基本設定</h3><p>サイトの基本情報や運営上のルールを管理する領域。</p><div class="setting-row"><div>サイト名・説明<small>基本情報と公開上の表記</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>言語・通貨<small>表示言語と価格表示の通貨</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>国・地域<small>利用可能な地域や対応範囲</small></div><span class="setting-action">設定 →</span></div></div>
 <div class="setting-card"><h3>販売・決済</h3><p>売上や取引に関する運営設定。実際の決済連携時に詳細を設計。</p><div class="setting-row"><div>販売手数料<small>プラットフォームの手数料ルール</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>決済・返金<small>決済方法と返金ポリシー</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>出金ルール<small>販売者への支払い条件</small></div><span class="setting-action">設定 →</span></div></div>
@@ -44,5 +44,13 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+document.querySelectorAll('.setting-action').forEach(action=>{
+ action.setAttribute('role','button');action.tabIndex=0;action.style.cursor='pointer';
+ const edit=()=>{const row=action.closest('.setting-row');if(!row)return;const label=row.querySelector('div')?.childNodes[0]?.textContent?.trim()||'設定';const existing=row.querySelector('.draft-value');if(existing){existing.remove();action.textContent='編集 →';return;}const value=document.createElement('input');value.className='draft-value';value.type='text';value.placeholder=label+'を入力';value.setAttribute('aria-label',label);value.style.cssText='max-width:220px;width:100%;padding:7px;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--text);';row.append(value);value.focus();action.textContent='入力中';};
+ action.addEventListener('click',edit);action.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();edit();}});
+});
+})();
+</script></body>
 </html>
