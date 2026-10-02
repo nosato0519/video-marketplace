@@ -125,12 +125,17 @@
         <div class="homepage-theme-controls">
           <label>背景色 <input type="color" id="section-theme-bg" value="#07090d"></label>
           <label>アクセントカラー <input type="color" id="section-theme-accent" value="#d9b45f"></label>
+          <label>文字色 <input type="color" id="section-theme-text" value="#f4f4f5"></label>
+          <label>ボタン文字色 <input type="color" id="section-theme-button-text" value="#101010"></label>
         </div>
       </div>
       <div class="setting-card">
         <h3>カードの形</h3>
         <p>カードやコンテンツ枠の角の形を設定します。</p>
         <label class="page-design-select">カードの角<select id="section-theme-radius"><option value="rounded">角丸</option><option value="square">角ばった形</option></select></label>
+        <label class="page-design-select">コンテンツ幅<select id="section-theme-width"><option value="narrow">狭め</option><option value="standard">標準</option><option value="wide">広め</option></select></label>
+        <label class="page-design-select">上下の余白<select id="section-theme-spacing"><option value="compact">小さめ</option><option value="standard">標準</option><option value="large">大きめ</option></select></label>
+        <label class="page-design-select">画像の表示方法<select id="section-theme-image-fit"><option value="cover">枠いっぱいに表示</option><option value="contain">画像全体を表示</option></select></label>
       </div>
     </div>
 
@@ -165,7 +170,7 @@ const defaults=[
 ];
 const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
 const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('homepage-add-type');
-const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionEditorStatus=document.getElementById('section-editor-status');
+const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionThemeText=document.getElementById('section-theme-text'),sectionThemeButtonText=document.getElementById('section-theme-button-text'),sectionThemeWidth=document.getElementById('section-theme-width'),sectionThemeSpacing=document.getElementById('section-theme-spacing'),sectionThemeImageFit=document.getElementById('section-theme-image-fit'),sectionEditorStatus=document.getElementById('section-editor-status');
 const META_PREFIX='vm-demo-page-meta-',DESIGN_PREFIX='vm-demo-page-design-';
 const heroDefaults={kicker:'DISCOVER SOMETHING NEW',headline:'見つける。\n買う。\n楽しむ。',copy:'',backgroundImage:'',buttonLabel:'詳しく見る',buttonUrl:'/pages/video-list.html',imagePosition:'center',imageFit:'cover'};
 function savePageEditorMetadata(pageId){const design={bg:document.getElementById('page-bg').value,text:document.getElementById('page-text').value,accent:document.getElementById('page-accent').value,buttonText:document.getElementById('page-button-text').value,headingSize:document.getElementById('page-heading-size').value,contentWidth:document.getElementById('page-content-width').value,cardShape:document.getElementById('page-card-shape').value,style:document.getElementById('page-style').value};const hero={kicker:document.getElementById('hero-kicker').value,headline:document.getElementById('hero-headline').value,copy:document.getElementById('hero-copy').value,backgroundImage:document.getElementById('hero-background-image').value,buttonLabel:document.getElementById('hero-button-label').value,buttonUrl:document.getElementById('hero-button-url').value,imagePosition:document.getElementById('hero-image-position').value,imageFit:document.getElementById('hero-image-fit').value};localStorage.setItem(DESIGN_PREFIX+pageId,JSON.stringify(design));localStorage.setItem(META_PREFIX+pageId,JSON.stringify({description:document.getElementById('page-description').value,seoTitle:document.getElementById('page-seo-title').value,seoDescription:document.getElementById('page-seo-description').value,hero}));}
@@ -237,7 +242,7 @@ sectionEditorTitle.textContent=item.label+'を編集';
 sectionName.value=item.label;
 sectionStatus.value=item.hidden?'非表示':'表示';
 const theme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'null');
-sectionBg.value=theme?.bg||'#07090d';sectionAccent.value=theme?.accent||'#d9b45f';sectionRadius.value=theme?.radius||'rounded';
+sectionBg.value=theme?.bg||'#07090d';sectionAccent.value=theme?.accent||'#d9b45f';sectionRadius.value=theme?.radius||'rounded';sectionThemeText.value=theme?.text||'#f4f4f5';sectionThemeButtonText.value=theme?.buttonText||'#101010';sectionThemeWidth.value=theme?.width||'standard';sectionThemeSpacing.value=theme?.spacing||'standard';sectionThemeImageFit.value=theme?.imageFit||'cover';
 const content=item.content||{};contentTitle.value=content.title||item.label;contentSubtitle.value=content.subtitle||'';contentButton.value=content.button||'';contentLink.value=content.link||'';contentImage.value=content.image||'';
 renderSectionItems(item);renderSpecificSettings(item);
 editor.hidden=true;sectionEditor.hidden=false;sectionEditor.scrollIntoView({behavior:'smooth',block:'start'});sectionName.focus();
@@ -260,7 +265,7 @@ item.label=label;item.hidden=sectionStatus.value==='非表示';
 item.content={title:contentTitle.value.trim(),subtitle:contentSubtitle.value.trim(),button:contentButton.value.trim(),link:contentLink.value.trim(),image:contentImage.value.trim()};
 item.items=Array.from(sectionItemsEditor.querySelectorAll('.section-item-card')).map(card=>{const data={};card.querySelectorAll('[data-item-key]').forEach(input=>data[input.dataset.itemKey]=input.value.trim());return data;}).filter(entry=>Object.values(entry).some(value=>value));
 item.settings=item.settings||{};specificSettings.querySelectorAll('[data-setting-key]').forEach(input=>{item.settings[input.dataset.settingKey]=input.value;});
-try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value}));}catch(e){}
+try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value,text:sectionThemeText.value,buttonText:sectionThemeButtonText.value,width:sectionThemeWidth.value,spacing:sectionThemeSpacing.value,imageFit:sectionThemeImageFit.value}));}catch(e){}
 renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId,JSON.stringify(sectionState));if(editingId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}catch(e){sectionEditorStatus.textContent='このブラウザに保存できませんでした。';return;}}sectionEditorStatus.textContent='編集内容を反映しました。ページ編集画面で下書き保存すると確定します。';
 }
 function openEditor(page){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
