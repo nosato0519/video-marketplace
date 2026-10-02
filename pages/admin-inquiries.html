@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>問い合わせ管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body><div class="shell">
+<aside class="sidebar">
+<a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+<div class="admin-label">OPERATOR CONSOLE</div>
+<nav class="nav" aria-label="運営者メニュー">
+<a href="/pages/admin.html">概要</a><a href="/pages/admin-sellers.html">販売者管理</a><a href="/pages/admin-buyers.html">購入者管理</a><a href="/pages/admin-inquiries.html" class="active" aria-current="page">問い合わせ管理</a><a href="/pages/admin-customize.html">サイト設定・カスタマイズ</a><a href="/pages/admin-settings.html">運営設定</a>
+</nav>
+<div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow">ADMIN / SUPPORT CENTER</div><h1 class="title">問い合わせ管理</h1><p class="lead">購入者・販売者からの問い合わせを確認し、対応状況と返信履歴を管理します。</p></div><div class="top-actions"><a class="btn" href="/pages/admin.html">概要へ戻る</a></div></header>
+<section class="queue">
+<div class="queue-card"><span>未対応</span><strong id="count-new">2 <em>件</em></strong></div>
+<div class="queue-card"><span>対応中</span><strong id="count-working">1 <em>件</em></strong></div>
+<div class="queue-card"><span>返信待ち</span><strong id="count-waiting">1 <em>件</em></strong></div>
+<div class="queue-card"><span>解決済み</span><strong id="count-done">1 <em>件</em></strong></div>
+</section>
+<section class="section">
+<div class="section-head"><div><h2>問い合わせ一覧</h2><p>問い合わせを選択すると詳細を確認できます。</p></div><span class="muted">サンプルデータ</span></div>
+<div class="inquiry-tools">
+<label class="search-field">検索<input id="inquiry-search" type="search" placeholder="件名・名前・受付番号で検索"></label>
+<label>問い合わせ元<select id="inquiry-type"><option value="">すべて</option><option>購入者</option><option>販売者</option></select></label>
+<label>対応状況<select id="inquiry-status"><option value="">すべて</option><option>未対応</option><option>対応中</option><option>返信待ち</option><option>解決済み</option></select></label>
+</div>
+<div class="panel inquiry-panel"><table class="table inquiry-table"><thead><tr><th>受付番号 / 件名</th><th>問い合わせ元</th><th>分類</th><th>受付日</th><th>対応状況</th><th></th></tr></thead><tbody id="inquiry-rows">
+<tr data-type="購入者" data-status="未対応" data-search="INQ-1042 購入者 山田花子 決済後に動画が再生できない 購入 決済"><td><b>INQ-1042</b><small>決済後に動画が再生できない</small></td><td>購入者<br><small>山田 花子</small></td><td>購入・再生</td><td>本日 14:32</td><td><span class="tag warn status-tag">未対応</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
+<tr data-type="販売者" data-status="未対応" data-search="INQ-1041 販売者 Studio North 出金申請の状況を確認したい 出金"><td><b>INQ-1041</b><small>出金申請の状況を確認したい</small></td><td>販売者<br><small>Studio North</small></td><td>出金</td><td>本日 11:08</td><td><span class="tag warn status-tag">未対応</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
+<tr data-type="購入者" data-status="対応中" data-search="INQ-1039 購入者 佐藤健 注文内容について確認したい 注文"><td><b>INQ-1039</b><small>注文内容について確認したい</small></td><td>購入者<br><small>佐藤 健</small></td><td>注文</td><td>昨日 18:20</td><td><span class="tag status-tag">対応中</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
+<tr data-type="販売者" data-status="返信待ち" data-search="INQ-1037 販売者 Motion Works 本人確認書類について 本人確認"><td><b>INQ-1037</b><small>本人確認書類について</small></td><td>販売者<br><small>Motion Works</small></td><td>本人確認</td><td>昨日 15:46</td><td><span class="tag status-tag">返信待ち</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
+<tr data-type="購入者" data-status="解決済み" data-search="INQ-1032 購入者 鈴木美咲 購入履歴の領収情報について 領収書"><td><b>INQ-1032</b><small>購入履歴の領収情報について</small></td><td>購入者<br><small>鈴木 美咲</small></td><td>領収情報</td><td>9月29日</td><td><span class="tag ok status-tag">解決済み</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
+</tbody></table><p id="inquiry-empty" class="empty-state" hidden>条件に一致する問い合わせはありません。</p></div>
+</section>
+<section class="section" id="inquiry-detail" hidden>
+<div class="section-head"><div><h2 id="detail-title">問い合わせ詳細</h2><p id="detail-meta"></p></div><button class="btn" id="close-detail" type="button">閉じる</button></div>
+<div class="panel inquiry-detail">
+<div class="message-bubble"><strong>問い合わせ内容</strong><p id="detail-message"></p></div>
+<label class="detail-label">対応状況<select id="detail-status"><option>未対応</option><option>対応中</option><option>返信待ち</option><option>解決済み</option></select></label>
+<label class="detail-label">返信内容<textarea id="detail-reply" rows="5" placeholder="返信内容を入力（画面確認用）"></textarea></label>
+<div class="detail-actions"><span id="reply-note" class="muted">返信は画面上の確認用です。送信・保存機能はシステム連携後に実装します。</span><button class="btn primary" id="save-status" type="button">対応状況を反映</button><button class="btn" id="preview-reply" type="button">返信文を確認</button></div>
+<div id="reply-preview" class="message-bubble" hidden></div>
+</div>
+</section>
+<footer class="footer">ADMIN ACCESS • OPERATOR CONSOLE</footer>
+</main></div>
+<script>
+(function(){
+const rows=[...document.querySelectorAll('#inquiry-rows tr')], search=document.getElementById('inquiry-search'), type=document.getElementById('inquiry-type'), status=document.getElementById('inquiry-status');
+let current=null;
+function filter(){const q=search.value.trim().toLowerCase();rows.forEach(r=>{r.hidden=!(r.dataset.search.toLowerCase().includes(q)&&(!type.value||r.dataset.type===type.value)&&(!status.value||r.dataset.status===status.value));});document.getElementById('inquiry-empty').hidden=rows.some(r=>!r.hidden);}
+function counts(){const c={'未対応':0,'対応中':0,'返信待ち':0,'解決済み':0};rows.forEach(r=>c[r.dataset.status]++);document.getElementById('count-new').innerHTML=c['未対応']+' <em>件</em>';document.getElementById('count-working').innerHTML=c['対応中']+' <em>件</em>';document.getElementById('count-waiting').innerHTML=c['返信待ち']+' <em>件</em>';document.getElementById('count-done').innerHTML=c['解決済み']+' <em>件</em>';}
+[search,type,status].forEach(el=>el.addEventListener('input',filter));
+rows.forEach(r=>r.querySelector('.inquiry-open').addEventListener('click',()=>{current=r;document.getElementById('inquiry-detail').hidden=false;document.getElementById('detail-title').textContent=r.cells[0].querySelector('small').textContent;document.getElementById('detail-meta').textContent=r.cells[0].querySelector('b').textContent+' ・ '+r.cells[1].innerText.replace('\n',' / ')+' ・ '+r.cells[3].textContent;document.getElementById('detail-status').value=r.dataset.status;document.getElementById('detail-message').textContent='お問い合わせありがとうございます。'+r.cells[0].querySelector('small').textContent+'。内容を確認し、必要な対応を行ってください。';document.getElementById('detail-reply').value='';document.getElementById('reply-preview').hidden=true;document.getElementById('inquiry-detail').scrollIntoView({behavior:'smooth',block:'start'});}));
+document.getElementById('close-detail').addEventListener('click',()=>document.getElementById('inquiry-detail').hidden=true);
+document.getElementById('save-status').addEventListener('click',()=>{if(!current)return;current.dataset.status=document.getElementById('detail-status').value;const tag=current.querySelector('.status-tag');tag.textContent=current.dataset.status;tag.className='tag status-tag'+(current.dataset.status==='未対応'?' warn':current.dataset.status==='解決済み'?' ok':'');filter();counts();});
+document.getElementById('preview-reply').addEventListener('click',()=>{const v=document.getElementById('detail-reply').value.trim(),p=document.getElementById('reply-preview');p.hidden=false;p.innerHTML='<strong>返信プレビュー</strong><p></p>';p.querySelector('p').textContent=v||'返信文が入力されていません。';});
+counts();filter();
+})();
+</script>
+</body></html>
