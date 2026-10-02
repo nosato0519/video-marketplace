@@ -288,11 +288,11 @@ specificSettings.replaceChildren();const fields=sectionOptions[item.type]||[];
 if(!fields.length){const note=document.createElement('p');note.className='section-setting-note';note.textContent='このセクションは、見出し・説明文・画像・ボタンとデザイン設定を編集できます。';specificSettings.append(note);return;}
 fields.forEach(field=>{const label=document.createElement('label');label.textContent=field.label;const select=document.createElement('select');select.dataset.settingKey=field.key;
 field.options.forEach(([value,text])=>{const option=document.createElement('option');option.value=value;option.textContent=text;select.append(option);});
-select.value=(item.settings&&item.settings[field.key])||field.options[0][0];label.append(select);specificSettings.append(label);});
+select.value=(item.settings&&item.settings[field.key])||field.options[0][0];select.addEventListener('input',renderSectionEditorPreview);select.addEventListener('change',renderSectionEditorPreview);label.append(select);specificSettings.append(label);});
 }
 contentImage.addEventListener('input',()=>{const preview=document.getElementById('section-content-image-preview');preview.src=contentImage.value.trim();preview.hidden=!contentImage.value.trim();});
 [contentTitle,contentSubtitle,contentButton,contentLink,contentImage,sectionName,sectionBg,sectionAccent,sectionRadius,sectionThemeText,sectionThemeButtonText,sectionThemeWidth,sectionThemeSpacing,sectionThemeImageFit].forEach(input=>{if(input){input.addEventListener('input',renderSectionEditorPreview);input.addEventListener('change',renderSectionEditorPreview);}});
-new MutationObserver(renderSectionEditorPreview).observe(sectionItemsEditor,{childList:true,subtree:true});
+new MutationObserver(renderSectionEditorPreview).observe(sectionItemsEditor,{childList:true,subtree:true});\nsectionItemsEditor.addEventListener('input',renderSectionEditorPreview);sectionItemsEditor.addEventListener('change',renderSectionEditorPreview);
 
 function closeSectionEditor(){sectionEditor.hidden=true;editor.hidden=false;editingSectionIndex=null;editor.scrollIntoView({behavior:'smooth',block:'start'});}
 function saveSection(){
