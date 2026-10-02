@@ -212,18 +212,18 @@ function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,l
 function normalizeTopSections(value){
 const base=defaultSections();
 if(!Array.isArray(value)||value.length===0)return base;
-const source=value.filter(item=>item&&definitions.some(d=>d.key===item.type));
-const used=new Set();
-const normalized=[];
-source.forEach(item=>{
-if(used.has(item.type))return;
-const d=definitions.find(x=>x.key===item.type);if(!d)return;
-normalized.push({...item,id:item.id||d.key,type:d.key,label:item.label||d.label,hidden:!!item.hidden,order:normalized.length});
-used.add(item.type);
+const normalized=[];const used=new Set();
+value.forEach(item=>{
+if(!item||typeof item!=='object')return;
+const type=item.type||item.key||item.id;
+const d=definitions.find(x=>x.key===type);
+if(!d||used.has(d.key))return;
+normalized.push({...item,id:item.id||d.key,type:d.key,label:item.label||d.label,hidden:item.hidden===true,order:normalized.length});
+used.add(d.key);
 });
-definitions.forEach(d=>{
-if(used.has(d.key))return;
-normalized.push({id:d.key,type:d.key,label:d.label,hidden:false,order:normalized.length});
+base.forEach(item=>{
+if(used.has(item.type))return;
+normalized.push(item);
 });
 return normalized;
 }
@@ -231,20 +231,38 @@ function loadPageSettings(id){
 try{
 const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+id)||'null');
 const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null'):null;
-sectionState=id==='top'?normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy):Array.isArray(saved)?saved:(Array.isArray(legacy)?legacy:defaultSections());
+const source=Array.isArray(saved)&&saved.length?saved:legacy;
+sectionState=id==='top'?normalizeTopSections(source):(Array.isArray(source)?source:defaultSections());
 }catch(e){sectionState=defaultSections();}
-renderSections();}
-function renderSections(){sectionList.replaceChildren();sectionState.forEach((item,index)=>{
-const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');row.dataset.previewTitle=(item.content&&item.content.title)||item.label;row.dataset.previewDescription=(item.content&&item.content.subtitle)||'';row.dataset.previewButton=(item.content&&item.content.button)||'';row.dataset.previewImage=(item.content&&item.content.image)||'';row.dataset.itemCount=String(Array.isArray(item.items)?item.items.length:0);row.dataset.hidden=String(!!item.hidden);let rowTheme={};try{rowTheme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'{}')||{};}catch(e){}row.dataset.themeBg=rowTheme.bg||'';row.dataset.themeText=rowTheme.text||'';row.dataset.themeAccent=rowTheme.accent||'';row.dataset.themeButtonText=rowTheme.buttonText||'#101010';row.dataset.themeRadius=rowTheme.radius||'rounded';row.dataset.themeWidth=rowTheme.width||'standard';row.dataset.themeSpacing=rowTheme.spacing||'standard';row.dataset.themeImageFit=rowTheme.imageFit||'cover';row.dataset.previewItems=JSON.stringify((item.items||[]).filter(entry=>Object.values(entry).some(value=>value)));
-const title=document.createElement('div');title.className='homepage-section-title';const strong=document.createElement('strong');strong.textContent=item.label;const meta=document.createElement('small');meta.textContent='TOPの標準セクション';title.append(strong,meta);
+if(!Array.isArray(sectionState)||sectionState.length===0)sectionState=defaultSections();
+renderSections();
+}
+function renderSections(){
+sectionList.replaceChildren();
+sectionState.forEach((item,index)=>{
+if(!item||typeof item!=='object')return;
+const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');
+row.dataset.previewTitle=(item.content&&item.content.title)||item.label||'';
+row.dataset.previewDescription=(item.content&&item.content.subtitle)||'';
+row.dataset.previewButton=(item.content&&item.content.button)||'';
+row.dataset.previewImage=(item.content&&item.content.image)||'';
+row.dataset.itemCount=String(Array.isArray(item.items)?item.items.length:0);
+row.dataset.hidden=String(!!item.hidden);
+let rowTheme={};
+try{rowTheme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'{}')||{};}catch(e){}
+row.dataset.themeBg=rowTheme.bg||'';row.dataset.themeText=rowTheme.text||'';row.dataset.themeAccent=rowTheme.accent||'';row.dataset.themeButtonText=rowTheme.buttonText||'#101010';row.dataset.themeRadius=rowTheme.radius||'rounded';row.dataset.themeWidth=rowTheme.width||'standard';row.dataset.themeSpacing=rowTheme.spacing||'standard';row.dataset.themeImageFit=rowTheme.imageFit||'cover';
+const validItems=Array.isArray(item.items)?item.items.filter(entry=>entry&&typeof entry==='object'&&Object.values(entry).some(value=>value)):[];row.dataset.previewItems=JSON.stringify(validItems);
+const title=document.createElement('div');title.className='homepage-section-title';const strong=document.createElement('strong');strong.textContent=item.label||definitions.find(d=>d.key===item.type)?.label||item.type||'セクション';const meta=document.createElement('small');meta.textContent='TOPの標準セクション';title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 const up=document.createElement('button');up.type='button';up.className='btn';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>moveSection(index,-1));
 const down=document.createElement('button');down.type='button';down.className='btn';down.textContent='↓';down.disabled=index===sectionState.length-1;down.addEventListener('click',()=>moveSection(index,1));
 const toggle=document.createElement('button');toggle.type='button';toggle.className='btn'+(item.hidden?'':' primary');toggle.textContent=item.hidden?'非表示':'表示';toggle.addEventListener('click',()=>{item.hidden=!item.hidden;renderSections();});
 const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
 const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='btn duplicate-section';duplicate.textContent='複製';duplicate.title='このセクションの設定を複製';duplicate.addEventListener('click',()=>duplicateSection(index));
-const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x.id!==item.id);renderSections();});
-actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);});}
+const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x&&x.id!==item.id);renderSections();});
+actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);
+});
+}
 function renderLandingSections(){
 const target=document.getElementById('landing-section-list');if(!target)return;target.replaceChildren();
 defaultSections().forEach((item,index)=>{
