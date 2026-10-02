@@ -56,6 +56,12 @@
         <strong>ページの役割</strong>
         <p>親ページを指定すると、このページを子ページとして整理できます。ページの階層もここで管理します。</p>
       </div>
+      <div class="page-setting-note" id="child-page-management" hidden>
+        <div class="panel-head"><strong>子ページ</strong><span>CHILD PAGES</span></div>
+        <p>このページを親として設定している子ページを管理します。</p>
+        <div id="child-page-list"></div>
+        <button class="btn" type="button" id="new-child-page">子ページを追加</button>
+      </div>
     </div>
 
     <div class="page-tab-panel" data-panel="layout" hidden>
@@ -136,6 +142,7 @@ const defaults=[
 const list=document.getElementById('page-list'),search=document.getElementById('page-search'),status=document.getElementById('page-status'),count=document.getElementById('page-count'),empty=document.getElementById('page-empty');
 const editor=document.getElementById('page-editor'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorTitle=document.getElementById('editor-title'),editorStatus=document.getElementById('editor-status');
 const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('homepage-add-type'),bg=document.getElementById('theme-bg'),accent=document.getElementById('theme-accent'),radius=document.getElementById('theme-radius');
+const childBox=document.getElementById('child-page-management'),childList=document.getElementById('child-page-list'),newChildButton=document.getElementById('new-child-page');
 let pages=[],editingId=null,sectionState=[];
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
@@ -151,6 +158,22 @@ actions.append(up,down,edit,remove);row.append(info,state,actions);list.append(r
 function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();render();}
 function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を画面上の一覧から削除しますか？'))return;pages=pages.filter(p=>p.id!==page.id);save();render();if(editingId===page.id)closeEditor();}
 function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
+function renderChildPages(parentName){
+  childList.replaceChildren();
+  const children=pages.filter(p=>p.parent===parentName);
+  if(!children.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='このページには子ページがありません。';childList.append(empty);return;}
+  children.forEach(child=>{
+    const row=document.createElement('div');row.className='page-row';
+    const info=document.createElement('div');info.className='page-info';
+    const strong=document.createElement('strong');strong.textContent=child.name;
+    const meta=document.createElement('small');meta.textContent=child.url;
+    info.append(strong,meta);
+    const state=document.createElement('span');state.className='tag '+(child.status==='公開'?'ok':'warn');state.textContent=child.status;
+    const edit=document.createElement('button');edit.type='button';edit.className='btn small';edit.textContent='編集';edit.addEventListener('click',()=>openEditor(child));
+    const actions=document.createElement('div');actions.className='page-actions';actions.append(edit);
+    row.append(info,state,actions);childList.append(row);
+  });
+}
 function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,label:d.label,hidden:false,order:i}));}
 function loadPageSettings(id){
  try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+id)||'null');const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null'):null;sectionState=Array.isArray(saved)?saved:(Array.isArray(legacy)?legacy:defaultSections());}catch(e){sectionState=defaultSections();}
@@ -167,15 +190,21 @@ const toggle=document.createElement('button');toggle.type='button';toggle.classN
 const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=item.id===item.type;remove.title=remove.disabled?'標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x.id!==item.id);renderSections();});
 actions.append(up,down,toggle,remove);row.append(title,actions);sectionList.append(row);});}
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
-function openEditor(page){editingId=page?.id||null;editorTitle.textContent=page?'ページを編集':'新しいページ';fillParents(editingId);nameInput.value=page?.name||'';urlInput.value=page?.url||'';statusInput.value=page?.status||'下書き';parentInput.value=page?.parent||'';loadPageSettings(editingId||'new');editor.hidden=false;editorStatus.textContent='画面デモ用の設定です。';editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function openEditor(page){editingId=page?.id||null;editorTitle.textContent=page?'ページを編集':'新しいページ';fillParents(editingId);nameInput.value=page?.name||'';urlInput.value=page?.url||'';statusInput.value=page?.status||'下書き';parentInput.value=page?.parent||'';loadPageSettings(editingId||'new');childBox.hidden=!page;renderChildPages(page?.name||'');editor.hidden=false;editorStatus.textContent='画面デモ用の設定です。';editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
 const data={name,url,status:statusInput.value,parent:parentInput.value};let pageId=editingId;
 if(editingId){Object.assign(pages.find(p=>p.id===editingId),data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
 sectionState.forEach((item,i)=>item.order=i);
 try{const theme={bg:bg.value,accent:accent.value,radius:radius.value};localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));localStorage.setItem(THEME_PREFIX+pageId,JSON.stringify(theme));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));localStorage.setItem('vm-demo-homepage-theme',JSON.stringify(theme));}}catch(e){}
-editorStatus.textContent=save()?'ページ設定をこのブラウザに保存しました。':'保存できませんでした。';render();}
+editorStatus.textContent=save()?'ページ設定をこのブラウザに保存しました。':'保存できませんでした。';render();renderChildPages(name);}
 document.getElementById('new-page').addEventListener('click',()=>openEditor());
+newChildButton.addEventListener('click',()=>{
+  if(!editingId)return;
+  const parent=pages.find(p=>p.id===editingId);
+  if(!parent)return;
+  openEditor({name:'',url:'',status:'下書き',parent:parent.name});
+});
 document.getElementById('close-editor').addEventListener('click',closeEditor);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').addEventListener('click',savePage);
