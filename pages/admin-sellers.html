@@ -56,7 +56,8 @@
 </div></div>
 </section>
 <section class="section"><div class="section-head"><div><h2>出品動画の管理</h2><p>販売者が公開している動画や審査状況を確認する領域</p></div></div>
-<div class="panel"><table class="table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>状態</th></tr></thead><tbody>
+<div class="admin-filterbar"><label>動画・販売者を検索<input id="seller-search" type="search" placeholder="動画名・販売者名"></label><label>公開状態<select id="seller-video-status"><option value="">すべて</option><option>公開中</option><option>審査待ち</option><option>停止中</option></select></label><span id="seller-result-count" class="muted">4件</span></div>
+<div class="panel"><table class="table" id="seller-video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>状態</th></tr></thead><tbody>
 <tr><td>THE LAST SIGNAL</td><td>Aki Studio</td><td>¥2,980</td><td><span class="tag ok">公開中</span></td></tr>
 <tr><td>Tokyo After Hours</td><td>KEN FILMS</td><td>¥1,980</td><td><span class="tag ok">公開中</span></td></tr>
 <tr><td>Build Your Brand</td><td>FRAME LAB</td><td>¥2,480</td><td><span class="tag warn">審査待ち</span></td></tr>
@@ -66,5 +67,14 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+const table=document.getElementById('seller-video-table');if(!table)return;
+const rows=[...table.tBodies[0].rows];
+rows.forEach((row)=>{const cell=row.cells[3];const button=document.createElement('button');button.type='button';button.className='btn small seller-toggle';button.textContent=cell.textContent.trim()==='停止中'?'再開':'停止';cell.append(' ',button);button.addEventListener('click',()=>{const tag=cell.querySelector('.tag');const stopped=tag.textContent.trim()!=='停止中';tag.textContent=stopped?'停止中':'公開中';tag.className='tag '+(stopped?'warn':'ok');button.textContent=stopped?'再開':'停止';filter();});});
+const search=document.getElementById('seller-search'),status=document.getElementById('seller-video-status');
+function filter(){const q=search.value.trim().toLowerCase();let count=0;rows.forEach(row=>{const match=row.innerText.toLowerCase().includes(q)&&(!status.value||row.cells[3].querySelector('.tag').textContent.trim()===status.value);row.hidden=!match;if(match)count++;});document.getElementById('seller-result-count').textContent=count+'件';}
+search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
+})();
+</script></body>
 </html>
