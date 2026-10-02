@@ -30,7 +30,7 @@
   <div class="top-actions"><a class="btn" href="/">サイトを見る</a><a class="btn primary" href="/pages/admin-settings.html">運営設定</a></div>
 </header>
 
-<section class="section"><div class="section-head"><div><h2>サイトのデザイン</h2><p>サイト全体の見た目を変更する設定項目</p></div><span class="muted">設定画面のデザイン案</span></div>
+<section class="section"><p class="preview-note">この画面で変更できるのは管理画面上のプレビューです。サイト本体への反映は、設定保存先とのシステム連携後に有効になります。</p><div class="section-head"><div><h2>サイトのデザイン</h2><p>サイト全体の見た目を変更する設定項目</p></div><span class="muted">設定画面のデザイン案</span></div>
 <div class="setting-grid">
 <div class="setting-card"><h3>ブランドカラー</h3><p>サイトのアクセントカラーや背景色を変更するための設定。</p><div class="swatches"><span class="swatch selected" style="background:#d6b56a"></span><span class="swatch" style="background:#8bd7ff"></span><span class="swatch" style="background:#c89bff"></span><span class="swatch" style="background:#8ac7a1"></span><span class="swatch" style="background:#ef8e87"></span></div><div class="setting-row"><div>アクセントカラー<small>ボタン・リンク・強調表示</small></div><span class="setting-action">カラー設定 →</span></div></div>
 <div class="setting-card"><h3>ロゴ・サイト情報</h3><p>ロゴ画像やサイト名など、ブランド表示に関する設定。</p><div class="setting-row"><div>サイトロゴ<small>ヘッダーやログイン画面に表示</small></div><span class="setting-action">変更 →</span></div><div class="setting-row"><div>サイト名・表記<small>ブランド名や補助テキスト</small></div><span class="setting-action">編集 →</span></div></div>
@@ -50,5 +50,11 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+const swatches=[...document.querySelectorAll('.swatch')];
+swatches.forEach(s=>{s.setAttribute('role','button');s.tabIndex=0;s.setAttribute('aria-label','ブランドカラーを選択');const choose=()=>{swatches.forEach(x=>x.classList.remove('selected'));s.classList.add('selected');document.documentElement.style.setProperty('--accent',getComputedStyle(s).backgroundColor);};s.addEventListener('click',choose);s.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();}});});
+document.querySelectorAll('.feature-state').forEach(tag=>{tag.setAttribute('role','button');tag.tabIndex=0;const toggle=()=>{const on=tag.classList.toggle('on');const label=tag.textContent.includes('有効')||tag.textContent.includes('無効');tag.textContent=label?(on?'有効':'無効'):(on?'表示する':'非表示');};tag.addEventListener('click',toggle);tag.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});});
+})();
+</script></body>
 </html>
