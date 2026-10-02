@@ -45,31 +45,6 @@
     <div><h2 id="editor-title">TOPページを編集</h2><p>TOPページの基本設定とセクションを管理します。</p></div>
   </div>
   <div class="panel page-editor">
-    <div class="panel-head"><strong>ページのセクション</strong><span>PAGE CONTENT</span></div>
-    <p class="muted homepage-editor-help">TOPページで使用しているセクションをすべて一覧にしています。表示・非表示と順番をこの画面だけで管理できます。</p>
-    <div id="homepage-section-list" class="homepage-section-list"></div>
-    <div class="homepage-add-row">
-      <label for="homepage-add-type">追加するセクション</label>
-      <select id="homepage-add-type">
-        <option value="hero">メインビジュアル</option>
-        <option value="video-showcase">作品紹介</option>
-        <option value="trustbar">安心・購入ガイド</option>
-        <option value="collection">作品との出会い</option>
-        <option value="popular">人気の動画</option>
-        <option value="new-releases">新着動画</option>
-        <option value="genre-rail">カテゴリー・ジャンル</option>
-        <option value="genre-recommendations">ジャンル別おすすめ</option>
-        <option value="spotlight">おすすめ特集</option>
-        <option value="finder">動画を探す</option>
-        <option value="categories">カテゴリー一覧</option>
-        <option value="library">ライブラリ紹介</option>
-        <option value="creator">クリエイター向け案内</option>
-        <option value="creators">注目のクリエイター</option>
-        <option value="cta">最後の案内</option>
-      </select>
-      <button class="btn primary" type="button" id="homepage-add-section">セクションを追加</button>
-    </div>
-
     <div class="panel-head"><strong>ページ基本設定</strong><span>PAGE SETTINGS</span></div>
     <div class="page-form-grid">
       <label>ページ名<input id="page-name" type="text" placeholder="例：特集ページ"></label>
@@ -109,6 +84,129 @@
       <span class="muted" id="editor-status">画面デモ用の設定です。</span>
     </div>
   </div>
+</section>
+
+<section class="section" id="section-editor" hidden>
+  <div class="section-head">
+    <div><h2 id="section-editor-title">セクションを編集</h2><p>選択したセクションの内容とデザインを編集します。</p></div>
+    <button class="btn" type="button" id="close-section-editor">ページ編集に戻る</button>
+  </div>
+  <div class="panel page-editor">
+    <div class="panel-head"><strong>ページの編集</strong><span>PAGE CONTENT</span></div>
+    <div class="page-form-grid">
+      <label>セクション名<input id="section-edit-name" type="text"></label>
+      <label>表示状態<select id="section-edit-status"><option value="表示">表示</option><option value="非表示">非表示</option></select></label>
+    </div>
+
+    <div class="panel-head"><strong>ページデザイン</strong><span>DESIGN</span></div>
+    <div class="setting-grid page-design-grid">
+      <div class="setting-card">
+        <h3>カラー</h3>
+        <p>このページで使用する背景色とアクセントカラーを設定します。</p>
+        <div class="homepage-theme-controls">
+          <label>背景色 <input type="color" id="section-theme-bg" value="#07090d"></label>
+          <label>アクセントカラー <input type="color" id="section-theme-accent" value="#d9b45f"></label>
+        </div>
+      </div>
+      <div class="setting-card">
+        <h3>カードの形</h3>
+        <p>カードやコンテンツ枠の角の形を設定します。</p>
+        <label class="page-design-select">カードの角<select id="section-theme-radius"><option value="rounded">角丸</option><option value="square">角ばった形</option></select></label>
+      </div>
+    </div>
+
+    <div class="policy-actions">
+      <button class="btn primary" type="button" id="save-section">ページを保存</button>
+      <button class="btn" type="button" id="cancel-section">キャンセル</button>
+      <span class="muted" id="section-editor-status">画面デモ用の設定です。</span>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
+</main>
+</div>
+<script>
+(function(){
+const PAGE_KEY='vm-demo-pages',SECTION_PREFIX='vm-demo-page-sections-',THEME_PREFIX='vm-demo-page-theme-';
+const definitions=[
+ {key:'hero',label:'メインビジュアル'},{key:'video-showcase',label:'作品紹介'},{key:'trustbar',label:'安心・購入ガイド'},
+ {key:'collection',label:'作品との出会い'},{key:'popular',label:'人気の動画'},{key:'new-releases',label:'新着動画'},
+ {key:'genre-rail',label:'カテゴリー・ジャンル'},{key:'genre-recommendations',label:'ジャンル別おすすめ'},
+ {key:'spotlight',label:'おすすめ特集'},{key:'finder',label:'動画を探す'},{key:'categories',label:'カテゴリー一覧'},
+ {key:'library',label:'ライブラリ紹介'},{key:'creator',label:'クリエイター向け案内'},{key:'creators',label:'注目のクリエイター'},
+ {key:'cta',label:'最後の案内'}
+];
+const defaults=[
+{id:'top',name:'TOP',url:'/',status:'公開',parent:'',locked:true},
+{id:'videos',name:'動画一覧',url:'/pages/video-list.html',status:'公開',parent:'',locked:false},
+{id:'categories',name:'カテゴリー',url:'/pages/categories.html',status:'公開',parent:'',locked:false},
+{id:'about',name:'サイトについて',url:'/pages/about.html',status:'公開',parent:'',locked:false},
+{id:'contact',name:'お問い合わせ',url:'/pages/contact.html',status:'下書き',parent:'',locked:false}
+];
+const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
+const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('homepage-add-type');
+const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionEditorStatus=document.getElementById('section-editor-status');
+let editingSectionIndex=null;
+let pages=[],editingId=null,sectionState=[];
+function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
+function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
+function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();render();}
+function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を削除しますか？'))return;pages=pages.filter(p=>p.id!==page.id);save();if(editingId===page.id)closeEditor();render();}
+function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
+function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,label:d.label,hidden:false,order:i}));}
+function loadPageSettings(id){
+try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+id)||'null');const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null'):null;sectionState=Array.isArray(saved)?saved:(Array.isArray(legacy)?legacy:defaultSections());}catch(e){sectionState=defaultSections();}
+renderSections();}
+function renderSections(){sectionList.replaceChildren();sectionState.forEach((item,index)=>{
+const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');
+const title=document.createElement('div');title.className='homepage-section-title';const strong=document.createElement('strong');strong.textContent=item.label;const meta=document.createElement('small');meta.textContent='TOPの標準セクション';title.append(strong,meta);
+const actions=document.createElement('div');actions.className='homepage-section-actions';
+const up=document.createElement('button');up.type='button';up.className='btn';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>moveSection(index,-1));
+const down=document.createElement('button');down.type='button';down.className='btn';down.textContent='↓';down.disabled=index===sectionState.length-1;down.addEventListener('click',()=>moveSection(index,1));
+const toggle=document.createElement('button');toggle.type='button';toggle.className='btn'+(item.hidden?'':' primary');toggle.textContent=item.hidden?'非表示':'表示';toggle.addEventListener('click',()=>{item.hidden=!item.hidden;renderSections();});
+const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
+const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x.id!==item.id);renderSections();});
+actions.append(up,down,toggle,edit,remove);row.append(title,actions);sectionList.append(row);});}
+function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
+function openSectionEditor(index){
+const item=sectionState[index];if(!item)return;
+editingSectionIndex=index;
+sectionEditorTitle.textContent=item.label+'を編集';
+sectionName.value=item.label;
+sectionStatus.value=item.hidden?'非表示':'表示';
+const theme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'null');
+sectionBg.value=theme?.bg||'#07090d';sectionAccent.value=theme?.accent||'#d9b45f';sectionRadius.value=theme?.radius||'rounded';
+editor.hidden=true;sectionEditor.hidden=false;sectionEditor.scrollIntoView({behavior:'smooth',block:'start'});sectionName.focus();
+}
+function closeSectionEditor(){sectionEditor.hidden=true;editor.hidden=false;editingSectionIndex=null;editor.scrollIntoView({behavior:'smooth',block:'start'});}
+function saveSection(){
+if(editingSectionIndex===null)return;
+const item=sectionState[editingSectionIndex];const label=sectionName.value.trim();if(!label){sectionEditorStatus.textContent='セクション名を入力してください。';return;}
+item.label=label;item.hidden=sectionStatus.value==='非表示';
+try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value}));}catch(e){}
+renderSections();sectionEditorStatus.textContent='セクション設定をこのブラウザに保存しました。';
+}
+function openEditor(page){editingId=page.id;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
+function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
+const data={name,url,status:statusInput.value,parent:parentInput.value};let pageId=editingId;
+if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
+sectionState.forEach((item,i)=>item.order=i);
+try{localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}}catch(e){}
+editorStatus.textContent=save()?'ページ設定をこのブラウザに保存しました。':'保存できませんでした。';render();openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
+document.getElementById('cancel-page').addEventListener('click',closeEditor);
+document.getElementById('save-page').addEventListener('click',savePage);
+document.getElementById('close-section-editor').addEventListener('click',closeSectionEditor);
+document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
+document.getElementById('save-section').addEventListener('click',saveSection);
+document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
+load();
+})();
+</script>
+</body>
+</html>
 </section>
 
 <section class="section" id="section-editor" hidden>
