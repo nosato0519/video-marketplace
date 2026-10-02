@@ -51,12 +51,30 @@
 </main></div>
 <script>
 (function(){
+try{
+const items=JSON.parse(localStorage.getItem('vm-demo-inquiries')||'[]'),body=document.getElementById('inquiry-rows');
+items.forEach(item=>{
+const tr=document.createElement('tr');tr.dataset.type=item.type||'購入者';tr.dataset.status=item.status||'未対応';tr.dataset.message=item.message||'';tr.dataset.search=[item.id,item.type,item.name,item.subject,item.category].join(' ');
+const values=[item.id,item.type,item.name,item.category,item.date];
+const c0=document.createElement('td'),id=document.createElement('b'),subject=document.createElement('small');id.textContent=item.id;subject.textContent=item.subject;c0.append(id,subject);
+const c1=document.createElement('td');c1.append(document.createTextNode(item.type||'購入者'),document.createElement('br'));const name=document.createElement('small');name.textContent=item.name;c1.append(name);
+const c2=document.createElement('td');c2.textContent=item.category||'その他';
+const c3=document.createElement('td');c3.textContent=item.date||'登録直後';
+const c4=document.createElement('td'),tag=document.createElement('span');tag.className='tag warn status-tag';tag.textContent=item.status||'未対応';c4.append(tag);
+const c5=document.createElement('td'),button=document.createElement('button');button.type='button';button.className='btn small inquiry-open';button.textContent='詳細';c5.append(button);
+tr.append(c0,c1,c2,c3,c4,c5);body.prepend(tr);
+});
+}catch(e){}
+})();
+</script>
+<script>
+(function(){
 const rows=[...document.querySelectorAll('#inquiry-rows tr')], search=document.getElementById('inquiry-search'), type=document.getElementById('inquiry-type'), status=document.getElementById('inquiry-status');
 let current=null;
 function filter(){const q=search.value.trim().toLowerCase();rows.forEach(r=>{r.hidden=!(r.dataset.search.toLowerCase().includes(q)&&(!type.value||r.dataset.type===type.value)&&(!status.value||r.dataset.status===status.value));});document.getElementById('inquiry-empty').hidden=rows.some(r=>!r.hidden);}
 function counts(){const c={'未対応':0,'対応中':0,'返信待ち':0,'解決済み':0};rows.forEach(r=>c[r.dataset.status]++);document.getElementById('count-new').innerHTML=c['未対応']+' <em>件</em>';document.getElementById('count-working').innerHTML=c['対応中']+' <em>件</em>';document.getElementById('count-waiting').innerHTML=c['返信待ち']+' <em>件</em>';document.getElementById('count-done').innerHTML=c['解決済み']+' <em>件</em>';}
 [search,type,status].forEach(el=>el.addEventListener('input',filter));
-rows.forEach(r=>r.querySelector('.inquiry-open').addEventListener('click',()=>{current=r;document.getElementById('inquiry-detail').hidden=false;document.getElementById('detail-title').textContent=r.cells[0].querySelector('small').textContent;document.getElementById('detail-meta').textContent=r.cells[0].querySelector('b').textContent+' ・ '+r.cells[1].innerText.replace('\n',' / ')+' ・ '+r.cells[3].textContent;document.getElementById('detail-status').value=r.dataset.status;document.getElementById('detail-message').textContent='お問い合わせありがとうございます。'+r.cells[0].querySelector('small').textContent+'。内容を確認し、必要な対応を行ってください。';document.getElementById('detail-reply').value='';document.getElementById('reply-preview').hidden=true;document.getElementById('inquiry-detail').scrollIntoView({behavior:'smooth',block:'start'});}));
+rows.forEach(r=>r.querySelector('.inquiry-open').addEventListener('click',()=>{current=r;document.getElementById('inquiry-detail').hidden=false;document.getElementById('detail-title').textContent=r.cells[0].querySelector('small').textContent;document.getElementById('detail-meta').textContent=r.cells[0].querySelector('b').textContent+' ・ '+r.cells[1].innerText.replace('\n',' / ')+' ・ '+r.cells[3].textContent;document.getElementById('detail-status').value=r.dataset.status;document.getElementById('detail-message').textContent=r.dataset.message||('お問い合わせありがとうございます。'+r.cells[0].querySelector('small').textContent+'。内容を確認し、必要な対応を行ってください。');document.getElementById('detail-reply').value='';document.getElementById('reply-preview').hidden=true;document.getElementById('inquiry-detail').scrollIntoView({behavior:'smooth',block:'start'});}));
 document.getElementById('close-detail').addEventListener('click',()=>document.getElementById('inquiry-detail').hidden=true);
 document.getElementById('save-status').addEventListener('click',()=>{if(!current)return;current.dataset.status=document.getElementById('detail-status').value;const tag=current.querySelector('.status-tag');tag.textContent=current.dataset.status;tag.className='tag status-tag'+(current.dataset.status==='未対応'?' warn':current.dataset.status==='解決済み'?' ok':'');filter();counts();});
 document.getElementById('preview-reply').addEventListener('click',()=>{const v=document.getElementById('detail-reply').value.trim(),p=document.getElementById('reply-preview');p.hidden=false;p.innerHTML='<strong>返信プレビュー</strong><p></p>';p.querySelector('p').textContent=v||'返信文が入力されていません。';});
