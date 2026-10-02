@@ -70,3 +70,16 @@ button.btn{cursor:pointer}
 @media(max-width:720px){.admin-filterbar,.admin-filterbar label,.admin-filterbar input,.admin-filterbar select{width:100%;box-sizing:border-box}.admin-filterbar .muted{margin-left:0}}
 
 .preview-note{margin:0 0 20px;padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:11px;line-height:1.7;background:var(--panel)}
+/* Seller resignation policy */
+.queue-card{display:block;color:inherit;transition:border-color .15s ease,transform .15s ease}
+a.queue-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.resignation-settings{max-width:900px}
+.policy-option,.policy-check{display:flex;align-items:flex-start;gap:11px;padding:13px 0;border-top:1px solid var(--line);cursor:pointer;font-size:11px;line-height:1.6}
+.policy-option input,.policy-check input{accent-color:var(--accent);margin:3px 0 0;flex:0 0 auto}
+.policy-option span{display:grid;gap:3px}
+.policy-option strong{font-size:11px}
+.policy-option small{font-size:10px;color:var(--muted)}
+.policy-divider{height:1px;background:var(--line);margin:10px 0 18px}
+.policy-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
+.policy-actions .muted{font-size:10px}
+.resignation-settings .preview-note{margin:18px 0 0}
