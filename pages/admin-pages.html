@@ -118,12 +118,7 @@
       <div id="section-specific-settings" class="section-settings-grid"></div>
       <div class="section-live-preview" id="section-live-preview">
         <div class="section-live-preview-head"><strong>編集プレビュー</strong><span>LIVE SECTION PREVIEW</span></div>
-        <div class="section-live-preview-canvas">
-          <h3 class="live-section-title" id="section-preview-title">セクションの見出し</h3>
-          <p class="live-section-subtitle" id="section-preview-subtitle"></p>
-          <img class="live-section-image" id="section-preview-image" alt="セクション画像プレビュー" hidden>
-          <div class="section-live-preview-items" id="section-preview-items"></div>
-          <span class="live-section-button" id="section-preview-button" hidden></span>
+        <div class="section-live-preview-canvas"><iframe id="section-preview-iframe" title="実際のTOPセクションプレビュー" loading="eager"></iframe>
         </div>
       </div>
     </div>
@@ -261,19 +256,32 @@ function renderSectionItems(item){sectionItemsEditor.replaceChildren();sectionIt
 function appendSectionItem(entry,index){const card=document.createElement('div');card.className='section-item-card';const head=document.createElement('div');head.className='section-item-head';const title=document.createElement('strong');title.textContent='項目 '+(index+1);const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.addEventListener('click',()=>{card.remove();renumberSectionItems();});head.append(title,remove);card.append(head);const grid=document.createElement('div');grid.className='section-settings-grid';[['title','項目名','text'],['description','説明文','text'],['image','画像URL','url'],['button','ボタン文字','text'],['link','リンク先','text']].forEach(([key,label,type])=>{const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.type=type;input.dataset.itemKey=key;input.value=entry[key]||'';input.placeholder=key==='image'?'https://...':key==='link'?'/pages/...':'';if(key==='image'){const imagePreview=document.createElement('img');imagePreview.className='image-preview';imagePreview.alt='項目画像プレビュー';imagePreview.src=entry[key]||'';imagePreview.hidden=!entry[key];input.addEventListener('input',()=>{imagePreview.src=input.value.trim();imagePreview.hidden=!input.value.trim();});wrap.append(input,imagePreview);}else{wrap.append(input);}grid.append(wrap);});card.append(grid);sectionItemsEditor.append(card);}
 function renumberSectionItems(){sectionItemsEditor.querySelectorAll('.section-item-card').forEach((card,index)=>{const title=card.querySelector('.section-item-head strong');if(title)title.textContent='項目 '+(index+1);});}
 function renderSectionEditorPreview(){
-const title=document.getElementById('section-preview-title'),subtitle=document.getElementById('section-preview-subtitle'),image=document.getElementById('section-preview-image'),button=document.getElementById('section-preview-button'),itemsBox=document.getElementById('section-preview-items'),canvas=document.querySelector('.section-live-preview-canvas');
-if(!title||!subtitle||!image||!button||!itemsBox||!canvas)return;
-title.textContent=contentTitle.value.trim()||sectionName.value.trim()||'セクションの見出し';
-subtitle.textContent=contentSubtitle.value.trim();subtitle.hidden=!subtitle.textContent;
-const imageUrl=contentImage.value.trim();image.src=imageUrl;image.hidden=!imageUrl;
-const buttonText=contentButton.value.trim();button.textContent=buttonText;button.hidden=!buttonText;
-canvas.style.background=sectionBg.value||'#07090d';canvas.style.color=sectionThemeText.value||'#f4f4f5';button.style.background=sectionAccent.value||'#d9b45f';button.style.color=sectionThemeButtonText.value||'#101010';button.style.borderRadius=sectionRadius.value==='square'?'0':'7px';
-const width=sectionThemeWidth.value;canvas.style.maxWidth=width==='narrow'?'78%':width==='wide'?'100%':'92%';canvas.style.marginInline=width==='narrow'?'auto':'0';
-canvas.style.paddingBlock=sectionThemeSpacing.value==='compact'?'14px':sectionThemeSpacing.value==='large'?'30px':'22px';
-itemsBox.replaceChildren();
-let items=[];document.querySelectorAll('#section-items-editor .section-item-card').forEach(card=>{const entry={};card.querySelectorAll('[data-item-key]').forEach(input=>entry[input.dataset.itemKey]=input.value.trim());if(Object.values(entry).some(Boolean))items.push(entry);});
-items.forEach(entry=>{const item=document.createElement('div');item.className='section-live-preview-item';if(entry.image){const img=document.createElement('img');img.src=entry.image;img.alt=entry.title||'';img.style.objectFit=sectionThemeImageFit.value||'cover';item.append(img);}if(entry.title){const strong=document.createElement('strong');strong.textContent=entry.title;item.append(strong);}if(entry.description){const p=document.createElement('p');p.textContent=entry.description;item.append(p);}itemsBox.append(item);});
-itemsBox.hidden=!items.length;
+const iframe=document.getElementById('section-preview-iframe');
+const current=editingSectionIndex===null?null:sectionState[editingSectionIndex];
+if(!iframe||!current)return;
+const map={hero:'.hero','video-showcase':'.video-showcase',trustbar:'.trustbar',collection:'#collection',popular:'#popular','new-releases':'.new-releases-section','genre-rail':'.genre-rail','genre-recommendations':'.genre-recommendations',spotlight:'.spotlight',finder:'.finder',categories:'.category-section',library:'.library',creator:'.creator',creators:'.creators-row',cta:'.cta'};
+const selector=map[current.type]||'.section';
+const boot=()=>{
+const doc=iframe.contentDocument;if(!doc||!doc.body)return;
+doc.querySelectorAll('body>*').forEach(el=>el.hidden=true);
+const target=doc.querySelector(selector);if(!target)return;
+target.hidden=false;target.removeAttribute('hidden');doc.body.style.margin='0';
+doc.querySelectorAll('a').forEach(a=>a.addEventListener('click',event=>event.preventDefault()));
+const content=current.content||{};const settings=current.settings||{};const items=Array.isArray(current.items)?current.items:[];
+const title=(content.title||current.label||'').trim();const subtitle=(content.subtitle||'').trim();const button=(content.button||'').trim();
+const heading=target.querySelector('h1,h2');if(heading&&title)heading.textContent=title;
+const copy=target.querySelector('.section-head>p,.video-showcase-copy,.hero-copy>p,.creator-copy>p,.library-copy>p');if(copy&&subtitle)copy.textContent=subtitle;
+const action=target.querySelector('a.primary,a.secondary,.section-head>a');if(action&&button)action.textContent=button+' →';
+target.style.background=sectionBg.value;target.style.color=sectionThemeText.value;target.style.setProperty('--accent',sectionAccent.value);
+const grid=target.querySelector('.video-grid,.video-showcase-grid,.recommendation-grid,.category-grid,.genre-track,.creator-list');
+if(grid&&settings.columns)grid.style.gridTemplateColumns='repeat('+settings.columns+',minmax(0,1fr))';
+const cards=[...target.querySelectorAll('.video-card,.recommendation-card,.showcase-card,.genre-card,.category-grid>a,.creator-list .person')];
+const limit=Number(settings.videoCount||settings.genreCount||settings.categoryCount||settings.creatorCount||settings.featureCount||settings.itemCount||0);
+if(limit)cards.forEach((card,i)=>card.hidden=i>=limit);
+items.forEach((entry,i)=>{const card=cards[i];if(!card)return;card.hidden=false;const t=card.querySelector('h3,.showcase-label,.person strong');const p=card.querySelector('.card-info p,.recommendation-meta p,.person p');if(entry.title&&t)t.textContent=entry.title;if(entry.description&&p)p.textContent=entry.description;if(entry.image){const bg=card.querySelector('.thumb,.showcase-bg,.recommendation-thumb,.avatar');if(bg)bg.style.backgroundImage='url('+entry.image+')';}});
+if(current.type==='hero'){const heroCopy=target.querySelector('.hero-copy>p');if(heroCopy&&subtitle)heroCopy.textContent=subtitle;}
+};
+if(!iframe.dataset.ready){iframe.dataset.ready='loading';iframe.addEventListener('load',()=>{iframe.dataset.ready='ready';boot();});iframe.src='/index.html?section-preview=1';}else if(iframe.dataset.ready==='ready')boot();
 }
 function renderSpecificSettings(item){
 specificSettings.replaceChildren();const fields=sectionOptions[item.type]||[];
