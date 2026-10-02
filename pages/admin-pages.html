@@ -305,7 +305,7 @@ const type=section.type;
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const img=(src,cls='',alt='')=>'<img class="'+cls+'" src="'+src+'" alt="'+esc(alt)+'" loading="lazy" onerror="this.style.visibility=\'hidden\'">';
 const asset={
-hero:'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=90',
+hero:'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=2200&q=88',
 p1:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=88',
 p2:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=88',
 p3:'https://images.unsplash.com/photo-1464822759023-fed622ff2c0e0c0e?auto=format&fit=crop&w=800&q=88',
@@ -326,7 +326,14 @@ c5:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit
 a1:'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=180&q=80',
 a2:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=180&q=80',
 a3:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=180&q=80',
-a4:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=180&q=80'
+a4:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=180&q=80',
+r1:'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=88',
+r2:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=88',
+r3:'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=88',
+r4:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=88',
+r5:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=88',
+r6:'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=88',
+cta:'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1600&q=85'
 };
 const defaults={
 hero:{k:'ONE MARKETPLACE / MANY CREATORS',t:'見つける。買う。楽しむ。',p:'映画、学び、ドキュメンタリー、クリエイティブ。いろんなクリエイターの作品が集まる、動画マーケットプレイス。'},
@@ -372,7 +379,7 @@ html='<section class="vm-pv-section">'+head(d.k,d.t,'','すべて見る')+'<div 
 }else if(type==='genre-rail'){
 html='<section class="vm-pv-section">'+head(d.k,d.t)+'<div class="vm-pv-rail">'+[['映画のような映像','12,400作品'],['学びたい夜','3,820作品'],['旅に出る','5,160作品'],['音楽に浸る','2,940作品'],['大人の映像','18+ / 成人向け']].map(x=>'<div class="vm-pv-mood"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div></section>';
 }else if(type==='genre-recommendations'){
-html='<section class="vm-pv-section">'+head(d.k,d.t,'','作品をもっと見る →')+'<div class="vm-pv-recs">'+[['t4','シネマティック','Night City Stories','NORTH LIGHTS'],['t5','クリエイター','Behind the Lens','KAI VISUALS'],['t3','ビジネス','Work, Ideas & People','STUDIO COMMON'],['t8','イベント','One Night Live','ROOM 09'],['t9','インタビュー','Creators at Work','FRAME LAB'],['t1','ラーニング','Learn by Making','MAKER CLASS']].map(x=>'<div class="vm-pv-rec">'+img(asset[x[0]],'',x[2])+'<div><small>'+x[1]+'</small><strong>'+x[2]+'</strong><span>by '+x[3]+'</span></div></div>').join('')+'</div></section>';
+html='<section class="vm-pv-section">'+head(d.k,d.t,'','作品をもっと見る →')+'<div class="vm-pv-recs">'+[['r1','シネマティック','Night City Stories','NORTH LIGHTS'],['r2','クリエイター','Behind the Lens','KAI VISUALS'],['r3','ビジネス','Work, Ideas & People','STUDIO COMMON'],['r4','イベント','One Night Live','ROOM 09'],['r5','インタビュー','Creators at Work','FRAME LAB'],['r6','ラーニング','Learn by Making','MAKER CLASS']].map(x=>'<div class="vm-pv-rec">'+img(asset[x[0]],'',x[2])+'<div><small>'+x[1]+'</small><strong>'+x[2]+'</strong><span>by '+x[3]+'</span></div></div>').join('')+'</div></section>';
 }else if(type==='spotlight'){
 html='<section class="vm-pv-feature"><div><span class="vm-pv-kicker">'+d.k+'</span><h3>今、観てほしい<br>作品たち。</h3><p class="vm-pv-copy">'+d.p+'</p><div class="vm-pv-actions"><a class="vm-pv-primary" href="#">おすすめ作品を見る →</a></div></div><div class="vm-pv-stack">'+[['t9','01','THE CRAFTSMEN','¥1,680'],['t7','02','KYOTO IN MOTION','¥1,380'],['t8','03','NIGHT SESSION','¥680']].map(x=>'<div class="vm-pv-mini" style="background-image:linear-gradient(90deg,#10151eee,#10151d55),url('+asset[x[0]]+')"><b>'+x[1]+'</b><span>'+x[2]+'</span><strong>'+x[3]+'</strong></div>').join('')+'</div></section>';
 }else if(type==='finder'){
@@ -386,7 +393,7 @@ html='<section class="vm-pv-creator"><div class="vm-pv-creator-art"><div class="
 }else if(type==='creators'){
 html='<section class="vm-pv-section">'+head(d.k,d.t,'','すべて見る')+'<div class="vm-pv-people">'+[['a1','Aki Studio','映像・ドキュメンタリー'],['a2','KEN FILMS','シネマティック映像'],['a3','FRAME LAB','教育・クリエイティブ'],['a4','YAMA FILM','旅・ライフスタイル']].map(x=>'<div class="vm-pv-person"><div class="vm-pv-avatar" style="background-image:url('+asset[x[0]]+')"></div><strong>'+x[1]+'</strong><span>'+x[2]+'</span></div>').join('')+'</div></section>';
 }else if(type==='cta'){
-html='<section class="vm-pv-cta"><span class="vm-pv-kicker">'+d.k+'</span><h3>まだ知らない映像と、<br><em>出会う。</em></h3><p>'+d.p+'</p><div class="vm-pv-actions"><a class="vm-pv-primary" href="'+esc(link)+'">'+esc(content.button||'動画を探す')+' →</a><a class="vm-pv-secondary" href="#">販売を始める</a></div></section>';
+html='<section class="vm-pv-cta"><div class="vm-pv-cta-image" style="background-image:url('+asset.cta+')"></div><span class="vm-pv-kicker">'+d.k+'</span><h3>まだ知らない映像と、<br><em>出会う。</em></h3><p>'+d.p+'</p><div class="vm-pv-actions"><a class="vm-pv-primary" href="'+esc(link)+'">'+esc(content.button||'動画を探す')+' →</a><a class="vm-pv-secondary" href="#">販売を始める</a></div></section>';
 }else{html='<section class="vm-pv-section">'+head(d.k,title,subtitle)+'</section>';}
 sectionWrap(html);
 }
