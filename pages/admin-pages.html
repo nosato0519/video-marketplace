@@ -117,13 +117,8 @@
       <p class="section-setting-note">選択したセクションに必要な設定だけが表示されます。動画やクリエイターの実データとの接続はシステム構築時に行います。</p>
       <div id="section-specific-settings" class="section-settings-grid"></div>
       <div class="section-live-preview" id="section-live-preview">
-        <div class="section-live-preview-head"><strong>編集プレビュー</strong><span>LIVE SECTION PREVIEW</span></div>
-        <div class="section-live-preview-canvas">
-          <h3 class="live-section-title" id="section-preview-title">セクションの見出し</h3>
-          <p class="live-section-subtitle" id="section-preview-subtitle"></p>
-          <img class="live-section-image" id="section-preview-image" alt="セクション画像プレビュー" hidden>
-          <div class="section-live-preview-items" id="section-preview-items"></div>
-          <span class="live-section-button" id="section-preview-button" hidden></span>
+        <div class="section-live-preview-head"><strong>編集プレビュー</strong><span>LIVE SECTION PREVIEW</span></div>        <div class="section-live-preview-canvas">
+          <div class="vm-top-preview is-desktop" id="section-preview-root"></div>
         </div>
       </div>
     </div>
@@ -237,8 +232,7 @@ title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 ['↑','↓','表示','編集','削除'].forEach((label)=>{
 const b=document.createElement('button');b.type='button';b.className='btn'+(label==='編集'?' primary':'');b.textContent=label;b.disabled=(label==='↑'&&index===0)||(label==='↓'&&index===14);
-if(label==='編集')b.addEventListener('click',()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index));
-actions.append(b);
+if(label==='編集')b.addEventListener('click',()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index));actions.append(b);
 });
 row.append(title,actions);target.append(row);
 });
@@ -261,19 +255,33 @@ function renderSectionItems(item){sectionItemsEditor.replaceChildren();sectionIt
 function appendSectionItem(entry,index){const card=document.createElement('div');card.className='section-item-card';const head=document.createElement('div');head.className='section-item-head';const title=document.createElement('strong');title.textContent='項目 '+(index+1);const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.addEventListener('click',()=>{card.remove();renumberSectionItems();});head.append(title,remove);card.append(head);const grid=document.createElement('div');grid.className='section-settings-grid';[['title','項目名','text'],['description','説明文','text'],['image','画像URL','url'],['button','ボタン文字','text'],['link','リンク先','text']].forEach(([key,label,type])=>{const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.type=type;input.dataset.itemKey=key;input.value=entry[key]||'';input.placeholder=key==='image'?'https://...':key==='link'?'/pages/...':'';if(key==='image'){const imagePreview=document.createElement('img');imagePreview.className='image-preview';imagePreview.alt='項目画像プレビュー';imagePreview.src=entry[key]||'';imagePreview.hidden=!entry[key];input.addEventListener('input',()=>{imagePreview.src=input.value.trim();imagePreview.hidden=!input.value.trim();});wrap.append(input,imagePreview);}else{wrap.append(input);}grid.append(wrap);});card.append(grid);sectionItemsEditor.append(card);}
 function renumberSectionItems(){sectionItemsEditor.querySelectorAll('.section-item-card').forEach((card,index)=>{const title=card.querySelector('.section-item-head strong');if(title)title.textContent='項目 '+(index+1);});}
 function renderSectionEditorPreview(){
-const title=document.getElementById('section-preview-title'),subtitle=document.getElementById('section-preview-subtitle'),image=document.getElementById('section-preview-image'),button=document.getElementById('section-preview-button'),itemsBox=document.getElementById('section-preview-items'),canvas=document.querySelector('.section-live-preview-canvas');
-if(!title||!subtitle||!image||!button||!itemsBox||!canvas)return;
-title.textContent=contentTitle.value.trim()||sectionName.value.trim()||'セクションの見出し';
-subtitle.textContent=contentSubtitle.value.trim();subtitle.hidden=!subtitle.textContent;
-const imageUrl=contentImage.value.trim();image.src=imageUrl;image.hidden=!imageUrl;
-const buttonText=contentButton.value.trim();button.textContent=buttonText;button.hidden=!buttonText;
-canvas.style.background=sectionBg.value||'#07090d';canvas.style.color=sectionThemeText.value||'#f4f4f5';button.style.background=sectionAccent.value||'#d9b45f';button.style.color=sectionThemeButtonText.value||'#101010';button.style.borderRadius=sectionRadius.value==='square'?'0':'7px';
-const width=sectionThemeWidth.value;canvas.style.maxWidth=width==='narrow'?'78%':width==='wide'?'100%':'92%';canvas.style.marginInline=width==='narrow'?'auto':'0';
-canvas.style.paddingBlock=sectionThemeSpacing.value==='compact'?'14px':sectionThemeSpacing.value==='large'?'30px':'22px';
-itemsBox.replaceChildren();
-let items=[];document.querySelectorAll('#section-items-editor .section-item-card').forEach(card=>{const entry={};card.querySelectorAll('[data-item-key]').forEach(input=>entry[input.dataset.itemKey]=input.value.trim());if(Object.values(entry).some(Boolean))items.push(entry);});
-items.forEach(entry=>{const item=document.createElement('div');item.className='section-live-preview-item';if(entry.image){const img=document.createElement('img');img.src=entry.image;img.alt=entry.title||'';img.style.objectFit=sectionThemeImageFit.value||'cover';item.append(img);}if(entry.title){const strong=document.createElement('strong');strong.textContent=entry.title;item.append(strong);}if(entry.description){const p=document.createElement('p');p.textContent=entry.description;item.append(p);}itemsBox.append(item);});
-itemsBox.hidden=!items.length;
+const root=document.getElementById('section-preview-root');if(!root||editingSectionIndex===null)return;
+const item=sectionState[editingSectionIndex],type=item.type,settings=item.settings||{};
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const title=contentTitle.value.trim()||item.label,subtitle=contentSubtitle.value.trim(),button=contentButton.value.trim(),accent=sectionAccent.value||'#d9b45f',bg=sectionBg.value||'#07090d',textColor=sectionThemeText.value||'#f4f4f5',buttonText=sectionThemeButtonText.value||'#101010';
+root.style.setProperty('--preview-accent',accent);root.style.background=bg;root.style.color=textColor;root.className='vm-top-preview '+(root.dataset.mode==='mobile'?'is-mobile':'is-desktop');
+const items=Array.from(sectionItemsEditor.querySelectorAll('.section-item-card')).map(card=>{const o={};card.querySelectorAll('[data-item-key]').forEach(x=>o[x.dataset.itemKey]=x.value.trim());return o;}).filter(o=>Object.values(o).some(Boolean));
+const card=(e,i,featured=false)=>'<div class="vm-card '+(featured?'featured':'')+'"><div class="vm-thumb">'+(e.image?'<img src="'+esc(e.image)+'" alt="" style="width:100%;height:100%;object-fit:cover">':'')+'<span>4K</span></div><div class="vm-info"><i>'+esc(e.category||'作品')+'</i><strong>'+esc(e.title||'VIDEO '+String(i+1).padStart(2,'0'))+'</strong><p>'+esc(e.description||'映像作品の紹介文がここに入ります。')+'</p><div class="vm-bottom"><span>'+esc(e.creator||'CREATOR')+'</span><b>'+esc(e.price||'¥1,980')+'</b></div></div></div>';
+const head=(k,link=true)=>'<div class="vm-head"><div><span class="vm-kicker">'+esc(k)+'</span><h3>'+esc(title)+'</h3></div>'+(link?'<span class="vm-link">すべて見る →</span>':'')+(subtitle?'<p>'+esc(subtitle)+'</p>':'')+'</div>';
+let html='';
+if(type==='hero'){const lines=(contentTitle.value.trim()||'見つける。\n買う。\n楽しむ。').split('\n');html='<section class="vm-hero"><div class="vm-hero-copy"><span class="vm-kicker">'+esc(item.label)+'</span><h3>'+lines.map((x,i)=>i===2?'<em>'+esc(x)+'</em>':esc(x)).join('<br>')+'</h3><p>'+esc(subtitle||'映画、学び、ドキュメンタリー、クリエイティブ。いろんなクリエイターの作品が集まる、動画マーケットプレイス。')+'</p><div class="vm-actions">'+(button?'<span class="vm-primary" style="background:'+accent+';color:'+buttonText+'">'+esc(button)+' →</span>':'')+'<span class="vm-secondary">クリエイターになる</span></div></div></section>';}
+else if(type==='trustbar'){const n=Math.max(2,Math.min(4,Number(settings.itemCount)||4)),labels=['安全な決済','購入後すぐ視聴','ダウンロード対応','保護された配信'];html='<div class="vm-trust">'+labels.slice(0,n).map((x,i)=>'<div><b>'+['✓','▶','↧','◉'][i]+'</b><span><strong>'+x+'</strong>'+['安心して購入できます','マイライブラリに保存','購入作品をいつでも','購入者専用アクセス'][i]+'</span></div>').join('')+'</div>';}
+else if(type==='video-showcase'){const n=Math.max(1,Math.min(4,Number(settings.videoCount)||4)),d=items.slice(0,n);while(d.length<n)d.push({title:['THE LAST SIGNAL','Tokyo After Hours','Build Your Brand','BLUE HORIZON'][d.length]});html='<section class="vm-sec">'+head('CURATED VIDEO COLLECTION',false)+'<div class="vm-showcase">'+d.map((e,i)=>'<div class="vm-showcase-card"><b>0'+(i+1)+'</b><span>'+esc(e.title)+'</span></div>').join('')+'</section>';}
+else if(['collection','popular','new-releases'].includes(type)){const n=Math.max(1,Math.min(12,Number(settings.videoCount)||6)),d=items.slice(0,n);while(d.length<Math.min(n,6))d.push({title:['THE LAST SIGNAL','Tokyo After Hours','Build Your Brand','BLUE HORIZON','Mastering Motion','Mountain Silence'][d.length]});html='<section class="vm-sec">'+head(type==='new-releases'?'NEW RELEASES':type==='popular'?'DISCOVER':'CURATED VIDEO COLLECTION')+'<div class="vm-grid">'+d.map((e,i)=>card(e,i,type==='popular'&&i===0)).join('')+'</div></section>';}
+else if(type==='genre-rail'){const n=Math.max(1,Math.min(5,Number(settings.genreCount)||5)),names=['映画のような映像','学びたい夜','旅に出る','音楽に浸る','大人の映像'];html='<section class="vm-sec">'+head('EXPLORE BY MOOD',false)+'<div class="vm-cats">'+names.slice(0,n).map(x=>'<div class="vm-cat"><b>'+x+'</b><span>12,400作品</span></div>').join('')+'</div></section>';}
+else if(type==='genre-recommendations'){const d=items.slice(0,6);while(d.length<6)d.push({title:['Night City Stories','Behind the Lens','Work, Ideas & People','One Night Live','Creators at Work','Learn by Making'][d.length]});html='<section class="vm-sec">'+head('EDITORIAL PICKS')+'<div class="vm-recs">'+d.map(e=>'<div class="vm-rec"><div class="vm-rec-art"></div><div class="vm-rec-body"><span>シネマティック</span><strong>'+esc(e.title)+'</strong><small>'+esc(e.description||'by CREATOR')+'</small></div></div>').join('')+'</div></section>';}
+else if(type==='spotlight'){const d=items.slice(0,Number(settings.featureCount)||3);while(d.length<3)d.push({title:['THE CRAFTSMEN','KYOTO IN MOTION','NIGHT SESSION'][d.length],price:['¥1,680','¥1,380','¥680'][d.length]});html='<section class="vm-feature"><div><span class="vm-kicker">EDITORIAL</span><div class="vm-large">'+esc(title)+'<br><em>作品たち。</em></div><p class="vm-copy">'+esc(subtitle||'多彩なクリエイターから注目作品をセレクト。マーケットプレイスだからこそ出会える一本を。')+'</p></div><div class="vm-minis">'+d.map((e,i)=>'<div class="vm-mini"><b>0'+(i+1)+'</b><span>'+esc(e.title)+'</span><strong>'+esc(e.price||'¥1,680')+'</strong></div>').join('')+'</div></section>';}
+else if(type==='finder'){html='<section class="vm-finder"><div><span class="vm-kicker">FIND YOUR NEXT VIDEO</span><div class="vm-large">'+esc(title)+'</div><p class="vm-copy">'+esc(subtitle||'気になるテーマ、価格、評価から。欲しい作品にすぐ出会えます。')+'</p></div><div class="vm-find"><span class="vm-kicker">動画を検索</span><div class="vm-input">タイトル、キーワード、クリエイター</div><div class="vm-chips">'+['教育','ビジネス','映像','クリエイティブ','ドキュメンタリー','音楽','旅'].map(x=>'<span class="vm-chip">'+x+'</span>').join('')+'</div></div></section>';}
+else if(type==='categories'){const n=Math.max(1,Math.min(5,Number(settings.categoryCount)||5)),names=['EDUCATION','BUSINESS','CREATIVE','DOCUMENTARY','LIFESTYLE'];html='<section class="vm-sec">'+head('EXPLORE',false)+'<div class="vm-cats">'+names.slice(0,n).map(x=>'<div class="vm-cat"><b>'+x+'</b><span>カテゴリーから探す</span></div>').join('')+'</div></section>';}
+else if(type==='library'){html='<section class="vm-library"><div><span class="vm-kicker">AFTER PURCHASE</span><div class="vm-large">'+esc(title)+'</div><p class="vm-copy">'+esc(subtitle||'購入した動画はマイライブラリへ。いつでも視聴・ダウンロードできます。')+'</p></div><div class="vm-flow">'+['購入','保存','視聴','DL'].map((x,i)=>'<div class="vm-flow-card '+(i===2?'active':'')+'"><span>0'+(i+1)+'</span><b>'+x+'</b><small>'+['安全なデモ決済','マイライブラリ','いつでも楽しめる','購入作品を保存'][i]+'</small></div>'+(i<3?'<div class="vm-flow-line"></div>':'')).join('')+'</div></section>';}
+else if(type==='creator'){html='<section class="vm-creator"><div class="vm-art"><div class="vm-orb"></div></div><div><span class="vm-kicker">FOR CREATORS</span><div class="vm-large">'+esc(title)+'</div><p class="vm-copy">'+esc(subtitle||'作品を登録して、視聴者へ。売上・購入数・審査・出金まで管理できます。')+'</p>'+(button?'<span class="vm-primary" style="display:inline-flex;margin-top:10px;background:'+accent+';color:'+buttonText+'">'+esc(button)+' →</span>':'')+'</div></section>';}
+else if(type==='creators'){const n=Math.max(1,Math.min(4,Number(settings.creatorCount)||4)),names=['Aki Studio','KEN FILMS','FRAME LAB','YAMA FILM'];html='<section class="vm-sec">'+head('CREATORS')+'<div class="vm-people">'+names.slice(0,n).map(x=>'<div class="vm-person"><div class="vm-avatar"></div><b>'+x+'</b><span>映像・クリエイティブ</span></div>').join('')+'</div></section>';}
+else if(type==='cta'){html='<section class="vm-cta"><span class="vm-kicker">DISCOVER YOUR NEXT STORY</span><h3>'+esc(title)+'<br><em>出会う。</em></h3><p>'+esc(subtitle||'いろんなクリエイターの作品から、あなたの次の一本を見つけよう。')+'</p>'+(button?'<div class="vm-actions"><span class="vm-primary" style="background:'+accent+';color:'+buttonText+'">'+esc(button)+' →</span></div>':'')+'</section>';}
+else{html='<section class="vm-sec">'+head('VIDEO MARKETPLACE',false)+'<p class="vm-copy">'+esc(subtitle)+'</p></section>';}
+root.innerHTML=html;
+const width=sectionThemeWidth.value;root.style.padding=width==='narrow'?'0 3%':width==='wide'?'0':'0 1%';
+if(sectionThemeSpacing.value==='compact')root.querySelectorAll('.vm-sec,.vm-feature,.vm-finder,.vm-library,.vm-creator').forEach(el=>el.style.paddingBlock='24px');
+if(sectionThemeSpacing.value==='large')root.querySelectorAll('.vm-sec,.vm-feature,.vm-finder,.vm-library,.vm-creator').forEach(el=>el.style.paddingBlock='50px');
 }
 function renderSpecificSettings(item){
 specificSettings.replaceChildren();const fields=sectionOptions[item.type]||[];
@@ -284,7 +292,7 @@ select.value=(item.settings&&item.settings[field.key])||field.options[0][0];labe
 }
 contentImage.addEventListener('input',()=>{const preview=document.getElementById('section-content-image-preview');preview.src=contentImage.value.trim();preview.hidden=!contentImage.value.trim();});
 [contentTitle,contentSubtitle,contentButton,contentLink,contentImage,sectionName,sectionBg,sectionAccent,sectionRadius,sectionThemeText,sectionThemeButtonText,sectionThemeWidth,sectionThemeSpacing,sectionThemeImageFit].forEach(input=>{if(input){input.addEventListener('input',renderSectionEditorPreview);input.addEventListener('change',renderSectionEditorPreview);}});
-new MutationObserver(renderSectionEditorPreview).observe(sectionItemsEditor,{childList:true,subtree:true});
+new MutationObserver(renderSectionEditorPreview).observe(sectionItemsEditor,{childList:true,subtree:true});sectionItemsEditor.addEventListener("input",renderSectionEditorPreview);sectionItemsEditor.addEventListener("change",renderSectionEditorPreview);
 
 function closeSectionEditor(){sectionEditor.hidden=true;editor.hidden=false;editingSectionIndex=null;editor.scrollIntoView({behavior:'smooth',block:'start'});}
 function saveSection(){
