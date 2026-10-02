@@ -38,7 +38,8 @@
   <div class="metric"><span>SUPPORT CASES</span><strong>4</strong><small>確認が必要な問い合わせ</small></div>
 </div></section>
 <section class="section two">
-<div class="panel"><div class="panel-head"><strong>最近の注文</strong><span>ORDERS</span></div><table class="table"><thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead><tbody>
+<div class="panel"><div class="panel-head"><strong>最近の注文</strong><span>ORDERS</span></div><div class="admin-filterbar"><label>注文・購入者を検索<input id="buyer-order-search" type="search" placeholder="注文番号・メールアドレス"></label><label>決済状態<select id="buyer-order-status"><option value="">すべて</option><option>支払済み</option><option>確認中</option><option>返金済み</option></select></label><span id="buyer-result-count" class="muted">3件</span></div>
+<table class="table" id="buyer-order-table"><thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead><tbody>
 <tr><td>#VM-1098</td><td>buyer@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,980</td></tr>
 <tr><td>#VM-1097</td><td>member@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥980</td></tr>
 <tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥2,400</td></tr>
@@ -59,5 +60,14 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+const table=document.getElementById('buyer-order-table');if(!table)return;
+const rows=[...table.tBodies[0].rows],search=document.getElementById('buyer-order-search'),status=document.getElementById('buyer-order-status');
+function filter(){const q=search.value.trim().toLowerCase();let count=0;rows.forEach(row=>{const tag=row.cells[2].querySelector('.tag');const match=row.innerText.toLowerCase().includes(q)&&(!status.value||tag.textContent.trim()===status.value);row.hidden=!match;if(match)count++;});document.getElementById('buyer-result-count').textContent=count+'件';}
+search.addEventListener('input',filter);status.addEventListener('change',filter);
+rows.forEach(row=>{const cell=row.cells[2];const action=document.createElement('button');action.type='button';action.className='btn small buyer-order-action';action.textContent='返金確認';action.addEventListener('click',()=>{const current=cell.querySelector('.tag').textContent.trim();if(current==='返金済み'){alert('この注文は返金済みです。');return;}if(confirm('注文 '+row.cells[0].textContent.trim()+' の返金確認状態を画面上で切り替えますか？（実際の決済処理は行いません）')){cell.querySelector('.tag').textContent='返金済み';cell.querySelector('.tag').className='tag warn';filter();}});cell.append(' ',action);});
+filter();
+})();
+</script></body>
 </html>
