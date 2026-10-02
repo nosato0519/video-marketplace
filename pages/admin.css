@@ -59,3 +59,12 @@ button{color:inherit}
 .detail-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .detail-actions .muted{flex:1;min-width:230px;font-size:10px;line-height:1.6}
 @media(max-width:720px){.inquiry-tools,.inquiry-tools label,.inquiry-tools input,.inquiry-tools select{width:100%;box-sizing:border-box}.inquiry-table{min-width:680px}.inquiry-panel{overflow:auto}.detail-actions{align-items:stretch;flex-direction:column}}
+
+/* Management controls */
+.admin-filterbar{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.admin-filterbar label{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:10px;min-width:190px}
+.admin-filterbar input,.admin-filterbar select{padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--text);font:inherit;min-width:190px}
+.admin-filterbar .muted{margin-left:auto;font-size:10px}
+.btn.small{font-size:10px;padding:6px 9px;white-space:nowrap}
+button.btn{cursor:pointer}
+@media(max-width:720px){.admin-filterbar,.admin-filterbar label,.admin-filterbar input,.admin-filterbar select{width:100%;box-sizing:border-box}.admin-filterbar .muted{margin-left:0}}
