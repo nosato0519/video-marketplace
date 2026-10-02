@@ -237,7 +237,7 @@ title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 ['↑','↓','表示','編集','削除'].forEach((label)=>{
 const b=document.createElement('button');b.type='button';b.className='btn'+(label==='編集'?' primary':'');b.textContent=label;b.disabled=(label==='↑'&&index===0)||(label==='↓'&&index===14);
-if(label==='編集')b.addEventListener('click',()=>openEditor(pages.find(page=>page.id==='top')||defaults[0]));
+if(label==='編集')b.addEventListener('click',()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index));
 actions.append(b);
 });
 row.append(title,actions);target.append(row);
@@ -297,7 +297,7 @@ item.settings=item.settings||{};specificSettings.querySelectorAll('[data-setting
 try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value,text:sectionThemeText.value,buttonText:sectionThemeButtonText.value,width:sectionThemeWidth.value,spacing:sectionThemeSpacing.value,imageFit:sectionThemeImageFit.value}));}catch(e){}
 renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId,JSON.stringify(sectionState));if(editingId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}catch(e){sectionEditorStatus.textContent='このブラウザに保存できませんでした。';return;}}sectionEditorStatus.textContent='編集内容を反映しました。ページ編集画面で下書き保存すると確定します。';
 }
-function openEditor(page){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function openEditor(page,sectionIndex=null){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
