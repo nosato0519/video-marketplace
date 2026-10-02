@@ -27,7 +27,20 @@
   <div class="top-actions"><a class="btn" href="/">サイトを見る</a></div>
 </header>
 
-<section class="section" id="page-editor">
+<section class="section" id="page-management">
+  <div class="section-head">
+    <div><h2>ページ編集</h2><p>新しいページを作成して、ページの基本設定とセクションを編集します。</p></div>
+  </div>
+  <div class="panel page-editor">
+    <div class="panel-head"><strong>ページを作成</strong><span>PAGE CREATE</span></div>
+    <p class="muted homepage-editor-help">新しいページを作成すると、ページ基本設定とページのセクションを編集できます。</p>
+    <div class="policy-actions">
+      <button class="btn primary" type="button" id="new-page">新しいページを作成</button>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="page-editor" hidden>
   <div class="section-head">
     <div><h2 id="editor-title">TOPページを編集</h2><p>TOPページの基本設定とセクションを管理します。</p></div>
   </div>
@@ -175,8 +188,8 @@ try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.string
 renderSections();sectionEditorStatus.textContent='セクション設定をこのブラウザに保存しました。';
 }
 function openEditor(page){editingId=page.id;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
-function newPage(){editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
-function closeEditor(){editor.hidden=true;editingId=null;}
+function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
 const data={name,url,status:statusInput.value,parent:parentInput.value};let pageId=editingId;
 if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
@@ -189,7 +202,7 @@ document.getElementById('close-section-editor').addEventListener('click',closeSe
 document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
-load();openEditor(pages.find(p=>p.id==='top')||pages[0]);
+load();
 })();
 </script>
 </body>
