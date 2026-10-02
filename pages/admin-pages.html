@@ -411,43 +411,6 @@ html='<section class="vm-pv-cta"><div class="vm-pv-cta-image" style="background-
 }else{html='<section class="vm-pv-section">'+head(d.k,title,subtitle)+'</section>';}
 sectionWrap(html);
 }
-|'作品を登録して、視聴者へ。売上・購入数・審査・出金まで管理できます。'));
-if(button)copy.append(el('span','vm-preview-primary',button+' →'));
-creator.append(art,copy);
-root.append(creator);
-return;
-}
-
-if(section.type==='creators'){
-const names=['Aki Studio','KEN FILMS','FRAME LAB','YAMA FILM'];
-const count=Math.max(1,Math.min(4,Number(settings.creatorCount)||4));
-const sectionEl=el('section','vm-preview-section');
-sectionEl.append(heading());
-const grid=el('div','vm-preview-people');
-names.slice(0,count).forEach((name,index)=>{
-const person=el('article','vm-preview-person');
-const avatar=image(topImages.creators[index],'vm-preview-avatar');
-person.append(avatar,el('b','',name),el('span','', '映像・クリエイティブ'));
-grid.append(person);
-});
-sectionEl.append(grid);
-root.append(sectionEl);
-return;
-}
-
-if(section.type==='cta'){
-const cta=el('section','vm-preview-cta');
-cta.append(el('span','vm-preview-kicker','DISCOVER YOUR NEXT STORY'),el('h3','',title),el('p','',subtitle||'いろんなクリエイターの作品から、あなたの次の一本を見つけよう。'));
-if(button)cta.append(el('span','vm-preview-primary',button+' →'));
-if(contentImage.value.trim())cta.style.backgroundImage='linear-gradient(rgba(7,9,13,.58),rgba(7,9,13,.78)),url("'+contentImage.value.trim().replace(/"/g,'&quot;')+'")';
-root.append(cta);
-return;
-}
-
-const fallback=el('section','vm-preview-section');
-fallback.append(heading());
-root.append(fallback);
-}
 
 function getPreviewSettings(section){
 const settings={...(section.settings||{})};
