@@ -272,10 +272,10 @@ function openEditor(page){editingId=page.id;document.getElementById('page-manage
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
-const data={name,url,status:statusInput.value,parent:parentInput.value};let pageId=editingId;
+const data={name,url,status:statusInput.value,parent:parentInput.value};const wasNew=!editingId;let pageId=editingId;
 if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
 sectionState.forEach((item,i)=>item.order=i);
-try{localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}savePageEditorMetadata(pageId);}catch(e){}
+try{if(wasNew){sectionState.forEach(item=>{const draftThemeKey=THEME_PREFIX+'new-'+item.id;const draftTheme=localStorage.getItem(draftThemeKey);if(draftTheme){localStorage.setItem(THEME_PREFIX+pageId+'-'+item.id,draftTheme);localStorage.removeItem(draftThemeKey);}});}localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}savePageEditorMetadata(pageId);}catch(e){}
 const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
 document.getElementById('new-page').addEventListener('click',newPage);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
