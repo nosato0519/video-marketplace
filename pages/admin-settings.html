@@ -37,6 +37,20 @@
 <div class="setting-card"><h3>通知・問い合わせ</h3><p>利用者への連絡や運営サポートに関する設定。</p><div class="setting-row"><div>メール・通知<small>登録、購入、出金などの通知</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>問い合わせ窓口<small>サポート連絡先と対応方法</small></div><span class="setting-action">設定 →</span></div></div>
 <div class="setting-card"><h3>運営者・セキュリティ</h3><p>運営者アカウントと安全な管理のための設定。</p><div class="setting-row"><div>運営者アカウント・権限<small>管理者の役割とアクセス範囲</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>ログイン・操作履歴<small>アクセスと重要操作の記録</small></div><span class="setting-action">確認 →</span></div><div class="setting-row"><div>セキュリティ設定<small>認証・アクセス保護</small></div><span class="setting-action">設定 →</span></div></div>
 </div></section>
+<section class="section" id="resignation-policy"><div class="section-head"><div><h2>退会処理・メール通知</h2><p>退会時の処理方針を選択します。設定はこのブラウザ内の画面デモに保存されます。</p></div></div>
+<div class="setting-card resignation-settings">
+  <h3>退会申請の処理方式</h3>
+  <p>自動処理の対象や、未処理の売上・出金がある場合の扱いを運営方針に合わせて選択します。</p>
+  <label class="policy-option"><input type="radio" name="resignation-mode" value="auto"> <span><strong>自動退会</strong><small>申請後、設定した条件を満たせば自動処理</small></span></label>
+  <label class="policy-option"><input type="radio" name="resignation-mode" value="conditional" checked> <span><strong>条件付き自動退会</strong><small>未処理の売上・出金などがある場合は保留</small></span></label>
+  <label class="policy-option"><input type="radio" name="resignation-mode" value="manual"> <span><strong>手動対応</strong><small>運営者が内容を確認してから処理</small></span></label>
+  <div class="policy-divider"></div>
+  <h3>自動メール</h3>
+  <label class="policy-check"><input type="checkbox" id="resignation-receipt" checked> <span>申請受付メールを送信</span></label>
+  <label class="policy-check"><input type="checkbox" id="resignation-result" checked> <span>退会処理の結果メールを送信</span></label>
+  <div class="policy-actions"><button class="btn primary" type="button" id="save-resignation-policy">設定を保存</button><span id="resignation-policy-status" class="muted" role="status">画面デモの初期設定</span></div>
+  <p class="preview-note">注意：現在は画面デモです。実際の退会処理やメール送信、複数の運営者間での設定共有にはバックエンド連携が必要です。未処理の売上・出金がある場合は、実装時に保留条件を適用します。</p>
+</div></section>
 <section class="section two">
 <div class="panel"><div class="panel-head"><strong>操作履歴</strong><span>SECURITY / ACTIVITY</span></div><div class="rows"><div class="row"><div><strong>管理者ログイン</strong><small>管理画面へのアクセス記録</small></div><span class="tag ok">記録対象</span></div><div class="row"><div><strong>審査操作</strong><small>販売者・動画の承認／却下履歴</small></div><span class="tag">記録対象</span></div><div class="row"><div><strong>出金操作</strong><small>ステータス変更・監査イベント</small></div><span class="tag">記録対象</span></div></div></div>
 <div class="panel"><div class="panel-head"><strong>ヘルプ・運営情報</strong><span>HELP</span></div><p class="muted" style="line-height:1.8">運営時の手順や、販売者・購入者に関する対応方針を整理する領域。</p></div>
@@ -51,6 +65,30 @@ document.querySelectorAll('.setting-action').forEach(action=>{
  const edit=()=>{const row=action.closest('.setting-row');if(!row)return;const label=row.querySelector('div')?.childNodes[0]?.textContent?.trim()||'設定';const existing=row.querySelector('.draft-value');if(existing){existing.remove();action.textContent='編集 →';return;}const value=document.createElement('input');value.className='draft-value';value.type='text';value.placeholder=label+'を入力';value.setAttribute('aria-label',label);value.style.cssText='max-width:220px;width:100%;padding:7px;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--text);';row.append(value);value.focus();action.textContent='入力中';};
  action.addEventListener('click',edit);action.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();edit();}});
 });
+})();
+
+(function(){
+ const key='vm-demo-resignation-policy';
+ const modeInputs=[...document.querySelectorAll('input[name="resignation-mode"]')];
+ const receipt=document.getElementById('resignation-receipt');
+ const result=document.getElementById('resignation-result');
+ const status=document.getElementById('resignation-policy-status');
+ const save=document.getElementById('save-resignation-policy');
+ if(!save)return;
+ try{
+  const saved=JSON.parse(localStorage.getItem(key)||'null');
+  if(saved){
+   modeInputs.forEach(input=>input.checked=input.value===saved.mode);
+   receipt.checked=!!saved.receipt;
+   result.checked=!!saved.result;
+   status.textContent='このブラウザに保存済みの設定';
+  }
+ }catch(e){}
+ save.addEventListener('click',()=>{
+  const policy={mode:(modeInputs.find(input=>input.checked)||{}).value||'conditional',receipt:receipt.checked,result:result.checked};
+  try{localStorage.setItem(key,JSON.stringify(policy));status.textContent='設定をこのブラウザに保存しました（デモ）';}
+  catch(e){status.textContent='保存できませんでした。このブラウザの保存設定を確認してください。';}
+ });
 })();
 </script></body>
 </html>
