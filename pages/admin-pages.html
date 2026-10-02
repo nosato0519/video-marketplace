@@ -37,6 +37,37 @@
     <div class="policy-actions">
       <button class="btn primary" type="button" id="new-page">新しいページを作成</button>
     </div>
+
+    <div class="panel-head"><strong>ページのセクション</strong><span>PAGE CONTENT</span></div>
+    <p class="muted homepage-editor-help">TOPページで使用しているセクションをすべて一覧にしています。表示・非表示と順番をこの画面だけで管理できます。</p>
+    <div id="landing-section-list" class="homepage-section-list"></div>
+    <div class="homepage-add-row">
+      <label for="landing-add-type">追加するセクション</label>
+      <select id="landing-add-type">
+        <option value="hero">メインビジュアル</option>
+        <option value="video-showcase">作品紹介</option>
+        <option value="trustbar">安心・購入ガイド</option>
+        <option value="collection">作品との出会い</option>
+        <option value="popular">人気の動画</option>
+        <option value="new-releases">新着動画</option>
+        <option value="genre-rail">カテゴリー・ジャンル</option>
+        <option value="genre-recommendations">ジャンル別おすすめ</option>
+        <option value="spotlight">おすすめ特集</option>
+        <option value="finder">動画を探す</option>
+        <option value="categories">カテゴリー一覧</option>
+        <option value="library">ライブラリ紹介</option>
+        <option value="creator">クリエイター向け案内</option>
+        <option value="creators">注目のクリエイター</option>
+        <option value="cta">最後の案内</option>
+      </select>
+      <button class="btn primary" type="button" id="landing-add-section">セクションを追加</button>
+    </div>
+
+    <div class="policy-actions">
+      <button class="btn primary" type="button" id="landing-save-page">ページを保存</button>
+      <button class="btn" type="button" id="landing-cancel-page">キャンセル</button>
+      <span class="muted">画面デモ用の設定です。</span>
+    </div>
   </div>
 </section>
 
@@ -168,6 +199,21 @@ const toggle=document.createElement('button');toggle.type='button';toggle.classN
 const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
 const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x.id!==item.id);renderSections();});
 actions.append(up,down,toggle,edit,remove);row.append(title,actions);sectionList.append(row);});}
+function renderLandingSections(){
+const target=document.getElementById('landing-section-list');if(!target)return;target.replaceChildren();
+defaultSections().forEach((item,index)=>{
+const row=document.createElement('div');row.className='homepage-section-row';
+const title=document.createElement('div');title.className='homepage-section-title';
+const strong=document.createElement('strong');strong.textContent=item.label;
+const meta=document.createElement('small');meta.textContent='TOPの標準セクション';
+title.append(strong,meta);
+const actions=document.createElement('div');actions.className='homepage-section-actions';
+['↑','↓','表示','編集','削除'].forEach((label)=>{
+const b=document.createElement('button');b.type='button';b.className='btn'+(label==='編集'?' primary':'');b.textContent=label;b.disabled=(label==='↑'&&index===0)||(label==='↓'&&index===14);actions.append(b);
+});
+row.append(title,actions);target.append(row);
+});
+}
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
 function openSectionEditor(index){
 const item=sectionState[index];if(!item)return;
@@ -202,7 +248,7 @@ document.getElementById('close-section-editor').addEventListener('click',closeSe
 document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
-load();
+load();renderLandingSections();
 })();
 </script>
 </body>
