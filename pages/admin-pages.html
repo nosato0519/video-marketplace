@@ -294,7 +294,21 @@ renderSectionItems(item);renderSpecificSettings(item);renderSectionEditorPreview
 editor.hidden=true;sectionEditor.hidden=false;sectionEditor.scrollIntoView({behavior:'smooth',block:'start'});sectionName.focus();
 }
 function renderSectionItems(item){sectionItemsEditor.replaceChildren();sectionItemsEditor.hidden=item.type==='hero';const items=Array.isArray(item.items)?item.items:[];items.forEach((entry,index)=>appendSectionItem(entry,index));}
-function appendSectionItem(entry,index){const card=document.createElement('div');card.className='section-item-card';const head=document.createElement('div');head.className='section-item-head';const title=document.createElement('strong');title.textContent='項目 '+(index+1);const remove=document.createElement('buttonfunction renderSectionEditorPreview(){
+function appendSectionItem(entry,index){
+const card=document.createElement('div');card.className='section-item-card';
+const head=document.createElement('div');head.className='section-item-head';
+const title=document.createElement('strong');title.textContent='項目 '+(index+1);
+const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';
+remove.addEventListener('click',()=>{card.remove();Array.from(sectionItemsEditor.querySelectorAll('.section-item-card')).forEach((item,i)=>{const label=item.querySelector('.section-item-head strong');if(label)label.textContent='項目 '+(i+1);});renderSectionEditorPreview();});
+head.append(title,remove);card.append(head);
+[['title','項目名','タイトル'],['description','説明文','説明文'],['image','画像URL','画像URL'],['button','ボタン名','ボタン名']].forEach(([key,label,placeholder])=>{
+const wrap=document.createElement('label');wrap.textContent=label;
+const input=document.createElement('input');input.type='text';input.dataset.itemKey=key;input.placeholder=placeholder;input.value=entry&&entry[key]||'';
+input.addEventListener('input',renderSectionEditorPreview);wrap.append(input);card.append(wrap);
+});
+sectionItemsEditor.append(card);
+}
+function renderSectionEditorPreview(){
 const root=document.getElementById('section-preview-root');
 if(!root||editingSectionIndex===null)return;
 const section=sectionState[editingSectionIndex];
