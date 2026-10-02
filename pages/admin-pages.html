@@ -45,6 +45,31 @@
     <div><h2 id="editor-title">TOPページを編集</h2><p>TOPページの基本設定とセクションを管理します。</p></div>
   </div>
   <div class="panel page-editor">
+    <div class="panel-head"><strong>ページのセクション</strong><span>PAGE CONTENT</span></div>
+    <p class="muted homepage-editor-help">TOPページで使用しているセクションをすべて一覧にしています。表示・非表示と順番をこの画面だけで管理できます。</p>
+    <div id="homepage-section-list" class="homepage-section-list"></div>
+    <div class="homepage-add-row">
+      <label for="homepage-add-type">追加するセクション</label>
+      <select id="homepage-add-type">
+        <option value="hero">メインビジュアル</option>
+        <option value="video-showcase">作品紹介</option>
+        <option value="trustbar">安心・購入ガイド</option>
+        <option value="collection">作品との出会い</option>
+        <option value="popular">人気の動画</option>
+        <option value="new-releases">新着動画</option>
+        <option value="genre-rail">カテゴリー・ジャンル</option>
+        <option value="genre-recommendations">ジャンル別おすすめ</option>
+        <option value="spotlight">おすすめ特集</option>
+        <option value="finder">動画を探す</option>
+        <option value="categories">カテゴリー一覧</option>
+        <option value="library">ライブラリ紹介</option>
+        <option value="creator">クリエイター向け案内</option>
+        <option value="creators">注目のクリエイター</option>
+        <option value="cta">最後の案内</option>
+      </select>
+      <button class="btn primary" type="button" id="homepage-add-section">セクションを追加</button>
+    </div>
+
     <div class="panel-head"><strong>ページ基本設定</strong><span>PAGE SETTINGS</span></div>
     <div class="page-form-grid">
       <label>ページ名<input id="page-name" type="text" placeholder="例：特集ページ"></label>
