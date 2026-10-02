@@ -26,28 +26,43 @@
 </aside>
 <main class="main">
 <header class="topbar">
-  <div><div class="eyebrow">ADMIN / SELLER MANAGEMENT</div><h1 class="title">販売者管理</h1><p class="lead">登録販売者242名。申請・本人確認・出品動画・出金状況をまとめて管理します。</p></div>
+  <div><div class="eyebrow">ADMIN / SELLER MANAGEMENT</div><h1 class="title">販売者管理</h1><p class="lead">申請・出金・退会対応と、販売者・出品動画の実績をまとめて管理します。</p></div>
   <div class="top-actions"><a class="btn" href="/">サイトを見る</a></div>
 </header>
 
-<section class="queue">
-  <div class="queue-card"><span>販売者申請</span><strong>12 <em>待ち</em></strong></div>
-  <div class="queue-card"><span>本人確認</span><strong>8 <em>要確認</em></strong></div>
-  <div class="queue-card"><span>出品動画</span><strong>142 <em>公開中</em></strong></div>
-  <div class="queue-card"><span>出金申請</span><strong>7 <em>要処理</em></strong></div>
+<section class="queue" aria-label="申請・対応状況">
+  <a class="queue-card" href="#seller-review"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
+  <a class="queue-card" href="#seller-review"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
+  <a class="queue-card" href="#payout-requests"><span>出金申請</span><strong>7 <em>要処理</em></strong></a>
+  <a class="queue-card" href="#resignation-requests"><span>退会申請</span><strong>3 <em>要確認</em></strong></a>
+</section>
+<section class="section" aria-label="運営実績">
+  <div class="section-head"><div><h2>販売・出品実績</h2><p>画面イメージ用のサンプル値。実データとの連携は後の工程で行います。</p></div></div>
+  <div class="metrics">
+    <div class="metric"><span>総販売数</span><strong>1,284</strong><small>累計販売件数</small></div>
+    <div class="metric"><span>今月の販売者増加数</span><strong>+18</strong><small>今月の新規登録</small></div>
+    <div class="metric"><span>総出品動画数</span><strong>142</strong><small>登録動画数</small></div>
+    <div class="metric"><span>今月の出品動画増加数</span><strong>+24</strong><small>今月の新規出品</small></div>
+  </div>
 </section>
 <section class="section two">
-<div class="panel"><div class="panel-head"><strong>販売者申請・本人確認</strong><span>SELLER REVIEW</span></div><div class="rows">
+<div class="panel" id="seller-review"><div class="panel-head"><strong>販売者申請・本人確認</strong><span>SELLER REVIEW</span></div><div class="rows">
 <div class="row"><div><strong>新規販売者申請</strong><small>表示名・法的氏名・国・申請メッセージ</small></div><span class="tag warn">12件</span><span class="row-action">詳細確認 →</span></div>
 <div class="row"><div><strong>本人確認・プロフィール</strong><small>認証状況・審査メモ・再提出状況</small></div><span class="tag warn">8件</span><span class="row-action">詳細確認 →</span></div>
 <div class="row"><div><strong>販売者アカウント</strong><small>登録情報・公開状態・利用状況</small></div><span class="tag">管理</span><span class="row-action">詳細確認 →</span></div>
 </div></div>
-<div class="panel"><div class="panel-head"><strong>出金申請</strong><span>PAYOUT QUEUE</span></div><div class="rows">
+<div class="panel" id="payout-requests"><div class="panel-head"><strong>出金申請</strong><span>PAYOUT QUEUE</span></div><div class="rows">
 <div class="row"><div><strong>Aki Studio</strong><small>¥128,000 ・ 2026.09.30</small></div><span class="tag warn">確認中</span></div>
 <div class="row"><div><strong>KEN FILMS</strong><small>¥86,000 ・ 2026.09.29</small></div><span class="tag">処理中</span></div>
 <div class="row"><div><strong>NORTH COAST</strong><small>¥54,000 ・ 2026.09.28</small></div><span class="tag ok">支払済み</span></div>
 </div></div>
 </section>
+<section class="section" id="resignation-requests"><div class="section-head"><div><h2>退会申請</h2><p>退会処理方式とメール通知は「運営設定」で指定します。以下はサンプルデータです。</p></div><a class="btn" href="/pages/admin-settings.html#resignation-policy">退会処理の設定</a></div>
+<div class="panel"><div class="rows">
+<div class="row"><div><strong>FRAME LAB</strong><small>申請日：2026.10.01 ・ 未処理の出金なし（サンプル）</small></div><span class="tag warn">確認待ち</span><span class="row-action">条件確認</span></div>
+<div class="row"><div><strong>Studio M</strong><small>申請日：2026.09.30 ・ 売上残高を確認（サンプル）</small></div><span class="tag warn">保留確認</span><span class="row-action">条件確認</span></div>
+<div class="row"><div><strong>Northlight Works</strong><small>申請日：2026.09.29 ・ 未処理事項なし（サンプル）</small></div><span class="tag">設定に従って処理</span><span class="row-action">状況確認</span></div>
+</div></div></section>
 <section class="section"><div class="section-head"><div><h2>出品動画の管理</h2><p>販売者が公開している動画や審査状況を確認する領域</p></div></div>
 <div class="admin-filterbar"><label>動画・販売者を検索<input id="seller-search" type="search" placeholder="動画名・販売者名"></label><label>公開状態<select id="seller-video-status"><option value="">すべて</option><option>公開中</option><option>審査待ち</option><option>停止中</option></select></label><span id="seller-result-count" class="muted">4件</span></div>
 <div class="panel"><table class="table" id="seller-video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>状態</th></tr></thead><tbody>
