@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ページ管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html" class="active" aria-current="page">ページ管理</a>
+    <a href="/pages/admin-customize.html">サイト設定・カスタマイズ</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">ADMIN / PAGE MANAGEMENT</div><h1 class="title">ページ管理</h1><p class="lead">サイト内のページを作成・編集し、公開状態や表示順を管理します。</p></div>
+  <div class="top-actions"><a class="btn" href="/">サイトを見る</a><button class="btn primary" type="button" id="new-page">新しいページを作成</button></div>
+</header>
+<section class="section">
+  <div class="section-head"><div><h2>ページ一覧</h2><p>現在のサイト構成を確認し、ページを管理します。</p></div><span class="muted" id="page-count">5ページ</span></div>
+  <div class="admin-filterbar">
+    <label>ページを検索<input id="page-search" type="search" placeholder="ページ名・URL"></label>
+    <label>公開状態<select id="page-status"><option value="">すべて</option><option value="公開">公開</option><option value="下書き">下書き</option></select></label>
+  </div>
+  <div class="panel page-list-panel"><div class="page-list" id="page-list"></div><p class="empty-state" id="page-empty" hidden>条件に一致するページはありません。</p></div>
+</section>
+<section class="section" id="page-editor" hidden>
+  <div class="section-head"><div><h2 id="editor-title">新しいページ</h2><p>ページ情報を入力して、画面上の構成を確認します。</p></div><button class="btn" type="button" id="close-editor">閉じる</button></div>
+  <div class="panel page-editor">
+    <div class="page-form-grid">
+      <label>ページ名<input id="page-name" type="text" placeholder="例：特集ページ"></label>
+      <label>URL<input id="page-url" type="text" placeholder="/pages/feature.html"></label>
+      <label>公開状態<select id="page-edit-status"><option>公開</option><option>下書き</option></select></label>
+      <label>親ページ<select id="page-parent"><option value="">親ページなし</option></select></label>
+    </div>
+    <div class="page-editor-block"><strong>ページの構成</strong><p>実際のシステム連携前は画面上の設定として扱います。</p><div class="page-section-preview"><div><span>ヒーロー・タイトル</span><small>表示</small></div><div><span>コンテンツセクション</span><small>表示</small></div><div><span>最後の案内</span><small>表示</small></div></div></div>
+    <div class="policy-actions"><button class="btn primary" type="button" id="save-page">ページを保存</button><button class="btn" type="button" id="cancel-page">キャンセル</button><span class="muted" id="editor-status">画面デモ用の設定です。</span></div>
+  </div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
+</main>
+</div>
+<script>
+(function(){
+const key='vm-demo-pages';
+const defaults=[
+{id:'top',name:'TOP',url:'/',status:'公開',parent:'',locked:true},
+{id:'videos',name:'動画一覧',url:'/pages/video-list.html',status:'公開',parent:'',locked:false},
+{id:'categories',name:'カテゴリー',url:'/pages/categories.html',status:'公開',parent:'',locked:false},
+{id:'about',name:'サイトについて',url:'/pages/about.html',status:'公開',parent:'',locked:false},
+{id:'contact',name:'お問い合わせ',url:'/pages/contact.html',status:'下書き',parent:'',locked:false}
+];
+const list=document.getElementById('page-list'),search=document.getElementById('page-search'),status=document.getElementById('page-status'),count=document.getElementById('page-count'),empty=document.getElementById('page-empty');
+const editor=document.getElementById('page-editor'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorTitle=document.getElementById('editor-title'),editorStatus=document.getElementById('editor-status');
+let pages=[],editingId=null;
+function load(){try{const saved=JSON.parse(localStorage.getItem(key)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
+function save(){try{localStorage.setItem(key,JSON.stringify(pages));return true;}catch(e){return false;}}
+function filtered(){const q=search.value.trim().toLowerCase();return pages.filter(p=>(!q||(p.name+' '+p.url).toLowerCase().includes(q))&&(!status.value||p.status===status.value));}
+function render(){
+list.replaceChildren();const visible=filtered();count.textContent=visible.length+'ページ';empty.hidden=visible.length>0;
+visible.forEach((p,index)=>{
+const row=document.createElement('div');row.className='page-row';
+const info=document.createElement('div');info.className='page-info';const name=document.createElement('strong');name.textContent=p.name;const meta=document.createElement('small');meta.textContent=p.url+(p.parent?' ・ 親：'+p.parent:'');info.append(name,meta);
+const state=document.createElement('span');state.className='tag '+(p.status==='公開'?'ok':'warn');state.textContent=p.status;
+const actions=document.createElement('div');actions.className='page-actions';
+const up=document.createElement('button');up.className='btn small';up.type='button';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>move(index,-1));
+const down=document.createElement('button');down.className='btn small';down.type='button';down.textContent='↓';down.disabled=index===visible.length-1;down.addEventListener('click',()=>move(index,1));
+const edit=document.createElement('button');edit.className='btn small';edit.type='button';edit.textContent='編集';edit.addEventListener('click',()=>openEditor(p));
+const remove=document.createElement('button');remove.className='btn small';remove.type='button';remove.textContent='削除';remove.disabled=!!p.locked;remove.addEventListener('click',()=>removePage(p));
+actions.append(up,down,edit,remove);row.append(info,state,actions);list.append(row);
+});
+}
+function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();render();}
+function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を画面上の一覧から削除しますか？'))return;pages=pages.filter(p=>p.id!==page.id);save();render();}
+function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
+function openEditor(page){editingId=page?.id||null;editorTitle.textContent=page?'ページを編集':'新しいページ';fillParents(editingId);nameInput.value=page?.name||'';urlInput.value=page?.url||'';statusInput.value=page?.status||'下書き';parentInput.value=page?.parent||'';editor.hidden=false;editorStatus.textContent='画面デモ用の設定です。';editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function closeEditor(){editor.hidden=true;editingId=null;}
+function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}const data={name,url,status:statusInput.value,parent:parentInput.value};if(editingId)Object.assign(pages.find(p=>p.id===editingId),data);else pages.push({id:'page-'+Date.now(),...data,locked:false});editorStatus.textContent=save()?'このブラウザにページ設定を保存しました。':'保存できませんでした。';render();}
+document.getElementById('new-page').addEventListener('click',()=>openEditor());
+document.getElementById('close-editor').addEventListener('click',closeEditor);
+document.getElementById('cancel-page').addEventListener('click',closeEditor);
+document.getElementById('save-page').addEventListener('click',savePage);
+search.addEventListener('input',render);status.addEventListener('change',render);load();render();
+})();
+</script>
+</body>
+</html>
