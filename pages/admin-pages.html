@@ -319,7 +319,7 @@ const type=section.type;
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const img=(src,cls='',alt='')=>'<img class="'+cls+'" src="'+src+'" alt="'+esc(alt)+'" loading="lazy" onerror="this.style.visibility=\'hidden\'">';
 const asset={
-hero:'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=2200&q=88',
+hero:'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=90',
 p1:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=88',
 p2:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=88',
 p3:'https://images.unsplash.com/photo-1464822759023-fed622ff2c0e0c0e?auto=format&fit=crop&w=800&q=88',
@@ -332,6 +332,11 @@ t6:'https://images.unsplash.com/photo-1464822759023-fed622ff2c0e0c0e?auto=format
 t7:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1000&q=88',
 t8:'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1000&q=88',
 t9:'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1000&q=88',
+s1:'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=1200&q=86',
+s2:'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1000&q=86',
+s3:'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=86',
+s4:'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=86',
+s5:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=86',
 c1:'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=700&q=80',
 c2:'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=700&q=80',
 c3:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=700&q=80',
@@ -371,7 +376,7 @@ let html='';
 if(type==='hero'){
 html='<section class="vm-pv-hero">'+img(asset.hero,'vm-pv-hero-bg','hero')+'<div class="vm-pv-hero-copy"><span class="vm-pv-kicker">'+d.k+'</span><h3>見つける。<br>買う。<em>楽しむ。</em></h3><p>'+esc(content.subtitle||d.p)+'</p><div class="vm-pv-meta"><span>複数クリエイター</span><span>4K / HD</span><span>購入後すぐ視聴</span><span>ダウンロード対応</span></div><div class="vm-pv-actions"><a class="vm-pv-primary" href="'+esc(link)+'">'+esc(content.button||'動画を探す')+' →</a><a class="vm-pv-secondary" href="#">クリエイターになる</a></div></div><div class="vm-pv-mosaic"><div class="vm-pv-mosaic-card vm-pv-m1">'+img(asset.p1,'','')+'</div><div class="vm-pv-mosaic-card vm-pv-m2">'+img(asset.p2,'','')+'</div><div class="vm-pv-mosaic-card vm-pv-m3">'+img(asset.p3,'','')+'</div></div></section>';
 }else if(type==='video-showcase'){
-html='<section class="vm-pv-section">'+head(d.k,d.t,d.p)+'<div class="vm-pv-showcase">'+[['t1','01 THE LAST SIGNAL'],['t2','02 Tokyo After Hours'],['t3','03 Build Your Brand'],['t4','04 BLUE HORIZON'],['t5','05 Mastering Motion']].map(x=>'<div class="vm-pv-showcase-card">'+img(asset[x[0]],'',x[1])+'<div><b>'+x[1].slice(0,2)+'</b><span>'+esc(x[1].slice(3))+'</span></div></div>').join('')+'</div><div class="vm-pv-dark-link">DISCOVER / WATCH / PURCHASE</div></section>';
+html='<section class="vm-pv-section">'+head(d.k,d.t,d.p)+'<div class="vm-pv-showcase">'+[['s1','01 THE LAST SIGNAL'],['s2','02 Tokyo After Hours'],['s3','03 Build Your Brand'],['s4','04 BLUE HORIZON'],['s5','05 Mastering Motion']].map(x=>'<div class="vm-pv-showcase-card">'+img(asset[x[0]],'',x[1])+'<div><b>'+x[1].slice(0,2)+'</b><span>'+esc(x[1].slice(3))+'</span></div></div>').join('')+'</div><div class="vm-pv-dark-link">DISCOVER / WATCH / PURCHASE</div></section>';
 }else if(type==='trustbar'){
 html='<section class="vm-pv-trust">'+[['✓','安全な決済','安心して購入できます'],['▶','購入後すぐ視聴','マイライブラリに保存'],['↧','ダウンロード対応','購入作品をいつでも'],['◉','保護された配信','購入者専用アクセス']].map(x=>'<div><b>'+x[0]+'</b><span><strong>'+x[1]+'</strong>'+x[2]+'</span></div>').join('')+'</section>';
 }else if(type==='collection'){
