@@ -542,5 +542,67 @@
         >
       </div>
     </footer>
+  <style id="vm-admin-theme-style">body.vm-square-cards .video-card,body.vm-square-cards .mosaic-card,body.vm-square-cards .showcase-card,body.vm-square-cards .role,body.vm-square-cards .mini{border-radius:0!important}</style>
+  <script>
+  (function(){
+    const SECTION_KEY='vm-demo-homepage-sections';
+    const THEME_KEY='vm-demo-homepage-theme';
+    const definitions=[
+      {key:'hero',selector:'.hero'},
+      {key:'video-showcase',selector:'.video-showcase'},
+      {key:'trustbar',selector:'.trustbar'},
+      {key:'collection',selector:'#collection'},
+      {key:'popular',selector:'#popular'},
+      {key:'new-releases',selector:'#new-releases'},
+      {key:'genre-rail',selector:'.genre-rail'},
+      {key:'genre-recommendations',selector:'.genre-recommendations'},
+      {key:'spotlight',selector:'.spotlight'},
+      {key:'finder',selector:'#search'},
+      {key:'categories',selector:'#categories'},
+      {key:'library',selector:'#library'},
+      {key:'creator',selector:'#creator'},
+      {key:'creators',selector:'#creators'},
+      {key:'cta',selector:'.cta'}
+    ];
+    const main=document.querySelector('main');
+    if(!main)return;
+    const originals={};
+    definitions.forEach(d=>{const el=document.querySelector(d.selector);if(el){originals[d.key]=el;el.dataset.vmSectionType=d.key;el.dataset.vmSectionId=d.key;}});
+    try{
+      const saved=JSON.parse(localStorage.getItem(SECTION_KEY)||'null');
+      if(Array.isArray(saved)){
+        const ordered=[];
+        saved.forEach(item=>{
+          let section=originals[item.id]||null;
+          if(!section&&item.id!==item.type){
+            const source=originals[item.type];
+            if(source){
+              section=source.cloneNode(true);
+              section.removeAttribute('id');
+              section.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+              section.dataset.vmSectionType=item.type;
+              section.dataset.vmSectionId=item.id;
+              const heading=section.querySelector('.section-head h2, h2');
+              if(heading&&item.label)heading.textContent=item.label;
+              originals[item.id]=section;
+            }
+          }
+          if(!section)return;
+          section.hidden=!!item.hidden;
+          ordered.push(section);
+        });
+        ordered.forEach(section=>main.appendChild(section));
+      }
+    }catch(e){}
+    try{
+      const theme=JSON.parse(localStorage.getItem(THEME_KEY)||'null');
+      if(theme){
+        if(/^#[0-9a-f]{6}$/i.test(theme.bg||''))document.documentElement.style.setProperty('--bg',theme.bg);
+        if(/^#[0-9a-f]{6}$/i.test(theme.accent||''))document.documentElement.style.setProperty('--accent',theme.accent);
+        if(theme.radius==='square')document.body.classList.add('vm-square-cards');
+      }
+    }catch(e){}
+  })();
+  </script>
   </body>
 </html>
