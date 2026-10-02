@@ -68,3 +68,5 @@ button{color:inherit}
 .btn.small{font-size:10px;padding:6px 9px;white-space:nowrap}
 button.btn{cursor:pointer}
 @media(max-width:720px){.admin-filterbar,.admin-filterbar label,.admin-filterbar input,.admin-filterbar select{width:100%;box-sizing:border-box}.admin-filterbar .muted{margin-left:0}}
+
+.preview-note{margin:0 0 20px;padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:11px;line-height:1.7;background:var(--panel)}
