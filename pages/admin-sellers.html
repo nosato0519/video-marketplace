@@ -32,9 +32,9 @@
 </header>
 
 <section class="queue" aria-label="申請・対応状況">
-  <a class="queue-card" href="#seller-review"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
-  <a class="queue-card" href="#seller-review"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
-  <a class="queue-card" href="#payout-requests"><span>出金申請</span><strong>7 <em>要処理</em></strong></a>
+  <a class="queue-card" href="/pages/admin-seller-review.html#applications"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
+  <a class="queue-card" href="/pages/admin-seller-review.html#verification"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
+  <a class="queue-card" href="/pages/admin-seller-payouts.html"><span>出金申請</span><strong>7 <em>要処理</em></strong></a>
   <a class="queue-card" href="#resignation-requests"><span>退会申請</span><strong>3 <em>要確認</em></strong></a>
 </section>
 <section class="section" aria-label="運営実績">
@@ -48,11 +48,11 @@
 </section>
 <section class="section two">
 <div class="panel" id="seller-review"><div class="panel-head"><strong>販売者申請・本人確認</strong><span>SELLER REVIEW</span></div><div class="rows">
-<div class="row"><div><strong>新規販売者申請</strong><small>表示名・法的氏名・国・申請メッセージ</small></div><span class="tag warn">12件</span><span class="row-action">詳細確認 →</span></div>
-<div class="row"><div><strong>本人確認・プロフィール</strong><small>認証状況・審査メモ・再提出状況</small></div><span class="tag warn">8件</span><span class="row-action">詳細確認 →</span></div>
-<div class="row"><div><strong>販売者アカウント</strong><small>登録情報・公開状態・利用状況</small></div><span class="tag">管理</span><span class="row-action">詳細確認 →</span></div>
+<div class="row"><div><strong>新規販売者申請</strong><small>表示名・法的氏名・国・申請メッセージ</small></div><span class="tag warn">12件</span><a class="row-action" href="/pages/admin-seller-review.html#applications">申請を確認 →</a></div>
+<div class="row"><div><strong>本人確認・プロフィール</strong><small>認証状況・審査メモ・再提出状況</small></div><span class="tag warn">8件</span><a class="row-action" href="/pages/admin-seller-review.html#verification">審査を確認 →</a></div>
+<div class="row"><div><strong>販売者アカウント</strong><small>登録情報・公開状態・利用状況</small></div><span class="tag">管理</span><a class="row-action" href="/pages/admin-seller-detail.html">詳細を確認 →</a></div>
 </div></div>
-<div class="panel" id="payout-requests"><div class="panel-head"><strong>出金申請</strong><span>PAYOUT QUEUE</span></div><div class="rows">
+<div class="panel" id="payout-requests"><div class="panel-head"><strong>出金申請</strong><a class="row-action" href="/pages/admin-seller-payouts.html">出金管理を開く →</a></div><div class="rows">
 <div class="row"><div><strong>Aki Studio</strong><small>¥128,000 ・ 2026.09.30</small></div><span class="tag warn">確認中</span></div>
 <div class="row"><div><strong>KEN FILMS</strong><small>¥86,000 ・ 2026.09.29</small></div><span class="tag">処理中</span></div>
 <div class="row"><div><strong>NORTH COAST</strong><small>¥54,000 ・ 2026.09.28</small></div><span class="tag ok">支払済み</span></div>
@@ -64,26 +64,15 @@
 <div class="row"><div><strong>Studio M</strong><small>申請日：2026.09.30 ・ 売上残高を確認（サンプル）</small></div><span class="tag warn">保留確認</span><span class="row-action">条件確認</span></div>
 <div class="row"><div><strong>Northlight Works</strong><small>申請日：2026.09.29 ・ 未処理事項なし（サンプル）</small></div><span class="tag">設定に従って処理</span><span class="row-action">状況確認</span></div>
 </div></div></section>
-<section class="section"><div class="section-head"><div><h2>出品動画の管理</h2><p>販売者が公開している動画や審査状況を確認する領域</p></div></div>
-<div class="admin-filterbar"><label>動画・販売者を検索<input id="seller-search" type="search" placeholder="動画名・販売者名"></label><label>公開状態<select id="seller-video-status"><option value="">すべて</option><option>公開中</option><option>審査待ち</option><option>停止中</option></select></label><span id="seller-result-count" class="muted">4件</span></div>
-<div class="panel"><table class="table" id="seller-video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>状態</th></tr></thead><tbody>
-<tr><td>THE LAST SIGNAL</td><td>Aki Studio</td><td>¥2,980</td><td><span class="tag ok">公開中</span></td></tr>
-<tr><td>Tokyo After Hours</td><td>KEN FILMS</td><td>¥1,980</td><td><span class="tag ok">公開中</span></td></tr>
-<tr><td>Build Your Brand</td><td>FRAME LAB</td><td>¥2,480</td><td><span class="tag warn">審査待ち</span></td></tr>
-<tr><td>BLUE HORIZON</td><td>NORTH COAST</td><td>¥1,680</td><td><span class="tag ok">公開中</span></td></tr>
-</tbody></table></div>
-</section>
+<section class="section"><div class="section-head"><div><h2>出品動画の管理</h2><p>販売者が登録した動画の公開状態・審査状況を確認します。</p></div><a class="btn" href="/pages/admin-seller-videos.html">動画管理を開く</a></div>
+<div class="panel"><div class="rows">
+<div class="row"><div><strong>THE LAST SIGNAL</strong><small>Aki Studio ・ ¥2,980</small></div><span class="tag ok">公開中</span></div>
+<div class="row"><div><strong>Tokyo After Hours</strong><small>KEN FILMS ・ ¥1,980</small></div><span class="tag ok">公開中</span></div>
+<div class="row"><div><strong>Build Your Brand</strong><small>FRAME LAB ・ ¥2,480</small></div><span class="tag warn">審査待ち</span></div>
+<div class="row"><div><strong>BLUE HORIZON</strong><small>NORTH COAST ・ ¥1,680</small></div><span class="tag ok">公開中</span></div>
+</div></div></section>
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-<script>
-(function(){
-const table=document.getElementById('seller-video-table');if(!table)return;
-const rows=[...table.tBodies[0].rows];
-rows.forEach((row)=>{const cell=row.cells[3];const button=document.createElement('button');button.type='button';button.className='btn small seller-toggle';button.textContent=cell.textContent.trim()==='停止中'?'再開':'停止';cell.append(' ',button);button.addEventListener('click',()=>{const tag=cell.querySelector('.tag');const stopped=tag.textContent.trim()!=='停止中';tag.textContent=stopped?'停止中':'公開中';tag.className='tag '+(stopped?'warn':'ok');button.textContent=stopped?'再開':'停止';filter();});});
-const search=document.getElementById('seller-search'),status=document.getElementById('seller-video-status');
-function filter(){const q=search.value.trim().toLowerCase();let count=0;rows.forEach(row=>{const match=row.innerText.toLowerCase().includes(q)&&(!status.value||row.cells[3].querySelector('.tag').textContent.trim()===status.value);row.hidden=!match;if(match)count++;});document.getElementById('seller-result-count').textContent=count+'件';}
-search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
-})();
-</script></body>
+</body>
 </html>
