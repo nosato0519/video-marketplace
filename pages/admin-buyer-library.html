@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ライブラリ・視聴権限 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html" class="active" aria-current="page">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">BUYER MANAGEMENT / LIBRARY</div><h1 class="title">ライブラリ・視聴権限</h1><p class="lead">購入済み動画と購入者ごとの視聴権限を確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
+</header>
+
+<p class="preview-note">サンプルデータです。視聴権限の切り替えはこの画面の表示のみで、実際の配信権限には影響しません。</p>
+<section class="section"><div class="section-head"><div><h2>購入済みコンテンツ</h2><p>作品・購入者・視聴権限を確認</p></div></div>
+<div class="admin-filterbar"><label>作品・購入者を検索<input id="library-search" type="search" placeholder="作品名・メールアドレス"></label><label>視聴権限<select id="library-status"><option value="">すべて</option><option>有効</option><option>要確認</option><option>停止</option></select></label><span id="library-count" class="muted">6件</span></div>
+<div class="panel" style="overflow:auto"><table class="table" id="library-table"><thead><tr><th>購入者</th><th>購入コンテンツ</th><th>購入日</th><th>視聴権限</th><th>操作</th></tr></thead><tbody>
+<tr><td>buyer@example.com</td><td><strong>シネマティック映像素材集</strong><small>注文 #VM-1098</small></td><td>2026.10.02</td><td><span class="tag ok">有効</span></td><td><button class="btn small" type="button">権限を停止</button></td></tr>
+<tr><td>member@example.com</td><td><strong>街の風景・4Kコレクション</strong><small>注文 #VM-1097</small></td><td>2026.10.02</td><td><span class="tag ok">有効</span></td><td><button class="btn small" type="button">権限を停止</button></td></tr>
+<tr><td>studio@example.com</td><td><strong>インタビュー映像パック</strong><small>注文 #VM-1096</small></td><td>2026.10.02</td><td><span class="tag warn">要確認</span></td><td><button class="btn small" type="button">権限を確認</button></td></tr>
+<tr><td>buyer@example.com</td><td><strong>自然風景ドローン映像</strong><small>注文 #VM-1095</small></td><td>2026.10.01</td><td><span class="tag ok">有効</span></td><td><button class="btn small" type="button">権限を停止</button></td></tr>
+<tr><td>lab@example.com</td><td><strong>モーショングラフィックス入門</strong><small>注文 #VM-1094</small></td><td>2026.10.01</td><td><span class="tag danger">停止</span></td><td><button class="btn small" type="button">権限を再開</button></td></tr>
+<tr><td>yu@example.com</td><td><strong>都市の夜景・4K</strong><small>注文 #VM-1093</small></td><td>2026.09.30</td><td><span class="tag ok">有効</span></td><td><button class="btn small" type="button">権限を停止</button></td></tr>
+</tbody></table></div></section>
+<script>(function(){const rows=[...document.querySelectorAll('#library-table tbody tr')],search=document.getElementById('library-search'),status=document.getElementById('library-status');function filter(){let n=0;rows.forEach(r=>{const s=r.cells[3].querySelector('.tag').textContent.trim();const ok=r.innerText.toLowerCase().includes(search.value.trim().toLowerCase())&&(!status.value||s===status.value);r.hidden=!ok;if(ok)n++;});document.getElementById('library-count').textContent=n+'件';}rows.forEach(r=>r.querySelector('button').addEventListener('click',()=>{const tag=r.cells[3].querySelector('.tag');const stopped=tag.textContent.trim()==='停止';tag.textContent=stopped?'有効':'停止';tag.className=stopped?'tag ok':'tag danger';r.querySelector('button').textContent=stopped?'権限を停止':'権限を再開';filter();}));search.addEventListener('input',filter);status.addEventListener('change',filter);filter();})();</script>
+<footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
+</main>
+</div>
+</body>
+</html>
