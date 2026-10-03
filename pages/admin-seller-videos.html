@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販売者の出品動画管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html" class="active" aria-current="page">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">SELLER MANAGEMENT / CONTENT</div><h1 class="title">出品動画管理</h1><p class="lead">販売者が登録した動画の公開状態、審査状況、対応履歴を確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
+</header>
+<p class="preview-note">画面確認用のサンプルデータです。審査・公開状態の操作は画面内だけに反映され、商品公開や配信停止など実データへの変更は行いません。</p>
+<section class="queue">
+  <div class="queue-card"><span>審査待ち</span><strong id="pending-count">2 <em>件</em></strong></div>
+  <div class="queue-card"><span>公開中</span><strong id="published-count">3 <em>件</em></strong></div>
+  <div class="queue-card"><span>修正依頼</span><strong id="changes-count">1 <em>件</em></strong></div>
+  <div class="queue-card"><span>停止中</span><strong id="blocked-count">1 <em>件</em></strong></div>
+</section>
+<section class="section">
+  <div class="section-head"><div><h2>出品動画一覧</h2><p>動画名・販売者名・公開状態で絞り込み</p></div><a class="btn" href="/pages/admin-seller-detail.html">販売者詳細を見る</a></div>
+  <div class="admin-filterbar">
+    <label>動画・販売者を検索<input id="video-search" type="search" placeholder="動画名・販売者名"></label>
+    <label>公開・審査状態<select id="video-status"><option value="">すべて</option><option>審査待ち</option><option>公開中</option><option>修正依頼</option><option>却下</option><option>停止中</option></select></label>
+    <span id="video-count" class="muted">7件</span>
+  </div>
+  <div class="panel" style="overflow:auto"><table class="table" id="video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>申請・更新日</th><th>状態</th><th>審査操作</th></tr></thead><tbody>
+    <tr data-status="公開中"><td><strong>THE LAST SIGNAL</strong><small>Documentary / 4K</small></td><td>Aki Studio</td><td>¥2,980</td><td>2026.09.28</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
+    <tr data-status="公開中"><td><strong>Tokyo After Hours</strong><small>Short Film / 4K</small></td><td>KEN FILMS</td><td>¥1,980</td><td>2026.09.26</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
+    <tr data-status="審査待ち"><td><strong>Build Your Brand</strong><small>Brand Film / 1080p</small></td><td>FRAME LAB</td><td>¥2,480</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="changes">修正依頼</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="公開中"><td><strong>BLUE HORIZON</strong><small>Documentary / 4K</small></td><td>NORTH COAST</td><td>¥1,680</td><td>2026.09.22</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
+    <tr data-status="修正依頼"><td><strong>Quiet Morning</strong><small>Ambient / 4K</small></td><td>Aki Studio</td><td>¥1,280</td><td>2026.10.01</td><td><span class="tag warn">修正依頼</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査待ち"><td><strong>City Texture</strong><small>Stock Footage / 4K</small></td><td>KEN FILMS</td><td>¥980</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="changes">修正依頼</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="停止中"><td><strong>Build Your Brand — Cut 1</strong><small>Brand Film / 1080p</small></td><td>FRAME LAB</td><td>¥1,980</td><td>2026.09.18</td><td><span class="tag warn">停止中</span></td><td><button class="btn small" data-action="restore">再審査へ</button></td></tr>
+  </tbody></table></div>
+</section>
+<section class="section two">
+  <div class="panel"><div class="panel-head"><strong>審査時の確認項目</strong><span>REVIEW CHECKLIST</span></div><div class="rows">
+    <div class="row"><div><strong>作品情報</strong><small>タイトル、説明文、価格、カテゴリの整合性</small></div></div>
+    <div class="row"><div><strong>動画・サムネイル</strong><small>再生品質、サムネイル、登録内容の一致</small></div></div>
+    <div class="row"><div><strong>権利・報告対応</strong><small>権利侵害の申告、禁止コンテンツ、既存の対応履歴</small></div></div>
+  </div></div>
+  <div class="panel"><div class="panel-head"><strong>審査状態</strong><span>STATUS GUIDE</span></div><div class="rows">
+    <div class="row"><div><strong>審査待ち</strong><small>新規審査が必要</small></div><span class="tag warn">対応</span></div>
+    <div class="row"><div><strong>修正依頼</strong><small>販売者による修正・再提出待ち</small></div><span class="tag warn">保留</span></div>
+    <div class="row"><div><strong>公開中</strong><small>通常販売中。問題がある場合は停止を検討</small></div><span class="tag ok">公開</span></div>
+  </div></div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　CONTENT MODERATION</footer>
+</main></div>
+<script>
+(function(){
+var table=document.getElementById('video-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('video-search'),status=document.getElementById('video-status');
+function refresh(){
+ var q=search.value.trim().toLowerCase(),visible=0,counts={'審査待ち':0,'公開中':0,'修正依頼':0,'却下':0,'停止中':0};
+ rows.forEach(function(row){var current=row.querySelector('.tag').textContent.trim();counts[current]=(counts[current]||0)+1;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)visible++;});
+ document.getElementById('video-count').textContent=visible+'件';
+ document.getElementById('pending-count').innerHTML=(counts['審査待ち']||0)+' <em>件</em>';document.getElementById('published-count').innerHTML=(counts['公開中']||0)+' <em>件</em>';document.getElementById('changes-count').innerHTML=(counts['修正依頼']||0)+' <em>件</em>';document.getElementById('blocked-count').innerHTML=(counts['停止中']||0)+' <em>件</em>';
+}
+rows.forEach(function(row){row.querySelectorAll('button[data-action]').forEach(function(button){button.addEventListener('click',function(){var action=button.dataset.action,tag=row.querySelector('.tag'),target=tag.textContent.trim();if(action==='approve')target='公開中';if(action==='changes')target='修正依頼';if(action==='reject')target='却下';if(action==='block')target='停止中';if(action==='restore')target='審査待ち';tag.textContent=target;tag.className='tag '+(target==='公開中'?'ok':'warn');row.dataset.status=target;var cell=row.cells[5];cell.innerHTML='';var next=document.createElement('button');next.type='button';next.className='btn small';if(target==='公開中'){next.textContent='停止';next.dataset.action='block';}else if(target==='停止中'){next.textContent='再審査へ';next.dataset.action='restore';}else if(target==='審査待ち'){next.textContent='承認';next.dataset.action='approve';cell.appendChild(next);var changes=document.createElement('button');changes.type='button';changes.className='btn small';changes.textContent='修正依頼';changes.dataset.action='changes';cell.append(' ',changes);next.addEventListener('click',function(){tag.textContent='公開中';tag.className='tag ok';row.dataset.status='公開中';refresh();});changes.addEventListener('click',function(){tag.textContent='修正依頼';tag.className='tag warn';row.dataset.status='修正依頼';refresh();});refresh();return;}else{next.textContent='承認';next.dataset.action='approve';}cell.appendChild(next);next.addEventListener('click',function(){tag.textContent='公開中';tag.className='tag ok';row.dataset.status='公開中';refresh();});refresh();});});});
+search.addEventListener('input',refresh);status.addEventListener('change',refresh);refresh();
+})();
+</script>
+</body>
+</html>
