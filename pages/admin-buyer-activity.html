@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>お気に入り・利用状況 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html" class="active" aria-current="page">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">BUYER MANAGEMENT / ACTIVITY</div><h1 class="title">お気に入り・利用状況</h1><p class="lead">お気に入り登録と最近の利用履歴を確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
+</header>
+
+<p class="preview-note">画面確認用のサンプル情報です。閲覧履歴は表示例であり、個人の実際の行動データではありません。</p>
+<section class="section two">
+<div class="panel"><div class="panel-head"><strong>お気に入り登録</strong><span>FAVORITES</span></div>
+<div class="admin-filterbar"><label>お気に入りを検索<input id="favorite-search" type="search" placeholder="作品名・購入者"></label></div>
+<table class="table" id="favorite-table"><thead><tr><th>作品</th><th>購入者</th><th>登録日</th><th>状態</th></tr></thead><tbody>
+<tr><td><strong>海辺のシネマティック映像</strong><small>VID-2048</small></td><td>buyer@example.com</td><td>2026.10.02</td><td><span class="tag ok">登録中</span></td></tr>
+<tr><td><strong>街の風景・4Kコレクション</strong><small>VID-2011</small></td><td>member@example.com</td><td>2026.10.01</td><td><span class="tag ok">登録中</span></td></tr>
+<tr><td><strong>自然風景ドローン映像</strong><small>VID-1982</small></td><td>studio@example.com</td><td>2026.09.29</td><td><span class="tag ok">登録中</span></td></tr>
+</tbody></table></div>
+<div class="panel"><div class="panel-head"><strong>最近の利用履歴</strong><span>RECENT ACTIVITY</span></div>
+<div class="admin-filterbar"><label>履歴を検索<input id="activity-search" type="search" placeholder="購入者・操作内容"></label></div>
+<table class="table" id="activity-table"><thead><tr><th>日時</th><th>購入者</th><th>アクション</th></tr></thead><tbody>
+<tr><td>10/02 21:18</td><td>buyer@example.com</td><td>ライブラリを表示</td></tr>
+<tr><td>10/02 21:10</td><td>buyer@example.com</td><td>動画を購入</td></tr>
+<tr><td>10/02 19:42</td><td>member@example.com</td><td>お気に入りに追加</td></tr>
+<tr><td>10/01 16:20</td><td>buyer@example.com</td><td>購入履歴を表示</td></tr>
+</tbody></table></div>
+</section>
+<script>(function(){[['favorite-search','favorite-table'],['activity-search','activity-table']].forEach(([inputId,tableId])=>{const input=document.getElementById(inputId),rows=[...document.querySelectorAll('#'+tableId+' tbody tr')];input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();rows.forEach(r=>r.hidden=!r.innerText.toLowerCase().includes(q));});});})();</script>
+<footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
+</main>
+</div>
+</body>
+</html>
