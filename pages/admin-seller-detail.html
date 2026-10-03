@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販売者詳細 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html" class="active" aria-current="page">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">SELLER MANAGEMENT / ACCOUNT</div><h1 class="title">販売者詳細</h1><p class="lead">販売者の公開プロフィール、登録情報、出品・売上状況をまとめて確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
+</header>
+<p class="preview-note">画面確認用のサンプルデータです。個人情報・売上・出品情報は実データではありません。アカウント情報の変更や通知は行いません。</p>
+<section class="section">
+  <div class="section-head"><div><h2>販売者一覧</h2><p>対象の販売者を選択して詳細を確認</p></div><span class="muted">サンプル 4件</span></div>
+  <div class="admin-filterbar">
+    <label>販売者を検索<input id="seller-search" type="search" placeholder="販売者名・メールアドレス"></label>
+    <label>状態<select id="seller-status"><option value="">すべて</option><option>販売中</option><option>本人確認待ち</option><option>確認済み</option><option>利用停止</option></select></label>
+    <span id="seller-count" class="muted">4件</span>
+  </div>
+  <div class="panel" style="overflow:auto"><table class="table" id="seller-table"><thead><tr><th>販売者</th><th>登録日</th><th>本人確認</th><th>アカウント</th><th>出品数</th><th>詳細</th></tr></thead><tbody>
+    <tr data-status="確認済み" data-seller="aki"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>2026.06.12</td><td><span class="tag ok">確認済み</span></td><td><span class="tag ok">販売中</span></td><td>12</td><td><button class="btn small" data-select="aki">詳細を見る</button></td></tr>
+    <tr data-status="本人確認待ち" data-seller="ken"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>2026.08.03</td><td><span class="tag warn">本人確認待ち</span></td><td><span class="tag ok">販売中</span></td><td>8</td><td><button class="btn small" data-select="ken">詳細を見る</button></td></tr>
+    <tr data-status="確認済み" data-seller="frame"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>2026.09.15</td><td><span class="tag ok">確認済み</span></td><td><span class="tag warn">利用停止</span></td><td>3</td><td><button class="btn small" data-select="frame">詳細を見る</button></td></tr>
+    <tr data-status="確認済み" data-seller="north"><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td>2026.04.21</td><td><span class="tag ok">確認済み</span></td><td><span class="tag ok">販売中</span></td><td>15</td><td><button class="btn small" data-select="north">詳細を見る</button></td></tr>
+  </tbody></table></div>
+</section>
+<section class="section" id="seller-detail">
+  <div class="section-head"><div><h2 id="detail-name">Aki Studio</h2><p id="detail-subtitle">販売者ID：S-10024 ・ 登録日：2026.06.12</p></div><span id="detail-state" class="tag ok">販売中</span></div>
+  <div class="metrics">
+    <div class="metric"><span>公開中の動画</span><strong id="detail-videos">12</strong><small>登録コンテンツ</small></div>
+    <div class="metric"><span>累計販売件数</span><strong id="detail-sales">184</strong><small>購入完了した販売</small></div>
+    <div class="metric"><span>累計売上</span><strong id="detail-revenue">¥428,600</strong><small>サンプル集計</small></div>
+    <div class="metric"><span>出金可能額</span><strong id="detail-available">¥86,400</strong><small>申請前の参考残高</small></div>
+  </div>
+  <div class="section two">
+    <div class="panel"><div class="panel-head"><strong>登録・公開プロフィール</strong><span>PROFILE</span></div><div class="rows">
+      <div class="row"><div><strong>表示名</strong><small id="profile-display">Aki Studio</small></div></div>
+      <div class="row"><div><strong>登録メールアドレス</strong><small id="profile-email">aki@example.com</small></div></div>
+      <div class="row"><div><strong>法的氏名</strong><small id="profile-legal">非表示サンプル</small></div></div>
+      <div class="row"><div><strong>登録国</strong><small id="profile-country">日本（JP）</small></div></div>
+      <div class="row"><div><strong>本人確認</strong><small id="profile-verification">確認済み</small></div><a class="row-action" href="/pages/admin-seller-review.html#verification">審査を確認 →</a></div>
+    </div></div>
+    <div class="panel"><div class="panel-head"><strong>管理メニュー</strong><span>OPERATIONS</span></div><div class="rows">
+      <div class="row"><div><strong>出品動画</strong><small>公開状態・審査状況・停止履歴を確認</small></div><a class="row-action" href="/pages/admin-seller-videos.html">動画管理 →</a></div>
+      <div class="row"><div><strong>出金申請</strong><small>申請額・処理状況・履歴を確認</small></div><a class="row-action" href="/pages/admin-seller-payouts.html">出金管理 →</a></div>
+      <div class="row"><div><strong>申請・本人確認</strong><small>申請情報・審査メモ・確認履歴</small></div><a class="row-action" href="/pages/admin-seller-review.html">審査画面 →</a></div>
+      <div class="row"><div><strong>問い合わせ</strong><small>販売者との連絡・対応履歴</small></div><a class="row-action" href="/pages/admin-inquiries.html">問い合わせ管理 →</a></div>
+    </div></div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div><h2>最近の販売実績</h2><p>販売者の売上状況を確認するためのサンプル明細</p></div></div>
+    <div class="panel" style="overflow:auto"><table class="table"><thead><tr><th>作品</th><th>販売数</th><th>売上</th><th>状態</th></tr></thead><tbody id="product-summary">
+      <tr><td>THE LAST SIGNAL</td><td>48</td><td>¥143,040</td><td><span class="tag ok">公開中</span></td></tr>
+      <tr><td>Tokyo After Hours</td><td>31</td><td>¥61,380</td><td><span class="tag ok">公開中</span></td></tr>
+      <tr><td>Quiet Morning</td><td>12</td><td>¥23,760</td><td><span class="tag warn">審査待ち</span></td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　SELLER ACCOUNT</footer>
+</main></div>
+<script>
+(function(){
+var profiles={
+aki:{name:'Aki Studio',email:'aki@example.com',id:'S-10024',date:'2026.06.12',legal:'非表示サンプル',country:'日本（JP）',verification:'確認済み',state:'販売中',videos:'12',sales:'184',revenue:'¥428,600',available:'¥86,400',products:[['THE LAST SIGNAL','48','¥143,040','公開中'],['Tokyo After Hours','31','¥61,380','公開中'],['Quiet Morning','12','¥23,760','審査待ち']]},
+ken:{name:'KEN FILMS',email:'ken@example.com',id:'S-10031',date:'2026.08.03',legal:'非表示サンプル',country:'日本（JP）',verification:'本人確認待ち',state:'販売中',videos:'8',sales:'96',revenue:'¥218,400',available:'¥42,800',products:[['Tokyo After Hours','31','¥61,380','公開中'],['Night Crossing','18','¥35,640','公開中'],['City Texture','0','¥0','審査待ち']]},
+frame:{name:'FRAME LAB',email:'frame@example.com',id:'S-10039',date:'2026.09.15',legal:'非表示サンプル',country:'日本（JP）',verification:'確認済み',state:'利用停止',videos:'3',sales:'21',revenue:'¥51,980',available:'¥0',products:[['Build Your Brand','12','¥29,760','停止中'],['Studio Light','9','¥22,220','停止中']]},
+north:{name:'NORTH COAST',email:'north@example.com',id:'S-10012',date:'2026.04.21',legal:'非表示サンプル',country:'日本（JP）',verification:'確認済み',state:'販売中',videos:'15',sales:'242',revenue:'¥612,800',available:'¥104,500',products:[['BLUE HORIZON','71','¥119,280','公開中'],['Coastal Lines','43','¥72,240','公開中'],['Winter Shore','18','¥30,240','公開中']]}
+};
+function selectSeller(key){
+var p=profiles[key];if(!p)return;
+document.getElementById('detail-name').textContent=p.name;
+document.getElementById('detail-subtitle').textContent='販売者ID：'+p.id+' ・ 登録日：'+p.date;
+var state=document.getElementById('detail-state');state.textContent=p.state;state.className='tag '+(p.state==='販売中'?'ok':'warn');
+document.getElementById('detail-videos').textContent=p.videos;document.getElementById('detail-sales').textContent=p.sales;document.getElementById('detail-revenue').textContent=p.revenue;document.getElementById('detail-available').textContent=p.available;
+document.getElementById('profile-display').textContent=p.name;document.getElementById('profile-email').textContent=p.email;document.getElementById('profile-legal').textContent=p.legal;document.getElementById('profile-country').textContent=p.country;document.getElementById('profile-verification').textContent=p.verification;
+var body=document.getElementById('product-summary');body.innerHTML='';p.products.forEach(function(item){var tr=document.createElement('tr');tr.innerHTML='<td></td><td></td><td></td><td><span class="tag"></span></td>';tr.cells[0].textContent=item[0];tr.cells[1].textContent=item[1];tr.cells[2].textContent=item[2];var tag=tr.cells[3].querySelector('.tag');tag.textContent=item[3];tag.className='tag '+(item[3]==='公開中'?'ok':'warn');body.appendChild(tr);});
+document.getElementById('seller-detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+var table=document.getElementById('seller-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('seller-search'),status=document.getElementById('seller-status');
+function filter(){var q=search.value.trim().toLowerCase(),n=0;rows.forEach(function(row){var match=row.innerText.toLowerCase().includes(q)&&(!status.value||row.dataset.status===status.value);row.hidden=!match;if(match)n++;});document.getElementById('seller-count').textContent=n+'件';}
+table.querySelectorAll('[data-select]').forEach(function(button){button.addEventListener('click',function(){selectSeller(button.dataset.select);});});
+search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
+})();
+</script>
+</body>
+</html>
