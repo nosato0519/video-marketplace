@@ -995,7 +995,6 @@ footer{border-radius:0;background:#07090c}
 .library-progress-value.is-progress-42{width:42%}
 .buyer-order-summary{margin-top:18px}
 .buyer-action-row{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
-.cart-item-actions{display:flex;flex-direction:column;align-items:flex-end}
 .cart-remove-link,.cart-clear-link{display:inline-flex;align-items:center;justify-content:center;border:1px solid #39414a;border-radius:4px;background:#151a20;color:#aeb7c1;text-decoration:none;font-family:inherit;font-size:10px;line-height:1.2;white-space:nowrap}
 .cart-remove-link{margin-top:7px;padding:7px 11px}
 .cart-clear-link{padding:10px 14px;background:transparent}
