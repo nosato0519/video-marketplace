@@ -52,6 +52,23 @@
         color: var(--accent);
       }
     </style>
+<style>
+.vm-announcements{padding:34px 0;border-top:1px solid #ffffff10;border-bottom:1px solid #ffffff10;background:#090c10}
+.vm-announcements-inner{width:min(1180px,calc(100% - 48px));margin:auto}
+.vm-announcements-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:16px}
+.vm-announcements-head span{font-size:9px;letter-spacing:2px;color:var(--accent)}
+.vm-announcements-head h2{margin:5px 0 0;font-size:26px;letter-spacing:-1px}
+.vm-announcements-head a{color:#aeb8c2;text-decoration:none;font-size:10px}
+.vm-announcements-head a b{color:var(--accent)}
+.vm-announcements-list{display:grid;gap:0}
+.vm-announcement-item{display:grid;grid-template-columns:100px 1fr auto;gap:18px;align-items:center;padding:14px 0;border-top:1px solid #ffffff10;text-decoration:none;color:#f2f4f6}
+.vm-announcement-item:first-child{border-top:0}
+.vm-announcement-date{font-size:9px;color:#77828d;letter-spacing:.4px}
+.vm-announcement-main strong{display:block;font-size:12px}
+.vm-announcement-main span{display:block;margin-top:4px;color:#7f8a95;font-size:9px}
+.vm-announcement-arrow{color:var(--accent);font-size:13px}
+@media(max-width:620px){.vm-announcements-inner{width:min(100% - 32px,1180px)}.vm-announcement-item{grid-template-columns:80px 1fr}.vm-announcement-arrow{display:none}.vm-announcement-main span{display:none}}
+</style>
 </head>
   <body>
     <header class="nav">
@@ -116,6 +133,12 @@
             </div>
           </div>
           <div class="mosaic-tag">ONE MARKETPLACE / MANY CREATORS</div>
+        </div>
+      </section>
+      <section class="vm-announcements" id="announcements">
+        <div class="vm-announcements-inner">
+          <div class="vm-announcements-head"><div><span>NEWS</span><h2>お知らせ</h2></div><a href="/pages/announcements.html">すべて見る <b>→</b></a></div>
+          <div class="vm-announcements-list" id="vm-announcement-list"></div>
         </div>
       </section>
       <section class="video-showcase"><div class="video-showcase-inner"><div class="video-showcase-head"><div><div class="video-showcase-kicker">CURATED VIDEO COLLECTION</div><h2>作品との出会いを、<br>もっと自由に。</h2></div><p class="video-showcase-copy">ひとつの作品だけではなく、いろんなクリエイターの映像を眺めながら、次に観たい一本を見つける。</p></div><div class="video-showcase-grid"><a class="showcase-card s1"><span class="showcase-index">01</span><div class="showcase-bg"></div><span class="showcase-label">THE LAST SIGNAL</span></a><a class="showcase-card s2"><span class="showcase-index">02</span><div class="showcase-bg"></div><span class="showcase-label">Tokyo After Hours</span></a><a class="showcase-card s3"><span class="showcase-index">03</span><div class="showcase-bg"></div><span class="showcase-label">Build Your Brand</span></a><a class="showcase-card s4"><span class="showcase-index">04</span><div class="showcase-bg"></div><span class="showcase-label">BLUE HORIZON</span></a><a class="showcase-card s5"><span class="showcase-index">05</span><div class="showcase-bg"></div><span class="showcase-label">Mastering Motion</span></a></div><div class="video-showcase-note"><span>DISCOVER / WATCH / PURCHASE</span><span>VIDEO MARKETPLACE</span></div></div></section><section class="trustbar">
@@ -604,5 +627,23 @@
     }catch(e){}
   })();
   </script>
+<script>
+(function(){
+const KEY='vm-demo-announcements';
+const seed=[
+{id:'a1',title:'VIDEO MARKETPLACEへようこそ',category:'お知らせ',status:'published',date:'2026-10-01',body:'VIDEO MARKETPLACEのサービスを開始しました。\n\n新しい映像作品との出会いをお楽しみください。'},
+{id:'a2',title:'新しい作品を追加しました',category:'サービス',status:'published',date:'2026-09-28',body:'新しいクリエイターの作品を追加しました。\n\nぜひ作品一覧からチェックしてください。'}
+];
+let data=seed;
+try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x))data=x;}catch(e){}
+const list=document.getElementById('vm-announcement-list');if(!list)return;
+data.filter(x=>x.status==='published').sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3).forEach(x=>{
+const a=document.createElement('a');a.className='vm-announcement-item';a.href='/pages/announcements.html?id='+encodeURIComponent(x.id);
+a.innerHTML='<time class="vm-announcement-date"></time><div class="vm-announcement-main"><strong></strong><span></span></div><b class="vm-announcement-arrow">→</b>';
+a.querySelector('time').textContent=x.date||'';a.querySelector('strong').textContent=x.title;a.querySelector('span').textContent=x.category;list.append(a);
+});
+if(!list.children.length){list.innerHTML='<p style="color:#77828d;font-size:10px">現在、お知らせはありません。</p>';}
+})();
+</script>
   </body>
 </html>
