@@ -1005,3 +1005,5 @@ footer{border-radius:0;background:#07090c}
 .checkout-confirmation{margin-top:18px;padding:20px;border:1px solid #252b33;background:#11161c}
 .checkout-total{display:flex;justify-content:space-between;gap:20px;align-items:center}
 .checkout-total strong{font-size:24px}
+
+.buyer-summary-spaced{margin-top:28px}
