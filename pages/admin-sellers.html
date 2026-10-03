@@ -17,61 +17,41 @@
     <a href="/pages/admin-buyers.html">購入者管理</a>
     <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
     <a href="/pages/admin-pages.html">ページ編集</a>
-
     <a href="/pages/admin-settings.html">運営設定</a>
   </nav>
-  <div class="sidebar-bottom">
-    <div class="health"><span>System health</span><b>● Operational</b></div>
-    <a class="back" href="/">← TOPへ戻る</a>
-  </div>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
 </aside>
 <main class="main">
 <header class="topbar">
-  <div><div class="eyebrow">ADMIN / SELLER MANAGEMENT</div><h1 class="title">販売者管理</h1><p class="lead">申請・出金・退会対応と、販売者・出品動画の実績をまとめて管理します。</p></div>
+  <div><div class="eyebrow">ADMIN / SELLER MANAGEMENT</div><h1 class="title">販売者管理</h1><p class="lead">販売者の登録・審査・出品・売上に関する管理ページへ移動できます。</p></div>
   <div class="top-actions"><a class="btn" href="/">サイトを見る</a></div>
 </header>
-
-<section class="queue" aria-label="申請・対応状況">
+<p class="preview-note">以下は画面確認用のサンプル情報です。各ページの操作は画面内の表示のみを変更し、実データや外部処理には接続していません。</p>
+<section class="queue" aria-label="対応状況">
   <a class="queue-card" href="/pages/admin-seller-review.html#applications"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
   <a class="queue-card" href="/pages/admin-seller-review.html#verification"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
   <a class="queue-card" href="/pages/admin-seller-payouts.html"><span>出金申請</span><strong>7 <em>要処理</em></strong></a>
-  <a class="queue-card" href="#resignation-requests"><span>退会申請</span><strong>3 <em>要確認</em></strong></a>
+  <a class="queue-card" href="#seller-tools"><span>管理メニュー</span><strong>5 <em>専用ページ</em></strong></a>
 </section>
-<section class="section" aria-label="運営実績">
-  <div class="section-head"><div><h2>販売・出品実績</h2><p>画面イメージ用のサンプル値。実データとの連携は後の工程で行います。</p></div></div>
-  <div class="metrics">
-    <div class="metric"><span>総販売数</span><strong>1,284</strong><small>累計販売件数</small></div>
-    <div class="metric"><span>今月の販売者増加数</span><strong>+18</strong><small>今月の新規登録</small></div>
-    <div class="metric"><span>総出品動画数</span><strong>142</strong><small>登録動画数</small></div>
-    <div class="metric"><span>今月の出品動画増加数</span><strong>+24</strong><small>今月の新規出品</small></div>
+<section class="section" id="seller-tools">
+  <div class="section-head"><div><h2>管理メニュー</h2><p>確認したい内容を選ぶと、専用ページで詳細を確認できます。</p></div></div>
+  <div class="cards">
+    <article class="feature"><h3>販売者一覧・アカウント</h3><p>販売者を検索し、登録日・本人確認・アカウント状態を確認。各販売者の詳細情報へ移動します。</p><a href="/pages/admin-seller-detail.html">販売者一覧を開く →</a></article>
+    <article class="feature"><h3>販売者登録審査</h3><p>新規申請、登録情報、本人確認、審査状況と確認メモを個別に確認します。</p><a href="/pages/admin-seller-review.html#applications">登録審査を開く →</a></article>
+    <article class="feature"><h3>出品動画管理</h3><p>動画ごとの価格、公開・審査状態を確認し、画面上で対応操作を確認できます。</p><a href="/pages/admin-seller-videos.html">動画管理を開く →</a></article>
+    <article class="feature"><h3>売上・出金管理</h3><p>出金申請額、申請日、処理ステータスと各段階の操作を確認します。</p><a href="/pages/admin-seller-payouts.html">出金管理を開く →</a></article>
+    <article class="feature"><h3>問い合わせ対応</h3><p>販売者からの問い合わせと、対応状況を専用画面で確認します。</p><a href="/pages/admin-inquiries.html">問い合わせ管理を開く →</a></article>
   </div>
 </section>
-<section class="section two">
-<div class="panel" id="seller-review"><div class="panel-head"><strong>販売者申請・本人確認</strong><span>SELLER REVIEW</span></div><div class="rows">
-<div class="row"><div><strong>新規販売者申請</strong><small>表示名・法的氏名・国・申請メッセージ</small></div><span class="tag warn">12件</span><a class="row-action" href="/pages/admin-seller-review.html#applications">申請を確認 →</a></div>
-<div class="row"><div><strong>本人確認・プロフィール</strong><small>認証状況・審査メモ・再提出状況</small></div><span class="tag warn">8件</span><a class="row-action" href="/pages/admin-seller-review.html#verification">審査を確認 →</a></div>
-<div class="row"><div><strong>販売者アカウント</strong><small>登録情報・公開状態・利用状況</small></div><span class="tag">管理</span><a class="row-action" href="/pages/admin-seller-detail.html">詳細を確認 →</a></div>
-</div></div>
-<div class="panel" id="payout-requests"><div class="panel-head"><strong>出金申請</strong><a class="row-action" href="/pages/admin-seller-payouts.html">出金管理を開く →</a></div><div class="rows">
-<div class="row"><div><strong>Aki Studio</strong><small>¥128,000 ・ 2026.09.30</small></div><span class="tag warn">確認中</span></div>
-<div class="row"><div><strong>KEN FILMS</strong><small>¥86,000 ・ 2026.09.29</small></div><span class="tag">処理中</span></div>
-<div class="row"><div><strong>NORTH COAST</strong><small>¥54,000 ・ 2026.09.28</small></div><span class="tag ok">支払済み</span></div>
-</div></div>
+<section class="section">
+  <div class="section-head"><div><h2>管理の流れ</h2><p>情報を一覧に詰め込まず、対象ごとのページで詳しく確認する構成です。</p></div></div>
+  <div class="panel"><div class="rows">
+    <div class="row"><div><strong>01　申請・本人確認</strong><small>申請内容を確認し、審査ページで確認事項やメモを整理</small></div><a class="row-action" href="/pages/admin-seller-review.html">審査ページ →</a></div>
+    <div class="row"><div><strong>02　販売者アカウント</strong><small>一覧から対象を選び、プロフィール・実績・関連管理ページを確認</small></div><a class="row-action" href="/pages/admin-seller-detail.html">販売者一覧 →</a></div>
+    <div class="row"><div><strong>03　動画・出金の確認</strong><small>動画と出金をそれぞれ独立したページで管理</small></div><a class="row-action" href="/pages/admin-seller-videos.html">動画管理 →</a></div>
+  </div></div>
 </section>
-<section class="section" id="resignation-requests"><div class="section-head"><div><h2>退会申請</h2><p>退会処理方式とメール通知は「運営設定」で指定します。以下はサンプルデータです。</p></div><a class="btn" href="/pages/admin-settings.html#resignation-policy">退会処理の設定</a></div>
-<div class="panel"><div class="rows">
-<div class="row"><div><strong>FRAME LAB</strong><small>申請日：2026.10.01 ・ 未処理の出金なし（サンプル）</small></div><span class="tag warn">確認待ち</span><span class="row-action">条件確認</span></div>
-<div class="row"><div><strong>Studio M</strong><small>申請日：2026.09.30 ・ 売上残高を確認（サンプル）</small></div><span class="tag warn">保留確認</span><span class="row-action">条件確認</span></div>
-<div class="row"><div><strong>Northlight Works</strong><small>申請日：2026.09.29 ・ 未処理事項なし（サンプル）</small></div><span class="tag">設定に従って処理</span><span class="row-action">状況確認</span></div>
-</div></div></section>
-<section class="section"><div class="section-head"><div><h2>出品動画の管理</h2><p>販売者が登録した動画の公開状態・審査状況を確認します。</p></div><a class="btn" href="/pages/admin-seller-videos.html">動画管理を開く</a></div>
-<div class="panel"><div class="rows">
-<div class="row"><div><strong>THE LAST SIGNAL</strong><small>Aki Studio ・ ¥2,980</small></div><span class="tag ok">公開中</span></div>
-<div class="row"><div><strong>Tokyo After Hours</strong><small>KEN FILMS ・ ¥1,980</small></div><span class="tag ok">公開中</span></div>
-<div class="row"><div><strong>Build Your Brand</strong><small>FRAME LAB ・ ¥2,480</small></div><span class="tag warn">審査待ち</span></div>
-<div class="row"><div><strong>BLUE HORIZON</strong><small>NORTH COAST ・ ¥1,680</small></div><span class="tag ok">公開中</span></div>
-</div></div></section>
-<footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
+<footer class="footer">ADMIN ACCESS　•　SELLER MANAGEMENT</footer>
 </main>
 </div>
 </body>
