@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>お知らせ | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/styles.css?v=production-top">
+<style>
+.news-page{max-width:900px;margin:0 auto;padding:110px 24px 80px}.news-kicker{font-size:10px;letter-spacing:2px;color:#d9b45f}.news-page h1{font-size:42px;letter-spacing:-2px;margin:10px 0 40px}.news-list{display:grid;gap:0}.news-card{display:block;padding:22px 0;border-top:1px solid #ffffff14;color:#f4f4f5;text-decoration:none}.news-card:hover strong{color:#d9b45f}.news-meta{display:flex;gap:12px;color:#77828d;font-size:10px;margin-bottom:8px}.news-card strong{font-size:18px;transition:color .2s}.news-card p{color:#8e98a3;font-size:11px;line-height:1.8;margin:8px 0 0;white-space:pre-wrap}.news-detail{display:none}.news-detail h1{margin-bottom:12px}.news-body{white-space:pre-wrap;color:#aeb7c0;font-size:13px;line-height:2.1}.back-link{display:inline-block;margin-top:30px;color:#d9b45f;text-decoration:none;font-size:11px}@media(max-width:620px){.news-page{padding-top:80px}.news-page h1{font-size:34px}}
+</style>
+</head>
+<body>
+<header class="nav">
+<a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+<div class="nav-right"><nav><a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a></nav></div>
+</header>
+<main class="news-page">
+<div id="list-view"><span class="news-kicker">NEWS</span><h1>お知らせ</h1><div id="news-list" class="news-list"></div></div>
+<article id="detail-view" class="news-detail"><span class="news-kicker">NEWS</span><h1 id="detail-title"></h1><div class="news-meta" id="detail-meta"></div><div class="news-body" id="detail-body"></div><a class="back-link" href="/pages/announcements.html">← お知らせ一覧へ戻る</a></article>
+</main>
+<script>
+(function(){
+const KEY='vm-demo-announcements';
+const seed=[
+{id:'a1',title:'VIDEO MARKETPLACEへようこそ',category:'お知らせ',status:'published',date:'2026-10-01',body:'VIDEO MARKETPLACEのサービスを開始しました。\n\n新しい映像作品との出会いをお楽しみください。'},
+{id:'a2',title:'新しい作品を追加しました',category:'サービス',status:'published',date:'2026-09-28',body:'新しいクリエイターの作品を追加しました。\n\nぜひ作品一覧からチェックしてください。'}
+];
+let data=seed;try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x))data=x;}catch(e){}
+data=data.filter(x=>x.status==='published').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+const params=new URLSearchParams(location.search),id=params.get('id');
+const list=document.getElementById('news-list');
+if(id){
+const x=data.find(v=>v.id===id);
+if(x){document.getElementById('list-view').style.display='none';document.getElementById('detail-view').style.display='block';document.getElementById('detail-title').textContent=x.title;document.getElementById('detail-meta').textContent=x.category+'　•　'+(x.date||'');document.getElementById('detail-body').textContent=x.body;}
+}
+if(document.getElementById('list-view').style.display!=='none'){
+if(!data.length){list.innerHTML='<p>現在、お知らせはありません。</p>';}else data.forEach(x=>{const a=document.createElement('a');a.className='news-card';a.href='?id='+encodeURIComponent(x.id);a.innerHTML='<div class="news-meta"><time></time><span></span></div><strong></strong><p></p>';a.querySelector('time').textContent=x.date||'';a.querySelector('span').textContent=x.category;a.querySelector('strong').textContent=x.title;a.querySelector('p').textContent=x.body.slice(0,100)+(x.body.length>100?'…':'');list.append(a);});
+}
+})();
+</script>
+</body></html>
