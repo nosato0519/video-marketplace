@@ -38,32 +38,26 @@
   <div class="metric"><span>ORDER VOLUME</span><strong>¥4,280,000</strong><small>今月の注文総額</small></div>
   <div class="metric"><span>SUPPORT CASES</span><strong>4</strong><small>確認が必要な問い合わせ</small></div>
 </div></section>
-<section class="section two">
-<div class="panel"><div class="panel-head"><strong>最近の注文</strong><span>ORDERS</span></div><div class="admin-filterbar"><label>注文・購入者を検索<input id="buyer-order-search" type="search" placeholder="注文番号・メールアドレス"></label><label>決済状態<select id="buyer-order-status"><option value="">すべて</option><option>支払済み</option><option>確認中</option><option>返金済み</option></select></label><span id="buyer-result-count" class="muted">3件</span></div>
-<table class="table" id="buyer-order-table"><thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead><tbody>
+<section class="section" id="buyer-tools">
+<div class="section-head"><div><h2>管理メニュー</h2><p>確認したい内容を選ぶと、専用ページで詳細を確認できます。</p></div></div>
+<div class="cards">
+<a class="feature" href="/pages/admin-buyer-detail.html"><h3>購入者一覧・アカウント</h3><p>購入者を検索し、登録日・アカウント状態・購入実績を確認。個別のアカウント詳細へ移動します。</p><span class="feature-action">購入者一覧を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-buyer-orders.html"><h3>購入履歴・注文管理</h3><p>注文番号、購入内容、決済状態を確認し、注文ごとの対応状況を整理します。</p><span class="feature-action">注文管理を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-buyer-library.html"><h3>ライブラリ・視聴権限</h3><p>購入済み動画と視聴権限を確認し、画面上で権限状態の操作を確認できます。</p><span class="feature-action">ライブラリを開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-buyer-activity.html"><h3>お気に入り・利用状況</h3><p>お気に入り登録や最近の利用履歴を確認し、購入者の利用状況を把握します。</p><span class="feature-action">利用状況を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-inquiries.html"><h3>問い合わせ・トラブル対応</h3><p>購入やアカウントに関する問い合わせを共通の問い合わせ管理画面で確認します。</p><span class="feature-action">問い合わせ管理を開く <span aria-hidden="true">→</span></span></a>
+</div>
+</section>
+<section class="section">
+<div class="section-head"><div><h2>最近の注文</h2><p>直近の購入状況を確認できます。</p></div><a class="btn" href="/pages/admin-buyer-orders.html">注文一覧へ</a></div>
+<div class="panel" style="overflow:auto"><table class="table" id="buyer-order-table"><thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead><tbody>
 <tr><td>#VM-1098</td><td>buyer@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,980</td></tr>
 <tr><td>#VM-1097</td><td>member@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥980</td></tr>
-<tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥2,400</td></tr>
+<tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag warn">確認中</span></td><td class="money">¥2,400</td></tr>
 </tbody></table></div>
-<div class="panel"><div class="panel-head"><strong>購入者への対応</strong><span>BUYER SUPPORT</span></div><div class="rows">
-<div class="row"><div><strong>アカウント情報</strong><small>登録情報・認証・利用状態</small></div><span class="row-action">確認 →</span></div>
-<div class="row"><div><strong>購入履歴・注文詳細</strong><small>注文状況・購入内容・決済状態</small></div><span class="row-action">確認 →</span></div>
-<div class="row"><div><strong>ライブラリ</strong><small>購入済み動画・視聴権限</small></div><span class="row-action">確認 →</span></div>
-<div class="row"><div><strong>お気に入り・閲覧</strong><small>お気に入り登録・作品詳細</small></div><span class="row-action">確認 →</span></div>
-<div class="row"><div><strong>問い合わせ・トラブル</strong><small>購入やアカウントに関する対応</small></div><span class="tag warn">4件</span><span class="row-action">確認 →</span></div>
-</div></div>
 </section>
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-<script>
-(function(){
-const table=document.getElementById('buyer-order-table');if(!table)return;
-const rows=[...table.tBodies[0].rows],search=document.getElementById('buyer-order-search'),status=document.getElementById('buyer-order-status');
-function filter(){const q=search.value.trim().toLowerCase();let count=0;rows.forEach(row=>{const tag=row.cells[2].querySelector('.tag');const match=row.innerText.toLowerCase().includes(q)&&(!status.value||tag.textContent.trim()===status.value);row.hidden=!match;if(match)count++;});document.getElementById('buyer-result-count').textContent=count+'件';}
-search.addEventListener('input',filter);status.addEventListener('change',filter);
-rows.forEach(row=>{const cell=row.cells[2];const action=document.createElement('button');action.type='button';action.className='btn small buyer-order-action';action.textContent='返金確認';action.addEventListener('click',()=>{const current=cell.querySelector('.tag').textContent.trim();if(current==='返金済み'){alert('この注文は返金済みです。');return;}if(confirm('注文 '+row.cells[0].textContent.trim()+' の返金確認状態を画面上で切り替えますか？（実際の決済処理は行いません）')){cell.querySelector('.tag').textContent='返金済み';cell.querySelector('.tag').className='tag warn';filter();}});cell.append(' ',action);});
-filter();
-})();
-</script></body>
+</body>
 </html>
