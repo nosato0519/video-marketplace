@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>購入者一覧 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html" class="active" aria-current="page">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">BUYER MANAGEMENT / DIRECTORY</div><h1 class="title">購入者一覧・アカウント</h1><p class="lead">購入者を検索し、登録情報やアカウント状態を個別に確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
+</header>
+
+<p class="preview-note">画面確認用のサンプルデータです。アカウント状態の操作は画面内の表示のみを変更します。</p>
+<section class="section">
+<div class="section-head"><div><h2>登録購入者</h2><p>氏名・メールアドレス・アカウント状態で絞り込み</p></div><span class="muted">サンプル 6件</span></div>
+<div class="admin-filterbar"><label>購入者を検索<input id="buyer-search" type="search" placeholder="氏名・メールアドレス"></label><label>アカウント状態<select id="buyer-status"><option value="">すべて</option><option>利用中</option><option>確認中</option><option>一時停止</option></select></label><span id="buyer-count" class="muted">6件</span></div>
+<div class="panel" style="overflow:auto"><table class="table" id="buyer-table"><thead><tr><th>購入者</th><th>登録日</th><th>購入数</th><th>累計購入額</th><th>アカウント</th><th>詳細</th></tr></thead><tbody>
+<tr><td><strong>山田 玲奈</strong><small>buyer@example.com</small></td><td>2026.08.14</td><td>12</td><td class="money">¥18,420</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1028">詳細を見る</a></td></tr>
+<tr><td><strong>佐藤 健</strong><small>member@example.com</small></td><td>2026.07.29</td><td>7</td><td class="money">¥9,860</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1027">詳細を見る</a></td></tr>
+<tr><td><strong>Studio N</strong><small>studio@example.com</small></td><td>2026.07.18</td><td>3</td><td class="money">¥6,400</td><td><span class="tag warn">確認中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1026">詳細を見る</a></td></tr>
+<tr><td><strong>高橋 美咲</strong><small>misaki@example.com</small></td><td>2026.06.30</td><td>21</td><td class="money">¥32,780</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1025">詳細を見る</a></td></tr>
+<tr><td><strong>映像ラボ</strong><small>lab@example.com</small></td><td>2026.06.12</td><td>1</td><td class="money">¥980</td><td><span class="tag danger">一時停止</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1024">詳細を見る</a></td></tr>
+<tr><td><strong>田中 悠</strong><small>yu@example.com</small></td><td>2026.05.22</td><td>5</td><td class="money">¥7,200</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1023">詳細を見る</a></td></tr>
+</tbody></table></div>
+</section>
+<script>
+(function(){const table=document.getElementById('buyer-table');const rows=[...table.tBodies[0].rows];const search=document.getElementById('buyer-search');const status=document.getElementById('buyer-status');function filter(){const q=search.value.trim().toLowerCase();let n=0;rows.forEach(row=>{const state=row.cells[4].innerText.trim();const match=row.innerText.toLowerCase().includes(q)&&(!status.value||state.includes(status.value));row.hidden=!match;if(match)n++;});document.getElementById('buyer-count').textContent=n+'件';}search.addEventListener('input',filter);status.addEventListener('change',filter);filter();})();
+</script>
+<footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
+</main>
+</div>
+</body>
+</html>
