@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>購入履歴・注文管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html" class="active" aria-current="page">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">BUYER MANAGEMENT / ORDERS</div><h1 class="title">購入履歴・注文管理</h1><p class="lead">注文番号、購入者、決済状態を検索し、注文内容を確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
+</header>
+
+<p class="preview-note">サンプル注文を表示しています。返金確認ボタンは画面内の状態表示だけを切り替え、実際の返金処理は行いません。</p>
+<section class="queue"><div class="queue-card"><span>今月の注文</span><strong>1,086 <em>件</em></strong></div><div class="queue-card"><span>決済確認中</span><strong>3 <em>件</em></strong></div><div class="queue-card"><span>返金済み</span><strong>8 <em>件</em></strong></div><div class="queue-card"><span>注文総額</span><strong>¥4.28M</strong></div></section>
+<section class="section"><div class="section-head"><div><h2>注文一覧</h2><p>注文番号・購入者・決済状態で絞り込み</p></div></div>
+<div class="admin-filterbar"><label>注文を検索<input id="order-search" type="search" placeholder="注文番号・メール・作品名"></label><label>決済状態<select id="order-status"><option value="">すべて</option><option>支払済み</option><option>確認中</option><option>返金済み</option></select></label><span id="order-count" class="muted">6件</span></div>
+<div class="panel" style="overflow:auto"><table class="table" id="order-table"><thead><tr><th>注文番号 / 日時</th><th>購入者</th><th>作品</th><th>決済状態</th><th>金額</th><th>操作</th></tr></thead><tbody>
+<tr><td><strong>#VM-1098</strong><small>2026.10.02 21:10</small></td><td>buyer@example.com</td><td>シネマティック映像素材集</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,980</td><td><button class="btn small" type="button">詳細</button></td></tr>
+<tr><td><strong>#VM-1097</strong><small>2026.10.02 19:42</small></td><td>member@example.com</td><td>街の風景・4Kコレクション</td><td><span class="tag ok">支払済み</span></td><td class="money">¥980</td><td><button class="btn small" type="button">詳細</button></td></tr>
+<tr><td><strong>#VM-1096</strong><small>2026.10.02 18:05</small></td><td>studio@example.com</td><td>インタビュー映像パック</td><td><span class="tag warn">確認中</span></td><td class="money">¥2,400</td><td><button class="btn small" type="button">確認</button></td></tr>
+<tr><td><strong>#VM-1095</strong><small>2026.10.01 16:20</small></td><td>buyer@example.com</td><td>自然風景ドローン映像</td><td><span class="tag ok">支払済み</span></td><td class="money">¥3,200</td><td><button class="btn small" type="button">詳細</button></td></tr>
+<tr><td><strong>#VM-1094</strong><small>2026.10.01 13:02</small></td><td>lab@example.com</td><td>モーショングラフィックス入門</td><td><span class="tag warn">返金済み</span></td><td class="money">¥980</td><td><button class="btn small" type="button">詳細</button></td></tr>
+<tr><td><strong>#VM-1093</strong><small>2026.09.30 11:45</small></td><td>yu@example.com</td><td>都市の夜景・4K</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,500</td><td><button class="btn small" type="button">詳細</button></td></tr>
+</tbody></table></div></section>
+<script>(function(){const rows=[...document.querySelectorAll('#order-table tbody tr')],search=document.getElementById('order-search'),status=document.getElementById('order-status');function filter(){let n=0;rows.forEach(r=>{const state=r.cells[3].querySelector('.tag').textContent.trim();const ok=r.innerText.toLowerCase().includes(search.value.trim().toLowerCase())&&(!status.value||state===status.value);r.hidden=!ok;if(ok)n++;});document.getElementById('order-count').textContent=n+'件';}search.addEventListener('input',filter);status.addEventListener('change',filter);document.querySelectorAll('#order-table tbody button').forEach((b,i)=>b.addEventListener('click',()=>alert('注文 '+rows[i].cells[0].innerText.replace(/\s+/g,' ')+' の詳細表示サンプルです。')));filter();})();</script>
+<footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
+</main>
+</div>
+</body>
+</html>
