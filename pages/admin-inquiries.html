@@ -30,7 +30,7 @@
 <label>問い合わせ元<select id="inquiry-type"><option value="">すべて</option><option>購入者</option><option>販売者</option></select></label>
 <label>対応状況<select id="inquiry-status"><option value="">すべて</option><option>未対応</option><option>対応中</option><option>返信待ち</option><option>解決済み</option></select></label>
 </div>
-<div class="panel inquiry-panel"><table class="table inquiry-table"><thead><tr><th>受付番号 / 件名</th><th>問い合わせ元</th><th>分類</th><th>受付日</th><th>対応状況</th><th></th></tr></thead><tbody id="inquiry-rows">
+<div class="panel inquiry-panel"><table class="table inquiry-table" id="inquiry-table"><thead><tr><th>受付番号 / 件名</th><th>問い合わせ元</th><th>分類</th><th>受付日</th><th>対応状況</th><th></th></tr></thead><tbody id="inquiry-rows">
 <tr data-type="購入者" data-status="未対応" data-search="INQ-1042 購入者 山田花子 決済後に動画が再生できない 購入 決済"><td><b>INQ-1042</b><small>決済後に動画が再生できない</small></td><td>購入者<br><small>山田 花子</small></td><td>購入・再生</td><td>本日 14:32</td><td><span class="tag warn status-tag">未対応</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
 <tr data-type="販売者" data-status="未対応" data-search="INQ-1041 販売者 Studio North 出金申請の状況を確認したい 出金"><td><b>INQ-1041</b><small>出金申請の状況を確認したい</small></td><td>販売者<br><small>Studio North</small></td><td>出金</td><td>本日 11:08</td><td><span class="tag warn status-tag">未対応</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
 <tr data-type="購入者" data-status="対応中" data-search="INQ-1039 購入者 佐藤健 注文内容について確認したい 注文"><td><b>INQ-1039</b><small>注文内容について確認したい</small></td><td>購入者<br><small>佐藤 健</small></td><td>注文</td><td>昨日 18:20</td><td><span class="tag status-tag">対応中</span></td><td><button class="btn small inquiry-open" type="button">詳細</button></td></tr>
@@ -80,6 +80,41 @@ document.getElementById('close-detail').addEventListener('click',()=>document.ge
 document.getElementById('save-status').addEventListener('click',()=>{if(!current)return;current.dataset.status=document.getElementById('detail-status').value;const tag=current.querySelector('.status-tag');tag.textContent=current.dataset.status;tag.className='tag status-tag'+(current.dataset.status==='未対応'?' warn':current.dataset.status==='解決済み'?' ok':'');try{const id=current.cells[0].querySelector('b').textContent;const items=JSON.parse(localStorage.getItem('vm-demo-inquiries')||'[]');const item=items.find(x=>x.id===id);if(item){item.status=current.dataset.status;localStorage.setItem('vm-demo-inquiries',JSON.stringify(items));}}catch(e){}filter();counts();});
 document.getElementById('preview-reply').addEventListener('click',()=>{const v=document.getElementById('detail-reply').value.trim(),p=document.getElementById('reply-preview');p.hidden=false;p.innerHTML='<strong>返信プレビュー</strong><p></p>';p.querySelector('p').textContent=v||'返信文が入力されていません。';});
 counts();filter();
+})();
+</script>
+
+<script>
+(function(){
+var tableIds=["inquiry-table"];
+function setup(tableId){
+ var table=document.getElementById(tableId);if(!table||!table.tBodies.length)return;
+ var section=table.closest('section')||table.parentElement;
+ var rows=Array.from(table.tBodies[0].rows),pageSize=20,currentPage=1,filteredRows=[];
+ var nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ切り替え');
+ var summary=document.createElement('span');summary.className='pagination-summary';
+ var controls=document.createElement('div');controls.className='pagination-controls';
+ nav.append(summary,controls);var panel=table.closest('.panel');(panel||table).insertAdjacentElement('afterend',nav);
+ function capture(){rows=Array.from(table.tBodies[0].rows);filteredRows=rows.filter(function(row){return !row.hidden;});var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.min(currentPage,pages);render();}
+ function render(){
+  var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.max(1,Math.min(currentPage,pages));
+  rows.forEach(function(row){row.hidden=true;});
+  filteredRows.slice((currentPage-1)*pageSize,currentPage*pageSize).forEach(function(row){row.hidden=false;});
+  summary.textContent=filteredRows.length+'件中 '+(filteredRows.length?((currentPage-1)*pageSize+1):0)+'–'+Math.min(currentPage*pageSize,filteredRows.length)+'件を表示';
+  controls.replaceChildren();
+  function add(label,page,disabled,active,aria){var b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=!!disabled;if(aria)b.setAttribute('aria-label',aria);if(active)b.setAttribute('aria-current','page');b.addEventListener('click',function(){currentPage=page;render();});controls.appendChild(b);}
+  add('前へ',currentPage-1,currentPage===1,false,'前のページ');
+  var shown=new Set();[1,currentPage-2,currentPage-1,currentPage,currentPage+1,currentPage+2,pages].forEach(function(p){if(p>=1&&p<=pages)shown.add(p);});
+  var sorted=Array.from(shown).sort(function(a,b){return a-b;}),previous=0;
+  sorted.forEach(function(p){if(previous&&p-previous>1){var dots=document.createElement('span');dots.className='pagination-ellipsis';dots.textContent='…';controls.appendChild(dots);}add(String(p),p,false,p===currentPage,'ページ '+p);previous=p;});
+  add('次へ',currentPage+1,currentPage===pages,false,'次のページ');
+ }
+ function refreshFromFilter(){currentPage=1;capture();}
+ section.querySelectorAll('input,select').forEach(function(el){el.addEventListener('input',refreshFromFilter);el.addEventListener('change',refreshFromFilter);});
+ section.addEventListener('click',function(event){if(event.target.closest('button[data-action]'))refreshFromFilter();});
+ var save=document.getElementById('save-status');if(save)save.addEventListener('click',refreshFromFilter);
+ capture();
+}
+tableIds.forEach(setup);
 })();
 </script>
 </body></html>
