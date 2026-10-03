@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>購入者詳細 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html" class="active" aria-current="page">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">BUYER MANAGEMENT / ACCOUNT DETAIL</div><h1 class="title">購入者アカウント詳細</h1><p class="lead">登録情報、利用状況、購入履歴への導線をまとめて確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
+</header>
+
+<p class="preview-note">画面確認用のサンプルプロフィールです。操作は画面上の表示のみを変更し、アカウントや決済には接続していません。</p>
+<section class="section">
+<div class="section-head"><div><h2>アカウント情報</h2><p>購入者ID：VM-B1028</p></div><span class="tag ok" id="account-state">利用中</span></div>
+<div class="panel"><div class="detail-grid">
+<div class="detail-item"><span>氏名</span><strong>山田 玲奈</strong></div><div class="detail-item"><span>メールアドレス</span><strong>buyer@example.com</strong></div>
+<div class="detail-item"><span>登録日</span><strong>2026年8月14日</strong></div><div class="detail-item"><span>最終利用</span><strong>2026年10月2日 21:18</strong></div>
+<div class="detail-item"><span>購入回数</span><strong>12件</strong></div><div class="detail-item"><span>累計購入額</span><strong>¥18,420</strong></div>
+</div><div class="actions" style="margin-top:20px"><button class="btn" id="toggle-account" type="button">アカウントを一時停止</button><a class="btn" href="/pages/admin-buyer-orders.html">購入履歴を見る</a><a class="btn" href="/pages/admin-buyer-library.html">ライブラリを見る</a></div></div>
+</section>
+<section class="section two">
+<div class="panel"><div class="panel-head"><strong>最近の注文</strong><span>RECENT ORDERS</span></div><div class="rows">
+<div class="row"><div><strong>#VM-1098</strong><small>シネマティック映像素材集</small></div><strong>¥1,980</strong></div>
+<div class="row"><div><strong>#VM-1074</strong><small>街の風景・4Kコレクション</small></div><strong>¥2,400</strong></div>
+<div class="row"><div><strong>#VM-1032</strong><small>モーショングラフィックス入門</small></div><strong>¥980</strong></div>
+</div></div>
+<div class="panel"><div class="panel-head"><strong>関連ページ</strong><span>QUICK ACCESS</span></div><div class="rows">
+<div class="row"><div><strong>購入履歴・注文</strong><small>注文状況と決済状態</small></div><a class="row-action" href="/pages/admin-buyer-orders.html">開く →</a></div>
+<div class="row"><div><strong>購入済みライブラリ</strong><small>購入済み動画と視聴権限</small></div><a class="row-action" href="/pages/admin-buyer-library.html">開く →</a></div>
+<div class="row"><div><strong>お気に入り・利用状況</strong><small>登録作品と最近のアクティビティ</small></div><a class="row-action" href="/pages/admin-buyer-activity.html">開く →</a></div>
+</div></div>
+</section>
+<script>(function(){const button=document.getElementById('toggle-account');const state=document.getElementById('account-state');button.addEventListener('click',()=>{const stopped=state.textContent.trim()==='一時停止';state.textContent=stopped?'利用中':'一時停止';state.className=stopped?'tag ok':'tag danger';button.textContent=stopped?'アカウントを一時停止':'利用を再開';});})();</script>
+<footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
+</main>
+</div>
+</body>
+</html>
