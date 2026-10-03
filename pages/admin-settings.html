@@ -9,87 +9,42 @@
 <body>
 <div class="shell">
 <aside class="sidebar">
-  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
-  <div class="admin-label">OPERATOR CONSOLE</div>
-  <nav class="nav" aria-label="運営者メニュー">
-    <a href="/pages/admin.html">概要</a>
-    <a href="/pages/admin-sellers.html">販売者管理</a>
-    <a href="/pages/admin-buyers.html">購入者管理</a>
-    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
-    <a href="/pages/admin-pages.html">ページ編集</a>
-
-    <a href="/pages/admin-settings.html" class="active" aria-current="page">運営設定</a>
-  </nav>
-  <div class="sidebar-bottom">
-    <div class="health"><span>System health</span><b>● Operational</b></div>
-    <a class="back" href="/">← TOPへ戻る</a>
-  </div>
+<a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+<div class="admin-label">OPERATOR CONSOLE</div>
+<nav class="nav" aria-label="運営者メニュー">
+<a href="/pages/admin.html">概要</a>
+<a href="/pages/admin-sellers.html">販売者管理</a>
+<a href="/pages/admin-buyers.html">購入者管理</a>
+<a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+<a href="/pages/admin-pages.html">ページ編集</a>
+<a href="/pages/admin-settings.html" class="active" aria-current="page">運営設定</a>
+</nav>
+<div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
 </aside>
 <main class="main">
-<header class="topbar">
-  <div><div class="eyebrow">ADMIN / OPERATION SETTINGS</div><h1 class="title">運営設定</h1><p class="lead">サイトの基本情報、販売・決済、通知、運営者権限などの設定項目をまとめます。</p></div>
-  <div class="top-actions"><a class="btn" href="/">サイトを見る</a><a class="btn primary" href="/pages/admin-pages.html">ページ編集</a></div>
-</header>
-
-<section class="section"><p class="preview-note">以下は設定項目の画面案です。保存先・決済・通知との接続はシステム連携時に実装します。</p><div class="section-head"><div><h2>サイトの基本情報</h2><p>サイト運営に必要な基本項目をまとめて管理</p></div></div>
-<div class="setting-grid">
-<div class="setting-card"><h3>基本設定</h3><p>サイトの基本情報や運営上のルールを管理する領域。</p><div class="setting-row"><div>サイト名・説明<small>基本情報と公開上の表記</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>言語・通貨<small>表示言語と価格表示の通貨</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>国・地域<small>利用可能な地域や対応範囲</small></div><span class="setting-action">設定 →</span></div></div>
-<div class="setting-card"><h3>販売・決済</h3><p>売上や取引に関する運営設定。実際の決済連携時に詳細を設計。</p><div class="setting-row"><div>販売手数料<small>プラットフォームの手数料ルール</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>決済・返金<small>決済方法と返金ポリシー</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>出金ルール<small>販売者への支払い条件</small></div><span class="setting-action">設定 →</span></div></div>
-<div class="setting-card"><h3>通知・問い合わせ</h3><p>利用者への連絡や運営サポートに関する設定。</p><div class="setting-row"><div>メール・通知<small>登録、購入、出金などの通知</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>問い合わせ窓口<small>サポート連絡先と対応方法</small></div><span class="setting-action">設定 →</span></div></div>
-<div class="setting-card"><h3>運営者・セキュリティ</h3><p>運営者アカウントと安全な管理のための設定。</p><div class="setting-row"><div>運営者アカウント・権限<small>管理者の役割とアクセス範囲</small></div><span class="setting-action">設定 →</span></div><div class="setting-row"><div>ログイン・操作履歴<small>アクセスと重要操作の記録</small></div><span class="setting-action">確認 →</span></div><div class="setting-row"><div>セキュリティ設定<small>認証・アクセス保護</small></div><span class="setting-action">設定 →</span></div></div>
-</div></section>
-<section class="section" id="resignation-policy"><div class="section-head"><div><h2>退会処理・メール通知</h2><p>退会時の処理方針を選択します。設定はこのブラウザ内の画面デモに保存されます。</p></div></div>
-<div class="setting-card resignation-settings">
-  <h3>退会申請の処理方式</h3>
-  <p>自動処理の対象や、未処理の売上・出金がある場合の扱いを運営方針に合わせて選択します。</p>
-  <label class="policy-option"><input type="radio" name="resignation-mode" value="auto"> <span><strong>自動退会</strong><small>申請後、設定した条件を満たせば自動処理</small></span></label>
-  <label class="policy-option"><input type="radio" name="resignation-mode" value="conditional" checked> <span><strong>条件付き自動退会</strong><small>未処理の売上・出金などがある場合は保留</small></span></label>
-  <label class="policy-option"><input type="radio" name="resignation-mode" value="manual"> <span><strong>手動対応</strong><small>運営者が内容を確認してから処理</small></span></label>
-  <div class="policy-divider"></div>
-  <h3>自動メール</h3>
-  <label class="policy-check"><input type="checkbox" id="resignation-receipt" checked> <span>申請受付メールを送信</span></label>
-  <label class="policy-check"><input type="checkbox" id="resignation-result" checked> <span>退会処理の結果メールを送信</span></label>
-  <div class="policy-actions"><button class="btn primary" type="button" id="save-resignation-policy">設定を保存</button><span id="resignation-policy-status" class="muted" role="status">画面デモの初期設定</span></div>
-  <p class="preview-note">注意：現在は画面デモです。実際の退会処理やメール送信、複数の運営者間での設定共有にはバックエンド連携が必要です。未処理の売上・出金がある場合は、実装時に保留条件を適用します。</p>
+<header class="topbar"><div><div class="eyebrow">ADMIN / OPERATION SETTINGS</div><h1 class="title">運営設定</h1><p class="lead">サイトの基本情報、取引ルール、通知、セキュリティなどを専用ページで管理します。</p></div><div class="top-actions"><a class="btn" href="/">サイトを見る</a><a class="btn primary" href="/pages/admin-pages.html">ページ編集</a></div></header>
+<p class="preview-note">以下は画面確認用の設定ページです。保存内容はこのブラウザ内のデモに限られ、決済・通知・認証などの実システムには接続していません。</p>
+<section class="section"><div class="section-head"><div><h2>設定メニュー</h2><p>設定したい項目を選ぶと、専用ページで詳細を確認・編集できます。</p></div><span class="muted">7 CATEGORIES</span></div>
+<div class="cards">
+<a class="feature" href="/pages/admin-setting-general.html"><h3>サイト基本設定</h3><p>サイト名・説明、表示言語、通貨、対応地域、問い合わせ先などの基本情報。</p><span class="feature-action">基本設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-sales.html"><h3>販売・決済設定</h3><p>販売手数料、最低価格、返金方針、出金条件など取引ルールを整理。</p><span class="feature-action">販売・決済を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-content.html"><h3>動画・カテゴリー設定</h3><p>動画の公開審査、カテゴリー、掲載停止時の扱いなどを管理。</p><span class="feature-action">コンテンツ設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-notifications.html"><h3>通知・問い合わせ設定</h3><p>通知メール、サポート窓口、対応目安など利用者への連絡方針。</p><span class="feature-action">通知設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-security.html"><h3>運営者・セキュリティ設定</h3><p>運営者ロール、認証方針、セッション、重要操作の監査記録。</p><span class="feature-action">セキュリティ設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-policies.html"><h3>利用規約・ポリシー設定</h3><p>利用規約、プライバシーポリシー、販売・返金条件の公開状態や改定メモ。</p><span class="feature-action">文書設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-setting-account.html"><h3>運営・退会処理設定</h3><p>退会申請の処理方式と受付・結果メールの通知方針を設定。</p><span class="feature-action">退会処理設定を開く <span aria-hidden="true">→</span></span></a>
+<a class="feature" href="/pages/admin-pages.html"><h3>TOPページ・表示内容</h3><p>TOPの掲載セクション、見出し、クリエイター紹介、表示デザインを編集。</p><span class="feature-action">ページ編集を開く <span aria-hidden="true">→</span></span></a>
 </div></section>
 <section class="section two">
-<div class="panel"><div class="panel-head"><strong>操作履歴</strong><span>SECURITY / ACTIVITY</span></div><div class="rows"><div class="row"><div><strong>管理者ログイン</strong><small>管理画面へのアクセス記録</small></div><span class="tag ok">記録対象</span></div><div class="row"><div><strong>審査操作</strong><small>販売者・動画の承認／却下履歴</small></div><span class="tag">記録対象</span></div><div class="row"><div><strong>出金操作</strong><small>ステータス変更・監査イベント</small></div><span class="tag">記録対象</span></div></div></div>
-<div class="panel"><div class="panel-head"><strong>ヘルプ・運営情報</strong><span>HELP</span></div><p class="muted" style="line-height:1.8">運営時の手順や、販売者・購入者に関する対応方針を整理する領域。</p></div>
-</section>
+<div class="panel"><div class="panel-head"><strong>運営設定の確認ポイント</strong><span>CHECKLIST</span></div><div class="rows">
+<div class="row"><div><strong>取引条件と規約</strong><small>手数料・返金条件を公開文書と一致させる</small></div><span class="tag warn">要確認</span></div>
+<div class="row"><div><strong>通知・サポート窓口</strong><small>連絡先と通知対象を運用開始前に確認</small></div><span class="tag">設定案</span></div>
+<div class="row"><div><strong>権限・操作履歴</strong><small>実運用時はサーバー側の認証・監査が必要</small></div><span class="tag">実装前</span></div>
+</div></div>
+<div class="panel"><div class="panel-head"><strong>関連ページ</strong><span>QUICK ACCESS</span></div><div class="rows">
+<a class="row" href="/pages/admin-pages.html"><div><strong>ページ編集</strong><small>TOPページや表示セクションを調整</small></div><span class="row-action">開く →</span></a>
+<a class="row" href="/pages/admin-inquiries.html"><div><strong>問い合わせ管理</strong><small>利用者からの問い合わせを確認</small></div><span class="row-action">開く →</span></a>
+</div></div></section>
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
-</main>
-</div>
-<script>
-(function(){
-document.querySelectorAll('.setting-action').forEach(action=>{
- action.setAttribute('role','button');action.tabIndex=0;action.style.cursor='pointer';
- const edit=()=>{const row=action.closest('.setting-row');if(!row)return;const label=row.querySelector('div')?.childNodes[0]?.textContent?.trim()||'設定';const existing=row.querySelector('.draft-value');if(existing){existing.remove();action.textContent='編集 →';return;}const value=document.createElement('input');value.className='draft-value';value.type='text';value.placeholder=label+'を入力';value.setAttribute('aria-label',label);value.style.cssText='max-width:220px;width:100%;padding:7px;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--text);';row.append(value);value.focus();action.textContent='入力中';};
- action.addEventListener('click',edit);action.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();edit();}});
-});
-})();
-
-(function(){
- const key='vm-demo-resignation-policy';
- const modeInputs=[...document.querySelectorAll('input[name="resignation-mode"]')];
- const receipt=document.getElementById('resignation-receipt');
- const result=document.getElementById('resignation-result');
- const status=document.getElementById('resignation-policy-status');
- const save=document.getElementById('save-resignation-policy');
- if(!save)return;
- try{
-  const saved=JSON.parse(localStorage.getItem(key)||'null');
-  if(saved){
-   modeInputs.forEach(input=>input.checked=input.value===saved.mode);
-   receipt.checked=!!saved.receipt;
-   result.checked=!!saved.result;
-   status.textContent='このブラウザに保存済みの設定';
-  }
- }catch(e){}
- save.addEventListener('click',()=>{
-  const policy={mode:(modeInputs.find(input=>input.checked)||{}).value||'conditional',receipt:receipt.checked,result:result.checked};
-  try{localStorage.setItem(key,JSON.stringify(policy));status.textContent='設定をこのブラウザに保存しました（デモ）';}
-  catch(e){status.textContent='保存できませんでした。このブラウザの保存設定を確認してください。';}
- });
-})();
-</script></body>
-</html>
+</main></div>
+</body></html>
