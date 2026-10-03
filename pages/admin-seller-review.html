@@ -50,13 +50,13 @@
 </section>
 <section class="section" id="verification">
   <div class="section-head"><div><h2>本人確認</h2><p>販売者プロフィールの確認状況・審査メモ</p></div><span class="muted">サンプル 4件</span></div>
-  <label class="detail-label" style="margin:0 0 14px">本人確認メモ（差し戻し・却下時は必須）<textarea id="verification-note" rows="2" placeholder="確認結果、追加提出が必要な情報など"></textarea></label>
+  <label class="detail-label admin-form-note">本人確認メモ（差し戻し・却下時は必須）<textarea id="verification-note" rows="2" placeholder="確認結果、追加提出が必要な情報など"></textarea></label>
   <div class="admin-filterbar">
     <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
     <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option><option>却下</option><option>未申請</option></select></label>
     <span id="verification-count" class="muted">4件</span>
   </div>
-  <div class="panel" style="overflow:auto"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
+  <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
     <tr data-status="確認待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>日本</td><td>2026.10.02</td><td><span class="tag warn">確認待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
     <tr data-status="審査中"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>日本</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
     <tr data-status="差し戻し"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>日本</td><td>2026.09.28</td><td><span class="tag warn">差し戻し</span></td><td><button class="btn small" data-action="resubmit">再提出済みにする</button></td></tr>
