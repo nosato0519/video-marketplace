@@ -6,10 +6,6 @@
   <title>THE LAST SIGNAL | VIDEO MARKETPLACE</title>
   <link rel="stylesheet" href="/styles.css">
 
-<style>
-.detail-gallery-image{cursor:pointer}
-.detail-gallery-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.9);align-items:center;justify-content:center;padding:40px}.detail-gallery-modal.open{display:flex}.detail-gallery-modal img{max-width:min(1000px,90vw);max-height:82vh;object-fit:contain}.detail-gallery-close,.detail-gallery-prev,.detail-gallery-next{position:absolute;border:1px solid #39414a;background:rgba(10,10,12,.85);color:#f3f0e9;cursor:pointer}.detail-gallery-close{top:18px;right:20px;width:44px;height:44px;font-size:28px}.detail-gallery-prev,.detail-gallery-next{top:50%;transform:translateY(-50%);width:48px;height:64px;font-size:38px}.detail-gallery-prev{left:20px}.detail-gallery-next{right:20px}.detail-gallery-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#aaa6a0;font-size:11px}@media(max-width:600px){.detail-gallery-modal{padding:24px 56px}.detail-gallery-prev{left:8px}.detail-gallery-next{right:8px}}
-</style>
 </head>
 <body>
   <header class="nav">
@@ -61,7 +57,7 @@
         <div class="detail-buybox">
           <div class="detail-price">¥2,980</div>
           <div class="detail-tax">税込・買い切り</div>
-          <a class="detail-favorite" href="/pages/favorites.html" style="display:block;box-sizing:border-box;position:relative;z-index:2;">♡ お気に入りに追加</a>
+          <a class="detail-favorite" href="/pages/favorites.html" >♡ お気に入りに追加</a>
           <div class="detail-actions">
             <a href="/pages/checkout.html" class="detail-buy-primary">この動画を購入する →</a>
             <a href="/pages/cart.html" class="detail-buy-secondary">カートに入れる</a>
@@ -113,12 +109,12 @@
         </div>
         <a href="#">レビューを書く →</a>
       </div>
-      <div style="display:grid;gap:12px;margin-top:18px;">
-        <div style="padding:18px;border:1px solid #252b33;background:#11161c;">
-          <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
-            <strong>★★★★★</strong><small style="color:#7f8994;">購入者 · 2026.09.24</small>
+      <div class="detail-reviews">
+        <div class="detail-review-card">
+          <div class="detail-review-head">
+            <strong>★★★★★</strong><small>購入者 · 2026.09.24</small>
           </div>
-          <p style="margin:10px 0 0;color:#b7bec7;">映像と音の作り込みが素晴らしく、最後まで一気に見られました。</p>
+          <p>映像と音の作り込みが素晴らしく、最後まで一気に見られました。</p>
         </div>
         <div style="padding:18px;border:1px solid #252b33;background:#11161c;">
           <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
@@ -136,9 +132,9 @@
           <h2>この作品をシェア</h2>
         </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
-        <a href="#" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #39414a;background:#151a20;color:#c5ccd4;text-decoration:none;font-family:inherit;font-size:11px;">リンクをコピー</a>
-        <a href="#" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #39414a;background:#151a20;color:#c5ccd4;text-decoration:none;font-family:inherit;font-size:11px;">シェアする</a>
+      <div class="detail-share-actions">
+        <a href="#" class="detail-share-button">リンクをコピー</a>
+        <a href="#" class="detail-share-button">シェアする</a>
       </div>
     </section>
 
@@ -150,7 +146,7 @@
         </div>
         <a href="/pages/library.html">ライブラリ →</a>
       </div>
-      <div class="detail-related" style="margin-top:18px;">
+      <div class="detail-related detail-history-grid">
         <a href="/pages/product-detail.html" class="detail-related-card">
           <div class="detail-related-thumb detail-related-2"></div>
           <div><small>CREATIVE</small><strong>Mastering Motion</strong><span>最近見た作品</span><b>¥2,400</b></div>
