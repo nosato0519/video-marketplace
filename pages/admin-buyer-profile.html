@@ -29,11 +29,11 @@
 
 <p class="preview-note">画面確認用のサンプルプロフィールです。操作は画面上の表示のみを変更し、アカウントや決済には接続していません。</p>
 <section class="section">
-<div class="section-head"><div><h2>アカウント情報</h2><p>購入者ID：VM-B1028</p></div><span class="tag ok" id="account-state">利用中</span></div>
+<div class="section-head"><div><h2>アカウント情報</h2><p>購入者ID：<span id="buyer-id">VM-B1028</span></p></div><span class="tag ok" id="account-state">利用中</span></div>
 <div class="panel"><div class="rows">
-<div class="row"><div><small>氏名</small><strong>山田 玲奈</strong></div><div><small>メールアドレス</small><strong>buyer@example.com</strong></div></div>
-<div class="row"><div><small>登録日</small><strong>2026年8月14日</strong></div><div><small>最終利用</small><strong>2026年10月2日 21:18</strong></div></div>
-<div class="row"><div><small>購入回数</small><strong>12件</strong></div><div><small>累計購入額</small><strong>¥18,420</strong></div></div>
+<div class="row"><div><small>氏名</small><strong id="buyer-name">山田 玲奈</strong></div><div><small>メールアドレス</small><strong id="buyer-email">buyer@example.com</strong></div></div>
+<div class="row"><div><small>登録日</small><strong id="buyer-joined">2026年8月14日</strong></div><div><small>最終利用</small><strong id="buyer-last-seen">2026年10月2日 21:18</strong></div></div>
+<div class="row"><div><small>購入回数</small><strong id="buyer-purchases">12件</strong></div><div><small>累計購入額</small><strong id="buyer-total">¥18,420</strong></div></div>
 </div><div class="detail-actions" style="margin-top:20px"><button class="btn" id="toggle-account" type="button">アカウントを一時停止</button><a class="btn" href="/pages/admin-buyer-orders.html">購入履歴を見る</a><a class="btn" href="/pages/admin-buyer-library.html">ライブラリを見る</a></div></div>
 </section>
 <section class="section two">
@@ -48,7 +48,20 @@
 <div class="row"><div><strong>お気に入り・利用状況</strong><small>登録作品と最近のアクティビティ</small></div><a class="row-action" href="/pages/admin-buyer-activity.html">開く →</a></div>
 </div></div>
 </section>
-<script>(function(){const button=document.getElementById('toggle-account');const state=document.getElementById('account-state');button.addEventListener('click',()=>{const stopped=state.textContent.trim()==='一時停止';state.textContent=stopped?'利用中':'一時停止';state.className=stopped?'tag ok':'tag danger';button.textContent=stopped?'アカウントを一時停止':'利用を再開';});})();</script>
+<script>(function(){
+const buyers={
+'VM-B1028':{name:'山田 玲奈',email:'buyer@example.com',joined:'2026年8月14日',last:'2026年10月2日 21:18',purchases:'12件',total:'¥18,420'},
+'VM-B1027':{name:'佐藤 健',email:'member@example.com',joined:'2026年7月29日',last:'2026年10月2日 19:42',purchases:'7件',total:'¥9,860'},
+'VM-B1026':{name:'Studio N',email:'studio@example.com',joined:'2026年7月18日',last:'2026年10月2日 18:05',purchases:'3件',total:'¥6,400'},
+'VM-B1025':{name:'高橋 美咲',email:'misaki@example.com',joined:'2026年6月30日',last:'2026年10月1日 16:20',purchases:'21件',total:'¥32,780'},
+'VM-B1024':{name:'映像ラボ',email:'lab@example.com',joined:'2026年6月12日',last:'2026年10月1日 13:02',purchases:'1件',total:'¥980'},
+'VM-B1023':{name:'田中 悠',email:'yu@example.com',joined:'2026年5月22日',last:'2026年9月30日 11:45',purchases:'5件',total:'¥7,200'}
+};
+const id=new URLSearchParams(location.search).get('buyer')||'VM-B1028';const buyer=buyers[id]||buyers['VM-B1028'];
+document.getElementById('buyer-id').textContent=id in buyers?id:'VM-B1028';
+Object.entries({'buyer-name':'name','buyer-email':'email','buyer-joined':'joined','buyer-last-seen':'last','buyer-purchases':'purchases','buyer-total':'total'}).forEach(([target,key])=>document.getElementById(target).textContent=buyer[key]);
+const button=document.getElementById('toggle-account');const state=document.getElementById('account-state');button.addEventListener('click',()=>{const stopped=state.textContent.trim()==='一時停止';state.textContent=stopped?'利用中':'一時停止';state.className=stopped?'tag ok':'tag warn';button.textContent=stopped?'アカウントを一時停止':'利用を再開';});
+})();</script>
 <footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
 </main>
 </div>
