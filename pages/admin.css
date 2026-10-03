@@ -69,7 +69,7 @@ button{color:inherit}
 button.btn{cursor:pointer}
 @media(max-width:720px){.admin-filterbar,.admin-filterbar label,.admin-filterbar input,.admin-filterbar select{width:100%;box-sizing:border-box}.admin-filterbar .muted{margin-left:0}}
 
-.preview-note{margin:0 0 20px;padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:11px;line-height:1.7;background:var(--panel)}
+.panel-description{line-height:1.7}.preview-note{margin:0 0 20px;padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:11px;line-height:1.7;background:var(--panel)}
 /* Seller resignation policy */
 .queue-card{display:block;color:inherit;transition:border-color .15s ease,transform .15s ease}
 a.queue-card:hover{border-color:var(--accent);transform:translateY(-1px)}
