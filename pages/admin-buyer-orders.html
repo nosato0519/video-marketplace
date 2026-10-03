@@ -39,9 +39,38 @@
 <tr><td><strong>#VM-1094</strong><small>2026.10.01 13:02</small></td><td>lab@example.com</td><td>モーショングラフィックス入門</td><td><span class="tag warn">返金済み</span></td><td class="money">¥980</td><td><button class="btn small" type="button">詳細</button></td></tr>
 <tr><td><strong>#VM-1093</strong><small>2026.09.30 11:45</small></td><td>yu@example.com</td><td>都市の夜景・4K</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,500</td><td><button class="btn small" type="button">詳細</button></td></tr>
 </tbody></table></div></section>
-<script>(function(){const rows=[...document.querySelectorAll('#order-table tbody tr')],search=document.getElementById('order-search'),status=document.getElementById('order-status');function filter(){let n=0;rows.forEach(r=>{const state=r.cells[3].querySelector('.tag').textContent.trim();const ok=r.innerText.toLowerCase().includes(search.value.trim().toLowerCase())&&(!status.value||state===status.value);r.hidden=!ok;if(ok)n++;});document.getElementById('order-count').textContent=n+'件';}search.addEventListener('input',filter);status.addEventListener('change',filter);document.querySelectorAll('#order-table tbody button').forEach((b,i)=>b.addEventListener('click',()=>alert('注文 '+rows[i].cells[0].innerText.replace(/\s+/g,' ')+' の詳細表示サンプルです。')));filter();})();</script>
+<script>(function(){const rows=[...document.querySelectorAll('#order-table tbody tr')],search=document.getElementById('order-search'),status=document.getElementById('order-status');function filter(){let n=0;rows.forEach(r=>{const state=r.cells[3].querySelector('.tag').textContent.trim();const ok=r.innerText.toLowerCase().includes(search.value.trim().toLowerCase())&&(!status.value||state===status.value);r.dataset.filtered=ok?'':'hidden';r.hidden=!ok;if(ok)n++;});document.getElementById('order-count').textContent=n+'件';}search.addEventListener('input',filter);status.addEventListener('change',filter);document.querySelectorAll('#order-table tbody button').forEach((b,i)=>b.addEventListener('click',()=>alert('注文 '+rows[i].cells[0].innerText.replace(/\s+/g,' ')+' の詳細表示サンプルです。')));filter();})();</script>
 <footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+const tableIds=["order-table"];
+tableIds.forEach((id,index)=>{
+ const table=document.getElementById(id);if(!table||!table.tBodies.length)return;
+ const rows=[...table.tBodies[0].rows];
+ rows.forEach(row=>{if(!row.dataset.filtered)row.dataset.filtered=row.hidden?'hidden':'';});
+ const pageSize=20;let page=1;
+ const nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ');
+ const summary=document.createElement('span');const controls=document.createElement('div');controls.className='pagination-controls';nav.append(summary,controls);
+ const host=table.closest('.panel')||table.parentElement;host.appendChild(nav);
+ function render(){
+  const matches=rows.filter(row=>row.dataset.filtered!=='hidden');
+  const pages=Math.max(1,Math.ceil(matches.length/pageSize));page=Math.min(page,pages);
+  rows.forEach(row=>row.hidden=true);
+  matches.slice((page-1)*pageSize,page*pageSize).forEach(row=>row.hidden=false);
+  summary.textContent=matches.length?((page-1)*pageSize+1)+'–'+Math.min(page*pageSize,matches.length)+'件 / '+matches.length+'件':'0件';
+  controls.replaceChildren();
+  function add(label,target,disabled,active){const b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=disabled;if(active)b.setAttribute('aria-current','page');b.addEventListener('click',()=>{page=target;render();});controls.appendChild(b);}
+  add('前へ',page-1,page===1,false);
+  const set=new Set([1,pages,page-1,page,page+1].filter(n=>n>=1&&n<=pages));let previous=0;
+  [...set].sort((a,b)=>a-b).forEach(n=>{if(previous&&n-previous>1){const e=document.createElement('span');e.className='pagination-ellipsis';e.textContent='…';controls.appendChild(e);}add(String(n),n,false,n===page);previous=n;});
+  add('次へ',page+1,page===pages,false);
+ }
+ const filters=table.closest('.panel').querySelectorAll('input,select');
+ filters.forEach(el=>{el.addEventListener('input',()=>{page=1;render();});el.addEventListener('change',()=>{page=1;render();});});
+ render();
+});
+})();
+</script></body>
 </html>
