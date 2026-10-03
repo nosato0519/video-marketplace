@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販売者申請・本人確認 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html" class="active" aria-current="page">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">SELLER MANAGEMENT / REVIEW</div><h1 class="title">販売者申請・本人確認</h1><p class="lead">販売者登録の審査と、登録後の本人確認を分けて確認します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
+</header>
+<p class="preview-note">画面確認用のサンプルデータです。ここでの審査操作は画面内の表示だけを変更し、実データの更新・メール通知は行いません。</p>
+<section class="queue" aria-label="審査状況">
+  <a class="queue-card" href="#applications" data-open-tab="applications"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
+  <a class="queue-card" href="#verification" data-open-tab="verification"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
+  <div class="queue-card"><span>審査中</span><strong id="reviewing-count">3 <em>件</em></strong></div>
+  <div class="queue-card"><span>今月の承認</span><strong>18 <em>件</em></strong></div>
+</section>
+<section class="section">
+  <div class="section-head"><div><h2>審査メニュー</h2><p>対象の審査を選択してください。</p></div></div>
+  <div class="cards">
+    <a class="feature" href="#applications" data-open-tab="applications"><h3>販売者登録申請</h3><p>表示名・法的氏名・国・申請メッセージを確認し、審査開始・承認・却下を行います。</p><span class="row-action">申請一覧を開く →</span></a>
+    <a class="feature" href="#verification" data-open-tab="verification"><h3>本人確認</h3><p>登録情報、確認状況、審査メモを確認し、承認・差し戻し・却下を管理します。</p><span class="row-action">本人確認を開く →</span></a>
+  </div>
+</section>
+<section class="section" id="applications">
+  <div class="section-head"><div><h2>販売者登録申請</h2><p>登録申請の審査状況と申請内容</p></div><span class="muted">サンプル 4件</span></div>
+  <div class="admin-filterbar">
+    <label>申請者を検索<input id="application-search" type="search" placeholder="表示名・氏名・メールアドレス"></label>
+    <label>審査状況<select id="application-status"><option value="">すべて</option><option>審査待ち</option><option>審査中</option><option>承認済み</option><option>却下</option></select></label>
+    <span id="application-count" class="muted">4件</span>
+  </div>
+  <div class="panel" style="overflow:auto"><table class="table" id="application-table"><thead><tr><th>申請者</th><th>登録情報</th><th>申請日</th><th>状態</th><th>操作</th></tr></thead><tbody>
+    <tr data-status="審査待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査中"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査待ち"><td><strong>Northlight Works</strong><small>northlight@example.com</small></td><td>法的氏名：非表示サンプル<br>国：US</td><td>2026.09.30</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="承認済み"><td><strong>Studio M</strong><small>studio-m@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.09.27</td><td><span class="tag ok">承認済み</span></td><td><span class="muted">処理済み</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="section" id="verification">
+  <div class="section-head"><div><h2>本人確認</h2><p>販売者プロフィールの確認状況・審査メモ</p></div><span class="muted">サンプル 4件</span></div>
+  <div class="admin-filterbar">
+    <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
+    <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option></select></label>
+    <span id="verification-count" class="muted">4件</span>
+  </div>
+  <div class="panel" style="overflow:auto"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
+    <tr data-status="確認待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>日本</td><td>2026.10.02</td><td><span class="tag warn">確認待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
+    <tr data-status="審査中"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>日本</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
+    <tr data-status="差し戻し"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>日本</td><td>2026.09.28</td><td><span class="tag warn">差し戻し</span></td><td><button class="btn small" data-action="resubmit">再提出済みにする</button></td></tr>
+    <tr data-status="確認済み"><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td>日本</td><td>2026.09.20</td><td><span class="tag ok">確認済み</span></td><td><span class="muted">処理済み</span></td></tr>
+  </tbody></table></div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　SELLER REVIEW</footer>
+</main></div>
+<script>
+(function(){
+  function wireTable(tableId,searchId,statusId,countId,kind){
+    var table=document.getElementById(tableId);if(!table)return;
+    var rows=Array.from(table.tBodies[0].rows),search=document.getElementById(searchId),status=document.getElementById(statusId),count=document.getElementById(countId);
+    function filter(){var q=search.value.trim().toLowerCase(),n=0;rows.forEach(function(row){var tag=row.querySelector('.tag'),current=tag?tag.textContent.trim():row.dataset.status;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)n++;});count.textContent=n+'件';}
+    rows.forEach(function(row){row.querySelectorAll('button[data-action]').forEach(function(button){button.addEventListener('click',function(){var action=button.dataset.action,target='';if(action==='start')target='審査中';if(action==='approve')target=kind==='application'?'承認済み':'確認済み';if(action==='reject')target='却下';if(action==='changes')target='差し戻し';if(action==='resubmit')target='確認待ち';if(!target)return;var tag=row.querySelector('.tag');if(tag){tag.textContent=target;tag.className='tag '+(['承認済み','確認済み'].includes(target)?'ok':'warn');}row.dataset.status=target;filter();});});});
+    search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
+  }
+  wireTable('application-table','application-search','application-status','application-count','application');
+  wireTable('verification-table','verification-search','verification-status','verification-count','verification');
+  document.querySelectorAll('[data-open-tab]').forEach(function(link){link.addEventListener('click',function(){var id=link.dataset.openTab;var section=document.getElementById(id);if(section)section.scrollIntoView({behavior:'smooth',block:'start'});});});
+})();
+</script>
+</body>
+</html>
