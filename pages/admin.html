@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>概要 | VIDEO MARKETPLACE</title>
+<title>運営者ダッシュボード | VIDEO MARKETPLACE</title>
 <link rel="stylesheet" href="/pages/admin.css">
 </head>
 <body>
@@ -12,12 +12,11 @@
   <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
   <div class="admin-label">OPERATOR CONSOLE</div>
   <nav class="nav" aria-label="運営者メニュー">
-    <a href="/pages/admin.html" class="active" aria-current="page">概要</a>
+    <a href="/pages/admin.html" class="active" aria-current="page">運営者ダッシュボード</a>
     <a href="/pages/admin-sellers.html">販売者管理</a>
     <a href="/pages/admin-buyers.html">購入者管理</a>
     <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
     <a href="/pages/admin-pages.html">ページ編集</a>
-
     <a href="/pages/admin-settings.html">運営設定</a>
   </nav>
   <div class="sidebar-bottom">
@@ -25,10 +24,18 @@
     <a class="back" href="/">← TOPへ戻る</a>
   </div>
 </aside>
+
 <main class="main">
 <header class="topbar">
-  <div><div class="eyebrow">ADMIN / CONTROL CENTER</div><h1 class="title">概要</h1><p class="lead">動画・販売者・購入者・注文・売上など、マーケットプレイス全体の状況をひと目で確認できます。</p></div>
-  <div class="top-actions"><a class="btn" href="/">サイトを見る</a><a class="btn primary" href="/pages/admin-settings.html">運営設定</a></div>
+  <div>
+    <div class="eyebrow">ADMIN / CONTROL CENTER</div>
+    <h1 class="title">運営者ダッシュボード</h1>
+    <p class="lead">動画・販売者・購入者・注文・売上など、マーケットプレイス全体の状況をひと目で確認できます。</p>
+  </div>
+  <div class="top-actions">
+    <a class="btn" href="/">サイトを見る</a>
+    <a class="btn primary" href="/pages/admin-settings.html">運営設定</a>
+  </div>
 </header>
 
 <section class="queue">
@@ -37,8 +44,12 @@
   <div class="queue-card"><span>動画コンテンツ審査</span><strong>19 <em>待ち</em></strong></div>
   <div class="queue-card"><span>出金申請</span><strong>7 <em>要処理</em></strong></div>
 </section>
+
 <section class="section" id="overview">
-  <div class="section-head"><div><h2>マーケット全体</h2><p>サイト全体の状況をひと目で確認</p></div><span class="muted">画面イメージ用のサンプル値</span></div>
+  <div class="section-head">
+    <div><h2>マーケット全体</h2><p>サイト全体の状況をひと目で確認</p></div>
+    <span class="muted">画面イメージ用のサンプル値</span>
+  </div>
   <div class="metrics">
     <div class="metric"><span>MONTHLY SALES</span><strong>¥4,280,000</strong><small>今月の流通総額</small></div>
     <div class="metric"><span>REGISTERED USERS</span><strong>1,284</strong><small>登録ユーザー</small></div>
@@ -46,21 +57,36 @@
     <div class="metric"><span>CONTENT</span><strong>142</strong><small>公開動画</small></div>
   </div>
 </section>
+
 <section class="section two">
-  <div class="panel"><div class="panel-head"><strong>最近の注文</strong><span>RECENT ORDERS</span></div><table class="table"><thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead><tbody>
-  <tr><td>#VM-1098</td><td>buyer@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,980</td></tr>
-  <tr><td>#VM-1097</td><td>member@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥980</td></tr>
-  <tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥2,400</td></tr>
-  </tbody></table><div class="admin-dashboard-link"><a class="row-action" href="/pages/admin-buyers.html">購入者管理を見る →</a></div></div>
-  <div class="panel"><div class="panel-head"><strong>対応が必要な項目</strong><span>NEEDS ATTENTION</span></div><div class="rows">
-    <div class="row"><div><strong>販売者申請</strong><small>審査・承認が必要な申請</small></div><span class="tag warn">12件</span></div>
-    <div class="row"><div><strong>本人確認</strong><small>販売者情報の確認</small></div><span class="tag warn">8件</span></div>
-    <div class="row"><div><strong>動画コンテンツ審査</strong><small>公開前の動画</small></div><span class="tag warn">19件</span></div>
-    <div class="row"><div><strong>出金申請</strong><small>確認・処理が必要な申請</small></div><span class="tag">7件</span></div>
-  </div></div>
+  <div class="panel">
+    <div class="panel-head"><strong>最近の注文</strong><span>RECENT ORDERS</span></div>
+    <table class="table">
+      <thead><tr><th>注文</th><th>購入者</th><th>状態</th><th>金額</th></tr></thead>
+      <tbody>
+        <tr><td>#VM-1098</td><td>buyer@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥1,980</td></tr>
+        <tr><td>#VM-1097</td><td>member@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥980</td></tr>
+        <tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥2,400</td></tr>
+      </tbody>
+    </table>
+    <div class="admin-dashboard-link"><a class="row-action" href="/pages/admin-buyers.html">購入者管理を見る →</a></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><strong>対応が必要な項目</strong><span>NEEDS ATTENTION</span></div>
+    <div class="rows">
+      <div class="row"><div><strong>販売者申請</strong><small>審査・承認が必要な申請</small></div><span class="tag warn">12件</span></div>
+      <div class="row"><div><strong>本人確認</strong><small>販売者情報の確認</small></div><span class="tag warn">8件</span></div>
+      <div class="row"><div><strong>動画コンテンツ審査</strong><small>公開前の動画</small></div><span class="tag warn">19件</span></div>
+      <div class="row"><div><strong>出金申請</strong><small>確認・処理が必要な申請</small></div><span class="tag">7件</span></div>
+    </div>
+  </div>
 </section>
+
 <section class="section">
-  <div class="section-head"><div><h2>管理メニュー</h2><p>目的の管理ページへ移動</p></div></div>
+  <div class="section-head">
+    <div><h2>管理メニュー</h2><p>目的の管理ページへ移動</p></div>
+  </div>
   <div class="cards">
     <a class="feature" href="/pages/admin-sellers.html"><h3>販売者管理</h3><p>申請、プロフィール、出品動画、販売実績、出金状況を確認。</p><span class="feature-action">販売者管理を開く →</span></a>
     <a class="feature" href="/pages/admin-buyers.html"><h3>購入者管理</h3><p>購入者情報、購入履歴、アカウント、問い合わせを確認。</p><span class="feature-action">購入者管理を開く →</span></a>
@@ -68,6 +94,7 @@
     <a class="feature" href="/pages/admin-pages.html"><h3>ページ編集</h3><p>ページの基本情報、表示セクション、デザインをひとつの画面で管理。</p><span class="feature-action">ページ編集を開く →</span></a>
   </div>
 </section>
+
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
