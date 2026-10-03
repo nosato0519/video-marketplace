@@ -40,7 +40,7 @@
     <label>処理状況<select id="payout-status"><option value="">すべて</option><option>申請済み</option><option>確認中</option><option>承認済み</option><option>処理中</option><option>支払済み</option><option>失敗</option><option>取消</option></select></label>
     <span id="payout-count" class="muted">5件</span>
   </div>
-  <div class="panel" style="overflow:auto"><table class="table" id="payout-table"><thead><tr><th>申請ID / 申請日</th><th>販売者</th><th>申請額</th><th>状態</th><th>次の処理</th></tr></thead><tbody>
+  <div class="panel admin-table-scroll"><table class="table" id="payout-table"><thead><tr><th>申請ID / 申請日</th><th>販売者</th><th>申請額</th><th>状態</th><th>次の処理</th></tr></thead><tbody>
     <tr data-status="申請済み"><td><strong>PO-2026-1048</strong><small>2026.10.02</small></td><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td class="money">¥128,000</td><td><span class="tag warn">申請済み</span></td><td><button class="btn small" data-action="review">確認開始</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
     <tr data-status="申請済み"><td><strong>PO-2026-1047</strong><small>2026.10.01</small></td><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td class="money">¥86,000</td><td><span class="tag warn">申請済み</span></td><td><button class="btn small" data-action="review">確認開始</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
     <tr data-status="確認中"><td><strong>PO-2026-1043</strong><small>2026.09.30</small></td><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td class="money">¥54,000</td><td><span class="tag warn">確認中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
