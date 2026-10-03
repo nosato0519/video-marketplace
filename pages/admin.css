@@ -97,3 +97,14 @@ a.feature:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .feature-action{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:11px;border-top:1px solid var(--line);font-size:10px;color:var(--accent)}
 .feature-action span{transition:transform .18s ease}
 a.feature:hover .feature-action span{transform:translateX(4px)}
+
+
+/* Admin list pagination */
+.table-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:12px;padding:12px 2px;color:var(--muted);font-size:10px}
+.pagination-controls{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.pagination-button{min-width:32px;height:31px;padding:0 9px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--text);font:inherit;cursor:pointer}
+.pagination-button:hover:not(:disabled){border-color:var(--accent);color:var(--accent2)}
+.pagination-button.active{border-color:var(--accent);background:#292316;color:var(--accent2)}
+.pagination-button:disabled{opacity:.35;cursor:not-allowed}
+.pagination-ellipsis{padding:0 2px;color:var(--muted)}
+@media(max-width:720px){.table-pagination{align-items:flex-start;flex-direction:column}.pagination-controls{justify-content:flex-start}}
