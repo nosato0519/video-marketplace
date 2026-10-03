@@ -988,3 +988,20 @@ footer{border-radius:0;background:#07090c}
 /* Seller editor actions */
 .seller-editor-actions{display:flex;gap:12px;flex-wrap:wrap}
 .seller-cancel-link{font:inherit;color:inherit;text-decoration:none}
+
+/* Buyer page cleanup */
+.library-progress.is-progress-24 span{width:24%}
+.library-progress.is-progress-0 span{width:0}
+.library-progress.is-progress-42 span{width:42%}
+.buyer-order-summary{margin-top:18px}
+.buyer-action-row{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
+.cart-item-actions{display:flex;flex-direction:column;align-items:flex-end}
+.cart-remove-link,.cart-clear-link{display:inline-flex;align-items:center;justify-content:center;border:1px solid #39414a;border-radius:4px;background:#151a20;color:#aeb7c1;text-decoration:none;font-family:inherit;font-size:10px;line-height:1.2;white-space:nowrap}
+.cart-remove-link{margin-top:7px;padding:7px 11px}
+.cart-clear-link{padding:10px 14px;background:transparent}
+.checkout-payment-list{display:grid;gap:12px;margin-top:18px}
+.checkout-payment-card{padding:18px;border:1px solid #252b33;background:#11161c}
+.checkout-payment-card p,.checkout-confirmation p{margin:8px 0 0;color:#7f8994;font-size:12px}
+.checkout-confirmation{margin-top:18px;padding:20px;border:1px solid #252b33;background:#11161c}
+.checkout-total{display:flex;justify-content:space-between;gap:20px;align-items:center}
+.checkout-total strong{font-size:24px}
