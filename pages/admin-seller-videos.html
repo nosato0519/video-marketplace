@@ -67,13 +67,37 @@
 <script>
 (function(){
 var table=document.getElementById('video-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('video-search'),status=document.getElementById('video-status');
+function renderActions(row){
+ var value=row.querySelector('.tag').textContent.trim(),cell=row.cells[5];cell.innerHTML='';
+ function add(label,action){var button=document.createElement('button');button.type='button';button.className='btn small';button.textContent=label;button.dataset.action=action;cell.appendChild(button);}
+ if(value==='審査待ち'){add('承認','approve');add('修正依頼','changes');add('却下','reject');}
+ else if(value==='公開中'){add('停止','block');}
+ else if(value==='修正依頼'){add('再審査待ち','restore');add('却下','reject');add('停止','block');}
+ else if(value==='却下'){add('再審査待ち','restore');}
+ else if(value==='停止中'){add('再審査待ち','restore');}
+ else{cell.textContent='—';}
+}
 function refresh(){
  var q=search.value.trim().toLowerCase(),visible=0,counts={'審査待ち':0,'公開中':0,'修正依頼':0,'却下':0,'停止中':0};
  rows.forEach(function(row){var current=row.querySelector('.tag').textContent.trim();counts[current]=(counts[current]||0)+1;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)visible++;});
  document.getElementById('video-count').textContent=visible+'件';
- document.getElementById('pending-count').innerHTML=(counts['審査待ち']||0)+' <em>件</em>';document.getElementById('published-count').innerHTML=(counts['公開中']||0)+' <em>件</em>';document.getElementById('changes-count').innerHTML=(counts['修正依頼']||0)+' <em>件</em>';document.getElementById('blocked-count').innerHTML=(counts['停止中']||0)+' <em>件</em>';
+ document.getElementById('pending-count').innerHTML=(counts['審査待ち']||0)+' <em>件</em>';
+ document.getElementById('published-count').innerHTML=(counts['公開中']||0)+' <em>件</em>';
+ document.getElementById('changes-count').innerHTML=(counts['修正依頼']||0)+' <em>件</em>';
+ document.getElementById('blocked-count').innerHTML=(counts['停止中']||0)+' <em>件</em>';
 }
-rows.forEach(function(row){row.querySelectorAll('button[data-action]').forEach(function(button){button.addEventListener('click',function(){var action=button.dataset.action,tag=row.querySelector('.tag'),target=tag.textContent.trim();if(action==='approve')target='公開中';if(action==='changes')target='修正依頼';if(action==='reject')target='却下';if(action==='block')target='停止中';if(action==='restore')target='審査待ち';tag.textContent=target;tag.className='tag '+(target==='公開中'?'ok':'warn');row.dataset.status=target;var cell=row.cells[5];cell.innerHTML='';var next=document.createElement('button');next.type='button';next.className='btn small';if(target==='公開中'){next.textContent='停止';next.dataset.action='block';}else if(target==='停止中'){next.textContent='再審査へ';next.dataset.action='restore';}else if(target==='審査待ち'){next.textContent='承認';next.dataset.action='approve';cell.appendChild(next);var changes=document.createElement('button');changes.type='button';changes.className='btn small';changes.textContent='修正依頼';changes.dataset.action='changes';cell.append(' ',changes);next.addEventListener('click',function(){tag.textContent='公開中';tag.className='tag ok';row.dataset.status='公開中';refresh();});changes.addEventListener('click',function(){tag.textContent='修正依頼';tag.className='tag warn';row.dataset.status='修正依頼';refresh();});refresh();return;}else{next.textContent='承認';next.dataset.action='approve';}cell.appendChild(next);next.addEventListener('click',function(){tag.textContent='公開中';tag.className='tag ok';row.dataset.status='公開中';refresh();});refresh();});});});
+rows.forEach(renderActions);
+table.addEventListener('click',function(event){
+ var button=event.target.closest('button[data-action]');if(!button)return;
+ var row=button.closest('tr'),tag=row.querySelector('.tag'),action=button.dataset.action,target=tag.textContent.trim();
+ if(action==='approve')target='公開中';
+ if(action==='changes')target='修正依頼';
+ if(action==='reject')target='却下';
+ if(action==='block')target='停止中';
+ if(action==='restore')target='審査待ち';
+ tag.textContent=target;tag.className='tag '+(target==='公開中'?'ok':'warn');row.dataset.status=target;
+ renderActions(row);refresh();
+});
 search.addEventListener('input',refresh);status.addEventListener('change',refresh);refresh();
 })();
 </script>
