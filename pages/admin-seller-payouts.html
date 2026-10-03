@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販売者の出金管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html" class="active" aria-current="page">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">SELLER MANAGEMENT / PAYOUTS</div><h1 class="title">出金申請管理</h1><p class="lead">申請額、販売者、処理状況を確認し、出金処理の進行を管理します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
+</header>
+<p class="preview-note">画面確認用のサンプルデータです。ステータス変更は画面内だけに反映され、銀行振込・決済処理・実データ更新は行いません。</p>
+<section class="queue">
+  <div class="queue-card"><span>申請済み</span><strong id="requested-count">2 <em>件</em></strong></div>
+  <div class="queue-card"><span>確認中</span><strong id="reviewing-count">1 <em>件</em></strong></div>
+  <div class="queue-card"><span>処理中</span><strong id="processing-count">1 <em>件</em></strong></div>
+  <div class="queue-card"><span>支払済み</span><strong id="paid-count">1 <em>件</em></strong></div>
+</section>
+<section class="section">
+  <div class="section-head"><div><h2>出金申請一覧</h2><p>申請の確認から支払い完了までを一元管理</p></div><a class="btn" href="/pages/admin-seller-detail.html">販売者詳細を見る</a></div>
+  <div class="admin-filterbar">
+    <label>販売者・申請IDを検索<input id="payout-search" type="search" placeholder="販売者名・申請ID"></label>
+    <label>処理状況<select id="payout-status"><option value="">すべて</option><option>申請済み</option><option>確認中</option><option>承認済み</option><option>処理中</option><option>支払済み</option><option>失敗</option><option>取消</option></select></label>
+    <span id="payout-count" class="muted">5件</span>
+  </div>
+  <div class="panel" style="overflow:auto"><table class="table" id="payout-table"><thead><tr><th>申請ID / 申請日</th><th>販売者</th><th>申請額</th><th>状態</th><th>次の処理</th></tr></thead><tbody>
+    <tr data-status="申請済み"><td><strong>PO-2026-1048</strong><small>2026.10.02</small></td><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td class="money">¥128,000</td><td><span class="tag warn">申請済み</span></td><td><button class="btn small" data-action="review">確認開始</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
+    <tr data-status="申請済み"><td><strong>PO-2026-1047</strong><small>2026.10.01</small></td><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td class="money">¥86,000</td><td><span class="tag warn">申請済み</span></td><td><button class="btn small" data-action="review">確認開始</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
+    <tr data-status="確認中"><td><strong>PO-2026-1043</strong><small>2026.09.30</small></td><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td class="money">¥54,000</td><td><span class="tag warn">確認中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="cancel">取消</button></td></tr>
+    <tr data-status="処理中"><td><strong>PO-2026-1039</strong><small>2026.09.28</small></td><td><strong>Studio M</strong><small>studio-m@example.com</small></td><td class="money">¥30,000</td><td><span class="tag warn">処理中</span></td><td><button class="btn small" data-action="paid">支払済みにする</button> <button class="btn small" data-action="failed">失敗を記録</button></td></tr>
+    <tr data-status="支払済み"><td><strong>PO-2026-1028</strong><small>2026.09.24</small></td><td><strong>BLUE HORIZON</strong><small>blue@example.com</small></td><td class="money">¥42,500</td><td><span class="tag ok">支払済み</span></td><td><span class="muted">完了</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="section two">
+  <div class="panel"><div class="panel-head"><strong>処理フロー</strong><span>PAYOUT WORKFLOW</span></div><div class="rows">
+    <div class="row"><div><strong>申請済み → 確認中</strong><small>申請額・販売者情報・受取口座を確認</small></div></div>
+    <div class="row"><div><strong>確認中 → 承認済み / 処理中</strong><small>必要な確認が完了したら次の処理へ</small></div></div>
+    <div class="row"><div><strong>処理中 → 支払済み / 失敗</strong><small>振込結果を確認し、結果と理由を記録</small></div></div>
+  </div></div>
+  <div class="panel"><div class="panel-head"><strong>処理上の注意</strong><span>CHECK BEFORE ACTION</span></div><div class="rows">
+    <div class="row"><div><strong>金額・残高</strong><small>売上残高と申請額が一致しているか確認</small></div></div>
+    <div class="row"><div><strong>受取口座</strong><small>登録情報と変更申請の承認状況を確認</small></div></div>
+    <div class="row"><div><strong>履歴・監査記録</strong><small>状態変更の担当者、日時、理由を記録する</small></div></div>
+  </div></div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　PAYOUT OPERATIONS</footer>
+</main></div>
+<script>
+(function(){
+var table=document.getElementById('payout-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('payout-search'),status=document.getElementById('payout-status');
+function refresh(){
+ var q=search.value.trim().toLowerCase(),visible=0,counts={'申請済み':0,'確認中':0,'承認済み':0,'処理中':0,'支払済み':0,'失敗':0,'取消':0};
+ rows.forEach(function(row){var current=row.querySelector('.tag');current=current?current.textContent.trim():'完了';counts[current]=(counts[current]||0)+1;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)visible++;});
+ document.getElementById('payout-count').textContent=visible+'件';
+ document.getElementById('requested-count').innerHTML=(counts['申請済み']||0)+' <em>件</em>';document.getElementById('reviewing-count').innerHTML=(counts['確認中']||0)+' <em>件</em>';document.getElementById('processing-count').innerHTML=(counts['処理中']||0)+' <em>件</em>';document.getElementById('paid-count').innerHTML=(counts['支払済み']||0)+' <em>件</em>';
+}
+function renderActions(row){
+ var tag=row.querySelector('.tag'),value=tag.textContent.trim(),cell=row.cells[4];cell.innerHTML='';function add(label,action){var b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;b.dataset.action=action;b.addEventListener('click',function(){transition(row,action);});cell.appendChild(b);}
+ if(value==='申請済み'){add('確認開始','review');add('取消','cancel');}
+ else if(value==='確認中'){add('承認','approve');add('処理中へ','processing');add('取消','cancel');}
+ else if(value==='承認済み'){add('処理中へ','processing');add('取消','cancel');}
+ else if(value==='処理中'){add('支払済みにする','paid');add('失敗を記録','failed');}
+ else if(value==='失敗'){add('再確認','review');}
+ else{cell.textContent=value==='支払済み'?'完了':'終了';}
+}
+function transition(row,action){
+ var tag=row.querySelector('.tag'),target=tag.textContent.trim();
+ if(action==='review')target='確認中';if(action==='approve')target='承認済み';if(action==='processing')target='処理中';if(action==='paid')target='支払済み';if(action==='failed')target='失敗';if(action==='cancel')target='取消';
+ tag.textContent=target;tag.className='tag '+(target==='支払済み'?'ok':'warn');row.dataset.status=target;renderActions(row);refresh();
+}
+rows.forEach(renderActions);search.addEventListener('input',refresh);status.addEventListener('change',refresh);refresh();
+})();
+</script>
+</body>
+</html>
