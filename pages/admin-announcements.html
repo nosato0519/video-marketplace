@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>お知らせ管理 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+<style>
+.announce-layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}.announce-list{display:grid;gap:8px}.announce-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);padding:13px;cursor:pointer}.announce-item.active{border-color:var(--accent);background:#17150f}.announce-item strong{display:block;font-size:11px}.announce-item small{display:block;color:var(--muted);font-size:9px;margin-top:5px}.announce-editor{display:grid;gap:16px}.announce-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.field{display:grid;gap:7px;color:var(--muted);font-size:10px}.field input,.field select,.field textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--text);font:inherit}.field textarea{min-height:280px;resize:vertical;line-height:1.8}.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.preview{padding:20px;border:1px solid var(--line);border-radius:8px;background:#0e1014}.preview h3{margin:0 0 8px}.preview-meta{font-size:9px;color:var(--muted);margin-bottom:14px}.preview-body{white-space:pre-wrap;line-height:1.8;font-size:11px}.note{padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:10px;line-height:1.7;background:var(--panel)}@media(max-width:850px){.announce-layout,.announce-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+<div class="admin-label">OPERATOR CONSOLE</div>
+<nav class="nav" aria-label="運営者メニュー">
+<a href="/pages/admin.html">概要</a><a href="/pages/admin-sellers.html">販売者管理</a><a href="/pages/admin-buyers.html">購入者管理</a><a href="/pages/admin-inquiries.html">問い合わせ管理</a><a href="/pages/admin-pages.html" class="active" aria-current="page">ページ編集</a><a href="/pages/admin-settings.html">運営設定</a>
+</nav>
+<div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow">ADMIN / ANNOUNCEMENTS</div><h1 class="title">お知らせ管理</h1><p class="lead">サイトのお知らせを作成し、公開状態と表示内容を管理します。</p></div><div class="top-actions"><a class="btn" href="/pages/admin-pages.html">ページ編集へ戻る</a></div></header>
+<section class="section"><p class="note">お知らせは画面デモ用のローカル設定です。公開時には後続のシステム連携でデータベースへ接続し、TOPなどへ表示します。</p></section>
+<section class="section announce-layout">
+<div class="panel"><div class="panel-head"><strong>お知らせ一覧</strong><span>ANNOUNCEMENTS</span></div><div id="list" class="announce-list"></div><div class="actions" style="margin-top:12px"><button class="btn primary" id="new" type="button">＋ 新しいお知らせ</button></div></div>
+<div class="panel announce-editor">
+<div class="panel-head"><strong id="editor-title">お知らせを編集</strong><span id="state">下書き</span></div>
+<div class="announce-grid">
+<label class="field">タイトル<input id="title" type="text" placeholder="例：新しい動画を追加しました"></label>
+<label class="field">カテゴリー<select id="category"><option>お知らせ</option><option>サービス</option><option>キャンペーン</option><option>メンテナンス</option></select></label>
+<label class="field">公開状態<select id="status"><option value="draft">下書き</option><option value="published">公開</option></select></label>
+<label class="field">公開日<input id="date" type="date"></label>
+</div>
+<label class="field">本文<textarea id="body" placeholder="お知らせ本文を入力します。"></textarea></label>
+<div class="actions"><button class="btn primary" id="save" type="button">下書きを保存</button><button class="btn" id="publish" type="button">公開する</button><button class="btn" id="preview" type="button">プレビュー</button><button class="btn" id="delete" type="button">削除</button><span class="muted" id="message">画面デモ用の設定です。</span></div>
+<div class="preview" id="previewBox" hidden><h3 id="previewTitle"></h3><div class="preview-meta" id="previewMeta"></div><div class="preview-body" id="previewBody"></div></div>
+</div>
+</section>
+<footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
+</main></div>
+<script>
+(function(){
+const KEY='vm-demo-announcements';
+const seed=[
+{id:'a1',title:'VIDEO MARKETPLACEへようこそ',category:'お知らせ',status:'published',date:'2026-10-01',body:'VIDEO MARKETPLACEのサービスを開始しました。\n\n新しい映像作品との出会いをお楽しみください。'},
+{id:'a2',title:'新しい作品を追加しました',category:'サービス',status:'published',date:'2026-09-28',body:'新しいクリエイターの作品を追加しました。\n\nぜひ作品一覧からチェックしてください。'}
+];
+let data=[],current=null;
+const $=id=>document.getElementById(id);
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');data=Array.isArray(x)?x:seed.map(v=>({...v}));}catch(e){data=seed.map(v=>({...v}));}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));}
+function render(){const root=$('list');root.replaceChildren();data.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='announce-item'+(x.id===current?' active':'');b.innerHTML='<strong></strong><small></small>';b.querySelector('strong').textContent=x.title;b.querySelector('small').textContent=(x.status==='published'?'公開':'下書き')+'　•　'+x.category+'　•　'+(x.date||'日付未設定');b.onclick=()=>{current=x.id;render();fill();};root.append(b);});}
+function fill(){const x=data.find(v=>v.id===current);if(!x)return;$('title').value=x.title;$('category').value=x.category;$('status').value=x.status;$('date').value=x.date||'';$('body').value=x.body||'';$('state').textContent=x.status==='published'?'公開':'下書き';$('editor-title').textContent=x.title;$('previewBox').hidden=true;}
+function collect(){const x=data.find(v=>v.id===current);if(!x)return;x.title=$('title').value.trim()||'無題のお知らせ';x.category=$('category').value;x.status=$('status').value;x.date=$('date').value;x.body=$('body').value;}
+function msg(v){$('message').textContent=v;setTimeout(()=>$('message').textContent='画面デモ用の設定です。',2200);}
+$('new').onclick=()=>{const x={id:'a'+Date.now(),title:'新しいお知らせ',category:'お知らせ',status:'draft',date:'',body:''};data.unshift(x);current=x.id;persist();render();fill();};
+$('save').onclick=()=>{collect();const x=data.find(v=>v.id===current);x.status='draft';persist();render();fill();msg('下書きを保存しました。');};
+$('publish').onclick=()=>{collect();const x=data.find(v=>v.id===current);if(!x.title||!x.body.trim()){msg('タイトルと本文を入力してください。');return;}x.status='published';if(!x.date)x.date=new Date().toISOString().slice(0,10);persist();render();fill();msg('お知らせを公開しました。');};
+$('preview').onclick=()=>{collect();const x=data.find(v=>v.id===current);$('previewTitle').textContent=x.title;$('previewMeta').textContent=x.category+'　•　'+(x.date||'公開日未設定');$('previewBody').textContent=x.body||'本文がありません。';$('previewBox').hidden=false;};
+$('delete').onclick=()=>{if(!current)return;if(!confirm('このお知らせを削除しますか？'))return;data=data.filter(v=>v.id!==current);current=data[0]?.id||null;persist();render();if(current)fill();else{$('editor-title').textContent='お知らせを編集';$('title').value='';$('body').value='';}};
+load();current=data[0]?.id||null;render();if(current)fill();
+})();
+</script>
+</body></html>
