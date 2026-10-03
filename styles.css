@@ -494,7 +494,7 @@ html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Noto Sans JP","Yu Gothic",Arial,sans-serif}
 .nav{height:68px;padding:0 4vw;gap:28px;background:#0b0d10f2;border-bottom:1px solid var(--line)}
 .logo{font-size:23px;color:#fff}.logo span{color:#7f8994}
-.nav nav{gap:20px}.nav nav a,.nav-right>a{color:#b9c0c8}
+.nav nav{gap:20px}.nav nav a,.nav-right>a{color:#b9c0c8}.nav-demo-links{display:flex;align-items:center;gap:14px;margin-right:2px}.nav-demo-links a{color:#aeb7c1!important;font-size:10px!important;letter-spacing:.2px;white-space:nowrap;transition:color .2s ease}.nav-demo-links a:hover{color:var(--accent)!important}
 .searchbox{width:220px;height:36px;border:1px solid #ffffff20;border-radius:6px;background:#12161c}
 .sell{background:#fff!important;color:#0b0d10!important;border-radius:5px!important;padding:10px 14px}
 .hero{height:410px;min-height:410px;background:#0b0d10;border-bottom:1px solid var(--line)}
