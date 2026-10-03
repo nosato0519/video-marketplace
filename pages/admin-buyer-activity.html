@@ -45,9 +45,21 @@
 <tr><td>10/01 16:20</td><td>buyer@example.com</td><td>購入履歴を表示</td></tr>
 </tbody></table></div>
 </section>
-<script>(function(){[['favorite-search','favorite-table'],['activity-search','activity-table']].forEach(([inputId,tableId])=>{const input=document.getElementById(inputId),rows=[...document.querySelectorAll('#'+tableId+' tbody tr')];input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();rows.forEach(r=>r.hidden=!r.innerText.toLowerCase().includes(q));});});})();</script>
+<script>(function(){[['favorite-search','favorite-table'],['activity-search','activity-table']].forEach(([inputId,tableId])=>{const input=document.getElementById(inputId),rows=[...document.querySelectorAll('#'+tableId+' tbody tr')];input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();rows.forEach(r=>{const match=r.innerText.toLowerCase().includes(q);r.dataset.filtered=match?'':'hidden';r.hidden=!match;});});});})();</script>
 <footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
 </main>
 </div>
-</body>
+<script>
+(function(){
+['favorite-table','activity-table'].forEach(id=>{
+ const table=document.getElementById(id);if(!table)return;
+ const rows=[...table.tBodies[0].rows];rows.forEach(row=>{if(!row.dataset.filtered)row.dataset.filtered=row.hidden?'hidden':'';});
+ const pageSize=20;let page=1;const nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ');
+ const summary=document.createElement('span');const controls=document.createElement('div');controls.className='pagination-controls';nav.append(summary,controls);table.closest('.panel').appendChild(nav);
+ function render(){const matches=rows.filter(row=>row.dataset.filtered!=='hidden');const pages=Math.max(1,Math.ceil(matches.length/pageSize));page=Math.min(page,pages);rows.forEach(row=>row.hidden=true);matches.slice((page-1)*pageSize,page*pageSize).forEach(row=>row.hidden=false);summary.textContent=matches.length?((page-1)*pageSize+1)+'–'+Math.min(page*pageSize,matches.length)+'件 / '+matches.length+'件':'0件';controls.replaceChildren();function add(label,target,disabled,active){const b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=disabled;if(active)b.setAttribute('aria-current','page');b.addEventListener('click',()=>{page=target;render();});controls.appendChild(b);}add('前へ',page-1,page===1,false);const set=new Set([1,pages,page-1,page,page+1].filter(n=>n>=1&&n<=pages));let previous=0;[...set].sort((a,b)=>a-b).forEach(n=>{if(previous&&n-previous>1){const e=document.createElement('span');e.className='pagination-ellipsis';e.textContent='…';controls.appendChild(e);}add(String(n),n,false,n===page);previous=n;});add('次へ',page+1,page===pages,false);}
+ const inputId=id==='favorite-table'?'favorite-search':'activity-search';const input=document.getElementById(inputId);if(input){input.addEventListener('input',()=>{page=1;render();});}
+ render();
+});
+})();
+</script></body>
 </html>
