@@ -45,13 +45,13 @@
   <label class="detail-label" style="margin:0 0 14px">審査メモ（却下時は必須）<textarea id="application-note" rows="2" placeholder="申請内容の確認結果、却下理由など"></textarea></label>
   <div class="admin-filterbar">
     <label>申請者を検索<input id="application-search" type="search" placeholder="表示名・氏名・メールアドレス"></label>
-    <label>審査状況<select id="application-status"><option value="">すべて</option><option>審査待ち</option><option>審査中</option><option>承認済み</option><option>却下</option></select></label>
+    <label>審査状況<select id="application-status"><option value="">すべて</option><option>審査待ち</option><option>審査中</option><option>承認済み</option><option>却下</option><option>取り下げ</option></select></label>
     <span id="application-count" class="muted">4件</span>
   </div>
   <div class="panel" style="overflow:auto"><table class="table" id="application-table"><thead><tr><th>申請者</th><th>登録情報</th><th>申請日</th><th>状態</th><th>操作</th></tr></thead><tbody>
-    <tr data-status="審査待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="審査中"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="審査待ち"><td><strong>Northlight Works</strong><small>northlight@example.com</small></td><td>法的氏名：非表示サンプル<br>国：US</td><td>2026.09.30</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP<br>申請メッセージ：映像作品を販売予定</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査中"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP<br>申請メッセージ：ブランド映像を登録予定</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
+    <tr data-status="審査待ち"><td><strong>Northlight Works</strong><small>northlight@example.com</small></td><td>法的氏名：非表示サンプル<br>国：US<br>申請メッセージ：自然映像を販売予定</td><td>2026.09.30</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
     <tr data-status="承認済み"><td><strong>Studio M</strong><small>studio-m@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.09.27</td><td><span class="tag ok">承認済み</span></td><td><span class="muted">処理済み</span></td></tr>
   </tbody></table></div>
 </section>
@@ -60,7 +60,7 @@
   <label class="detail-label" style="margin:0 0 14px">本人確認メモ（差し戻し・却下時は必須）<textarea id="verification-note" rows="2" placeholder="確認結果、追加提出が必要な情報など"></textarea></label>
   <div class="admin-filterbar">
     <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
-    <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option></select></label>
+    <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option><option>却下</option><option>未申請</option></select></label>
     <span id="verification-count" class="muted">4件</span>
   </div>
   <div class="panel" style="overflow:auto"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
