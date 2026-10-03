@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>公開文書の管理・編集 | VIDEO MARKETPLACE</title>
+<link rel="stylesheet" href="/pages/admin.css">
+<style>
+.policy-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;align-items:start}
+.policy-list{display:grid;gap:7px}
+.policy-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--text);padding:13px 14px;cursor:pointer}
+.policy-item strong{display:block;font-size:11px}.policy-item small{display:block;color:var(--muted);font-size:9px;margin-top:5px}
+.policy-item.active{border-color:var(--accent);background:#17150f;box-shadow:inset 3px 0 var(--accent)}
+.policy-editor{display:grid;gap:16px}
+.policy-editor-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.policy-field{display:grid;gap:7px;color:var(--muted);font-size:10px}
+.policy-field input,.policy-field select,.policy-field textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--text);font:inherit}
+.policy-field textarea{min-height:430px;resize:vertical;line-height:1.8}
+.policy-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.policy-preview{padding:22px;border:1px solid var(--line);border-radius:8px;background:#0e1014}
+.policy-preview h3{margin:0 0 14px;font-size:20px}.policy-preview-meta{color:var(--muted);font-size:9px;margin-bottom:18px}.policy-preview-body{white-space:pre-wrap;line-height:1.85;font-size:11px;color:#d9dde3}
+.policy-actions{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.policy-actions .muted{min-width:200px}
+.policy-note{margin:0;padding:12px 15px;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:10px;line-height:1.7;background:var(--panel)}
+@media(max-width:850px){.policy-layout{grid-template-columns:1fr}.policy-editor-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+  <div class="admin-label">OPERATOR CONSOLE</div>
+  <nav class="nav" aria-label="運営者メニュー">
+    <a href="/pages/admin.html">概要</a>
+    <a href="/pages/admin-sellers.html">販売者管理</a>
+    <a href="/pages/admin-buyers.html">購入者管理</a>
+    <a href="/pages/admin-inquiries.html">問い合わせ管理</a>
+    <a href="/pages/admin-pages.html" class="active" aria-current="page">ページ編集</a>
+    <a href="/pages/admin-settings.html">運営設定</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="health"><span>System health</span><b>● Operational</b></div><a class="back" href="/">← TOPへ戻る</a></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div><div class="eyebrow">ADMIN / PUBLIC DOCUMENTS</div><h1 class="title">公開文書の管理・編集</h1><p class="lead">利用規約・プライバシーポリシーなど、公開する文書を作成・更新します。</p></div>
+  <div class="top-actions"><a class="btn" href="/pages/admin-pages.html">ページ編集へ戻る</a></div>
+</header>
+
+<section class="section">
+  <p class="policy-note">ここでは公開文書の本文を管理します。保存・公開状態は画面デモ用のローカル設定です。実際の公開反映や法的な内容の確定は、後続のシステム連携と内容確認が必要です。</p>
+</section>
+
+<section class="section policy-layout">
+  <div class="panel">
+    <div class="panel-head"><strong>公開文書</strong><span>DOCUMENTS</span></div>
+    <div id="policy-list" class="policy-list"></div>
+  </div>
+
+  <div class="panel policy-editor">
+    <div class="panel-head"><strong id="editor-title">利用規約</strong><span id="editor-state">下書き</span></div>
+    <div class="policy-editor-grid">
+      <label class="policy-field">文書タイトル<input id="doc-title" type="text"></label>
+      <label class="policy-field">公開状態<select id="doc-status"><option value="draft">下書き</option><option value="published">公開</option></select></label>
+      <label class="policy-field">版<input id="doc-version" type="text" placeholder="例：v1.0"></label>
+      <label class="policy-field">改定日<input id="doc-date" type="date"></label>
+    </div>
+    <label class="policy-field">本文<textarea id="doc-body" placeholder="ここに公開する文書本文を入力します。"></textarea></label>
+    <div class="policy-actions">
+      <button class="btn primary" type="button" id="save-draft">下書きを保存</button>
+      <button class="btn" type="button" id="publish">公開状態にする</button>
+      <button class="btn" type="button" id="preview">プレビュー</button>
+      <button class="btn" type="button" id="reset">初期内容に戻す</button>
+      <span class="muted" id="status-message">画面デモ用の設定です。</span>
+    </div>
+    <div class="policy-preview" id="preview-panel" hidden>
+      <h3 id="preview-title"></h3>
+      <div class="policy-preview-meta" id="preview-meta"></div>
+      <div class="policy-preview-body" id="preview-body"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
+</main>
+</div>
+<script>
+(function(){
+const KEY='vm-demo-public-documents';
+const documents=[
+{id:'terms',title:'利用規約',description:'サービス利用条件・アカウント・購入・販売など',version:'v1.0',status:'draft',date:'',body:'利用規約の本文をここに入力します。\n\n※これは画面デモ用の初期文です。実際の販売時には、サービスの実態に合わせた正式な規約を作成してください。'},
+{id:'privacy',title:'プライバシーポリシー',description:'個人情報・利用目的・第三者提供など',version:'v1.0',status:'draft',date:'',body:'プライバシーポリシーの本文をここに入力します。\n\n※これは画面デモ用の初期文です。実際の取得情報・利用目的などに合わせて正式な内容を作成してください。'},
+{id:'commerce',title:'特定商取引法に基づく表記',description:'販売事業者・価格・支払・返品などの表示',version:'v1.0',status:'draft',date:'',body:'特定商取引法に基づく表記の本文をここに入力します。\n\n※販売形態や事業者情報に合わせて正式な内容を作成してください。'},
+{id:'refund',title:'販売・返金ポリシー',description:'購入後のキャンセル・返金・コンテンツ提供条件',version:'v1.0',status:'draft',date:'',body:'販売・返金ポリシーの本文をここに入力します。\n\n※実際の販売条件・返金条件に合わせて正式な内容を作成してください。'},
+{id:'seller',title:'販売者向け利用規約',description:'販売者登録・コンテンツ掲載・売上・禁止事項など',version:'v1.0',status:'draft',date:'',body:'販売者向け利用規約の本文をここに入力します。\n\n※販売者との契約関係や運営ルールに合わせて正式な内容を作成してください。'},
+{id:'contact',title:'お問い合わせ・サポート案内',description:'問い合わせ窓口・対応時間・よくある案内',version:'v1.0',status:'draft',date:'',body:'お問い合わせ・サポート案内の本文をここに入力します。'}
+];
+let state=[],current='terms';
+const $=id=>document.getElementById(id);
+function load(){try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');state=Array.isArray(saved)&&saved.length?saved:documents.map(x=>({...x}));}catch(e){state=documents.map(x=>({...x}));}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true;}catch(e){return false;}}
+function renderList(){const root=$('policy-list');root.replaceChildren();state.forEach(doc=>{const b=document.createElement('button');b.type='button';b.className='policy-item'+(doc.id===current?' active':'');b.innerHTML='<strong></strong><small></small>';b.querySelector('strong').textContent=doc.title;b.querySelector('small').textContent=(doc.status==='published'?'公開':'下書き')+'　•　'+doc.description;b.addEventListener('click',()=>{current=doc.id;renderList();loadEditor();});root.append(b);});}
+function loadEditor(){const doc=state.find(x=>x.id===current)||state[0];if(!doc)return; $('editor-title').textContent=doc.title;$('editor-state').textContent=doc.status==='published'?'公開':'下書き';$('doc-title').value=doc.title;$('doc-status').value=doc.status;$('doc-version').value=doc.version||'v1.0';$('doc-date').value=doc.date||'';$('doc-body').value=doc.body||'';$('preview-panel').hidden=true;}
+function collect(){const doc=state.find(x=>x.id===current);if(!doc)return;doc.title=$('doc-title').value.trim()||'無題の公開文書';doc.status=$('doc-status').value;doc.version=$('doc-version').value.trim()||'v1.0';doc.date=$('doc-date').value;doc.body=$('doc-body').value;}
+function message(text){$('status-message').textContent=text;setTimeout(()=>{$('status-message').textContent='画面デモ用の設定です。';},2200);}
+$('save-draft').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);doc.status='draft';save();renderList();loadEditor();message('下書きを保存しました。');});
+$('publish').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);if(!doc.body.trim()){message('本文を入力してから公開してください。');return;}doc.status='published';save();renderList();loadEditor();message('公開状態として保存しました。');});
+$('preview').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);$('preview-title').textContent=doc.title;$('preview-meta').textContent=(doc.status==='published'?'公開':'下書き')+'　•　'+doc.version+(doc.date?'　•　改定日 '+doc.date:'');$('preview-body').textContent=doc.body||'本文がありません。';$('preview-panel').hidden=false;});
+$('reset').addEventListener('click',()=>{if(!confirm('この文書を初期内容に戻しますか？'))return;const original=documents.find(x=>x.id===current);const index=state.findIndex(x=>x.id===current);state[index]={...original};save();loadEditor();renderList();message('初期内容に戻しました。');});
+load();renderList();loadEditor();
+})();
+</script>
+</body>
+</html>
