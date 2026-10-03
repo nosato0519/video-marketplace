@@ -42,6 +42,7 @@
 </section>
 <section class="section" id="applications">
   <div class="section-head"><div><h2>販売者登録申請</h2><p>登録申請の審査状況と申請内容</p></div><span class="muted">サンプル 4件</span></div>
+  <label class="detail-label" style="margin:0 0 14px">審査メモ（却下時は必須）<textarea id="application-note" rows="2" placeholder="申請内容の確認結果、却下理由など"></textarea></label>
   <div class="admin-filterbar">
     <label>申請者を検索<input id="application-search" type="search" placeholder="表示名・氏名・メールアドレス"></label>
     <label>審査状況<select id="application-status"><option value="">すべて</option><option>審査待ち</option><option>審査中</option><option>承認済み</option><option>却下</option></select></label>
@@ -56,6 +57,7 @@
 </section>
 <section class="section" id="verification">
   <div class="section-head"><div><h2>本人確認</h2><p>販売者プロフィールの確認状況・審査メモ</p></div><span class="muted">サンプル 4件</span></div>
+  <label class="detail-label" style="margin:0 0 14px">本人確認メモ（差し戻し・却下時は必須）<textarea id="verification-note" rows="2" placeholder="確認結果、追加提出が必要な情報など"></textarea></label>
   <div class="admin-filterbar">
     <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
     <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option></select></label>
@@ -72,15 +74,15 @@
 </main></div>
 <script>
 (function(){
-  function wireTable(tableId,searchId,statusId,countId,kind){
+  function wireTable(tableId,searchId,statusId,countId,noteId,kind){
     var table=document.getElementById(tableId);if(!table)return;
-    var rows=Array.from(table.tBodies[0].rows),search=document.getElementById(searchId),status=document.getElementById(statusId),count=document.getElementById(countId);
+    var rows=Array.from(table.tBodies[0].rows),search=document.getElementById(searchId),status=document.getElementById(statusId),count=document.getElementById(countId),note=document.getElementById(noteId);
     function filter(){var q=search.value.trim().toLowerCase(),n=0;rows.forEach(function(row){var tag=row.querySelector('.tag'),current=tag?tag.textContent.trim():row.dataset.status;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)n++;});count.textContent=n+'件';}
-    rows.forEach(function(row){row.querySelectorAll('button[data-action]').forEach(function(button){button.addEventListener('click',function(){var action=button.dataset.action,target='';if(action==='start')target='審査中';if(action==='approve')target=kind==='application'?'承認済み':'確認済み';if(action==='reject')target='却下';if(action==='changes')target='差し戻し';if(action==='resubmit')target='確認待ち';if(!target)return;var tag=row.querySelector('.tag');if(tag){tag.textContent=target;tag.className='tag '+(['承認済み','確認済み'].includes(target)?'ok':'warn');}row.dataset.status=target;filter();});});});
+    rows.forEach(function(row){row.querySelectorAll('button[data-action]').forEach(function(button){button.addEventListener('click',function(){var action=button.dataset.action,target='';if((kind==='application'&&action==='reject')||(kind==='verification'&&(action==='reject'||action==='changes'))){if(!note.value.trim()){alert('却下・差し戻しの理由を審査メモに入力してください。');note.focus();return;}}if(action==='start')target='審査中';if(action==='approve')target=kind==='application'?'承認済み':'確認済み';if(action==='reject')target='却下';if(action==='changes')target='差し戻し';if(action==='resubmit')target='確認待ち';if(!target)return;var tag=row.querySelector('.tag');if(tag){tag.textContent=target;tag.className='tag '+(['承認済み','確認済み'].includes(target)?'ok':'warn');}row.dataset.status=target;filter();});});});
     search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
   }
-  wireTable('application-table','application-search','application-status','application-count','application');
-  wireTable('verification-table','verification-search','verification-status','verification-count','verification');
+  wireTable('application-table','application-search','application-status','application-count','application-note','application');
+  wireTable('verification-table','verification-search','verification-status','verification-count','verification-note','verification');
   document.querySelectorAll('[data-open-tab]').forEach(function(link){link.addEventListener('click',function(){var id=link.dataset.openTab;var section=document.getElementById(id);if(section)section.scrollIntoView({behavior:'smooth',block:'start'});});});
 })();
 </script>
