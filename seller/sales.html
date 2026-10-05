@@ -38,10 +38,10 @@
     </div>
 
     <section class="buyer-summary">
-      <div><span>今日の売上</span><strong>¥18,600</strong><small>TODAY</small></div>
-      <div><span>今月の売上</span><strong>¥86,400</strong><small>THIS MONTH</small></div>
-      <div><span>先月の売上</span><strong>¥74,200</strong><small>LAST MONTH</small></div>
-      <div><span>販売数</span><strong>32</strong><small>SALES</small></div>
+      <div><span>今日の売上</span><strong id="sales-today">¥0</strong><small>TODAY</small></div>
+      <div><span>今月の売上</span><strong id="sales-month">¥0</strong><small>THIS MONTH</small></div>
+      <div><span>先月の売上</span><strong id="sales-last-month">¥0</strong><small>LAST MONTH</small></div>
+      <div><span>販売数</span><strong id="sales-count">0</strong><small>SALES</small></div>
     </section>
 
     <section class="buyer-section" id="history">
@@ -94,5 +94,42 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+function formatYen(amount) {
+  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
+}
+
+async function loadSales() {
+  const response = await fetch('/api/earnings', { credentials: 'same-origin' });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error || '売上情報を取得できませんでした。');
+    error.status = response.status;
+    throw error;
+  }
+
+  const earnings = Array.isArray(body?.earnings) ? body.earnings : [];
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const month = today.slice(0, 7);
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+  const totalFor = (prefix) => earnings
+    .filter((earning) => String(earning.created_at || '').slice(0, 10).startsWith(prefix))
+    .reduce((sum, earning) => sum + Number(earning.gross_amount || 0), 0);
+
+  document.querySelector('#sales-today').textContent = formatYen(totalFor(today));
+  document.querySelector('#sales-month').textContent = formatYen(totalFor(month));
+  document.querySelector('#sales-last-month').textContent = formatYen(totalFor(lastMonth));
+  document.querySelector('#sales-count').textContent = Number(body?.summary?.sale_count || 0).toLocaleString('ja-JP');
+}
+
+loadSales().catch((error) => {
+  if (error.status === 401) {
+    window.location.href = '/pages/seller-login.html';
+  }
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
