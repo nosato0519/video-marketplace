@@ -38,10 +38,10 @@
     </div>
 
     <section class="buyer-summary">
-      <div><span>登録作品</span><strong>12</strong><small>VIDEOS</small></div>
-      <div><span>公開中</span><strong>8</strong><small>PUBLISHED</small></div>
-      <div><span>申請中</span><strong>2</strong><small>REVIEW</small></div>
-      <div><span>下書き</span><strong>2</strong><small>DRAFT</small></div>
+      <div><span>登録作品</span><strong id="product-count">0</strong><small>VIDEOS</small></div>
+      <div><span>公開中</span><strong id="published-count">0</strong><small>PUBLISHED</small></div>
+      <div><span>申請中</span><strong id="review-count">0</strong><small>REVIEW</small></div>
+      <div><span>下書き</span><strong id="draft-count">0</strong><small>DRAFT</small></div>
     </section>
 
     <section class="buyer-section">
@@ -52,48 +52,7 @@
         </div>
       </div>
 
-      <div class="seller-video-list">
-        <div class="seller-video-row">
-          <div class="seller-video-info">
-            <strong>THE LAST SIGNAL</strong>
-            <small>¥4,800　販売 24件　2026.09.28</small>
-          </div>
-          <span class="seller-video-status is-published">公開中</span>
-          <a href="/seller/product-edit.html" class="seller-video-edit">編集</a>
-        </div>
-        <div class="seller-video-row">
-          <div class="seller-video-info">
-            <strong>TOKYO AFTER HOURS</strong>
-            <small>¥3,200　販売 15件　2026.09.27</small>
-          </div>
-          <span class="seller-video-status is-published">公開中</span>
-          <a href="/seller/product-edit.html" class="seller-video-edit">編集</a>
-        </div>
-        <div class="seller-video-row">
-          <div class="seller-video-info">
-            <strong>BUILD YOUR BRAND</strong>
-            <small>¥2,980　販売 9件　2026.09.26</small>
-          </div>
-          <span class="seller-video-status is-pending">申請中</span>
-          <a href="/seller/product-edit.html" class="seller-video-edit">編集</a>
-        </div>
-        <div class="seller-video-row">
-          <div class="seller-video-info">
-            <strong>MOUNTAIN SILENCE</strong>
-            <small>¥2,400　未公開　2026.09.24</small>
-          </div>
-          <span class="seller-video-status is-draft">下書き</span>
-          <a href="/seller/product-edit.html" class="seller-video-edit">編集</a>
-        </div>
-        <div class="seller-video-row">
-          <div class="seller-video-info">
-            <strong>BLUE HORIZON</strong>
-            <small>¥3,600　販売 6件　2026.09.22</small>
-          </div>
-          <span class="seller-video-status is-rejected">却下</span>
-          <a href="/seller/product-edit.html" class="seller-video-edit">編集</a>
-        </div>
-      </div>
+      <div id="seller-product-list" class="seller-video-list"></div>
 
       <nav class="seller-pagination" aria-label="動画一覧ページ">
         <a class="is-current" href="#">1</a>
@@ -108,5 +67,22 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+async function loadProducts() {
+  const response = await fetch('/api/seller/products', { credentials: 'same-origin' });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) { const error = new Error(body?.error || '動画情報を取得できませんでした。'); error.status = response.status; throw error; }
+  const products = Array.isArray(body?.products) ? body.products : [];
+  const counts = products.reduce((result, product) => { result.total += 1; if (product.status === 'published') result.published += 1; if (['submitted','under_review','processing','approved'].includes(product.status)) result.review += 1; if (product.status === 'draft') result.draft += 1; return result; }, { total: 0, published: 0, review: 0, draft: 0 });
+  document.querySelector('#product-count').textContent = counts.total.toLocaleString('ja-JP');
+  document.querySelector('#published-count').textContent = counts.published.toLocaleString('ja-JP');
+  document.querySelector('#review-count').textContent = counts.review.toLocaleString('ja-JP');
+  document.querySelector('#draft-count').textContent = counts.draft.toLocaleString('ja-JP');
+  const labels = { published: '公開中', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', draft: '下書き', rejected: '却下' };
+  const classes = { published: 'is-published', submitted: 'is-pending', under_review: 'is-pending', processing: 'is-pending', approved: 'is-published', draft: 'is-draft', rejected: 'is-rejected' };
+  document.querySelector('#seller-product-list').innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${product.title || '無題の動画'}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${labels[product.status] || product.status}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${labels[product.status] || product.status}</span><a href="/seller/product-edit.html" class="seller-video-edit">編集</a></div>`).join('') : '<small>登録されている動画はありません。</small>';
+}
+loadProducts().catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
