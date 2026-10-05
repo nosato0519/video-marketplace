@@ -84,5 +84,14 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
-<script src="/shared/site-branding.js"></script></body>
+<script src="/shared/site-branding.js"></script><script type="module">
+  import { authApi } from "/app/auth/auth-api.js";
+
+  try {
+    const { user } = await authApi.me();
+    if (user?.role !== "buyer") throw new Error("ROLE_NOT_ALLOWED");
+  } catch {
+    window.location.assign("/pages/buyer-login.html");
+  }
+</script>\n</body>
 </html>
