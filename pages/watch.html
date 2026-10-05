@@ -72,6 +72,23 @@
     </section>
   </main>
 
+  <script type="module">
+    import { mediaStreamUrl, mediaDownloadUrl } from "/app/library/media-api.js";
+
+    const productId = new URLSearchParams(window.location.search).get("productId");
+    const screen = document.querySelector(".watch-screen");
+    const download = document.querySelector(".watch-download");
+
+    if (!productId) {
+      window.location.assign("/pages/library.html");
+    } else {
+      if (screen) {
+        screen.innerHTML = '<video controls preload="metadata" style="width:100%;height:100%;object-fit:contain;background:#000"></video>';
+        screen.querySelector("video").src = mediaStreamUrl(productId);
+      }
+      if (download) download.href = mediaDownloadUrl(productId);
+    }
+  </script>
   <footer class="footer">
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
