@@ -215,11 +215,11 @@
     document.querySelector('.detail-info h1').textContent = product.title;
     document.querySelector('.detail-lead').textContent = product.description || '';
     document.querySelector('.detail-rating span:nth-child(2)').textContent =
-      `by ${product.seller?.displayName || ''}`;
+      `by ${product.seller || ''}`;
     document.querySelector('.detail-price').textContent =
-      product.priceCurrency === 'JPY'
-        ? `¥${Number(product.priceAmount).toLocaleString('ja-JP')}`
-        : `${Number(product.priceAmount).toLocaleString('ja-JP')} ${product.priceCurrency || ''}`;
+      product.price_currency === 'JPY'
+        ? `¥${Number(product.price_amount).toLocaleString('ja-JP')}`
+        : `${Number(product.priceAmount).toLocaleString('ja-JP')} ${product.price_currency || ''}`;
   }
 
   loadProductDetail().catch(() => {
