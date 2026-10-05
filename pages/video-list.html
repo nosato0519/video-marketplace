@@ -106,7 +106,7 @@
         <div class="catalog-info">
           <div class="catalog-cat">${escapeHtml(product.category || 'VIDEO').toUpperCase()}</div>
           <h3>${escapeHtml(product.title)}</h3>
-          <p>by ${escapeHtml(product.seller?.displayName || '')}</p>
+          <p>by ${escapeHtml(product.seller || '')}</p>
           <strong>${formatPrice(product.price_amount, product.price_currency)}</strong>
         </div>
       </a>
