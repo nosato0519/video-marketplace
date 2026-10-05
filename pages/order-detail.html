@@ -45,59 +45,46 @@
       <a href="/pages/account-settings.html">アカウント設定</a>
     </nav>
 
-    <section class="buyer-section">
-      <div class="buyer-section-head">
-        <div><span class="section-kicker">ORDER</span><h2>注文 #VM-20260930-001</h2></div>
-        <span>購入完了</span>
-      </div>
-      <div class="buyer-history-list">
-        <article class="buyer-history-card">
-          <div class="library-thumb catalog-t1"></div>
-          <div class="buyer-history-info">
-            <strong>THE LAST SIGNAL</strong>
-            <span>購入日 2026.09.18</span>
-            <small>¥2,980 ・ 4K ・ 18:42</small>
-          </div>
-          <a href="/pages/product-detail.html">作品を見る →</a>
-        </article>
-        <article class="buyer-history-card">
-          <div class="library-thumb catalog-t2"></div>
-          <div class="buyer-history-info">
-            <strong>Tokyo After Hours</strong>
-            <span>購入日 2026.09.18</span>
-            <small>¥1,980 ・ 4K ・ 12:16</small>
-          </div>
-          <a href="/pages/product-detail.html">作品を見る →</a>
-        </article>
-      </div>
-    </section>
+    <div id="order-content">
+      <section class="buyer-section">
+        <div class="empty-state"><h2>注文を読み込んでいます</h2></div>
+      </section>
+    </div>
 
-    <section class="buyer-section">
-      <div class="buyer-section-head">
-        <div><span class="section-kicker">PAYMENT</span><h2>決済情報</h2></div>
-      </div>
-      <div class="buyer-summary buyer-order-summary">
-        <div><span>商品数</span><strong>2</strong><small>作品</small></div>
-        <div><span>小計</span><strong>¥4,960</strong><small>税込</small></div>
-        <div><span>決済</span><strong>完了</strong><small>クレジットカード</small></div>
-        <div><span>注文状態</span><strong>完了</strong><small>購入済み</small></div>
-      </div>
-    </section>
-
-    <section class="buyer-section">
-      <div class="buyer-section-head">
-        <div><span class="section-kicker">LIBRARY</span><h2>購入後の操作</h2></div>
-      </div>
-      <div class="buyer-action-row">
-        <a class="buyer-account" href="/pages/purchase-history.html">購入履歴へ戻る</a>
-        <a class="primary" href="/pages/library.html">マイライブラリへ →</a>
-      </div>
-    </section>
   </main>
 
   <footer class="footer">
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
-<script src="/shared/site-branding.js"></script></body>
+<script src="/shared/site-branding.js"></script>
+<script type="module">
+  import { libraryApi } from "/app/library/library-api.js";
+  const content = document.querySelector("#order-content");
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  try {
+    const orderId = new URLSearchParams(window.location.search).get("orderId");
+    if (!orderId) throw new Error("ORDER_NOT_FOUND");
+    const result = await libraryApi.orders();
+    const order = (result.items || []).find((item) => String(item.orderId) === String(orderId));
+    if (!order) throw new Error("ORDER_NOT_FOUND");
+    const amount = new Intl.NumberFormat("ja-JP", { style: "currency", currency: order.currency || "JPY" }).format(Number(order.amount || 0));
+    const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString("ja-JP") : "—";
+    const status = order.status || "—";
+    const title = escapeHtml(order.title || "購入作品");
+    const safeOrderId = escapeHtml(order.orderId);
+    const safeDate = escapeHtml(date);
+    const safeAmount = escapeHtml(amount);
+    const safeCurrency = escapeHtml(order.currency || "JPY");
+    const safeStatus = escapeHtml(status);
+    content.innerHTML = '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">ORDER</span><h2>注文 #' + safeOrderId + '</h2></div><span>' + safeStatus + '</span></div><div class="buyer-history-list"><article class="buyer-history-card"><div class="library-thumb catalog-t1"></div><div class="buyer-history-info"><strong>' + title + '</strong><span>購入日 ' + safeDate + '</span><small>' + safeAmount + '</small></div><a href="/pages/library.html">ライブラリで見る →</a></article></div></section>' + '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">PAYMENT</span><h2>決済情報</h2></div></div><div class="buyer-summary buyer-order-summary"><div><span>商品数</span><strong>1</strong><small>作品</small></div><div><span>購入金額</span><strong>' + safeAmount + '</strong><small>' + safeCurrency + '</small></div><div><span>決済状態</span><strong>' + safeStatus + '</strong><small>注文ステータス</small></div><div><span>購入日</span><strong>' + safeDate + '</strong><small>注文日時</small></div></div></section>' + '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">LIBRARY</span><h2>購入後の操作</h2></div></div><div class="buyer-action-row"><a class="buyer-account" href="/pages/purchase-history.html">購入履歴へ戻る</a><a class="primary" href="/pages/library.html">マイライブラリへ →</a></div></section>';
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.assign("/pages/buyer-login.html");
+    } else {
+      content.innerHTML = '<section class="buyer-section"><div class="empty-state"><h2>注文を取得できません</h2><p>購入履歴から対象の注文を選択してください。</p><a class="button" href="/pages/purchase-history.html">購入履歴へ戻る</a></div></section>';
+    }
+  }
+</script>
+</body>
 </html>
