@@ -4,6 +4,8 @@ COPY index.html /usr/share/nginx/html/index.html
 COPY styles.css /usr/share/nginx/html/styles.css
 COPY pages /usr/share/nginx/html/pages
 COPY seller /usr/share/nginx/html/seller
+COPY app /usr/share/nginx/html/app
+COPY shared /usr/share/nginx/html/shared
 
 RUN sed -i 's/listen       80;/listen       10000;/' /etc/nginx/conf.d/default.conf
 
