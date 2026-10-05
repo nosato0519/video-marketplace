@@ -104,6 +104,36 @@
     </script>
   </main>
 
+  <script type="module">
+    import { libraryApi } from "/app/library/library-api.js";
+
+    const list = document.querySelector(".buyer-history-list");
+    if (list) {
+      try {
+        const result = await libraryApi.orders();
+        const orders = result.items || [];
+        list.innerHTML = orders.length ? orders.map((order) => {
+          const amount = new Intl.NumberFormat("ja-JP", { style: "currency", currency: order.currency || "JPY" }).format(Number(order.amount || 0));
+          const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString("ja-JP") : "—";
+          return `<article class="buyer-history-card">
+            <div class="library-thumb catalog-t1"></div>
+            <div class="buyer-history-info">
+              <strong>${String(order.title || "購入作品").replace(/[&<>"']/g, "")}</strong>
+              <span>購入日 ${date}</span>
+              <small>${amount} ・ ${String(order.status || "").replace(/[&<>"']/g, "")}</small>
+            </div>
+            <a href="/pages/library.html">ライブラリで見る →</a>
+          </article>`;
+        }).join("") : `<div class="empty-state"><h2>購入履歴はありません</h2><p>動画を購入すると、ここに履歴が表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>`;
+      } catch (error) {
+        if (error.status === 401) {
+          window.location.assign("/pages/buyer-login.html");
+        } else {
+          list.innerHTML = '<div class="empty-state"><h2>購入履歴を取得できません</h2><p>しばらくしてからもう一度お試しください。</p></div>';
+        }
+      }
+    }
+  </script>
   <footer class="footer">
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
