@@ -145,7 +145,7 @@ function getPeriodSales(earnings) {
 
 async function loadDashboard() {
   const [products, earnings] = await Promise.all([
-    request('/api/products'),
+    request('/api/seller/products'),
     request('/api/earnings')
   ]);
   const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
