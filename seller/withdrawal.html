@@ -51,7 +51,7 @@
       <div class="seller-profile-form">
         <div class="seller-profile-field">
           <label>現在の出金可能額</label>
-          <strong>¥86,400</strong>
+          <strong id="withdrawable-amount">¥0</strong>
           <small>確定した売上のうち、現在出金申請できる金額です。</small>
         </div>
         <div class="seller-profile-field">
@@ -60,7 +60,7 @@
           <input id="withdrawal-amount" class="product-input" type="number" min="1" step="1" placeholder="例：50000">
         </div>
         <div class="seller-profile-actions seller-profile-save-action">
-          <button class="sell" type="button">出金を申請する</button>
+          <button id="withdrawal-submit" class="sell" type="button">出金を申請する</button>
         </div>
       </div>
     </section>
@@ -72,11 +72,7 @@
           <h2>出金履歴</h2>
         </div>
       </div>
-      <div class="seller-profile-status">
-        <span>2026.09.18</span>
-        <strong>¥30,000　申請済み</strong>
-        <small>振込処理中</small>
-      </div>
+      <div id="withdrawal-history" class="seller-profile-status"></div>
     </section>
 
   </main>
@@ -85,5 +81,102 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+const amountElement = document.querySelector('#withdrawable-amount');
+const amountInput = document.querySelector('#withdrawal-amount');
+const submitButton = document.querySelector('#withdrawal-submit');
+const historyElement = document.querySelector('#withdrawal-history');
+
+function formatYen(amount) {
+  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
+}
+
+function statusLabel(status) {
+  const labels = {
+    requested: '申請済み',
+    processing: '処理中',
+    paid: '支払済み',
+    failed: '失敗',
+    cancelled: 'キャンセル'
+  };
+  return labels[status] || status || '未設定';
+}
+
+async function request(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  const text = await response.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch {}
+  if (!response.ok) {
+    const error = new Error(body?.error || body?.error?.message || '出金情報を取得できませんでした。');
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
+
+function renderHistory(payouts) {
+  if (!payouts.length) {
+    historyElement.innerHTML = '<small>出金履歴はありません。</small>';
+    return;
+  }
+  historyElement.innerHTML = payouts.map((payout) => {
+    const date = payout.requested_at
+      ? new Date(payout.requested_at).toLocaleDateString('ja-JP')
+      : '-';
+    return `<span>${date}</span>
+      <strong>${formatYen(payout.amount)}　${statusLabel(payout.status)}</strong>
+      <small>${payout.paid_at ? '振込済み' : '振込処理中'}</small>`;
+  }).join('');
+}
+
+async function loadPayouts() {
+  const data = await request('/api/payouts');
+  amountElement.textContent = formatYen(data.summary?.withdrawable);
+  renderHistory(data.payouts || []);
+}
+
+submitButton.addEventListener('click', async () => {
+  const amount = Number(amountInput.value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    amountInput.focus();
+    return;
+  }
+
+  submitButton.disabled = true;
+  try {
+    await request('/api/payouts', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency: 'JPY' })
+    });
+    amountInput.value = '';
+    await loadPayouts();
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert(error.body?.error || '出金申請に失敗しました。');
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+
+loadPayouts().catch((error) => {
+  if (error.status === 401) {
+    window.location.href = '/pages/seller-login.html';
+  } else {
+    historyElement.innerHTML = '<small>出金情報を取得できませんでした。</small>';
+  }
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
