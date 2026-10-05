@@ -191,5 +191,87 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+const titleInput = document.querySelector('.product-input-card input[type="text"]');
+const priceInput = document.querySelector('.product-input-card input[inputmode="numeric"]');
+const descriptionInput = document.querySelector('.product-description-card textarea');
+const videoInput = document.querySelector('input[type="file"][accept="video/*"]');
+const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
+const saveAction = saveCard?.querySelector('b');
+
+function parsePrice(value) {
+  const amount = Number(String(value || '').replace(/[^0-9]/g, ''));
+  return Number.isSafeInteger(amount) ? amount : 0;
+}
+
+async function request(path, options = {}) {
+  const response = await fetch(path, { credentials: 'same-origin', ...options });
+  const text = await response.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch {}
+  if (!response.ok) {
+    const error = new Error(body?.error?.message || body?.error || '保存できませんでした。');
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
+
+async function uploadVideo(file) {
+  return request('/api/seller/media/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type,
+      'X-Original-Filename': file.name
+    },
+    body: file
+  });
+}
+
+async function saveProduct() {
+  if (!titleInput?.value.trim()) {
+    titleInput?.focus();
+    return;
+  }
+  if (!videoInput?.files?.length) {
+    videoInput?.focus();
+    return;
+  }
+
+  saveAction?.setAttribute('aria-busy', 'true');
+  try {
+    const upload = await uploadVideo(videoInput.files[0]);
+    await request('/api/seller/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: titleInput.value.trim(),
+        description: descriptionInput?.value || '',
+        priceAmount: parsePrice(priceInput?.value),
+        priceCurrency: 'JPY',
+        mediaAssetId: upload.mediaAsset.id
+      })
+    });
+    window.location.href = '/seller/products.html';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert(error.body?.error || '動画を保存できませんでした。');
+  } finally {
+    saveAction?.removeAttribute('aria-busy');
+  }
+}
+
+saveCard?.addEventListener('click', saveProduct);
+saveCard?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    saveProduct();
+  }
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
