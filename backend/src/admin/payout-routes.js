@@ -25,13 +25,20 @@ async function audit(db, actorUserId, action, resourceId, metadata = {}) {
   );
 }
 
-router.get('/payouts', async (_req, res, next) => {
+router.get('/payouts', async (req, res, next) => {
   try {
+    const status = String(req.query.status || '').trim();
+    const values = [];
+    const where = status ? 'WHERE p.status = $1' : '';
+    if (status) values.push(status);
+
     const result = await query(
       `SELECT p.id, p.seller_id, p.amount, p.currency, p.status, p.failure_reason,
               p.requested_at, p.reviewed_at, p.paid_at, u.email AS seller_email
          FROM payouts p JOIN users u ON u.id = p.seller_id
-        ORDER BY p.requested_at DESC LIMIT 200`
+        ${where}
+        ORDER BY p.requested_at DESC LIMIT 200`,
+      values
     );
     return res.json({ payouts: result.rows });
   } catch (error) { return next(error); }
