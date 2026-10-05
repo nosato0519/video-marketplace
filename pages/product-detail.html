@@ -192,6 +192,40 @@
   <script>
     const galleryItems=[...document.querySelectorAll('.detail-gallery-image')],galleryModal=document.getElementById('detailGalleryModal'),galleryImage=document.getElementById('detailGalleryImage'),galleryCount=document.getElementById('detailGalleryCount');let galleryIndex=0;function showGallery(i){galleryIndex=(i+galleryItems.length)%galleryItems.length;const item=galleryItems[galleryIndex],bg=getComputedStyle(item).backgroundImage;galleryImage.src=bg.slice(5,-2);galleryModal.classList.add('open');galleryModal.setAttribute('aria-hidden','false');galleryCount.textContent=(galleryIndex+1)+' / '+galleryItems.length}galleryItems.forEach((item,i)=>item.addEventListener('click',()=>showGallery(i)));document.querySelector('.detail-gallery-close').addEventListener('click',()=>{galleryModal.classList.remove('open');galleryModal.setAttribute('aria-hidden','true')});document.querySelector('.detail-gallery-prev').addEventListener('click',()=>showGallery(galleryIndex-1));document.querySelector('.detail-gallery-next').addEventListener('click',()=>showGallery(galleryIndex+1));galleryModal.addEventListener('click',e=>{if(e.target===galleryModal)galleryModal.classList.remove('open')});document.addEventListener('keydown',e=>{if(!galleryModal.classList.contains('open'))return;if(e.key==='Escape')document.querySelector('.detail-gallery-close').click();if(e.key==='ArrowLeft')showGallery(galleryIndex-1);if(e.key==='ArrowRight')showGallery(galleryIndex+1)});
   </script>
+<script>
+  const productId = new URLSearchParams(window.location.search).get('productId');
+
+  async function loadProductDetail() {
+    if (!productId) return;
+
+    const response = await fetch(`/api/catalog/products/${encodeURIComponent(productId)}?locale=ja`, {
+      credentials: 'same-origin'
+    });
+    if (!response.ok) throw new Error('product_load_failed');
+
+    const result = await response.json();
+    const product = result.data;
+    if (!product) throw new Error('product_not_found');
+
+    document.title = `${product.title} | VIDEO MARKETPLACE`;
+    document.querySelector('.detail-breadcrumb').textContent =
+      `HOME / VIDEO / ${product.category || 'VIDEO'} / ${product.title}`;
+    document.querySelector('.detail-kicker').textContent =
+      `${product.category || 'VIDEO'} · VIDEO`;
+    document.querySelector('.detail-info h1').textContent = product.title;
+    document.querySelector('.detail-lead').textContent = product.description || '';
+    document.querySelector('.detail-rating span:nth-child(2)').textContent =
+      `by ${product.seller || ''}`;
+    document.querySelector('.detail-price').textContent =
+      product.priceCurrency === 'JPY'
+        ? `¥${Number(product.priceAmount).toLocaleString('ja-JP')}`
+        : `${Number(product.priceAmount).toLocaleString('ja-JP')} ${product.priceCurrency || ''}`;
+  }
+
+  loadProductDetail().catch(() => {
+    if (productId) window.location.assign('/pages/video-list.html');
+  });
+</script>
 <script src="/shared/site-branding.js"></script><script type="module">
     import { checkoutApi } from "/app/checkout/checkout-api.js";
     const productId = new URLSearchParams(window.location.search).get("productId");
