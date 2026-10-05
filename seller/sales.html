@@ -100,7 +100,7 @@ function formatYen(amount) {
 }
 
 async function loadSales() {
-  const response = await fetch('/api/earnings', { credentials: 'same-origin' });
+  const response = await fetch('/api/seller/earnings', { credentials: 'same-origin' });
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     const error = new Error(body?.error || '売上情報を取得できませんでした。');
