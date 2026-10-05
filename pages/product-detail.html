@@ -215,7 +215,7 @@
     document.querySelector('.detail-info h1').textContent = product.title;
     document.querySelector('.detail-lead').textContent = product.description || '';
     document.querySelector('.detail-rating span:nth-child(2)').textContent =
-      `by ${product.seller || ''}`;
+      `by ${product.seller?.displayName || ''}`;
     document.querySelector('.detail-price').textContent =
       product.priceCurrency === 'JPY'
         ? `¥${Number(product.priceAmount).toLocaleString('ja-JP')}`
