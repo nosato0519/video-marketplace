@@ -64,6 +64,7 @@ export function createApp() {
   registerAuthRoutes(app);
   registerCatalogRoutes(app);
   registerProductDetailRoutes(app);
+  registerPurchaseIntentRoutes(app);
   registerOrderRoutes(app);
   registerCheckoutRoutes(app);
   registerAdminLocaleRoutes(app);
