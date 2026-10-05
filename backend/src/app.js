@@ -14,6 +14,7 @@ import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js
 import { registerMediaDownloadRoutes } from './media/media-download-route.js';
 import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
+import { requireRole } from './auth/authorize.js';
 import { registerAuthRoutes } from './auth-routes.js';
 import { registerAdminLocaleRoutes } from './i18n/admin-locale-routes.js';
 import { registerProductTranslationRoutes } from './i18n/product-translation-routes.js';
@@ -29,6 +30,7 @@ import adminSellerVerificationRoutes from './admin/seller-verification-routes.js
 import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import contentReportRoutes from './content-report-routes.js';
+import { registerPaymentProviderRoutes } from './payment-provider-routes.js';
 
 export function createApp() {
   const app = express();
@@ -81,6 +83,7 @@ export function createApp() {
   app.use('/api/admin', adminSellerVerificationRoutes);
   app.use('/api/admin', adminSellerApplicationRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
+  registerPaymentProviderRoutes(app, { requireAdmin: requireRole('admin') });
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
