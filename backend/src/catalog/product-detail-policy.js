@@ -75,7 +75,7 @@ export function validatePurchaseIntent({ user, product }) {
   if (!user) throw new Error('authentication_required');
   if (!product || product.status !== 'published') throw new Error('not_found');
   if (product.seller_id === user.id) throw new Error('seller_cannot_purchase_own_product');
-  if (!Number.isFinite(Number(product.price_amount)) || Number(product.price_amount) < 0) {
+  if (!Number.isFinite(Number(product.price_amount)) || Number(product.price_amount) <= 0) {
     throw new Error('invalid_product_price');
   }
   return { productId: product.id };
