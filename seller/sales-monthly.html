@@ -40,8 +40,8 @@
     <section class="buyer-section">
       <div class="buyer-section-head">
         <div>
-          <span class="section-kicker">SEPTEMBER 2026</span>
-          <h2>2026年9月の販売履歴</h2>
+          <span id="monthly-period" class="section-kicker">THIS MONTH</span>
+          <h2 id="monthly-period-title">今月の販売履歴</h2>
         </div>
       </div>
 
@@ -82,6 +82,9 @@ async function loadMonthlySales() {
   }
 
   const now = new Date();
+  const monthLabel = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' });
+  document.querySelector('#monthly-period').textContent = monthLabel.toUpperCase();
+  document.querySelector('#monthly-period-title').textContent = `${monthLabel}の販売履歴`;
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const sales = (body?.earnings || []).filter((item) =>
     String(item.created_at || '').slice(0, 7) === monthKey
