@@ -57,10 +57,10 @@
           logo.insertBefore(image, logo.firstChild);
         }
         image.src = settings.logoDataUrl;
-        if (symbol) symbol.hidden = true;
+        if (symbol) { symbol.hidden = true; symbol.style.setProperty("display", "none", "important"); }
       } else {
         if (image) image.remove();
-        if (symbol) symbol.hidden = false;
+        if (symbol) { symbol.hidden = false; symbol.style.removeProperty("display"); }
       }
     });
   }
