@@ -75,22 +75,16 @@
     const { profile } = await response.json();
     if (!profile) return;
 
-    const displayName = escapeHtml(profile.display_name);
-    const legalName = escapeHtml(profile.legal_name);
     const country = escapeHtml(profile.country_code || '');
     const verification = verificationLabels[profile.verification_status] || '未申請';
 
-    document.querySelector('.seller-profile-form .seller-profile-field strong').textContent =
-      profile.display_name || '';
-    document.querySelector('.seller-private-form .seller-profile-field strong').textContent =
-      profile.legal_name || '';
-
     const publicFields = document.querySelectorAll('.seller-profile-form .seller-profile-field strong');
-    if (publicFields[0]) publicFields[0].textContent = displayName;
-    if (publicFields[1]) publicFields[1].textContent = legalName;
+    if (publicFields[0]) publicFields[0].textContent = profile.display_name || '';
+    if (publicFields[1]) publicFields[1].textContent = country;
 
-    const countryField = document.querySelectorAll('.seller-profile-form .seller-profile-field strong')[2];
-    if (countryField && country) countryField.textContent = country;
+    const privateName = document.querySelector('.seller-private-form .seller-profile-field strong');
+    if (privateName) privateName.textContent = profile.legal_name || '';
+
 
     const verificationStatus = document.querySelector('.seller-profile-status strong');
     if (verificationStatus) verificationStatus.textContent = verification;
