@@ -32,10 +32,10 @@
 </header>
 
 <section class="queue">
-  <div class="queue-card"><span>販売者申請</span><strong>12 <em>待ち</em></strong></div>
-  <div class="queue-card"><span>本人確認・販売者審査</span><strong>8 <em>要確認</em></strong></div>
-  <div class="queue-card"><span>動画コンテンツ審査</span><strong>19 <em>待ち</em></strong></div>
-  <div class="queue-card"><span>出金申請</span><strong>7 <em>要処理</em></strong></div>
+  <div class="queue-card"><span>販売者申請</span><strong id="seller-application-count">— <em>待ち</em></strong></div>
+  <div class="queue-card"><span>本人確認・販売者審査</span><strong id="seller-verification-count">— <em>要確認</em></strong></div>
+  <div class="queue-card"><span>動画コンテンツ審査</span><strong id="content-review-count">— <em>待ち</em></strong></div>
+  <div class="queue-card"><span>出金申請</span><strong id="payout-count">— <em>要処理</em></strong></div>
 </section>
 <section class="section" id="overview">
   <div class="section-head"><div><h2>マーケット全体</h2><p>サイト全体の状況をひと目で確認</p></div><span class="muted">画面イメージ用のサンプル値</span></div>
@@ -53,10 +53,10 @@
   <tr><td>#VM-1096</td><td>studio@example.com</td><td><span class="tag ok">支払済み</span></td><td class="money">¥2,400</td></tr>
   </tbody></table><div class="admin-dashboard-link"><a class="row-action" href="/pages/admin-buyers.html">購入者管理を見る →</a></div></div>
   <div class="panel"><div class="panel-head"><strong>対応が必要な項目</strong><span>NEEDS ATTENTION</span></div><div class="rows">
-    <div class="row"><div><strong>販売者申請</strong><small>審査・承認が必要な申請</small></div><span class="tag warn">12件</span></div>
-    <div class="row"><div><strong>本人確認</strong><small>販売者情報の確認</small></div><span class="tag warn">8件</span></div>
-    <div class="row"><div><strong>動画コンテンツ審査</strong><small>公開前の動画</small></div><span class="tag warn">19件</span></div>
-    <div class="row"><div><strong>出金申請</strong><small>確認・処理が必要な申請</small></div><span class="tag">7件</span></div>
+    <div class="row"><div><strong>販売者申請</strong><small>審査・承認が必要な申請</small></div><span class="tag warn" id="seller-application-attention">—件</span></div>
+    <div class="row"><div><strong>本人確認</strong><small>販売者情報の確認</small></div><span class="tag warn" id="seller-verification-attention">—件</span></div>
+    <div class="row"><div><strong>動画コンテンツ審査</strong><small>公開前の動画</small></div><span class="tag warn" id="content-review-attention">—件</span></div>
+    <div class="row"><div><strong>出金申請</strong><small>確認・処理が必要な申請</small></div><span class="tag" id="payout-attention">—件</span></div>
   </div></div>
 </section>
 <section class="section">
@@ -71,5 +71,30 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
+<script>
+(function () {
+  const endpoints = [
+    ['/api/admin/seller-applications?status=pending', 'applications', 'seller-application-count', 'seller-application-attention'],
+    ['/api/admin/seller-verifications?status=submitted', 'sellers', 'seller-verification-count', 'seller-verification-attention'],
+    ['/api/admin/content/reviews?status=pending', 'reviews', 'content-review-count', 'content-review-attention'],
+    ['/api/admin/payouts', 'payouts', 'payout-count', 'payout-attention']
+  ];
+
+  async function loadQueue(url, key, countId, attentionId) {
+    const response = await fetch(url, { credentials: 'same-origin' });
+    if (!response.ok) throw new Error('request_failed');
+    const body = await response.json();
+    const count = Array.isArray(body[key]) ? body[key].length : 0;
+    const countElement = document.getElementById(countId);
+    const attentionElement = document.getElementById(attentionId);
+    if (countElement) countElement.firstChild.textContent = String(count) + ' ';
+    if (attentionElement) attentionElement.textContent = String(count) + '件';
+  }
+
+  Promise.allSettled(
+    endpoints.map(([url, key, countId, attentionId]) => loadQueue(url, key, countId, attentionId))
+  );
+})();
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
