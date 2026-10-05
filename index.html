@@ -594,6 +594,13 @@ if(!list.children.length){list.innerHTML='<p class="announcement-empty">現在�
       const key = name === "purchase" ? "showPurchase" : name === "sell" ? "showSell" : "showCart";
       if (link) link.hidden = settings[key] === false;
     });
+    const nav = document.querySelector(".nav-right nav");
+    if (nav && typeof settings.menuOrder === "string") {
+      settings.menuOrder.split(",").forEach(function (name) {
+        const link = nav.querySelector('[data-site-nav="' + name + '"]');
+        if (link) nav.appendChild(link);
+      });
+    }
     const login = document.querySelector(".login-menu");
     if (login) login.hidden = settings.showAccount === false;
     const description = document.getElementById("site-footer-description");
