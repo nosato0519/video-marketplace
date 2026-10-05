@@ -13,4 +13,5 @@ async function request(path) {
 
 export const libraryApi = {
   list: () => request('/api/library'),
+  orders: () => request('/api/orders'),
 };
