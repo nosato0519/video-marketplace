@@ -101,26 +101,35 @@
         const root = document.querySelector('[data-pagination]');
         const list = document.querySelector('.library-grid');
         if (!root || !list) return;
-        const items = Array.from(list.querySelectorAll('.library-card'));
-        const perPage = 16;
-        const totalPages = Math.max(1, Math.ceil(items.length / perPage));
-        const params = new URLSearchParams(window.location.search);
-        let page = Number(params.get('page')) || 1;
-        page = Math.min(Math.max(page, 1), totalPages);
-        items.forEach((item, index) => {
-          item.hidden = index < (page - 1) * perPage || index >= page * perPage;
-        });
-        root.hidden = false;
-        const makeLink = (label, target, active = false) => {
-          const a = document.createElement('a');
-          a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
-          a.textContent = label;
-          if (active) a.className = 'active';
-          return a;
+
+        window.renderLibraryPagination = () => {
+          const items = Array.from(list.querySelectorAll('.library-card'));
+          const perPage = 16;
+          const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+          const params = new URLSearchParams(window.location.search);
+          let page = Number(params.get('page')) || 1;
+          page = Math.min(Math.max(page, 1), totalPages);
+
+          items.forEach((item, index) => {
+            item.hidden = index < (page - 1) * perPage || index >= page * perPage;
+          });
+
+          root.innerHTML = '';
+          root.hidden = totalPages <= 1;
+          if (totalPages <= 1) return;
+
+          const makeLink = (label, target, active = false) => {
+            const a = document.createElement('a');
+            a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
+            a.textContent = label;
+            if (active) a.className = 'active';
+            return a;
+          };
+
+          if (page > 1) root.appendChild(makeLink('‹', page - 1));
+          for (let i = 1; i <= totalPages; i++) root.appendChild(makeLink(String(i), i, i === page));
+          if (page < totalPages) root.appendChild(makeLink('›', page + 1));
         };
-        if (page > 1) root.appendChild(makeLink('‹', page - 1));
-        for (let i = 1; i <= totalPages; i++) root.appendChild(makeLink(String(i), i, i === page));
-        if (page < totalPages) root.appendChild(makeLink('›', page + 1));
       })();
     </script>
   </main>
