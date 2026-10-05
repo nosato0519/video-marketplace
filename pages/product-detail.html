@@ -192,5 +192,29 @@
   <script>
     const galleryItems=[...document.querySelectorAll('.detail-gallery-image')],galleryModal=document.getElementById('detailGalleryModal'),galleryImage=document.getElementById('detailGalleryImage'),galleryCount=document.getElementById('detailGalleryCount');let galleryIndex=0;function showGallery(i){galleryIndex=(i+galleryItems.length)%galleryItems.length;const item=galleryItems[galleryIndex],bg=getComputedStyle(item).backgroundImage;galleryImage.src=bg.slice(5,-2);galleryModal.classList.add('open');galleryModal.setAttribute('aria-hidden','false');galleryCount.textContent=(galleryIndex+1)+' / '+galleryItems.length}galleryItems.forEach((item,i)=>item.addEventListener('click',()=>showGallery(i)));document.querySelector('.detail-gallery-close').addEventListener('click',()=>{galleryModal.classList.remove('open');galleryModal.setAttribute('aria-hidden','true')});document.querySelector('.detail-gallery-prev').addEventListener('click',()=>showGallery(galleryIndex-1));document.querySelector('.detail-gallery-next').addEventListener('click',()=>showGallery(galleryIndex+1));galleryModal.addEventListener('click',e=>{if(e.target===galleryModal)galleryModal.classList.remove('open')});document.addEventListener('keydown',e=>{if(!galleryModal.classList.contains('open'))return;if(e.key==='Escape')document.querySelector('.detail-gallery-close').click();if(e.key==='ArrowLeft')showGallery(galleryIndex-1);if(e.key==='ArrowRight')showGallery(galleryIndex+1)});
   </script>
-<script src="/shared/site-branding.js"></script></body>
+<script src="/shared/site-branding.js"></script><script type="module">
+    import { checkoutApi } from "/app/checkout/checkout-api.js";
+    const productId = new URLSearchParams(window.location.search).get("productId");
+    const buy = document.querySelector(".detail-buy-primary");
+    const cart = document.querySelector(".detail-buy-secondary");
+    if (productId) {
+      buy?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          const intent = await checkoutApi.purchaseIntent(productId);
+          const order = await checkoutApi.createOrder(intent.data.productId);
+          const result = await checkoutApi.checkout(order.order.id);
+          if (result.session?.url) window.location.assign(result.session.url);
+          else throw new Error("CHECKOUT_URL_MISSING");
+        } catch (error) {
+          if (error.status === 401) window.location.assign("/pages/buyer-login.html");
+          else window.alert("購入手続きを開始できませんでした。");
+        }
+      });
+      cart?.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.location.assign("/pages/cart.html");
+      });
+    }
+  </script>\n</body>
 </html>
