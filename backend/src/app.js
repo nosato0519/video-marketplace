@@ -3,7 +3,6 @@ import helmet from 'helmet';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
-import { registerPurchaseIntentRoutes } from './catalog/purchase-intent-routes.js';
 import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
@@ -64,7 +63,6 @@ export function createApp() {
   registerAuthRoutes(app);
   registerCatalogRoutes(app);
   registerProductDetailRoutes(app);
-  registerPurchaseIntentRoutes(app);
   registerOrderRoutes(app);
   registerCheckoutRoutes(app);
   registerAdminLocaleRoutes(app);
