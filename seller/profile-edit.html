@@ -28,16 +28,16 @@
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">PUBLIC PROFILE</span><h2>公開プロフィール</h2></div></div>
       <div class="seller-profile-form">
-        <div class="seller-profile-field"><label for="creator-name">名前</label><small>販売者ページ・動画詳細ページに表示される名前</small><input id="creator-name" class="product-input" type="text" value="Michael Bennett"></div>
+        <div class="seller-profile-field"><label for="creator-name">名前</label><small>販売者ページ・動画詳細ページに表示される名前</small><input id="creator-name" class="product-input" type="text" value=""></div>
         <div class="seller-profile-field seller-profile-field-large"><label for="creator-bio">自己紹介</label><small>販売者ページに表示される自己紹介文</small><textarea id="creator-bio" class="product-input product-description-input">I am a filmmaker and editor based in the United States. I create documentary films, short-form visual stories, and brand films, with a focus on atmosphere, storytelling, and honest moments.</textarea></div>
-        <div class="seller-profile-field"><label for="creator-country">国</label><small>販売者ページに表示される国名</small><input id="creator-country" class="product-input" type="text" value="United States"></div>
+        <div class="seller-profile-field"><label for="creator-country">国</label><small>販売者ページに表示される国名</small><input id="creator-country" class="product-input" type="text" value=""></div>
       </div>
     </section>
 
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">PRIVATE INFORMATION</span><h2>非公開情報</h2></div></div>
       <div class="seller-profile-form seller-private-form">
-        <div class="seller-profile-field"><label for="real-name">本名</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="real-name" class="product-input" type="text" value="Michael Bennett"></div>
+        <div class="seller-profile-field"><label for="real-name">本名</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="real-name" class="product-input" type="text" value=""></div>
         <div class="seller-profile-field"><label for="address">住所</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="address" class="product-input" type="text" value="Los Angeles, California, United States"></div>
         <div class="seller-profile-field"><label for="postal-code">郵便番号</label><small>国によって形式は異なります。購入者には表示されません。</small><input id="postal-code" class="product-input" type="text" value="90012"></div>
         <div class="seller-profile-field"><label for="phone">電話番号</label><small>購入者には表示されません。管理者のみ確認できます。</small><input id="phone" class="product-input" type="text" value="+1 213-555-0187"></div>
@@ -46,10 +46,70 @@
 
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">ACTIONS</span><h2>変更を保存</h2></div></div>
-      <div class="seller-profile-actions seller-profile-save-action"><button class="sell" type="button">変更を保存</button></div>
+      <div class="seller-profile-actions seller-profile-save-action"><button id="profile-save" class="sell" type="button">変更を保存</button></div>
     </section>
   </main>
 
   <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+<script type="module">
+const nameInput = document.querySelector('#creator-name');
+const countryInput = document.querySelector('#creator-country');
+const legalNameInput = document.querySelector('#real-name');
+const saveButton = document.querySelector('#profile-save');
+
+async function request(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: 'same-origin',
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error || 'プロフィール情報を取得できませんでした。');
+    error.status = response.status;
+    throw error;
+  }
+  return body;
+}
+
+async function loadProfile() {
+  const { profile } = await request('/api/seller/profile');
+  nameInput.value = profile?.display_name || '';
+  countryInput.value = profile?.country_code || '';
+  legalNameInput.value = profile?.legal_name || '';
+}
+
+async function saveProfile() {
+  saveButton.disabled = true;
+  try {
+    await request('/api/seller/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        displayName: nameInput.value,
+        legalName: legalNameInput.value,
+        countryCode: countryInput.value
+      })
+    });
+    window.location.href = '/seller/profile.html';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert('プロフィールを保存できませんでした。');
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+saveButton.addEventListener('click', saveProfile);
+loadProfile().catch((error) => {
+  if (error.status === 401 || error.status === 403) {
+    window.location.href = '/pages/seller-login.html';
+    return;
+  }
+  alert('プロフィール情報を取得できませんでした。');
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
