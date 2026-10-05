@@ -123,5 +123,25 @@ function setup(tableId){
 tableIds.forEach(setup);
 })();
 </script>
+<script>
+(function(){
+  const table=document.getElementById('payout-table');
+  async function load(){
+    const response=await fetch('/api/admin/payouts',{credentials:'same-origin'});
+    if(!response.ok)throw new Error('request_failed');
+    const body=await response.json(),items=body.payouts||[];
+    table.tBodies[0].replaceChildren(...items.map(item=>{
+      const row=document.createElement('tr');row.dataset.status=item.status;
+      const date=item.requested_at?new Date(item.requested_at).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replaceAll('/','.'):'';
+      const labels={requested:'申請済み',reviewing:'確認中',approved:'承認済み',processing:'処理中',paid:'支払済み',failed:'失敗',cancelled:'取消'};
+      row.innerHTML='<td><strong>'+String(item.id).slice(0,8)+'</strong><small>'+date+'</small></td><td><strong>'+String(item.seller_email||'')+'</strong></td><td class="money">¥'+Number(item.amount||0).toLocaleString('ja-JP')+'</td><td><span class="tag '+(item.status==='paid'?'ok':'warn')+'">'+(labels[item.status]||item.status)+'</span></td><td><span class="muted">'+(item.status==='paid'?'完了':'既存APIで処理可能')+'</span></td></tr>';
+      return row;
+    }));
+    ['requested','reviewing','processing','paid'].forEach(function(status){const count=items.filter(x=>x.status===status).length;const el=document.getElementById(status==='requested'?'requested-count':status==='reviewing'?'reviewing-count':status==='processing'?'processing-count':'paid-count');if(el)el.firstChild.textContent=count+' ';});
+    document.getElementById('payout-count').textContent=items.length+'件';
+  }
+  load().catch(function(){});
+})();
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
