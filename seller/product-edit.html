@@ -121,6 +121,7 @@ const priceInput = document.querySelector('#product-price');
 const descriptionInput = document.querySelector('#product-description');
 const statusElement = document.querySelector('#product-status');
 const saveButton = document.querySelector('#save-product');
+const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
 
 function formatStatus(status) {
   return { published: '公開中', draft: '下書き', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', rejected: '却下' }[status] || status || '-';
@@ -147,6 +148,33 @@ async function loadProduct() {
   statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
 }
 
+async function publishProduct() {
+  if (!productId) return;
+  reviewCard?.setAttribute('aria-busy', 'true');
+  try {
+    const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}/publish`, { method: 'POST' });
+    statusElement.textContent = formatStatus(product.status);
+    statusElement.className = 'seller-video-status is-published';
+    await loadProduct();
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    if (error.status === 422) {
+      alert('公開に必要な条件を満たしていません。動画・タイトル・価格などを確認してください。');
+      return;
+    }
+    if (error.status === 409) {
+      alert('現在の状態では公開できません。');
+      return;
+    }
+    alert('公開状態を変更できませんでした。');
+  } finally {
+    reviewCard?.removeAttribute('aria-busy');
+  }
+}
+
 async function saveProduct() {
   if (!productId) return;
   saveButton.setAttribute('aria-busy', 'true');
@@ -170,6 +198,14 @@ async function saveProduct() {
     saveButton.removeAttribute('aria-busy');
   }
 }
+
+reviewCard?.addEventListener('click', publishProduct);
+reviewCard?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    publishProduct();
+  }
+});
 
 saveButton.addEventListener('click', saveProduct);
 saveButton.addEventListener('keydown', (event) => {
