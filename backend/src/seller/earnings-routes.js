@@ -22,7 +22,7 @@ router.get('/earnings', async (req, res, next) => {
       `SELECT id, order_id, product_id, gross_amount, platform_fee, net_amount,
               currency, status, created_at, paid_at, refunded_at
          FROM seller_earnings
-        WHERE se.seller_id = $1
+        WHERE seller_id = $1
         ORDER BY created_at DESC
         LIMIT 100`,
       [req.user.id]
