@@ -41,12 +41,12 @@
     <section class="buyer-section">
       <div class="buyer-section-head">
         <div><span class="section-kicker">BASIC INFORMATION</span><h2>作品情報</h2></div>
-        <span class="seller-video-status is-published">公開中</span>
+        <span id="product-status" class="seller-video-status is-published">-</span>
       </div>
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card product-input-card">
           <span>01 / TITLE</span><strong>作品タイトル</strong><small>購入者に表示する動画タイトル</small>
-          <input class="product-input" type="text" value="THE LAST SIGNAL">
+          <input id="product-title" class="product-input" type="text" value="">
         </div>
         <div class="buyer-menu-card product-input-card">
           <span>02 / CATEGORY</span><strong>カテゴリー</strong><small>作品に合うジャンル</small>
@@ -54,11 +54,11 @@
         </div>
         <div class="buyer-menu-card product-input-card">
           <span>03 / PRICE</span><strong>販売価格</strong><small>購入者に表示する価格</small>
-          <input class="product-input" type="text" value="¥4,800">
+          <input id="product-price" class="product-input" type="number" min="0" step="1" value="">
         </div>
         <div class="buyer-menu-card product-input-card">
           <span>04 / DESCRIPTION</span><strong>作品説明</strong><small>作品の内容や見どころ</small>
-          <textarea class="product-input product-description-input" rows="6">作品の世界観とストーリーを紹介する作品説明です。</textarea>
+          <textarea id="product-description" class="product-input product-description-input" rows="6"></textarea>
         </div>
       </div>
     </section>
@@ -107,12 +107,85 @@
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">ACTIONS</span><h2>変更を保存する</h2></div></div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card"><span>SAVE</span><strong>変更を保存する</strong><small>編集内容を保存して動画管理へ戻ります。</small><b>保存する →</b></div>
+        <div id="save-product" class="buyer-menu-card" role="button" tabindex="0"><span>SAVE</span><strong>変更を保存する</strong><small>編集内容を保存して動画管理へ戻ります。</small><b>保存する →</b></div>
         <div class="buyer-menu-card"><span>CANCEL</span><strong>変更を破棄する</strong><small>保存せずに動画管理へ戻ります。</small><b><a class="seller-cancel-link" href="/seller/products.html">動画管理へ戻る →</a></b></div>
       </div>
     </section>
   </main>
 
   <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+<script type="module">
+const productId = new URLSearchParams(window.location.search).get('productId');
+const titleInput = document.querySelector('#product-title');
+const priceInput = document.querySelector('#product-price');
+const descriptionInput = document.querySelector('#product-description');
+const statusElement = document.querySelector('#product-status');
+const saveButton = document.querySelector('#save-product');
+
+function formatStatus(status) {
+  return { published: '公開中', draft: '下書き', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', rejected: '却下' }[status] || status || '-';
+}
+
+async function request(path, options = {}) {
+  const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error || '動画情報を取得できませんでした。');
+    error.status = response.status;
+    throw error;
+  }
+  return body;
+}
+
+async function loadProduct() {
+  if (!productId) throw new Error('product_required');
+  const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}`);
+  titleInput.value = product.title || '';
+  priceInput.value = product.price_amount ?? '';
+  descriptionInput.value = product.description || '';
+  statusElement.textContent = formatStatus(product.status);
+  statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
+}
+
+async function saveProduct() {
+  if (!productId) return;
+  saveButton.setAttribute('aria-busy', 'true');
+  try {
+    await request(`/api/seller/products/${encodeURIComponent(productId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: titleInput.value,
+        description: descriptionInput.value,
+        priceAmount: Number(priceInput.value || 0)
+      })
+    });
+    window.location.href = '/seller/products.html';
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert('変更を保存できませんでした。');
+  } finally {
+    saveButton.removeAttribute('aria-busy');
+  }
+}
+
+saveButton.addEventListener('click', saveProduct);
+saveButton.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    saveProduct();
+  }
+});
+
+loadProduct().catch((error) => {
+  if (error.status === 401 || error.status === 403) {
+    window.location.href = '/pages/seller-login.html';
+    return;
+  }
+  alert('動画情報を取得できませんでした。');
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
