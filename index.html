@@ -18,7 +18,7 @@
       </a>
       <div class="nav-right">
         <nav>
-          <a href="/pages/cart.html">カート</a><a href="/pages/video-list.html">動画を購入する</a><a href="/pages/seller-register.html">動画を販売する</a>
+          <a href="/pages/cart.html" data-site-nav="cart">カート</a><a href="/pages/video-list.html" data-site-nav="purchase">動画を購入する</a><a href="/pages/seller-register.html" data-site-nav="sell">動画を販売する</a>
         </nav>
         <div class="login-menu">
           <button class="sell login-trigger" type="button">ログイン</button>
@@ -478,7 +478,7 @@
     <footer>
       <div class="footer-top">
         <a class="logo" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
-        <p>見つける。買う。楽しむ。</p>
+        <p id="site-footer-description">見つける。買う。楽しむ。</p>
       </div>
       <div class="footer-cols">
         <div>
@@ -500,9 +500,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        © 2026 VIDEO MARKETPLACE. All rights reserved.　<span
-          >デモサイト / 決済はシミュレーションです</span
-        >
+        <span id="site-footer-copyright">© 2026 VIDEO MARKETPLACE. All rights reserved.</span>　<span>デモサイト / 決済はシミュレーションです</span>
       </div>
     </footer>
   <style id="vm-admin-theme-style">body.vm-square-cards .video-card,body.vm-square-cards .mosaic-card,body.vm-square-cards .showcase-card,body.vm-square-cards .role,body.vm-square-cards .mini{border-radius:0!important}</style>
@@ -583,6 +581,28 @@ a.innerHTML='<time class="vm-announcement-date"></time><div class="vm-announceme
 a.querySelector('time').textContent=x.date||'';a.querySelector('strong').textContent=x.title;a.querySelector('span').textContent=x.category;list.append(a);
 });
 if(!list.children.length){list.innerHTML='<p class="announcement-empty">現在、お知らせはありません。</p>';}
+})();
+</script>
+  <script>
+(function () {
+  "use strict";
+  try {
+    const settings = JSON.parse(localStorage.getItem("vm-demo-site-chrome") || "null");
+    if (!settings) return;
+    ["cart", "purchase", "sell"].forEach(function (name) {
+      const link = document.querySelector('[data-site-nav="' + name + '"]');
+      const key = name === "purchase" ? "showPurchase" : name === "sell" ? "showSell" : "showCart";
+      if (link) link.hidden = settings[key] === false;
+    });
+    const login = document.querySelector(".login-menu");
+    if (login) login.hidden = settings.showAccount === false;
+    const description = document.getElementById("site-footer-description");
+    if (description && typeof settings.footerDescription === "string") description.textContent = settings.footerDescription;
+    const links = document.querySelector(".footer-cols");
+    if (links) links.hidden = settings.footerShowLinks === "hide";
+    const copyright = document.getElementById("site-footer-copyright");
+    if (copyright && typeof settings.footerCopyright === "string" && settings.footerCopyright.trim()) copyright.textContent = settings.footerCopyright.trim();
+  } catch (_) {}
 })();
 </script>
   <script src="/shared/site-branding.js"></script></body>
