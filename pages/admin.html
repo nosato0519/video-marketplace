@@ -77,7 +77,7 @@
     ['/api/admin/seller-applications?status=pending', 'applications', 'seller-application-count', 'seller-application-attention'],
     ['/api/admin/seller-verifications?status=submitted', 'sellers', 'seller-verification-count', 'seller-verification-attention'],
     ['/api/admin/content/reviews?status=pending', 'reviews', 'content-review-count', 'content-review-attention'],
-    ['/api/admin/payouts', 'payouts', 'payout-count', 'payout-attention']
+    ['/api/admin/payouts?status=requested', 'payouts', 'payout-count', 'payout-attention']
   ];
 
   async function loadQueue(url, key, countId, attentionId) {
