@@ -3,6 +3,7 @@
   "use strict";
 
   const STORAGE_KEY = "vm-demo-site-branding";
+  const originalTitle = document.title;
   const MAX_LOGO_BYTES = 2 * 1024 * 1024;
   const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 
@@ -42,7 +43,7 @@
       document.querySelectorAll("meta[name='application-name']").forEach(function (meta) {
         meta.content = siteName;
       });
-      document.title = document.title.replace(/VIDEO MARKETPLACE/gi, siteName);
+      document.title = originalTitle.replace(/VIDEO MARKETPLACE/gi, siteName || "VIDEO MARKETPLACE");
     }
 
     document.querySelectorAll(".logo").forEach(function (logo) {
@@ -132,7 +133,7 @@
       logoDataUrl = "";
       nameInput.value = initialName;
       fileInput.value = "";
-      applyBranding({});
+      applyBranding({ siteName: initialName, logoDataUrl: "" });
       renderPreview();
       status.textContent = "初期表示に戻しました。";
     });
