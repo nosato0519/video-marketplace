@@ -77,5 +77,45 @@
       </section>
     </section>
   </main>
+<script>
+  const grid = document.getElementById('catalog-grid');
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character]));
+  }
+
+  function formatPrice(amount, currency) {
+    const value = Number(amount);
+    if (!Number.isFinite(value)) return '';
+    return currency === 'JPY'
+      ? `¥${value.toLocaleString('ja-JP')}`
+      : `${value.toLocaleString('ja-JP')} ${escapeHtml(currency || '')}`;
+  }
+
+  async function loadCatalog() {
+    const response = await fetch('/api/catalog/products?limit=24', { credentials: 'same-origin' });
+    if (!response.ok) throw new Error('catalog_load_failed');
+    const result = await response.json();
+    const products = Array.isArray(result.data) ? result.data : [];
+
+    grid.innerHTML = products.map((product, index) => `
+      <a class="catalog-card" href="/pages/product-detail.html?productId=${encodeURIComponent(product.id)}">
+        <div class="catalog-thumb catalog-t${(index % 8) + 1}"><span>VIDEO</span></div>
+        <div class="catalog-info">
+          <div class="catalog-cat">${escapeHtml(product.category || 'VIDEO').toUpperCase()}</div>
+          <h3>${escapeHtml(product.title)}</h3>
+          <p>by ${escapeHtml(product.seller)}</p>
+          <strong>${formatPrice(product.price_amount, product.price_currency)}</strong>
+        </div>
+      </a>
+    `).join('');
+  }
+
+  loadCatalog().catch(() => {
+    grid.innerHTML = '';
+  });
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
