@@ -219,7 +219,7 @@
     document.querySelector('.detail-price').textContent =
       product.price_currency === 'JPY'
         ? `¥${Number(product.price_amount).toLocaleString('ja-JP')}`
-        : `${Number(product.priceAmount).toLocaleString('ja-JP')} ${product.price_currency || ''}`;
+        : `${Number(product.price_amount).toLocaleString('ja-JP')} ${product.price_currency || ''}`;
   }
 
   loadProductDetail().catch(() => {
