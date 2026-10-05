@@ -125,6 +125,39 @@
     </script>
   </main>
 
+  <script type="module">
+    import { libraryApi } from "/app/library/library-api.js";
+
+    const list = document.querySelector(".library-grid");
+    if (list) {
+      try {
+        const result = await libraryApi.list();
+        const items = result.items || [];
+        list.innerHTML = items.length ? items.map((item) => {
+          const date = item.purchased_at ? new Date(item.purchased_at).toLocaleDateString("ja-JP") : "—";
+          const quality = item.media_mime_type || "VIDEO";
+          const watchHref = item.streaming_enabled ? `/pages/watch.html?productId=${encodeURIComponent(item.product_id)}` : "#";
+          const downloadHref = item.download_enabled ? `/api/media/${encodeURIComponent(item.product_id)}/download` : "#";
+          const downloadHidden = item.download_enabled ? "" : ' aria-hidden="true" style="visibility:hidden"';
+          return `<article class="library-card">
+            <div class="library-thumb catalog-t1"></div>
+            <div class="library-card-body">
+              <h2>${String(item.title || "購入作品").replace(/[&<>"']/g, "")}</h2>
+              <div class="library-card-meta"><span>購入日 ${date}</span><span>${String(quality).replace(/[&<>"']/g, "")}</span></div>
+              <div class="library-progress"><span class="library-progress-value is-progress-0"></span></div>
+              <div class="library-card-actions"><a class="library-watch" href="${watchHref}">${item.streaming_enabled ? "視聴する →" : "視聴準備中"}</a><a class="library-link" href="${downloadHref}"${downloadHidden}>ダウンロード</a></div>
+            </div>
+          </article>`;
+        }).join("") : '<div class="empty-state"><h2>ライブラリは空です</h2><p>購入した動画がここに表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
+      } catch (error) {
+        if (error.status === 401) {
+          window.location.assign("/pages/buyer-login.html");
+        } else {
+          list.innerHTML = '<div class="empty-state"><h2>ライブラリを取得できません</h2><p>しばらくしてからもう一度お試しください。</p></div>';
+        }
+      }
+    }
+  </script>
   <footer class="footer">
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
