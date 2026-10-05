@@ -24,16 +24,17 @@
       <div class="auth-kicker">CREATOR ACCOUNT</div>
       <h1 id="register-title">販売者登録</h1>
       <p class="auth-lead">動画を販売するためのアカウントを作成してください。</p>
-      <form>
+      <form id="seller-register-form">
         <label for="creator-name">クリエイター名</label>
-        <input id="creator-name" name="creator-name" type="text" autocomplete="name" placeholder="表示する名前を入力">
+        <input id="creator-name" name="creator-name" type="text" autocomplete="name" placeholder="表示する名前を入力" required>
         <label for="email">メールアドレス</label>
-        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
         <label for="password">パスワード</label>
-        <input id="password" name="password" type="password" autocomplete="new-password" placeholder="12文字以上">
+        <input id="password" name="password" type="password" autocomplete="new-password" placeholder="12文字以上" minlength="12" required>
         <label for="password-confirm">パスワード（確認）</label>
-        <input id="password-confirm" name="password-confirm" type="password" autocomplete="new-password" placeholder="もう一度入力">
-        <label class="auth-terms"><input type="checkbox" name="terms"> 利用規約・プライバシーポリシーに同意する</label>
+        <input id="password-confirm" name="password-confirm" type="password" autocomplete="new-password" placeholder="もう一度入力" minlength="12" required>
+        <label class="auth-terms"><input type="checkbox" name="terms" required> 利用規約・プライバシーポリシーに同意する</label>
+        <p id="seller-register-message" role="status" aria-live="polite"></p>
         <button class="auth-submit" type="submit">販売者アカウントを作成</button>
       </form>
       <div class="auth-divider"><span>ACCOUNT</span></div>
@@ -45,5 +46,40 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+  import { authApi } from '/app/auth/auth-api.js';
+
+  const form = document.getElementById('seller-register-form');
+  const message = document.getElementById('seller-register-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message.textContent = '';
+
+    const creatorName = form.elements['creator-name'].value.trim();
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    const passwordConfirm = form.elements['password-confirm'].value;
+
+    if (password !== passwordConfirm) {
+      message.textContent = 'パスワードが一致しません。';
+      return;
+    }
+
+    const submit = form.querySelector('button[type="submit"]');
+    submit.disabled = true;
+
+    try {
+      await authApi.register(email, password);
+      await authApi.sellerApplication(creatorName, creatorName, 'JP');
+      message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者としてログインできます。';
+      form.reset();
+    } catch (error) {
+      message.textContent = error.body?.error || error.message || '登録に失敗しました。';
+    } finally {
+      submit.disabled = false;
+    }
+  });
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
