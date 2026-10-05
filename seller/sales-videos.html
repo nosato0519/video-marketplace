@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <div class="seller-video-list">
+      <div id="sold-videos-list" class="seller-video-list"></div>
         <div class="seller-video-row">
           <div class="seller-video-info"><strong>2026.09.29　NEW RELEASE</strong><small>金額 ¥3,500　手数料 ¥350　利益 ¥3,150</small></div>
           <span class="seller-video-status is-published">販売済み</span>
@@ -98,7 +98,7 @@
         </div>
       </div>
 
-      <nav class="seller-pagination" aria-label="履歴ページ">
+      <nav id="sold-videos-pagination" class="seller-pagination" aria-label="履歴ページ">
         <a class="is-current" href="#">1</a>
         <a href="#">2</a>
         <a href="#">3</a>
@@ -111,5 +111,53 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+const list = document.querySelector('#sold-videos-list');
+const pagination = document.querySelector('#sold-videos-pagination');
+
+function formatYen(amount) {
+  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
+}
+
+function formatDate(value) {
+  return new Date(value).toLocaleDateString('ja-JP').replaceAll('/', '.');
+}
+
+async function loadSoldVideos() {
+  const response = await fetch('/api/earnings', { credentials: 'same-origin' });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error || '販売履歴を取得できませんでした。');
+    error.status = response.status;
+    throw error;
+  }
+
+  const sales = (body?.earnings || []).filter((item) =>
+    ['available', 'paid'].includes(item.status)
+  );
+
+  if (!sales.length) {
+    list.innerHTML = '<small>販売済み動画はありません。</small>';
+    pagination.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = sales.map((sale) => `
+    <div class="seller-video-row">
+      <div class="seller-video-info">
+        <strong>${formatDate(sale.created_at)}　${sale.title || '動画'}</strong>
+        <small>金額 ${formatYen(sale.gross_amount)}　手数料 ${formatYen(sale.platform_fee)}　利益 ${formatYen(sale.net_amount)}</small>
+      </div>
+      <span class="seller-video-status is-published">販売済み</span>
+      <span class="seller-video-edit">${formatYen(sale.net_amount)}</span>
+    </div>
+  `).join('');
+  pagination.innerHTML = '';
+}
+
+loadSoldVideos().catch((error) => {
+  if (error.status === 401) window.location.href = '/pages/seller-login.html';
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
