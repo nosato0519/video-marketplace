@@ -50,5 +50,55 @@
   </main>
 
   <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+<script>
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+
+  const verificationLabels = {
+    not_started: '未申請',
+    submitted: '申請中',
+    under_review: '審査中',
+    verified: '確認済み'
+  };
+
+  async function loadSellerProfile() {
+    const response = await fetch('/api/seller/profile', { credentials: 'include' });
+
+    if (response.status === 401 || response.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+
+    if (!response.ok) throw new Error('profile_request_failed');
+
+    const { profile } = await response.json();
+    if (!profile) return;
+
+    const displayName = escapeHtml(profile.display_name);
+    const legalName = escapeHtml(profile.legal_name);
+    const country = escapeHtml(profile.country_code || '');
+    const verification = verificationLabels[profile.verification_status] || '未申請';
+
+    document.querySelector('.seller-profile-form .seller-profile-field strong').textContent =
+      profile.display_name || '';
+    document.querySelector('.seller-private-form .seller-profile-field strong').textContent =
+      profile.legal_name || '';
+
+    const publicFields = document.querySelectorAll('.seller-profile-form .seller-profile-field strong');
+    if (publicFields[0]) publicFields[0].textContent = displayName;
+    if (publicFields[1]) publicFields[1].textContent = legalName;
+
+    const countryField = document.querySelectorAll('.seller-profile-form .seller-profile-field strong')[2];
+    if (countryField && country) countryField.textContent = country;
+
+    const verificationStatus = document.querySelector('.seller-profile-status strong');
+    if (verificationStatus) verificationStatus.textContent = verification;
+  }
+
+  loadSellerProfile().catch(() => {
+    window.location.href = '/pages/seller-login.html';
+  });
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
