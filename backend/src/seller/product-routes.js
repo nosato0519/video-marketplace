@@ -71,6 +71,16 @@ router.patch('/products/:productId', async (req, res, next) => {
 
 router.post('/products/:productId/publish', async (req, res, next) => {
   try {
+    const seller = await query(
+      `SELECT verification_status
+         FROM seller_profiles
+        WHERE user_id = $1`,
+      [req.user.id]
+    );
+    if (seller.rows[0]?.verification_status !== 'verified') {
+      return res.status(403).json({ error: 'seller_verification_required' });
+    }
+
     const result = await query(`SELECT p.*, m.id AS media_id, m.owner_user_id AS media_owner_user_id, m.status AS media_status FROM products p LEFT JOIN media_assets m ON m.id = p.media_asset_id WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const row = result.rows[0];
