@@ -146,7 +146,7 @@ function getPeriodSales(earnings) {
 async function loadDashboard() {
   const [products, earnings] = await Promise.all([
     request('/api/seller/products'),
-    request('/api/earnings')
+    request('/api/seller/earnings')
   ]);
   const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
   document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
