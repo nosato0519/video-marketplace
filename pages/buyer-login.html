@@ -24,16 +24,12 @@
       <div class="auth-kicker">BUYER ACCOUNT</div>
       <h1 id="login-title">購入者ログイン</h1>
       <p class="auth-lead">購入した動画を楽しむアカウントにログインしてください。</p>
-      <form>
-        <label for="email">メールアドレス</label>
-        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
-        <label for="password">パスワード</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="パスワードを入力">
-        <div class="auth-options">
-          <label class="auth-check"><input type="checkbox" name="remember"> ログイン状態を保持する</label>
-          <a href="/pages/password-reset.html">パスワードを忘れた方</a>
-        </div>
-        <a class="auth-submit" href="/pages/buyer.html">ログイン</a>
+      <form id="role-login-form">
+        <label for="email">メールアドレス</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        <label for="password">パスワード</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="パスワードを入力" minlength="12" required>
+        <div class="auth-options"><label class="auth-check"><input type="checkbox" name="remember"> ログイン状態を保持する</label><a href="/pages/password-reset.html">パスワードを忘れた方</a></div>
+        <button class="auth-submit" type="submit">ログイン</button>
+        <p id="login-message" class="microcopy" aria-live="polite"></p>
       </form>
       <div class="auth-divider"><span>ACCOUNT</span></div>
       <p class="auth-register">アカウントをお持ちでない方</p>
@@ -44,5 +40,29 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+import { loginForRole } from '/app/auth/auth-api.js';
+document.querySelector('#role-login-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = form.querySelector('#login-message');
+  const submit = form.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  message.textContent = 'ログインしています…';
+  try {
+    await loginForRole({
+      email: form.email.value,
+      password: form.password.value,
+      role: 'buyer',
+      redirectTo: '/pages/buyer.html'
+    });
+  } catch (error) {
+    message.textContent = error.code === 'ROLE_NOT_ALLOWED'
+      ? '購入者アカウントではありません。'
+      : (error.body?.error?.message || 'ログインできませんでした。');
+    submit.disabled = false;
+  }
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
