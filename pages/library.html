@@ -158,11 +158,13 @@
             </div>
           </article>`;
         }).join("") : '<div class="empty-state"><h2>ライブラリは空です</h2><p>購入した動画がここに表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
+        if (typeof window.renderLibraryPagination === "function") window.renderLibraryPagination();
       } catch (error) {
         if (error.status === 401) {
           window.location.assign("/pages/buyer-login.html");
         } else {
           list.innerHTML = '<div class="empty-state"><h2>ライブラリを取得できません</h2><p>しばらくしてからもう一度お試しください。</p></div>';
+          if (typeof window.renderLibraryPagination === "function") window.renderLibraryPagination();
         }
       }
     }
