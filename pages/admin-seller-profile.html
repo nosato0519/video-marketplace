@@ -80,5 +80,5 @@ document.getElementById('profile-display').textContent=p.name;document.getElemen
 var body=document.getElementById('product-summary');body.innerHTML='';p.products.forEach(function(item){var tr=document.createElement('tr');for(var i=0;i<3;i++){var td=document.createElement('td');td.textContent=item[i];tr.appendChild(td);}var td=document.createElement('td'),tag=document.createElement('span');tag.className='tag '+(item[3]==='公開中'?'ok':'warn');tag.textContent=item[3];td.appendChild(tag);tr.appendChild(td);body.appendChild(tr);});
 })();
 </script>
-</body>
+<script src="/shared/site-branding.js"></script></body>
 </html>
