@@ -41,9 +41,9 @@
     </div>
 
     <section class="buyer-summary">
-      <div><span>公開作品</span><strong>12</strong><small>VIDEOS</small></div>
-      <div><span>販売数</span><strong>48</strong><small>SALES</small></div>
-      <div><span>売上</span><strong>¥248,600</strong><small>EARNINGS</small></div>
+      <div><span>公開作品</span><strong id="published-count">0</strong><small>VIDEOS</small></div>
+      <div><span>販売数</span><strong id="sale-count">0</strong><small>SALES</small></div>
+      <div><span>売上</span><strong id="earned-amount">¥0</strong><small>EARNINGS</small></div>
     </section>
 
     <section class="buyer-section">
@@ -107,5 +107,38 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+async function request(path) {
+  const response = await fetch(path, { credentials: 'same-origin' });
+  const text = await response.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch {}
+  if (!response.ok) {
+    const error = new Error(body?.error?.message || body?.error || 'データを取得できませんでした。');
+    error.status = response.status;
+    throw error;
+  }
+  return body;
+}
+
+function formatYen(amount) {
+  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
+}
+
+async function loadDashboard() {
+  const [products, earnings] = await Promise.all([
+    request('/api/products'),
+    request('/api/earnings')
+  ]);
+  const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
+  document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
+  document.querySelector('#sale-count').textContent = Number(earnings.summary?.sale_count || 0).toLocaleString('ja-JP');
+  document.querySelector('#earned-amount').textContent = formatYen(earnings.summary?.earned_amount);
+}
+
+loadDashboard().catch((error) => {
+  if (error.status === 401) window.location.href = '/pages/seller-login.html';
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
