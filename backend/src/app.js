@@ -38,7 +38,6 @@ export function createApp() {
   app.disable('x-powered-by');
   app.use(helmet());
 
-  validateMediaSecurityConfig();
   registerPaymentWebhookRoutes(app);
   app.post(
     '/api/payments/stripe/webhook',
