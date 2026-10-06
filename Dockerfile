@@ -12,6 +12,7 @@ COPY seller ./seller
 COPY app ./app
 COPY shared ./shared
 
+ENV NODE_ENV=production
 ENV PORT=10000
 EXPOSE 10000
 
