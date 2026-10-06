@@ -19,7 +19,7 @@ export function createConfiguredMediaStorage(env = process.env) {
   const provider = env.MEDIA_STORAGE_PROVIDER || 'local';
 
   if (provider === 'local') {
-    if (env.NODE_ENV === 'production' && !env.MEDIA_STORAGE_DIR) {
+    if (env.NODE_ENV === 'production') {
       return createUnavailableMediaStorage();
     }
     const storage = createLocalMediaStorage({ rootDir: env.MEDIA_STORAGE_DIR });
