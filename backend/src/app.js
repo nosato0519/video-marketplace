@@ -37,7 +37,13 @@ export function createApp() {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
-  app.use(express.static(path.resolve(process.cwd())));
+  const publicRoot = process.cwd();
+  app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
+  app.use('/pages', express.static(path.join(publicRoot, 'pages')));
+  app.use('/seller', express.static(path.join(publicRoot, 'seller')));
+  app.use('/app', express.static(path.join(publicRoot, 'app')));
+  app.use('/shared', express.static(path.join(publicRoot, 'shared')));
+  app.get('/styles.css', (_req, res) => res.sendFile(path.join(publicRoot, 'styles.css')));
 
   validateMediaSecurityConfig();
   registerPaymentWebhookRoutes(app);
