@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import helmet from 'helmet';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
@@ -36,6 +37,7 @@ export function createApp() {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
+  app.use(express.static(path.resolve(process.cwd())));
 
   validateMediaSecurityConfig();
   registerPaymentWebhookRoutes(app);
