@@ -13,7 +13,6 @@ import { completePayment } from './payments/complete-payment.js';
 import { failPayment } from './payments/fail-payment.js';
 import { registerConfiguredMediaStreamRoutes } from './media/media-stream-app.js';
 import { registerMediaDownloadRoutes } from './media/media-download-route.js';
-import { validateMediaSecurityConfig } from './media/media-security-check.js';
 import { loadSessionUser } from './auth/load-session-user.js';
 import { requireRole } from './auth/authorize.js';
 import { registerAuthRoutes } from './auth-routes.js';
