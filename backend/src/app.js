@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import path from 'node:path';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
@@ -71,8 +72,6 @@ export function createApp() {
   registerProductTranslationRoutes(app);
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
-  // Seller applications must be reachable by authenticated buyers. Mount this
-  // router before seller-only routers whose router-level middleware rejects buyers.
   app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
@@ -86,6 +85,14 @@ export function createApp() {
   registerPaymentProviderRoutes(app, { requireAdmin: requireRole('admin') });
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
+
+  const publicRoot = path.resolve(process.cwd());
+  app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
+  app.get('/styles.css', (_req, res) => res.sendFile(path.join(publicRoot, 'styles.css')));
+  app.use('/pages', express.static(path.join(publicRoot, 'pages')));
+  app.use('/seller', express.static(path.join(publicRoot, 'seller')));
+  app.use('/app', express.static(path.join(publicRoot, 'app')));
+  app.use('/shared', express.static(path.join(publicRoot, 'shared')));
 
   app.use((error, _req, res, _next) => {
     console.error(error);
