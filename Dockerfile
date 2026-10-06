@@ -11,6 +11,7 @@ COPY pages ./pages
 COPY seller ./seller
 COPY app ./app
 COPY shared ./shared
+COPY locales ./locales
 
 ENV PORT=10000
 EXPOSE 10000
