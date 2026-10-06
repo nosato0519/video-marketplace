@@ -39,6 +39,7 @@ export function createApp() {
     contentSecurityPolicy: {
       directives: {
         imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
+        scriptSrc: ["'self'", "'sha256-85KdQRhfS1dpbMfOB15j5cLKCZTHgEy1mNj1WbvH2rw='"],
       },
     },
   }));
