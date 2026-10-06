@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'node:path';
 import helmet from 'helmet';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
@@ -47,16 +46,6 @@ export function createApp() {
   );
 
   app.use(express.json({ limit: '1mb' }));
-
-  const webRoot = process.cwd();
-  app.get('/', (_req, res) => res.sendFile(path.join(webRoot, 'index.html')));
-  app.use('/pages', express.static(path.join(webRoot, 'pages')));
-  app.use('/seller', express.static(path.join(webRoot, 'seller')));
-  app.use('/app', express.static(path.join(webRoot, 'app')));
-  app.use('/shared', express.static(path.join(webRoot, 'shared')));
-  app.use('/locales', express.static(path.join(webRoot, 'locales')));
-  app.get('/styles.css', (_req, res) => res.sendFile(path.join(webRoot, 'styles.css')));
-
   app.use(loadSessionUser);
 
   app.get('/api/health', (_req, res) => {

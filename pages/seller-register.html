@@ -75,7 +75,7 @@
       message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者としてログインできます。';
       form.reset();
     } catch (error) {
-      message.textContent = (typeof error.body?.error === 'string' ? error.body.error : error.body?.error?.message) || error.message || '登録に失敗しました。';
+      message.textContent = error.body?.error || error.message || '登録に失敗しました。';
     } finally {
       submit.disabled = false;
     }

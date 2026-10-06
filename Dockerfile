@@ -1,19 +1,12 @@
-FROM node:22-bookworm-slim
+FROM nginx:alpine
 
-WORKDIR /app
+COPY index.html /usr/share/nginx/html/index.html
+COPY styles.css /usr/share/nginx/html/styles.css
+COPY pages /usr/share/nginx/html/pages
+COPY seller /usr/share/nginx/html/seller
+COPY app /usr/share/nginx/html/app
+COPY shared /usr/share/nginx/html/shared
 
-COPY backend/package.json ./backend/package.json
-RUN cd backend && npm install --omit=dev
+RUN sed -i 's/listen       80;/listen       10000;/' /etc/nginx/conf.d/default.conf
 
-COPY backend ./backend
-COPY index.html styles.css ./
-COPY pages ./pages
-COPY seller ./seller
-COPY app ./app
-COPY shared ./shared
-COPY locales ./locales
-
-ENV PORT=10000
 EXPOSE 10000
-
-CMD ["node", "backend/src/server.js"]
