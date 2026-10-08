@@ -23,7 +23,7 @@ router.get('/seller-verifications', async (req, res, next) => {
     const status = String(req.query.status || 'submitted').trim();
     const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
     if (!allowed.has(status)) return res.status(400).json({ error: 'invalid_status' });
-    const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email FROM seller_profiles sp JOIN users u ON u.id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
+    const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email FROM seller_profiles sp JOIN users u ON u.id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
     return res.json({ sellers: result.rows });
   } catch (e) { return next(e); }
 });
