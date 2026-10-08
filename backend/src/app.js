@@ -29,6 +29,7 @@ import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
 import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
+import adminSettingsRoutes from './admin/settings-routes.js';
 import contentReportRoutes from './content-report-routes.js';
 import { registerPaymentProviderRoutes } from './payment-provider-routes.js';
 
@@ -88,6 +89,7 @@ export function createApp() {
   app.use('/api/admin', adminSellerVerificationRoutes);
   app.use('/api/admin', adminSellerApplicationRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
+  app.use('/api/admin', adminSettingsRoutes);
   registerPaymentProviderRoutes(app, { requireAdmin: requireRole('admin') });
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
