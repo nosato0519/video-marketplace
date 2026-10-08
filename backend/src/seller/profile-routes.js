@@ -9,8 +9,8 @@ router.use(requireAuth, requireRole('seller'));
 router.get('/profile', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT user_id, display_name, legal_name, country_code, verification_status,
-              verification_note, submitted_at, verified_at, created_at, updated_at
+      `SELECT user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
+              verification_status, verification_note, submitted_at, verified_at, created_at, updated_at
          FROM seller_profiles WHERE user_id = $1`,
       [req.user.id]
     );
@@ -18,6 +18,7 @@ router.get('/profile', async (req, res, next) => {
       return res.json({ profile: {
         userId: req.user.id,
         displayName: '', legalName: '', countryCode: null,
+        bio: null, address: null, postalCode: null, phone: null,
         verificationStatus: 'not_started', verificationNote: null,
         submittedAt: null, verifiedAt: null
       }});
@@ -31,20 +32,29 @@ router.patch('/profile', async (req, res, next) => {
     const displayName = String(req.body?.displayName ?? '').trim().slice(0, 120);
     const legalName = String(req.body?.legalName ?? '').trim().slice(0, 200);
     const countryCode = req.body?.countryCode == null ? null : String(req.body.countryCode).trim().toUpperCase().slice(0, 2);
+    const bio = String(req.body?.bio ?? '').trim().slice(0, 2000);
+    const address = String(req.body?.address ?? '').trim().slice(0, 300);
+    const postalCode = String(req.body?.postalCode ?? '').trim().slice(0, 30);
+    const phone = String(req.body?.phone ?? '').trim().slice(0, 50);
+
     if (!displayName || !legalName) return res.status(400).json({ error: 'display_name_and_legal_name_required' });
     if (countryCode && !/^[A-Z]{2}$/.test(countryCode)) return res.status(400).json({ error: 'invalid_country_code' });
 
     const result = await query(
-      `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, bio, address, postal_code, phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (user_id) DO UPDATE SET
          display_name = EXCLUDED.display_name,
          legal_name = EXCLUDED.legal_name,
          country_code = EXCLUDED.country_code,
+         bio = EXCLUDED.bio,
+         address = EXCLUDED.address,
+         postal_code = EXCLUDED.postal_code,
+         phone = EXCLUDED.phone,
          updated_at = NOW()
-       RETURNING user_id, display_name, legal_name, country_code, verification_status,
-                 verification_note, submitted_at, verified_at, created_at, updated_at`,
-      [req.user.id, displayName, legalName, countryCode]
+       RETURNING user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
+                 verification_status, verification_note, submitted_at, verified_at, created_at, updated_at`,
+      [req.user.id, displayName, legalName, countryCode, bio || null, address || null, postalCode || null, phone || null]
     );
     return res.json({ profile: result.rows[0] });
   } catch (error) { return next(error); }
