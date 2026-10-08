@@ -203,11 +203,27 @@ router.post('/profile/submit-verification', async (req, res, next) => {
     const profile = existing.rows[0];
     if (!profile?.display_name || !profile.legal_name || !profile.country_code) return res.status(400).json({ error: 'complete_seller_profile_first' });
     const verificationMethod = await getSellerVerificationMethod();
+    if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
+    if (verificationMethod === 'email') {
+      const email = await query(`SELECT email_verified_at FROM users WHERE id = $1`, [req.user.id]);
+      if (!email.rows[0]?.email_verified_at) return res.status(400).json({ error: 'email_verification_required' });
+      const result = await query(
+        `UPDATE seller_profiles
+            SET verification_status = 'verified', submitted_at = COALESCE(submitted_at, NOW()), verified_at = COALESCE(verified_at, NOW()), verification_note = NULL, updated_at = NOW()
+          WHERE user_id = $1
+        RETURNING user_id, display_name, legal_name, country_code, verification_status, submitted_at, verified_at`,
+        [req.user.id]
+      );
+      return res.json({ profile: result.rows[0] });
+    }
     if (verificationMethod === 'document' || verificationMethod === 'email_and_document') {
       const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
       if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
     }
-    if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
+    if (verificationMethod === 'email_and_document') {
+      const email = await query(`SELECT email_verified_at FROM users WHERE id = $1`, [req.user.id]);
+      if (!email.rows[0]?.email_verified_at) return res.status(400).json({ error: 'email_verification_required' });
+    }
     if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') return res.status(409).json({ error: 'verification_already_submitted' });
 
     const result = await query(
