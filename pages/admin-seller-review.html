@@ -53,7 +53,7 @@
   <label class="detail-label admin-form-note">本人確認メモ（差し戻し・却下時は必須）<textarea id="verification-note" rows="2" placeholder="確認結果、追加提出が必要な情報など"></textarea></label>
   <div class="admin-filterbar">
     <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
-    <label>確認状況<select id="verification-status"><option value="">すべて</option><option>確認待ち</option><option>審査中</option><option>差し戻し</option><option>確認済み</option><option>却下</option><option>未申請</option></select></label>
+    <label>確認状況<select id="verification-status"><option value="all">すべて</option><option value="submitted">確認待ち</option><option value="under_review">審査中</option><option value="request_changes">差し戻し</option><option value="verified">確認済み</option><option value="rejected">却下</option><option value="not_started">未申請</option></select></label>
     <span id="verification-count" class="muted">4件</span>
   </div>
   <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
