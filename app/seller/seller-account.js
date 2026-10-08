@@ -96,9 +96,9 @@ async function loadVerificationDocument() {
     uploadButton.disabled = locked;
 
     if (verificationButton) {
-      const canSubmit = verificationDocument
+      const canSubmit = document
         && ['not_started', 'request_changes', 'rejected'].includes(
-          verificationDocument.seller_verification_status
+          document.seller_verification_status
         );
       verificationButton.disabled = !canSubmit;
     }
