@@ -28,7 +28,7 @@
     "test:http-media-access-e2e": "node scripts/http-media-access-e2e-acceptance.js",
     "test:http-seller-product-media-e2e": "node scripts/http-seller-product-media-e2e-acceptance.js",
     "test:http-buyer-order-report-e2e": "node scripts/http-buyer-order-report-e2e-acceptance.js",
-    "test:http-seller-profile-earnings-payout-e2e": "node scripts/http-seller-profile-earnings-payout-e2e.js",
+    "test:http-seller-profile-earnings-payout-e2e": "node scripts/http-seller-profile-earnings-payout-e2e-acceptance.js",
     "test:http-seller-application": "node scripts/http-seller-application-acceptance.js",
     "test:admin-payout-concurrency-regression": "node scripts/admin-payout-concurrency-regression.js",
     "test:security-regression": "node --test src/security/security-regression.test.js",
