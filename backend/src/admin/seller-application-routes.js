@@ -32,6 +32,21 @@ router.get('/seller-applications', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+router.get('/sellers', async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT sp.user_id, u.email, u.status AS account_status, sp.display_name, sp.legal_name,
+              sp.country_code, sp.verification_status, sp.created_at, sp.updated_at
+         FROM seller_profiles sp
+         JOIN users u ON u.id = sp.user_id
+        WHERE u.role = 'seller'
+        ORDER BY sp.created_at DESC
+        LIMIT 200`
+    );
+    return res.json({ sellers: result.rows });
+  } catch (error) { return next(error); }
+});
+
 router.post('/seller-applications/:id/review', async (req, res, next) => {
   try {
     const action = String(req.body?.action || '').trim();
@@ -78,6 +93,9 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
              display_name = EXCLUDED.display_name,
              legal_name = EXCLUDED.legal_name,
              country_code = EXCLUDED.country_code,
+             verification_status = 'submitted',
+             submitted_at = NOW(),
+             verified_at = NULL,
              updated_at = NOW()`,
           [application.user_id, updated.rows[0].display_name, updated.rows[0].legal_name, updated.rows[0].country_code]
         );
