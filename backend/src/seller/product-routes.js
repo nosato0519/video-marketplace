@@ -27,8 +27,32 @@ const PRODUCT_SELECT = `
 
 router.get('/products', async (req, res, next) => {
   try {
-    const result = await query(`${PRODUCT_SELECT} WHERE p.seller_id = $1 ORDER BY p.created_at DESC`, [req.user.id]);
-    return res.json({ products: result.rows });
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const perPage = Math.min(50, Math.max(1, Number.parseInt(req.query.per_page, 10) || 10));
+    const offset = (page - 1) * perPage;
+
+    const [products, counts] = await Promise.all([
+      query(PRODUCT_SELECT + ' WHERE p.seller_id = $1 ORDER BY p.created_at DESC, p.id DESC LIMIT $2 OFFSET $3', [req.user.id, perPage, offset]),
+      query(`SELECT
+               COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE status = 'published')::int AS published,
+               COUNT(*) FILTER (WHERE status IN ('submitted','under_review','processing','approved'))::int AS review,
+               COUNT(*) FILTER (WHERE status = 'draft')::int AS draft
+             FROM products
+            WHERE seller_id = $1`, [req.user.id]),
+    ]);
+
+    const totalCount = counts.rows[0]?.total || 0;
+    return res.json({
+      products: products.rows,
+      counts: counts.rows[0],
+      pagination: {
+        page,
+        per_page: perPage,
+        total_count: totalCount,
+        total_pages: Math.max(1, Math.ceil(totalCount / perPage)),
+      },
+    });
   } catch (error) { return next(error); }
 });
 
