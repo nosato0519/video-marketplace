@@ -76,6 +76,68 @@ async function loadSellerProfile() {
   }
 }
 
+async function loadVerificationDocument() {
+  const status = document.querySelector('#verification-document-status');
+  const input = document.querySelector('#verification-document');
+  const uploadButton = document.querySelector('#verification-document-upload');
+  if (!status || !input || !uploadButton) return;
+
+  try {
+    const response = await request('/api/seller/profile/verification-document');
+    const document = response.document;
+    status.textContent = document
+      ? `提出済み：${document.original_filename}`
+      : '本人確認書類は未提出です。';
+    const locked = document && ['submitted', 'under_review', 'verified'].includes(
+      document.seller_verification_status
+    );
+    input.disabled = locked;
+    uploadButton.disabled = locked;
+  } catch (error) {
+    status.textContent = '本人確認書類の状態を取得できませんでした。';
+  }
+}
+
+async function uploadVerificationDocument() {
+  const input = document.querySelector('#verification-document');
+  const button = document.querySelector('#verification-document-upload');
+  const status = document.querySelector('#verification-document-status');
+  const file = input?.files?.[0];
+  if (!file || !button || !status) return;
+
+  button.disabled = true;
+  status.textContent = 'アップロード中…';
+  try {
+    const response = await fetch('/api/seller/profile/verification-document', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': file.type,
+        'X-Original-Filename': file.name,
+      },
+      body: file,
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(body?.error?.message || body?.error || 'Upload failed');
+      error.status = response.status;
+      error.body = body;
+      throw error;
+    }
+    status.textContent = `提出済み：${body.document.original_filename}`;
+    input.value = '';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    status.textContent = '本人確認書類をアップロードできませんでした。';
+    alert(error.body?.error?.message || error.body?.error || '本人確認書類のアップロードに失敗しました。');
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function submitSellerVerification() {
   const button = document.querySelector('#verification-submit');
   if (!button) return;
@@ -84,6 +146,7 @@ async function submitSellerVerification() {
   try {
     await request('/api/seller/profile/submit-verification', { method: 'POST', body: '{}' });
     await loadSellerProfile();
+    await loadVerificationDocument();
   } catch (error) {
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
@@ -194,6 +257,11 @@ if (document.querySelector('#verification-status')) {
       window.location.href = '/pages/seller-login.html';
     }
   });
+  loadVerificationDocument();
+}
+
+if (document.querySelector('#verification-document-upload')) {
+  document.querySelector('#verification-document-upload').addEventListener('click', uploadVerificationDocument);
 }
 
 if (document.querySelector('#withdrawal-submit')) {
