@@ -146,31 +146,36 @@ async function loadPayouts() {
     }
     historyElement.innerHTML = '<small>出金情報を取得できませんでした。</small>';
   }
+}
 
-  submitButton.addEventListener('click', async () => {
-    const amount = Number(amountInput.value);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      amountInput.focus();
+async function submitPayout() {
+  const amountInput = document.querySelector('#withdrawal-amount');
+  const submitButton = document.querySelector('#withdrawal-submit');
+  if (!amountInput || !submitButton) return;
+
+  const amount = Number(amountInput.value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    amountInput.focus();
+    return;
+  }
+
+  submitButton.disabled = true;
+  try {
+    await request('/api/seller/payouts', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency: 'JPY' }),
+    });
+    amountInput.value = '';
+    await loadPayouts();
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.href = '/pages/seller-login.html';
       return;
     }
-
-    submitButton.disabled = true;
-    try {
-      await request('/api/seller/payouts', {
-        method: 'POST',
-        body: JSON.stringify({ amount, currency: 'JPY' }),
-      });
-      amountInput.value = '';
-      await loadPayouts();
-    } catch (error) {
-      if (error.status === 401) {
-        window.location.href = '/pages/seller-login.html';
-        return;
-      }
-      alert(error.body?.error?.message || error.body?.error || '出金申請に失敗しました。');
-      submitButton.disabled = false;
-    }
-  });
+    alert(error.body?.error?.message || error.body?.error || '出金申請に失敗しました。');
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 if (document.querySelector('#verification-submit')) {
@@ -183,5 +188,6 @@ if (document.querySelector('#verification-submit')) {
 }
 
 if (document.querySelector('#withdrawal-submit')) {
+  document.querySelector('#withdrawal-submit').addEventListener('click', submitPayout);
   loadPayouts();
 }
