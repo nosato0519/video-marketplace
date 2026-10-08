@@ -30,21 +30,18 @@ router.use(requireVerifiedSeller);
 
 router.get('/payouts', async (req, res, next) => {
   try {
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const perPage = Math.min(50, Math.max(1, Number.parseInt(req.query.per_page, 10) || 10));
+    const offset = (page - 1) * perPage;
     const result = await query(
-      `SELECT id,
-              amount,
-              currency,
-              status,
-              failure_reason,
-              requested_at,
-              reviewed_at,
-              paid_at
+      `SELECT id, amount, currency, status, failure_reason, requested_at, reviewed_at, paid_at
          FROM payouts
         WHERE seller_id = $1
-        ORDER BY requested_at DESC
-        LIMIT 100`,
-      [req.user.id]
+        ORDER BY requested_at DESC, id DESC
+        LIMIT $2 OFFSET $3`,
+      [req.user.id, perPage, offset]
     );
+    const total = await query('SELECT COUNT(*)::int AS total FROM payouts WHERE seller_id = $1', [req.user.id]);
 
     const summary = await query(
       `SELECT currency,
@@ -93,8 +90,16 @@ router.get('/payouts', async (req, res, next) => {
       withdrawable: 0,
     };
 
+    const totalCount = total.rows[0]?.total || 0;
+
     return res.json({
       payouts: result.rows,
+      pagination: {
+        page,
+        per_page: perPage,
+        total_count: totalCount,
+        total_pages: Math.max(1, Math.ceil(totalCount / perPage)),
+      },
       summary: {
         available: defaultSummary.available,
         pending: defaultSummary.pending,
