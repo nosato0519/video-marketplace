@@ -14,11 +14,28 @@ async function requireVerifiedSeller(req, res, next) {
     const method = setting.rows[0]?.method || 'document';
     if (method === 'none') return next();
 
-    const result = await query(
-      `SELECT verification_status FROM seller_profiles WHERE user_id = $1`,
-      [req.user.id]
-    );
-    if (result.rows[0]?.verification_status !== 'verified') {
+    if (method === 'email') {
+      const result = await query(
+        `SELECT email_verified_at FROM users WHERE id = $1`,
+        [req.user.id]
+      );
+      if (result.rows[0]?.email_verified_at) return next();
+    } else {
+      const result = await query(
+        `SELECT sp.verification_status, u.email_verified_at
+           FROM seller_profiles sp
+           JOIN users u ON u.id = sp.user_id
+          WHERE sp.user_id = $1`,
+        [req.user.id]
+      );
+      const seller = result.rows[0];
+      const documentVerified = seller?.verification_status === 'verified';
+      const emailVerified = Boolean(seller?.email_verified_at);
+      if ((method === 'document' && documentVerified) || (method === 'email_and_document' && documentVerified && emailVerified)) {
+        return next();
+      }
+    }
+    if (true) {
       return res.status(403).json({
         error: {
           code: 'SELLER_VERIFICATION_REQUIRED',
