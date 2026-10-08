@@ -203,6 +203,51 @@ export function registerAuthRoutes(app) {
     } catch (error) { return next(error); }
   });
 
+  app.get('/api/auth/verify-email', async (req, res, next) => {
+    try {
+      const token = typeof req.query.token === 'string' ? req.query.token : '';
+      if (!token || token.length < 20 || token.length > 200) {
+        return res.status(400).json({ error: { code: 'INVALID_EMAIL_VERIFICATION_TOKEN', message: 'Invalid email verification link' } });
+      }
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const result = await withTransaction(async (client) => {
+        const tokenResult = await client.query(
+          `SELECT id, user_id
+             FROM email_verification_tokens
+            WHERE token_hash = $1
+              AND consumed_at IS NULL
+              AND expires_at > NOW()
+            FOR UPDATE`,
+          [tokenHash]
+        );
+        const tokenRow = tokenResult.rows[0];
+        if (!tokenRow) return null;
+
+        const userResult = await client.query(
+          `UPDATE users
+              SET email_verified_at = COALESCE(email_verified_at, NOW())
+            WHERE id = $1 AND role = 'seller' AND status = 'active'
+            RETURNING id, email, email_verified_at`,
+          [tokenRow.user_id]
+        );
+        if (!userResult.rows[0]) return null;
+
+        await client.query(
+          `UPDATE email_verification_tokens SET consumed_at = NOW() WHERE id = $1`,
+          [tokenRow.id]
+        );
+        return userResult.rows[0];
+      });
+
+      if (!result) {
+        return res.status(400).json({ error: { code: 'INVALID_EMAIL_VERIFICATION_TOKEN', message: 'This email verification link is invalid or expired' } });
+      }
+      return res.json({ verified: true, user: result });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: req.user }));
 
   app.post('/api/auth/logout', async (req, res, next) => {
