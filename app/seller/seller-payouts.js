@@ -51,3 +51,47 @@ export async function renderSellerPayouts(root) {
     root.innerHTML = '<section class="empty-state"><h2>Payouts unavailable</h2><p>Please try again shortly.</p></section>';
   }
 }
+
+export function initSellerPaymentHistoryPage() {
+  const list = document.querySelector('#payment-history-list');
+  const pagination = document.querySelector('#payment-history-pagination');
+  if (!list || !pagination) return;
+  const pageSize = 10;
+  const statusLabels = { requested: '申請中', reviewing: '確認中', approved: '承認済み', processing: '処理中', paid: '入金済み', failed: '失敗', cancelled: 'キャンセル' };
+
+  function formatYen(amount, currency = 'JPY') {
+    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency, maximumFractionDigits: 0 }).format(Number(amount || 0));
+  }
+  function formatDate(value) { return value ? new Date(value).toLocaleDateString('ja-JP').replaceAll('/', '.') : '—'; }
+  function renderPagination(meta) {
+    const totalPages = Math.max(1, Number(meta?.total_pages || 1));
+    const current = Math.min(Math.max(1, Number(meta?.page || 1)), totalPages);
+    const links = [];
+    for (let page = 1; page <= totalPages; page += 1) links.push(`<a href="?page=${page}" data-page="${page}" class="${page === current ? 'is-current' : ''}" aria-current="${page === current ? 'page' : 'false'}">${page}</a>`);
+    if (totalPages > 1 && current < totalPages) links.push(`<a href="?page=${current + 1}" data-page="${current + 1}">次へ →</a>`);
+    pagination.innerHTML = links.join('');
+  }
+  async function load(page = 1) {
+    const response = await fetch(`/api/seller/payouts?page=${page}&per_page=${pageSize}`, { credentials: 'same-origin' });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) { const error = new Error(body?.error?.message || body?.error || '入金履歴を取得できませんでした。'); error.status = response.status; throw error; }
+    const payouts = Array.isArray(body?.payouts) ? body.payouts : [];
+    list.innerHTML = payouts.length ? payouts.map((payout) => {
+      const status = statusLabels[payout.status] || payout.status || '—';
+      const date = payout.paid_at || payout.requested_at;
+      const dateLabel = payout.paid_at ? `${formatDate(date)}　入金済み` : `${formatDate(date)}　入金予定・申請中`;
+      return `<div class="seller-video-row"><div class="seller-video-info"><strong>${dateLabel}</strong><small>入金金額 ${formatYen(payout.amount, payout.currency)}${payout.failure_reason ? `　理由：${payout.failure_reason}` : ''}</small></div><span class="seller-video-status ${payout.status === 'paid' ? 'is-published' : 'is-pending'}">${status}</span><span class="seller-video-edit">${formatYen(payout.amount, payout.currency)}</span></div>`;
+    }).join('') : '<small>入金履歴はありません。</small>';
+    renderPagination(body?.pagination);
+  }
+  pagination.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-page]');
+    if (!link) return;
+    event.preventDefault();
+    const page = Number(link.dataset.page);
+    history.replaceState(null, '', `?page=${page}`);
+    load(page).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+  });
+  const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
+  load(initialPage).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+}
