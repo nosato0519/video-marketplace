@@ -91,6 +91,7 @@ router.get('/profile/verification-document', async (req, res, next) => {
 });
 
 router.post('/profile/verification-document', async (req, res, next) => {
+  let uploadedStorageKey = null;
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
   const filename = safeDocumentFilename(req.headers['x-original-filename']);
   const declaredLength = req.headers['content-length'] == null ? null : Number(req.headers['content-length']);
@@ -108,6 +109,7 @@ router.post('/profile/verification-document', async (req, res, next) => {
     const id = crypto.randomUUID();
     const extension = mime === 'application/pdf' ? '.pdf' : mime === 'image/png' ? '.png' : '.jpg';
     const storageKey = `verification-documents/${req.user.id}/${id}${extension}`;
+    uploadedStorageKey = storageKey;
     let bytes = 0;
     const body = Readable.from((async function* () {
       for await (const chunk of req) {
@@ -129,8 +131,7 @@ router.post('/profile/verification-document', async (req, res, next) => {
     return res.status(201).json({ document: result.rows[0] });
   } catch (error) {
     if (error?.message?.startsWith('invalid_verification_document') || error?.message?.startsWith('content_length_mismatch') || error?.statusCode === 413) {
-      const storageKey = error.storageKey;
-      if (storageKey) await verificationStorage.deleteObject({ storageKey }).catch(() => {});
+      if (uploadedStorageKey) await verificationStorage.deleteObject({ storageKey: uploadedStorageKey }).catch(() => {});
     }
     return next(error);
   }
