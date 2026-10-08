@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>本人確認 | VIDEO MARKETPLACE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="library-page seller-profile-page">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a>
+    <div class="nav-right">
+      <nav><a href="/pages/video-list.html">動画を探す</a><a href="/seller/product-editor.html">動画を販売する</a></nav>
+      <div class="login-menu"><button class="sell login-trigger" type="button">ログイン</button><div class="login-dropdown"><a href="/pages/seller-login.html">販売者ログイン</a><a href="/pages/buyer-login.html">購入者ログイン</a></div></div>
+    </div>
+    <button class="hamb">☰</button>
+  </header>
+
+  <main class="buyer-main seller-profile-page">
+    <div class="buyer-head">
+      <div><span class="section-kicker">SELLER VERIFICATION</span><h1>本人確認</h1><p>売上を受け取るために必要な本人確認を申請します。</p></div>
+      <div class="seller-products-links"><a href="/seller/profile.html">販売者情報へ →</a><a class="buyer-account" href="/seller/dashboard.html">販売者マイページ →</a></div>
+    </div>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">VERIFICATION STATUS</span><h2>本人確認の状況</h2></div></div>
+      <div class="seller-profile-status">
+        <span>STATUS</span>
+        <strong id="verification-status">未申請</strong>
+        <small id="verification-note">販売者情報を確認してから本人確認を申請してください。</small>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">APPLICATION</span><h2>本人確認申請</h2></div></div>
+      <div class="seller-profile-form">
+        <div class="seller-profile-field">
+          <label>申請前に確認してください</label>
+          <small>販売者情報の本名・住所・郵便番号・電話番号・国コードを正しく登録してください。運営者が登録情報を確認し、本人確認を承認します。</small>
+        </div>
+        <div class="seller-profile-actions seller-profile-save-action">
+          <a class="sell" href="/seller/profile-edit.html">販売者情報を確認・編集する</a>
+          <button id="verification-submit" class="sell" type="button">本人確認を申請する</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="buyer-section">
+      <div class="buyer-section-head"><div><span class="section-kicker">PAYOUT</span><h2>売上受取について</h2></div></div>
+      <div class="seller-profile-form">
+        <div class="seller-profile-field">
+          <small>本人確認が運営者に承認されるまで、売上の出金申請は利用できません。承認後、販売者マイページから出金申請を行えます。</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
+  <script type="module" src="/app/seller/seller-account.js"></script>
+  <script src="/shared/site-branding.js"></script>
+</body>
+</html>
