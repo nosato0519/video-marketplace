@@ -8,6 +8,7 @@ router.use(requireAuth, requireRole('seller'));
 
 router.get('/profile', async (req, res, next) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const result = await query(
       `SELECT user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
               verification_status, verification_note, submitted_at, verified_at, created_at, updated_at
