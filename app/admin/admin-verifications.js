@@ -38,7 +38,7 @@ export function bindSellerVerificationReviewPage() {
         not_started: '<span class="muted">未申請</span>',
       }[item.verification_status] || '<span class="muted">処理不可</span>';
       row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
-        + '<td><strong>氏名：</strong>' + esc(item.legal_name) + '<br><strong>国：</strong>' + esc(item.country_code) + '<br><strong>住所：</strong>' + esc(item.address) + '<br><strong>郵便番号：</strong>' + esc(item.postal_code) + '<br><strong>電話：</strong>' + esc(item.phone) + '<br><strong>自己紹介：</strong>' + esc(item.bio) + '</td>'
+        + '<td><strong>氏名：</strong>' + esc(item.legal_name) + '<br><strong>国：</strong>' + esc(item.country_code) + '<br><strong>住所：</strong>' + esc(item.address) + '<br><strong>郵便番号：</strong>' + esc(item.postal_code) + '<br><strong>電話：</strong>' + esc(item.phone) + '<br><strong>自己紹介：</strong>' + esc(item.bio) + '<br>' + (item.verification_document_id ? '<a href="/api/admin/seller-verifications/' + encodeURIComponent(item.user_id) + '/document" target="_blank" rel="noopener">本人確認書類を確認する</a>' : '<span class="muted">本人確認書類なし</span>') + '</td>'
         + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
         + '<td><span class="tag ' + (item.verification_status === 'verified' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.verification_status] || item.verification_status) + '</span></td>'
         + '<td>' + actions + '</td>';
