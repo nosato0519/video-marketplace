@@ -69,6 +69,15 @@ async function loadSellerProfile() {
   if (documentSection) documentSection.hidden = !['document', 'email_and_document'].includes(verificationMethod);
   if (emailAddress) emailAddress.textContent = profile.email ? `確認先：${profile.email}` : '登録メールアドレスを確認してください。';
   if (emailStatus) emailStatus.textContent = profile.email_verified_at ? 'メールアドレス確認済みです。' : '未確認です。';
+  const payoutNote = document.querySelector('#verification-payout-note');
+  if (payoutNote) {
+    payoutNote.textContent = verificationMethod === 'none'
+      ? '本人確認は不要です。販売者マイページから出金申請を行えます。'
+      : verificationMethod === 'email'
+        ? 'メールアドレス確認が完了すると、販売者マイページから出金申請を行えます。'
+        : verificationMethod === 'email_and_document'
+          ? 'メールアドレス確認と本人確認書類の承認が完了すると、販売者マイページから出金申請を行えます。'
+          : '本人確認書類の運営者承認が完了すると、販売者マイページから出金申請を行えます。';
 
   if (verificationStatus) {
     verificationStatus.textContent = verificationLabels[profile.verification_status] || '未申請';
