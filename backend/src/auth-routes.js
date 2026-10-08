@@ -236,6 +236,17 @@ export function registerAuthRoutes(app) {
           `UPDATE email_verification_tokens SET consumed_at = NOW() WHERE id = $1`,
           [tokenRow.id]
         );
+        const settingResult = await client.query(
+          `SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1`
+        );
+        if (settingResult.rows[0]?.method === 'email') {
+          await client.query(
+            `UPDATE seller_profiles
+                SET verification_status = 'verified', verified_at = COALESCE(verified_at, NOW()), submitted_at = COALESCE(submitted_at, NOW()), updated_at = NOW()
+              WHERE user_id = $1`,
+            [tokenRow.user_id]
+          );
+        }
         return userResult.rows[0];
       });
 
