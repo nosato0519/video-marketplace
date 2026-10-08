@@ -47,8 +47,14 @@ async function loadSellerProfile() {
   if (publicFields[0]) publicFields[0].textContent = profile.display_name || '';
   if (publicFields[1]) publicFields[1].textContent = profile.country_code || '';
 
-  const privateName = document.querySelector('.seller-private-form .seller-profile-field strong');
-  if (privateName) privateName.textContent = profile.legal_name || '';
+  const bioElement = document.querySelector('.seller-profile-field-large p');
+  if (bioElement) bioElement.textContent = profile.bio || '';
+
+  const privateFields = document.querySelectorAll('.seller-private-form .seller-profile-field strong');
+  if (privateFields[0]) privateFields[0].textContent = profile.legal_name || '';
+  if (privateFields[1]) privateFields[1].textContent = profile.address || '';
+  if (privateFields[2]) privateFields[2].textContent = profile.postal_code || '';
+  if (privateFields[3]) privateFields[3].textContent = profile.phone || '';
 
   const verificationStatus = document.querySelector('#verification-status');
   const verificationAction = document.querySelector('#verification-submit');
@@ -194,22 +200,34 @@ if (document.querySelector('#withdrawal-submit')) {
 
 async function loadSellerProfileEdit() {
   const nameInput = document.querySelector('#creator-name');
+  const bioInput = document.querySelector('#creator-bio');
   const countryInput = document.querySelector('#creator-country');
   const legalNameInput = document.querySelector('#real-name');
-  if (!nameInput || !countryInput || !legalNameInput) return;
+  const addressInput = document.querySelector('#address');
+  const postalCodeInput = document.querySelector('#postal-code');
+  const phoneInput = document.querySelector('#phone');
+  if (!nameInput || !bioInput || !countryInput || !legalNameInput || !addressInput || !postalCodeInput || !phoneInput) return;
 
   const { profile } = await request('/api/seller/profile');
   nameInput.value = profile?.display_name || '';
+  bioInput.value = profile?.bio || '';
   legalNameInput.value = profile?.legal_name || '';
   countryInput.value = profile?.country_code || '';
+  addressInput.value = profile?.address || '';
+  postalCodeInput.value = profile?.postal_code || '';
+  phoneInput.value = profile?.phone || '';
 }
 
 async function saveSellerProfileEdit() {
   const saveButton = document.querySelector('#profile-save');
   const nameInput = document.querySelector('#creator-name');
+  const bioInput = document.querySelector('#creator-bio');
   const countryInput = document.querySelector('#creator-country');
   const legalNameInput = document.querySelector('#real-name');
-  if (!saveButton || !nameInput || !countryInput || !legalNameInput) return;
+  const addressInput = document.querySelector('#address');
+  const postalCodeInput = document.querySelector('#postal-code');
+  const phoneInput = document.querySelector('#phone');
+  if (!saveButton || !nameInput || !bioInput || !countryInput || !legalNameInput || !addressInput || !postalCodeInput || !phoneInput) return;
 
   saveButton.disabled = true;
   try {
@@ -219,6 +237,10 @@ async function saveSellerProfileEdit() {
         displayName: nameInput.value,
         legalName: legalNameInput.value,
         countryCode: countryInput.value,
+        bio: bioInput.value,
+        address: addressInput.value,
+        postalCode: postalCodeInput.value,
+        phone: phoneInput.value,
       }),
     });
     window.location.href = '/seller/profile.html';
