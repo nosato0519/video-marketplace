@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getPool } from '../src/db.js';
+import { closePool, getPool } from '../src/db.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(here, '../migrations');
-const pool = getPool();
 const MIGRATION_LOCK_ID = 7139421;
 const LEGACY_MIGRATIONS = new Set(['001_purchase_flow.sql']);
 const ALLOW_LEGACY = process.env.ALLOW_LEGACY_PURCHASE_MIGRATION === 'true';
@@ -35,7 +34,8 @@ async function assertPurchaseSchemaBoundary(client, applied) {
   );
 }
 
-async function main() {
+export async function runMigrations() {
+  const pool = getPool();
   const lockClient = await pool.connect();
   try {
     await lockClient.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
@@ -100,6 +100,10 @@ async function main() {
   }
 }
 
-main()
-  .catch(error => { console.error(error); process.exitCode = 1; })
-  .finally(async () => { await pool.end(); });
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  runMigrations()
+    .catch(error => { console.error(error); process.exitCode = 1; })
+    .finally(async () => { await closePool(); });
+}
