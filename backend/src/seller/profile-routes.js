@@ -130,9 +130,7 @@ router.post('/profile/verification-document', async (req, res, next) => {
     if (previous.rows[0]?.storage_key && previous.rows[0].storage_key !== storageKey) await verificationStorage.deleteObject({ storageKey: previous.rows[0].storage_key }).catch(() => {});
     return res.status(201).json({ document: result.rows[0] });
   } catch (error) {
-    if (error?.message?.startsWith('invalid_verification_document') || error?.message?.startsWith('content_length_mismatch') || error?.statusCode === 413) {
-      if (uploadedStorageKey) await verificationStorage.deleteObject({ storageKey: uploadedStorageKey }).catch(() => {});
-    }
+    if (uploadedStorageKey) await verificationStorage.deleteObject({ storageKey: uploadedStorageKey }).catch(() => {});
     return next(error);
   }
 });
