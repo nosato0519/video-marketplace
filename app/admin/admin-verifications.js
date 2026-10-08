@@ -40,9 +40,19 @@ export function bindSellerVerificationReviewPage() {
   };
 
   const load = async () => {
-    const queryStatus = 'submitted';
+    const selectedStatus = status.value || 'submitted';
     try {
-      const { sellers = [] } = await api('/admin/seller-verifications?status=' + queryStatus);
+      let sellers = [];
+      if (selectedStatus === 'all') {
+        const statuses = ['submitted', 'under_review', 'verified', 'rejected', 'request_changes', 'not_started'];
+        const results = await Promise.all(
+          statuses.map((value) => api('/admin/seller-verifications?status=' + value))
+        );
+        sellers = results.flatMap((result) => result.sellers || []);
+      } else {
+        const result = await api('/admin/seller-verifications?status=' + encodeURIComponent(selectedStatus));
+        sellers = result.sellers || [];
+      }
       const query = search.value.trim().toLowerCase();
       render(sellers.filter((item) => !query || [item.display_name, item.email].some((value) => String(value ?? '').toLowerCase().includes(query))));
     } catch (error) {
@@ -78,6 +88,7 @@ export function bindSellerVerificationReviewPage() {
   });
 
   search.addEventListener('input', load);
+  status.addEventListener('change', load);
   load();
 }
 
