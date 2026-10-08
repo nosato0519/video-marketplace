@@ -45,14 +45,6 @@
 
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">VERIFICATION</span><h2>本人確認・審査</h2></div></div>
-      <div class="seller-profile-status"><span>STATUS</span><strong>確認済み</strong><small>販売者登録情報は管理者側で確認・管理されます。</small></div>
-    </section>
-  </main>
-
-  <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
-<script type="module" src="/app/seller/seller-account.js"></script>\n<script src="/shared/site-branding.js"></script></body>
-</html    <section class="buyer-section">
-      <div class="buyer-section-head"><div><span class="section-kicker">VERIFICATION</span><h2>本人確認・審査</h2></div></div>
       <div class="seller-profile-status">
         <span>STATUS</span>
         <strong id="verification-status">未申請</strong>
@@ -62,68 +54,9 @@
         <button id="verification-submit" class="sell" type="button">本人確認を申請する</button>
       </div>
     </section>
-
-    <section class="buyer-section">
-      <div class="buyer-section-head"><div><span class="section-kicker">PRIVATE INFORMATION</span><h2>登録情報</h2></div></div>
-      <div class="seller-profile-form seller-private-form">
-        <div class="seller-profile-field"><label>本名</label><strong>Michael Bennett</strong></div>
-        <div class="seller-profile-field"><label>住所</label><strong>Los Angeles, California, United States</strong></div>
-        <div class="seller-profile-field"><label>郵便番号</label><strong>90012</strong></div>
-        <div class="seller-profile-field"><label>電話番号</label><strong>+1 213-555-0187</strong></div>
-        <small>これらの情報は購入者には表示されません。</small>
-      </div>
-    </section>
-
-    <section class="buyer-section">
-      <div class="buyer-section-head"><div><span class="section-kicker">VERIFICATION</span><h2>本人確認・審査</h2></div></div>
-      <div class="seller-profile-status"><span>STATUS</span><strong>確認済み</strong><small>販売者登録情報は管理者側で確認・管理されます。</small></div>
-    </section>
   </main>
 
   <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
-<script>
-  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[char]));
-
-  const verificationLabels = {
-    not_started: '未申請',
-    submitted: '申請中',
-    under_review: '審査中',
-    verified: '確認済み'
-  };
-
-  async function loadSellerProfile() {
-    const response = await fetch('/api/seller/profile', { credentials: 'include' });
-
-    if (response.status === 401 || response.status === 403) {
-      window.location.href = '/pages/seller-login.html';
-      return;
-    }
-
-    if (!response.ok) throw new Error('profile_request_failed');
-
-    const { profile } = await response.json();
-    if (!profile) return;
-
-    const country = escapeHtml(profile.country_code || '');
-    const verification = verificationLabels[profile.verification_status] || '未申請';
-
-    const publicFields = document.querySelectorAll('.seller-profile-form .seller-profile-field strong');
-    if (publicFields[0]) publicFields[0].textContent = profile.display_name || '';
-    if (publicFields[1]) publicFields[1].textContent = country;
-
-    const privateName = document.querySelector('.seller-private-form .seller-profile-field strong');
-    if (privateName) privateName.textContent = profile.legal_name || '';
-
-
-    const verificationStatus = document.querySelector('.seller-profile-status strong');
-    if (verificationStatus) verificationStatus.textContent = verification;
-  }
-
-  loadSellerProfile().catch(() => {
-    window.location.href = '/pages/seller-login.html';
-  });
-</script>
+<script type="module" src="/app/seller/seller-account.js"></script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
