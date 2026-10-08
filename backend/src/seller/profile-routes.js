@@ -5,6 +5,7 @@ import { requireRole } from '../auth/authorize.js';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
+import { sendSellerVerificationEmail } from '../email/smtp-mailer.js';
 
 const router = express.Router();
 
@@ -39,9 +40,14 @@ router.get('/profile', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
     const result = await query(
-      `SELECT user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
-              verification_status, verification_note, submitted_at, verified_at, created_at, updated_at
-         FROM seller_profiles WHERE user_id = $1`,
+      `SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone,
+              sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, sp.created_at, sp.updated_at,
+              u.email, u.email_verified_at,
+              COALESCE(ps.setting_value->>'value', 'document') AS verification_method
+         FROM seller_profiles sp
+         JOIN users u ON u.id = sp.user_id
+         LEFT JOIN platform_settings ps ON ps.setting_key = 'seller_verification_method'
+        WHERE sp.user_id = $1`,
       [req.user.id]
     );
     if (!result.rows[0]) {
@@ -50,7 +56,8 @@ router.get('/profile', async (req, res, next) => {
         displayName: '', legalName: '', countryCode: null,
         bio: null, address: null, postalCode: null, phone: null,
         verificationStatus: 'not_started', verificationNote: null,
-        submittedAt: null, verifiedAt: null
+        submittedAt: null, verifiedAt: null,
+        email: req.user.email, emailVerifiedAt: null, verificationMethod: 'document'
       }});
     }
     return res.json({ profile: result.rows[0] });
@@ -95,6 +102,58 @@ router.get('/profile/verification-document', async (req, res, next) => {
     const result = await query(`SELECT d.id, d.original_filename, d.mime_type, d.byte_size, d.status, d.created_at, d.updated_at, sp.verification_status AS seller_verification_status FROM seller_verification_documents d JOIN seller_profiles sp ON sp.user_id = d.user_id WHERE d.user_id = $1`, [req.user.id]);
     return res.json({ document: result.rows[0] || null });
   } catch (error) { return next(error); }
+});
+
+router.post('/profile/verification-email/send', async (req, res, next) => {
+  try {
+    const method = await getSellerVerificationMethod();
+    if (!['email', 'email_and_document'].includes(method)) {
+      return res.status(409).json({ error: 'seller_email_verification_not_required' });
+    }
+
+    const userResult = await query(
+      `SELECT email, email_verified_at FROM users WHERE id = $1 LIMIT 1`,
+      [req.user.id]
+    );
+    const user = userResult.rows[0];
+    if (!user?.email) return res.status(400).json({ error: 'seller_email_required' });
+    if (user.email_verified_at) return res.json({ verified: true });
+
+    const recent = await query(
+      `SELECT created_at
+         FROM email_verification_tokens
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1`,
+      [req.user.id]
+    );
+    if (recent.rows[0] && Date.now() - new Date(recent.rows[0].created_at).getTime() < 60_000) {
+      return res.status(429).json({ error: 'verification_email_rate_limited' });
+    }
+
+    const token = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    await query(`DELETE FROM email_verification_tokens WHERE user_id = $1 AND consumed_at IS NULL`, [req.user.id]);
+    await query(
+      `INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '30 minutes')`,
+      [crypto.randomUUID(), req.user.id, tokenHash]
+    );
+
+    const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
+    if (!baseUrl) return res.status(503).json({ error: 'app_base_url_configuration_missing' });
+    const verificationUrl = `${baseUrl}/seller/verification.html?email_verification_token=${encodeURIComponent(token)}`;
+    try {
+      await sendSellerVerificationEmail({ email: user.email, verificationUrl });
+    } catch (error) {
+      await query(`DELETE FROM email_verification_tokens WHERE token_hash = $1`, [tokenHash]).catch(() => {});
+      throw error;
+    }
+
+    return res.json({ verified: false, sent: true });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 router.post('/profile/verification-document', async (req, res, next) => {
