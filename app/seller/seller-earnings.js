@@ -41,3 +41,57 @@ export async function renderSellerEarnings(root) {
     root.querySelector('#earnings-list').innerHTML = '<tr><td colspan="6">Earnings could not be loaded.</td></tr>';
   }
 }
+
+export function initSellerEarningsPage(view) {
+  const list = document.querySelector('#monthly-sales-list, #sold-videos-list, #sales-history-list');
+  const pagination = document.querySelector('#monthly-sales-pagination, #sold-videos-pagination, #sales-history-pagination');
+  if (!list || !pagination) return;
+  const pageSize = 10;
+
+  function formatYen(amount) { return `¥${Number(amount || 0).toLocaleString('ja-JP')}`; }
+  function formatDate(value) { return new Date(value).toLocaleDateString('ja-JP').replaceAll('/', '.'); }
+  function renderPagination(meta) {
+    const totalPages = Math.max(1, Number(meta?.total_pages || 1));
+    const current = Math.min(Math.max(1, Number(meta?.page || 1)), totalPages);
+    const links = [];
+    for (let page = 1; page <= totalPages; page += 1) links.push(`<a href="?page=${page}" data-page="${page}" class="${page === current ? 'is-current' : ''}" aria-current="${page === current ? 'page' : 'false'}">${page}</a>`);
+    if (totalPages > 1 && current < totalPages) links.push(`<a href="?page=${current + 1}" data-page="${current + 1}">次へ →</a>`);
+    pagination.innerHTML = links.join('');
+  }
+
+  function renderRows(rows) {
+    if (view === 'monthly') return rows.map((item) => {
+      const month = new Date(item.month_start);
+      const label = month.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' });
+      return `<div class="seller-video-row"><div class="seller-video-info"><strong>${label}</strong><small>売上 ${formatYen(item.gross_amount)}　手数料 ${formatYen(item.platform_fee)}　利益 ${formatYen(item.net_amount)}　販売 ${Number(item.sale_count || 0).toLocaleString('ja-JP')}件</small></div><span class="seller-video-status is-published">確定</span><span class="seller-video-edit">${formatYen(item.net_amount)}</span></div>`;
+    }).join('');
+    return rows.map((sale) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${formatDate(sale.created_at)}　${sale.title || '動画'}</strong><small>${view === 'sold-videos' ? '金額' : '売上'} ${formatYen(sale.gross_amount)}　手数料 ${formatYen(sale.platform_fee)}　利益 ${formatYen(sale.net_amount)}</small></div><span class="seller-video-status is-published">${sale.status === 'refunded' ? '返金' : view === 'sold-videos' ? '販売済み' : '完了'}</span><span class="seller-video-edit">${formatYen(sale.net_amount)}</span></div>`).join('');
+  }
+
+  async function load(page = 1) {
+    const response = await fetch(`/api/seller/earnings?view=${encodeURIComponent(view)}&page=${page}&per_page=${pageSize}`, { credentials: 'same-origin' });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) { const error = new Error(body?.error || '売上履歴を取得できませんでした。'); error.status = response.status; throw error; }
+    const rows = Array.isArray(body?.earnings) ? body.earnings : [];
+    if (view === 'current-month') {
+      const now = new Date();
+      const monthLabel = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' });
+      document.querySelector('#monthly-period').textContent = monthLabel.toUpperCase();
+      document.querySelector('#monthly-period-title').textContent = `${monthLabel}の販売履歴`;
+    }
+    list.innerHTML = rows.length ? renderRows(rows) : `<small>${view === 'monthly' ? '売上履歴はありません。' : view === 'sold-videos' ? '販売済み動画はありません。' : '今月の売上履歴はありません。'}</small>`;
+    renderPagination(body?.pagination);
+  }
+
+  pagination.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-page]');
+    if (!link) return;
+    event.preventDefault();
+    const page = Number(link.dataset.page);
+    history.replaceState(null, '', `?page=${page}`);
+    load(page).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+  });
+
+  const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
+  load(initialPage).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+}
