@@ -6,7 +6,7 @@ import { requireRole } from '../auth/authorize.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
 
-const ALLOWED_METHODS = new Set(['none', 'document', 'email', 'email_and_document']);
+const ALLOWED_METHODS = new Set(['none', 'document']);
 
 router.get('/settings/seller-verification', async (_req, res, next) => {
   try {
