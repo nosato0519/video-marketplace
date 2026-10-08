@@ -31,29 +31,7 @@
     </section>
   </main>
   <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
-<script type="module">
-import { loginForRole } from '/app/auth/auth-api.js';
-document.querySelector('#role-login-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const message = form.querySelector('#login-message');
-  const submit = form.querySelector('button[type="submit"]');
-  submit.disabled = true;
-  message.textContent = 'ログインしています…';
-  try {
-    await loginForRole({
-      email: form.email.value,
-      password: form.password.value,
-      role: 'seller',
-      redirectTo: '/seller/dashboard.html'
-    });
-  } catch (error) {
-    message.textContent = error.code === 'ROLE_NOT_ALLOWED'
-      ? '販売者アカウントではありません。'
-      : (error.body?.error?.message || 'ログインできませんでした。');
-    submit.disabled = false;
-  }
-});
-</script>
+<script type="module" src="/app/auth/auth-view.js"></script>
+
 <script src="/shared/site-branding.js"></script></body>
 </html>
