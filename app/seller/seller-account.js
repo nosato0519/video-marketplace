@@ -77,7 +77,8 @@ async function loadSellerProfile() {
     verificationNote.textContent = profile.verification_note || '販売者登録後、本人確認の申請を行ってください。';
   }
   if (verificationAction) {
-    const canSubmit = ['not_started', 'request_changes', 'rejected'].includes(profile.verification_status);
+    const canSubmit = ['document', 'email_and_document'].includes(verificationMethod)
+      && ['not_started', 'request_changes', 'rejected'].includes(profile.verification_status);
     verificationAction.hidden = !canSubmit;
     verificationAction.disabled = true;
     verificationAction.textContent = profile.verification_status === 'rejected'
