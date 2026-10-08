@@ -56,7 +56,7 @@
     <label>確認状況<select id="verification-status"><option value="all">すべて</option><option value="submitted">確認待ち</option><option value="under_review">審査中</option><option value="request_changes">差し戻し</option><option value="verified">確認済み</option><option value="rejected">却下</option><option value="not_started">未申請</option></select></label>
     <span id="verification-count" class="muted">4件</span>
   </div>
-  <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>登録国</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
+  <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>本人確認情報</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
     <tr data-status="確認待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>日本</td><td>2026.10.02</td><td><span class="tag warn">確認待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
     <tr data-status="審査中"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>日本</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
     <tr data-status="差し戻し"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>日本</td><td>2026.09.28</td><td><span class="tag warn">差し戻し</span></td><td><button class="btn small" data-action="resubmit">再提出済みにする</button></td></tr>
