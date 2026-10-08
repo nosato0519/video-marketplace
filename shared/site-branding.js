@@ -199,5 +199,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     applyBranding(readSettings());
     installSettingsForm();
+    installSessionNavigation();
   });
 })();
