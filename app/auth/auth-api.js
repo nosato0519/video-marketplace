@@ -17,6 +17,11 @@ async function request(path, options = {}) {
 export const authApi = {
   register: (email, password) => request('/api/auth/register', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ email, password }) }),
   login: (email, password) => request('/api/auth/login', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ email, password }) }),
+  adminSetup: (email, password, passwordConfirm, setupToken) => request('/api/auth/admin-setup', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email, password, passwordConfirm, setupToken }),
+  }),
   me: () => request('/api/auth/me'),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   sellerApplication: (displayName, legalName, countryCode, message = null) => request('/api/seller/application', {
