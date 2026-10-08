@@ -6,6 +6,28 @@ import { requireRole } from '../auth/authorize.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
 
+async function requireVerifiedSeller(req, res, next) {
+  try {
+    const result = await query(
+      `SELECT verification_status FROM seller_profiles WHERE user_id = $1`,
+      [req.user.id]
+    );
+    if (result.rows[0]?.verification_status !== 'verified') {
+      return res.status(403).json({
+        error: {
+          code: 'SELLER_VERIFICATION_REQUIRED',
+          message: 'Seller verification approval is required before requesting a payout.',
+        },
+      });
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+}
+
+router.use(requireVerifiedSeller);
+
 router.get('/payouts', async (req, res, next) => {
   try {
     const result = await query(
