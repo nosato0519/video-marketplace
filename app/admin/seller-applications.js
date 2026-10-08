@@ -57,7 +57,7 @@ export function bindSellerApplicationReviewPage() {
 
   const load = async () => {
     const statusValues = {
-      '': '',
+      '': 'pending',
       '審査待ち': 'pending',
       '審査中': 'under_review',
       '承認済み': 'approved',
@@ -65,7 +65,7 @@ export function bindSellerApplicationReviewPage() {
       '取り下げ': 'withdrawn',
     };
     const selected = statusValues[status.value] ?? 'pending';
-    const statuses = selected ? [selected] : ['pending', 'under_review', 'approved', 'rejected', 'withdrawn'];
+    const statuses = selected ? [selected] : ['pending'];
     try {
       const responses = await Promise.all(statuses.map((value) => api('/admin/seller-applications?status=' + encodeURIComponent(value))));
       const applications = responses.flatMap((response) => response.applications || []);
@@ -109,6 +109,57 @@ export function bindSellerApplicationReviewPage() {
   search.addEventListener('input', load);
   status.addEventListener('change', load);
   load();
+}
+
+
+export function bindSellerDirectoryPage() {
+  const table = document.getElementById('seller-table');
+  if (!table) return;
+
+  const search = document.getElementById('seller-search');
+  const status = document.getElementById('seller-status');
+  const count = document.getElementById('seller-count');
+  const statusLabel = { submitted: '本人確認待ち', under_review: '審査中', verified: '確認済み', rejected: '却下', not_started: '本人確認前' };
+
+  const render = (items) => {
+    table.tBodies[0].replaceChildren(...(items.length ? items.map((item) => {
+      const row = document.createElement('tr');
+      const accountLabel = item.account_status === 'active' ? '販売中' : item.account_status === 'suspended' ? '利用停止' : '無効';
+      const verificationLabel = statusLabel[item.verification_status] || item.verification_status;
+      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
+        + '<td>' + (item.created_at ? new Date(item.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
+        + '<td><span class="tag ' + (item.verification_status === 'verified' ? 'ok' : 'warn') + '">' + esc(verificationLabel) + '</span></td>'
+        + '<td><span class="tag ' + (item.account_status === 'active' ? 'ok' : 'warn') + '">' + esc(accountLabel) + '</span></td>'
+        + '<td>—</td>'
+        + '<td><a class="btn small" href="/pages/admin-seller-profile.html?seller=' + encodeURIComponent(item.user_id) + '">詳細を見る →</a></td>';
+      return row;
+    }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="6">登録済みの販売者はありません。</td>' })]));
+    count.textContent = items.length + '件';
+  };
+
+  const load = async () => {
+    try {
+      const { sellers = [] } = await api('/admin/sellers');
+      const query = search.value.trim().toLowerCase();
+      const selectedStatus = status.value;
+      render(sellers.filter((item) => {
+        const text = [item.display_name, item.email].map((value) => String(value ?? '').toLowerCase()).join(' ');
+        const label = statusLabel[item.verification_status] || item.verification_status;
+        return (!query || text.includes(query)) && (!selectedStatus || label === selectedStatus);
+      }));
+    } catch {
+      table.tBodies[0].innerHTML = '<tr><td colspan="6">販売者情報を取得できませんでした。</td></tr>';
+      count.textContent = '0件';
+    }
+  };
+
+  search.addEventListener('input', load);
+  status.addEventListener('change', load);
+  load();
+}
+
+if (document.getElementById('seller-table')) {
+  bindSellerDirectoryPage();
 }
 
 if (document.getElementById('application-table')) {
