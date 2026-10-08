@@ -6,7 +6,7 @@
   <title>今まで売れた動画 | VIDEO MARKETPLACE</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="library-page">
+<body class="library-page" data-seller-earnings-view="sold-videos">
   <header class="nav">
     <a class="logo" href="/" aria-label="VIDEO MARKETPLACE">
       <span class="logo-symbol" aria-hidden="true"><i></i></span>
@@ -55,9 +55,6 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
-<script type="module">
-import { initSellerEarningsPage } from '/app/seller/seller-earnings.js';
-initSellerEarningsPage('sold-videos');
-</script>
+<script type="module" src="/app/seller/seller-earnings.js"></script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
