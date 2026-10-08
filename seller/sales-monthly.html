@@ -47,12 +47,7 @@
 
       <div id="monthly-sales-list" class="seller-video-list"></div>
 
-      <nav id="monthly-sales-pagination" class="seller-pagination" aria-label="履歴ページ">
-        <a class="is-current" href="#">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">次へ →</a>
-      </nav>
+      <nav id="monthly-sales-pagination" class="seller-pagination" aria-label="履歴ページ"></nav>
     </section>
   </main>
 
@@ -61,57 +56,8 @@
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
 <script type="module">
-const list = document.querySelector('#monthly-sales-list');
-const pagination = document.querySelector('#monthly-sales-pagination');
-
-function formatYen(amount) {
-  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
-}
-
-function formatDate(value) {
-  return new Date(value).toLocaleDateString('ja-JP').replaceAll('/', '.');
-}
-
-async function loadMonthlySales() {
-  const response = await fetch('/api/seller/earnings', { credentials: 'same-origin' });
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = new Error(body?.error || '売上履歴を取得できませんでした。');
-    error.status = response.status;
-    throw error;
-  }
-
-  const now = new Date();
-  const monthLabel = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' });
-  document.querySelector('#monthly-period').textContent = monthLabel.toUpperCase();
-  document.querySelector('#monthly-period-title').textContent = `${monthLabel}の販売履歴`;
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const sales = (body?.earnings || []).filter((item) =>
-    String(item.created_at || '').slice(0, 7) === monthKey
-  );
-
-  if (!sales.length) {
-    list.innerHTML = '<small>今月の売上履歴はありません。</small>';
-    pagination.innerHTML = '';
-    return;
-  }
-
-  list.innerHTML = sales.map((sale) => `
-    <div class="seller-video-row">
-      <div class="seller-video-info">
-        <strong>${formatDate(sale.created_at)}　${sale.title || '動画'}</strong>
-        <small>売上 ${formatYen(sale.gross_amount)}　手数料 ${formatYen(sale.platform_fee)}　利益 ${formatYen(sale.net_amount)}</small>
-      </div>
-      <span class="seller-video-status is-published">${sale.status === 'refunded' ? '返金' : '完了'}</span>
-      <span class="seller-video-edit">${formatYen(sale.net_amount)}</span>
-    </div>
-  `).join('');
-  pagination.innerHTML = '';
-}
-
-loadMonthlySales().catch((error) => {
-  if (error.status === 401) window.location.href = '/pages/seller-login.html';
-});
+import { initSellerEarningsPage } from '/app/seller/seller-earnings.js';
+initSellerEarningsPage('current-month');
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
