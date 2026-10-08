@@ -191,3 +191,55 @@ if (document.querySelector('#withdrawal-submit')) {
   document.querySelector('#withdrawal-submit').addEventListener('click', submitPayout);
   loadPayouts();
 }
+
+async function loadSellerProfileEdit() {
+  const nameInput = document.querySelector('#creator-name');
+  const countryInput = document.querySelector('#creator-country');
+  const legalNameInput = document.querySelector('#real-name');
+  if (!nameInput || !countryInput || !legalNameInput) return;
+
+  const { profile } = await request('/api/seller/profile');
+  nameInput.value = profile?.display_name || '';
+  legalNameInput.value = profile?.legal_name || '';
+  countryInput.value = profile?.country_code || '';
+}
+
+async function saveSellerProfileEdit() {
+  const saveButton = document.querySelector('#profile-save');
+  const nameInput = document.querySelector('#creator-name');
+  const countryInput = document.querySelector('#creator-country');
+  const legalNameInput = document.querySelector('#real-name');
+  if (!saveButton || !nameInput || !countryInput || !legalNameInput) return;
+
+  saveButton.disabled = true;
+  try {
+    await request('/api/seller/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        displayName: nameInput.value,
+        legalName: legalNameInput.value,
+        countryCode: countryInput.value,
+      }),
+    });
+    window.location.href = '/seller/profile.html';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert(error.body?.error?.message || error.body?.error || 'プロフィールを保存できませんでした。');
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+if (document.querySelector('#profile-save')) {
+  document.querySelector('#profile-save').addEventListener('click', saveSellerProfileEdit);
+  loadSellerProfileEdit().catch((error) => {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    alert(error.body?.error?.message || error.body?.error || 'プロフィール情報を取得できませんでした。');
+  });
+}
