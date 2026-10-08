@@ -18,3 +18,90 @@ export async function renderSellerApplications(root) {
     bindActions();
   } catch (error) { root.innerHTML = error.status === 401 || error.status === 403 ? '<section class="empty-state"><h2>Admin access required</h2><p>Your account does not have permission to review seller applications.</p></section>' : '<section class="empty-state"><h2>Seller applications unavailable</h2><p>Please try again shortly.</p></section>'; }
 }
+
+
+export function bindSellerApplicationReviewPage() {
+  const table = document.getElementById('application-table');
+  if (!table) return;
+
+  const search = document.getElementById('application-search');
+  const status = document.getElementById('application-status');
+  const count = document.getElementById('application-count');
+  const note = document.getElementById('application-note');
+
+  const statusLabel = {
+    pending: '審査待ち',
+    under_review: '審査中',
+    approved: '承認済み',
+    rejected: '却下',
+    withdrawn: '取り下げ',
+  };
+
+  const render = (items) => {
+    table.tBodies[0].replaceChildren(...(items.length ? items.map((item) => {
+      const row = document.createElement('tr');
+      row.dataset.status = statusLabel[item.status] || item.status;
+      row.dataset.id = item.id;
+      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
+        + '<td>法的氏名：' + esc(item.legal_name) + '<br>国：' + esc(item.country_code) + '<br>申請メッセージ：' + esc(item.message || '') + '</td>'
+        + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
+        + '<td><span class="tag ' + (item.status === 'approved' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.status] || item.status) + '</span></td>'
+        + '<td>'
+        + (item.status === 'pending' ? '<button class="btn small" data-action="start">審査開始</button> ' : '')
+        + (item.status === 'pending' || item.status === 'under_review' ? '<button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button>' : '<span class="muted">処理済み</span>')
+        + '</td>';
+      return row;
+    }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">該当する販売者申請はありません。</td>' })]));
+    count.textContent = items.length + '件';
+  };
+
+  const load = async () => {
+    const selected = status.value;
+    const queryStatus = selected || 'pending';
+    try {
+      const { applications = [] } = await api('/admin/seller-applications?status=' + encodeURIComponent(queryStatus));
+      const query = search.value.trim().toLowerCase();
+      render(applications.filter((item) => {
+        if (!query) return true;
+        return [item.display_name, item.legal_name, item.email].some((value) => String(value ?? '').toLowerCase().includes(query));
+      }));
+    } catch (error) {
+      table.tBodies[0].innerHTML = '<tr><td colspan="5">販売者申請を取得できませんでした。</td></tr>';
+      count.textContent = '0件';
+    }
+  };
+
+  table.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const row = button.closest('tr');
+    const id = row?.dataset.id;
+    const action = { start: 'start_review', approve: 'approve', reject: 'reject' }[button.dataset.action];
+    if (!id || !action) return;
+    const reviewNote = note.value.trim();
+    if (action === 'reject' && !reviewNote) {
+      alert('却下理由を審査メモに入力してください。');
+      note.focus();
+      return;
+    }
+    button.disabled = true;
+    try {
+      await api('/admin/seller-applications/' + encodeURIComponent(id) + '/review', {
+        method: 'POST',
+        body: JSON.stringify({ action, note: reviewNote || null }),
+      });
+      await load();
+    } catch (error) {
+      alert('審査処理に失敗しました。');
+      button.disabled = false;
+    }
+  });
+
+  search.addEventListener('input', load);
+  status.addEventListener('change', load);
+  load();
+}
+
+if (document.getElementById('application-table')) {
+  bindSellerApplicationReviewPage();
+}
