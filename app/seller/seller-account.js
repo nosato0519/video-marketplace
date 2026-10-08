@@ -327,12 +327,13 @@ if (document.querySelector('#verification-submit')) {
 
 if (document.querySelector('#verification-status')) {
   confirmEmailFromLink();
-  loadSellerProfile().catch((error) => {
-    if (error.status === 401 || error.status === 403) {
-      window.location.href = '/pages/seller-login.html';
-    }
-  });
-  loadVerificationDocument();
+  loadSellerProfile()
+    .then(() => loadVerificationDocument())
+    .catch((error) => {
+      if (error.status === 401 || error.status === 403) {
+        window.location.href = '/pages/seller-login.html';
+      }
+    });
 }
 
 if (document.querySelector('#verification-email-send')) {
