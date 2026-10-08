@@ -29,11 +29,19 @@ export function bindSellerVerificationReviewPage() {
       const row = document.createElement('tr');
       row.dataset.status = statusLabel[item.verification_status] || item.verification_status;
       row.dataset.userId = item.user_id;
+      const actions = {
+        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button>',
+        under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button>',
+        request_changes: '<span class="muted">再申請待ち</span>',
+        rejected: '<span class="muted">再申請待ち</span>',
+        verified: '<span class="muted">処理済み</span>',
+        not_started: '<span class="muted">未申請</span>',
+      }[item.verification_status] || '<span class="muted">処理不可</span>';
       row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
         + '<td>' + esc(item.country_code) + '</td>'
         + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
         + '<td><span class="tag ' + (item.verification_status === 'verified' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.verification_status] || item.verification_status) + '</span></td>'
-        + '<td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td>';
+        + '<td>' + actions + '</td>';
       return row;
     }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">該当する本人確認はありません。</td>' })]));
     count.textContent = items.length + '件';
