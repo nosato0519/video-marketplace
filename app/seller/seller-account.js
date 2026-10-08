@@ -208,7 +208,7 @@ async function loadSellerProfileEdit() {
   const phoneInput = document.querySelector('#phone');
   if (!nameInput || !bioInput || !countryInput || !legalNameInput || !addressInput || !postalCodeInput || !phoneInput) return;
 
-  const { profile } = await request('/api/seller/profile');
+  const { profile } = await request('/api/seller/profile', { cache: 'no-store' });
   nameInput.value = profile?.display_name || '';
   bioInput.value = profile?.bio || '';
   legalNameInput.value = profile?.legal_name || '';
