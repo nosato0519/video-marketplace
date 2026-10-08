@@ -2,8 +2,10 @@ import express from 'express';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
+import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
 
 const router = express.Router();
+const verificationStorage = createConfiguredMediaStorage();
 router.use(requireAuth, requireRole('admin'));
 
 const transitions = {
@@ -26,6 +28,21 @@ router.get('/seller-verifications', async (req, res, next) => {
     const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email FROM seller_profiles sp JOIN users u ON u.id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
     return res.json({ sellers: result.rows });
   } catch (e) { return next(e); }
+});
+
+router.get('/seller-verifications/:userId/document', async (req, res, next) => {
+  try {
+    const result = await query(`SELECT storage_key, original_filename, mime_type, byte_size FROM seller_verification_documents WHERE user_id = $1`, [req.params.userId]);
+    const document = result.rows[0];
+    if (!document) return res.status(404).json({ error: 'verification_document_not_found' });
+    const object = await verificationStorage.getStream({ storageKey: document.storage_key });
+    if (!object?.stream) return res.status(404).json({ error: 'verification_document_not_found' });
+    res.set('Cache-Control', 'private, no-store');
+    res.set('Content-Type', document.mime_type);
+    res.set('Content-Disposition', `inline; filename="${String(document.original_filename).replace(/["\\\r\n]/g, '_')}"`);
+    res.set('Content-Length', String(document.byte_size));
+    return object.stream.pipe(res);
+  } catch (error) { return next(error); }
 });
 
 router.post('/seller-verifications/:userId/review', async (req, res, next) => {
