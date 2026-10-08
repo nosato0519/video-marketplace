@@ -59,6 +59,7 @@ export function initSellerPaymentHistoryPage() {
   const pageSize = 10;
   const statusLabels = { requested: '申請中', reviewing: '確認中', approved: '承認済み', processing: '処理中', paid: '入金済み', failed: '失敗', cancelled: 'キャンセル' };
 
+  function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
   function formatYen(amount, currency = 'JPY') {
     return new Intl.NumberFormat('ja-JP', { style: 'currency', currency, maximumFractionDigits: 0 }).format(Number(amount || 0));
   }
@@ -80,7 +81,7 @@ export function initSellerPaymentHistoryPage() {
       const status = statusLabels[payout.status] || payout.status || '—';
       const date = payout.paid_at || payout.requested_at;
       const dateLabel = payout.paid_at ? `${formatDate(date)}　入金済み` : `${formatDate(date)}　入金予定・申請中`;
-      return `<div class="seller-video-row"><div class="seller-video-info"><strong>${dateLabel}</strong><small>入金金額 ${formatYen(payout.amount, payout.currency)}${payout.failure_reason ? `　理由：${payout.failure_reason}` : ''}</small></div><span class="seller-video-status ${payout.status === 'paid' ? 'is-published' : 'is-pending'}">${status}</span><span class="seller-video-edit">${formatYen(payout.amount, payout.currency)}</span></div>`;
+      return `<div class="seller-video-row"><div class="seller-video-info"><strong>${dateLabel}</strong><small>入金金額 ${formatYen(payout.amount, payout.currency)}${payout.failure_reason ? `　理由：${escapeHtml(payout.failure_reason)}` : ''}</small></div><span class="seller-video-status ${payout.status === 'paid' ? 'is-published' : 'is-pending'}">${escapeHtml(status)}</span><span class="seller-video-edit">${formatYen(payout.amount, payout.currency)}</span></div>`;
     }).join('') : '<small>入金履歴はありません。</small>';
     renderPagination(body?.pagination);
   }
