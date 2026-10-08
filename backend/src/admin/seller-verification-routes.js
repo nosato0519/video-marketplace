@@ -25,7 +25,8 @@ router.get('/seller-verifications', async (req, res, next) => {
     const status = String(req.query.status || 'submitted').trim();
     const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
     if (!allowed.has(status)) return res.status(400).json({ error: 'invalid_status' });
-    const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email FROM seller_profiles sp JOIN users u ON u.id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
+    const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email,
+              svd.id AS verification_document_id, svd.original_filename AS verification_document_filename, svd.mime_type AS verification_document_mime_type, svd.status AS verification_document_status FROM seller_profiles sp JOIN users u ON u.id=sp.user_id LEFT JOIN seller_verification_documents svd ON svd.user_id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
     return res.json({ sellers: result.rows });
   } catch (e) { return next(e); }
 });
@@ -57,6 +58,8 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     const note = req.body?.note == null ? null : String(req.body.note).trim().slice(0, 1000);
     if ((action === 'reject' || action === 'request_changes') && !note) return res.status(400).json({ error: 'review_note_required' });
     const result = await query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
+    const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
+    await query(`UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`, [req.params.userId, documentStatus]);
     await audit(req.user.id, `seller.verification.${action}`, req.params.userId, { from_status: from, to_status: target, note });
     return res.json({ profile: result.rows[0] });
   } catch (e) { return next(e); }
