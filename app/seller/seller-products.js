@@ -171,3 +171,50 @@ export async function renderSellerProducts(root) {
 
   await load();
 }
+export function initSellerProductsPage() {
+  const list = document.querySelector('#seller-product-list');
+  const pagination = document.querySelector('.seller-pagination');
+  if (!list || !pagination) return;
+
+  const escape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const labels = { published: '公開中', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', draft: '下書き', rejected: '却下' };
+  const classes = { published: 'is-published', submitted: 'is-pending', under_review: 'is-pending', processing: 'is-pending', approved: 'is-published', draft: 'is-draft', rejected: 'is-rejected' };
+  const pageSize = 10;
+
+  function renderPagination(meta) {
+    const totalPages = Math.max(1, Number(meta?.total_pages || 1));
+    const current = Math.min(Math.max(1, Number(meta?.page || 1)), totalPages);
+    const links = [];
+    for (let page = 1; page <= totalPages; page += 1) {
+      links.push(`<a href="?page=${page}" data-page="${page}" class="${page === current ? 'is-current' : ''}" aria-current="${page === current ? 'page' : 'false'}">${page}</a>`);
+    }
+    if (totalPages > 1 && current < totalPages) links.push(`<a href="?page=${current + 1}" data-page="${current + 1}">次へ →</a>`);
+    pagination.innerHTML = links.join('');
+  }
+
+  async function load(page = 1) {
+    const response = await fetch(`/api/seller/products?page=${page}&per_page=${pageSize}`, { credentials: 'same-origin' });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) { const error = new Error(body?.error || '動画情報を取得できませんでした。'); error.status = response.status; throw error; }
+    const products = Array.isArray(body?.products) ? body.products : [];
+    const counts = body?.counts || {};
+    document.querySelector('#product-count').textContent = Number(counts.total || 0).toLocaleString('ja-JP');
+    document.querySelector('#published-count').textContent = Number(counts.published || 0).toLocaleString('ja-JP');
+    document.querySelector('#review-count').textContent = Number(counts.review || 0).toLocaleString('ja-JP');
+    document.querySelector('#draft-count').textContent = Number(counts.draft || 0).toLocaleString('ja-JP');
+    list.innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(product.title || '無題の動画')}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${escape(labels[product.status] || product.status || '')}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${escape(labels[product.status] || product.status || '')}</span><a href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}" class="seller-video-edit">編集</a></div>`).join('') : '<small>登録されている動画はありません。</small>';
+    renderPagination(body?.pagination);
+  }
+
+  pagination.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-page]');
+    if (!link) return;
+    event.preventDefault();
+    const page = Number(link.dataset.page);
+    history.replaceState(null, '', `?page=${page}`);
+    load(page).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+  });
+
+  const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
+  load(initialPage).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+}
