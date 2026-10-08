@@ -54,6 +54,12 @@ export function createRateLimiter({ windowMs, max, scope, keyGenerator = (req) =
   };
 }
 
+export const adminSetupRateLimit = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  scope: 'admin-setup',
+});
+
 export const authRegisterRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,
