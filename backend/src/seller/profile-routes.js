@@ -98,7 +98,6 @@ router.post('/profile/verification-document', async (req, res, next) => {
   if (!VERIFICATION_DOCUMENT_MIME.has(mime)) return res.status(415).json({ error: 'unsupported_verification_document_type' });
   if (declaredLength !== null && (!Number.isSafeInteger(declaredLength) || declaredLength <= 0)) return res.status(400).json({ error: 'invalid_content_length' });
   if (declaredLength !== null && declaredLength > MAX_VERIFICATION_DOCUMENT_BYTES) return res.status(413).json({ error: 'verification_document_too_large' });
-  if (!req.readable) return res.status(400).json({ error: 'verification_document_required' });
 
   try {
     const profile = await query(`SELECT verification_status FROM seller_profiles WHERE user_id = $1`, [req.user.id]);
