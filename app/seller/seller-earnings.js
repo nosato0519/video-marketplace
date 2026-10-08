@@ -96,3 +96,6 @@ export function initSellerEarningsPage(view) {
   const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
   load(initialPage).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
 }
+
+const sellerEarningsView = document.body?.dataset.sellerEarningsView;
+if (sellerEarningsView) initSellerEarningsPage(sellerEarningsView);
