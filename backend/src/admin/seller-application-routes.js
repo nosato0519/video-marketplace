@@ -93,8 +93,8 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
              display_name = EXCLUDED.display_name,
              legal_name = EXCLUDED.legal_name,
              country_code = EXCLUDED.country_code,
-             verification_status = 'submitted',
-             submitted_at = NOW(),
+             verification_status = 'not_started',
+             submitted_at = NULL,
              verified_at = NULL,
              updated_at = NOW()`,
           [application.user_id, updated.rows[0].display_name, updated.rows[0].legal_name, updated.rows[0].country_code]
