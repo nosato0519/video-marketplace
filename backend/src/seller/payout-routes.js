@@ -35,15 +35,12 @@ async function requireVerifiedSeller(req, res, next) {
         return next();
       }
     }
-    if (true) {
-      return res.status(403).json({
-        error: {
-          code: 'SELLER_VERIFICATION_REQUIRED',
-          message: 'Seller verification approval is required before requesting a payout.',
-        },
-      });
-    }
-    return next();
+    return res.status(403).json({
+      error: {
+        code: 'SELLER_VERIFICATION_REQUIRED',
+        message: 'Seller verification approval is required before requesting a payout.',
+      },
+    });
   } catch (error) {
     return next(error);
   }
