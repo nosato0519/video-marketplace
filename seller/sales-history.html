@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <div class="seller-video-list">
+      <div id="sales-history-list" class="seller-video-list"></div>
         <div class="seller-video-row">
           <div class="seller-video-info"><strong>2026年9月</strong><small>売上 ¥86,400　手数料 ¥8,640　利益 ¥77,760</small></div>
           <span class="seller-video-status is-published">確定</span>
@@ -98,12 +98,7 @@
         </div>
       </div>
 
-      <nav class="seller-pagination" aria-label="履歴ページ">
-        <a class="is-current" href="#">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">次へ →</a>
-      </nav>
+      <nav id="sales-history-pagination" class="seller-pagination" aria-label="履歴ページ"></nav>
     </section>
   </main>
 
@@ -111,5 +106,9 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+import { initSellerEarningsPage } from '/app/seller/seller-earnings.js';
+initSellerEarningsPage('monthly');
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
