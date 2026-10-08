@@ -110,14 +110,11 @@ router.post('/profile/verification-document', async (req, res, next) => {
     const extension = mime === 'application/pdf' ? '.pdf' : mime === 'image/png' ? '.png' : '.jpg';
     const storageKey = `verification-documents/${req.user.id}/${id}${extension}`;
     uploadedStorageKey = storageKey;
-    let bytes = 0;
-    const body = Readable.from((async function* () {
-      for await (const chunk of req) {
-        bytes += chunk.length;
-        if (bytes > MAX_VERIFICATION_DOCUMENT_BYTES) throw Object.assign(new Error('verification_document_too_large'), { statusCode: 413 });
-        yield chunk;
-      }
-    })());
+    const rawBody = Buffer.isBuffer(req.body) ? req.body : null;
+    if (!rawBody?.length) return res.status(400).json({ error: 'verification_document_required' });
+    const bytes = rawBody.length;
+    if (bytes > MAX_VERIFICATION_DOCUMENT_BYTES) return res.status(413).json({ error: 'verification_document_too_large' });
+    const body = Readable.from([rawBody]);
     await verificationStorage.putStream({ storageKey, stream: body });
     if (declaredLength !== null && bytes !== declaredLength) throw Object.assign(new Error('content_length_mismatch'), { statusCode: 400 });
     const inspected = await verificationStorage.getStream({ storageKey, range: { start: 0, end: requiredSignatureBytes(mime) - 1 } });
