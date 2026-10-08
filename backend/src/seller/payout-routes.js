@@ -8,6 +8,12 @@ router.use(requireAuth, requireRole('seller'));
 
 async function requireVerifiedSeller(req, res, next) {
   try {
+    const setting = await query(
+      "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
+    );
+    const method = setting.rows[0]?.method || 'document';
+    if (method === 'none') return next();
+
     const result = await query(
       `SELECT verification_status FROM seller_profiles WHERE user_id = $1`,
       [req.user.id]
