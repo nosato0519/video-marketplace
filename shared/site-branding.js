@@ -144,6 +144,58 @@
     renderPreview();
   }
 
+
+
+  async function installSessionNavigation() {
+    const menus = document.querySelectorAll(".login-menu");
+    if (!menus.length) return;
+
+    try {
+      const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const user = data?.user;
+      if (!user?.role) return;
+
+      const destinations = {
+        seller: "/seller/dashboard.html",
+        buyer: "/pages/buyer.html",
+        admin: "/pages/admin.html",
+      };
+      const labels = {
+        seller: "販売者ページ",
+        buyer: "購入者ページ",
+        admin: "運営者ページ",
+      };
+      const destination = destinations[user.role];
+      const label = labels[user.role];
+      if (!destination || !label) return;
+
+      menus.forEach(function (menu) {
+        menu.innerHTML = `
+          <a class="sell login-account-link" href="${destination}">${label}</a>
+          <button class="sell login-logout-link" type="button">ログアウト</button>
+        `;
+
+        const logout = menu.querySelector(".login-logout-link");
+        logout.addEventListener("click", async function () {
+          logout.disabled = true;
+          try {
+            const logoutResponse = await fetch("/api/auth/logout", {
+              method: "POST",
+              credentials: "same-origin",
+            });
+            if (!logoutResponse.ok) throw new Error("Logout failed");
+            window.location.assign("/");
+          } catch (_) {
+            logout.disabled = false;
+          }
+        });
+      });
+    } catch (_) {}
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     applyBranding(readSettings());
     installSettingsForm();
