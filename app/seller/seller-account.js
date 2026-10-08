@@ -186,6 +186,9 @@ async function submitPayout() {
 
 if (document.querySelector('#verification-submit')) {
   document.querySelector('#verification-submit').addEventListener('click', submitSellerVerification);
+}
+
+if (document.querySelector('#verification-status')) {
   loadSellerProfile().catch((error) => {
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
