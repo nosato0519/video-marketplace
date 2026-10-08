@@ -1,4 +1,4 @@
-import { authApi } from './auth-api.js';
+import { authApi, loginForRole } from './auth-api.js';
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -70,4 +70,67 @@ function bindSellerRegistration() {
 
 if (document.getElementById('seller-register-form')) {
   bindSellerRegistration();
+}
+
+function bindAdminLogin() {
+  const formElement = document.getElementById('admin-login-form');
+  if (!formElement) return;
+
+  const message = document.getElementById('admin-login-message');
+  formElement.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submit = formElement.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    message.textContent = 'ログインしています…';
+
+    try {
+      await loginForRole({
+        email: formElement.elements.email.value,
+        password: formElement.elements.password.value,
+        role: 'admin',
+        redirectTo: '/pages/admin.html',
+      });
+    } catch (error) {
+      message.textContent = error.code === 'ROLE_NOT_ALLOWED'
+        ? '運営者アカウントではありません。'
+        : (error.body?.error?.message || 'ログインできませんでした。');
+      submit.disabled = false;
+    }
+  });
+}
+
+function bindAdminSetup() {
+  const formElement = document.getElementById('admin-setup-form');
+  if (!formElement) return;
+
+  const message = document.getElementById('admin-setup-message');
+  formElement.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submit = formElement.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    message.textContent = '運営者アカウントを作成しています…';
+
+    const data = new FormData(formElement);
+    try {
+      const result = await authApi.adminSetup(
+        data.get('email'),
+        data.get('password'),
+        data.get('password-confirm'),
+        data.get('setup-token'),
+      );
+      message.textContent = `運営者アカウントを作成しました。\n${result.user.email}`;
+      window.location.assign('/pages/admin.html');
+    } catch (error) {
+      message.textContent = error.body?.error?.message || '運営者アカウントを作成できませんでした。';
+      submit.disabled = false;
+    }
+  });
+}
+
+if (document.getElementById('admin-login-form')) {
+  bindAdminLogin();
+}
+
+if (document.getElementById('admin-setup-form')) {
+  bindAdminSetup();
 }
