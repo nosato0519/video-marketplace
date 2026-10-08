@@ -59,6 +59,16 @@ async function loadSellerProfile() {
   const verificationStatus = document.querySelector('#verification-status');
   const verificationAction = document.querySelector('#verification-submit');
   const verificationNote = document.querySelector('#verification-note');
+  const verificationMethod = profile.verification_method || 'document';
+  const emailSection = document.querySelector('#verification-email-section');
+  const emailAddress = document.querySelector('#verification-email-address');
+  const emailStatus = document.querySelector('#verification-email-status');
+  const documentSection = document.querySelector('#verification-document-section');
+
+  if (emailSection) emailSection.hidden = !['email', 'email_and_document'].includes(verificationMethod);
+  if (documentSection) documentSection.hidden = !['document', 'email_and_document'].includes(verificationMethod);
+  if (emailAddress) emailAddress.textContent = profile.email ? `確認先：${profile.email}` : '登録メールアドレスを確認してください。';
+  if (emailStatus) emailStatus.textContent = profile.email_verified_at ? 'メールアドレス確認済みです。' : '未確認です。';
 
   if (verificationStatus) {
     verificationStatus.textContent = verificationLabels[profile.verification_status] || '未申請';
@@ -96,15 +106,66 @@ async function loadVerificationDocument() {
     uploadButton.disabled = locked;
 
     if (verificationButton) {
-      const canSubmit = verificationDocument
-        && ['not_started', 'request_changes', 'rejected'].includes(
-          verificationDocument.seller_verification_status
-        );
-      verificationButton.disabled = !canSubmit;
+      const method = document.querySelector('#verification-email-section')?.hidden
+        ? 'document'
+        : (document.querySelector('#verification-document-section')?.hidden ? 'email' : 'email_and_document');
+      const canSubmit = ['not_started', 'request_changes', 'rejected'].includes(
+        verificationDocument?.seller_verification_status
+      );
+      verificationButton.disabled = method === 'email' ? true : !verificationDocument || !canSubmit;
     }
   } catch (error) {
     status.textContent = '本人確認書類の状態を取得できませんでした。';
     if (verificationButton) verificationButton.disabled = true;
+  }
+}
+
+async function sendVerificationEmail() {
+  const button = document.querySelector('#verification-email-send');
+  const status = document.querySelector('#verification-email-status');
+  if (!button || !status) return;
+
+  button.disabled = true;
+  status.textContent = '送信中…';
+  try {
+    const response = await request('/api/seller/profile/verification-email/send', { method: 'POST', body: '{}' });
+    if (response.verified) {
+      status.textContent = 'メールアドレス確認済みです。';
+      await loadSellerProfile();
+      return;
+    }
+    status.textContent = '確認メールを送信しました。メール内のリンクを開いてください。';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    status.textContent = '確認メールを送信できませんでした。';
+    alert(error.body?.error?.message || error.body?.error || '確認メールの送信に失敗しました。');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function confirmEmailFromLink() {
+  const token = new URLSearchParams(window.location.search).get('email_verification_token');
+  if (!token) return;
+
+  const status = document.querySelector('#verification-email-status');
+  if (status) status.textContent = 'メールアドレスを確認中…';
+  try {
+    const response = await fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) throw Object.assign(new Error('email_verification_failed'), { body });
+    if (status) status.textContent = 'メールアドレス確認済みです。';
+    window.history.replaceState({}, document.title, window.location.pathname);
+    await loadSellerProfile();
+    await loadPayouts();
+  } catch (error) {
+    if (status) status.textContent = error.body?.error?.message || '確認リンクが無効か期限切れです。';
   }
 }
 
@@ -264,12 +325,17 @@ if (document.querySelector('#verification-submit')) {
 }
 
 if (document.querySelector('#verification-status')) {
+  confirmEmailFromLink();
   loadSellerProfile().catch((error) => {
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
     }
   });
   loadVerificationDocument();
+}
+
+if (document.querySelector('#verification-email-send')) {
+  document.querySelector('#verification-email-send').addEventListener('click', sendVerificationEmail);
 }
 
 if (document.querySelector('#verification-document-upload')) {
