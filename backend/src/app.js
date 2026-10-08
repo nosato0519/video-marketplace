@@ -38,6 +38,7 @@ export function createApp() {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
+        scriptSrc: ["'self'", "'sha256-ajdE6A2cenTjDNrPNLhA4wX+JDVhqYUwmdZ+XAeEvzw='"],
         imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
       },
     },
