@@ -143,7 +143,7 @@ router.post('/profile/submit-verification', async (req, res, next) => {
     const profile = existing.rows[0];
     if (!profile?.display_name || !profile.legal_name || !profile.country_code) return res.status(400).json({ error: 'complete_seller_profile_first' });
     const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
-    if (!document.rowCount) return res.status(400).json({ error: 'verification_document_required' });
+    if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
     if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
     if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') return res.status(409).json({ error: 'verification_already_submitted' });
 
