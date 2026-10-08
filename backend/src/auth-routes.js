@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
-import { query } from './db.js';
+import { query, withTransaction } from './db.js';
 import { createSessionToken, hashSessionToken, sessionCookieOptions, sessionExpiry } from './auth/session.js';
 import { requireAuth } from './auth/require-auth.js';
-import { authLoginRateLimit, authRegisterRateLimit } from './rate-limit.js';
+import { adminSetupRateLimit, authLoginRateLimit, authRegisterRateLimit } from './rate-limit.js';
 
 const SESSION_COOKIE = 'video_marketplace_session';
 const PASSWORD_HASH_VERSION = 'scrypt-v1';
@@ -70,6 +70,39 @@ async function createSession(res, userId) {
   res.cookie(SESSION_COOKIE, token, cookieOptions());
 }
 
+function validSetupToken(providedToken) {
+  const configuredToken = process.env.ADMIN_SETUP_TOKEN;
+  if (!configuredToken || typeof providedToken !== 'string' || !providedToken) return false;
+
+  const expected = crypto.createHash('sha256').update(configuredToken).digest();
+  const actual = crypto.createHash('sha256').update(providedToken).digest();
+  return crypto.timingSafeEqual(expected, actual);
+}
+
+async function createAdminUser(email, password) {
+  return withTransaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock($1)', [7139422]);
+
+    const existingAdmin = await client.query(
+      `SELECT id FROM users WHERE role = 'admin' LIMIT 1`
+    );
+    if (existingAdmin.rows.length) {
+      const error = new Error('Initial operator setup has already been completed');
+      error.code = 'ADMIN_SETUP_COMPLETED';
+      throw error;
+    }
+
+    const result = await client.query(
+      `INSERT INTO users (email, email_normalized, password_hash, role, status)
+       VALUES ($1, $2, $3, 'admin', 'active')
+       RETURNING id, email, role, status`,
+      [email, email, hashPassword(password)]
+    );
+
+    return result.rows[0];
+  });
+}
+
 export function registerAuthRoutes(app) {
   app.post('/api/auth/register', authRegisterRateLimit, async (req, res, next) => {
     try {
@@ -93,6 +126,63 @@ export function registerAuthRoutes(app) {
     }
   });
 
+  app.post('/api/auth/admin-setup', adminSetupRateLimit, async (req, res, next) => {
+    try {
+      if (!process.env.ADMIN_SETUP_TOKEN) {
+        return res.status(503).json({
+          error: {
+            code: 'ADMIN_SETUP_NOT_CONFIGURED',
+            message: 'Initial operator setup is not configured',
+          },
+        });
+      }
+
+      const email = normalizeEmail(req.body?.email);
+      const password = req.body?.password;
+      const passwordConfirm = req.body?.passwordConfirm;
+      const setupToken = req.body?.setupToken;
+
+      if (!validEmail(email) || !validPassword(password) || password !== passwordConfirm) {
+        return res.status(400).json({
+          error: {
+            code: 'INVALID_ADMIN_SETUP_INPUT',
+            message: 'A valid email and matching password of 12-256 characters are required',
+          },
+        });
+      }
+
+      if (!validSetupToken(setupToken)) {
+        return res.status(403).json({
+          error: {
+            code: 'INVALID_ADMIN_SETUP_TOKEN',
+            message: 'Invalid setup key',
+          },
+        });
+      }
+
+      const user = await createAdminUser(email, password);
+      await createSession(res, user.id);
+      return res.status(201).json({ user });
+    } catch (error) {
+      if (error.code === 'ADMIN_SETUP_COMPLETED') {
+        return res.status(409).json({
+          error: {
+            code: error.code,
+            message: 'Initial operator setup has already been completed',
+          },
+        });
+      }
+      if (error.code === '23505') {
+        return res.status(409).json({
+          error: {
+            code: 'EMAIL_ALREADY_REGISTERED',
+            message: 'Email is already registered',
+          },
+        });
+      }
+      return next(error);
+    }
+  });
   app.post('/api/auth/login', authLoginRateLimit, async (req, res, next) => {
     try {
       const email = normalizeEmail(req.body?.email);
