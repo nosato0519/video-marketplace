@@ -7,6 +7,13 @@ import { Readable } from 'node:stream';
 import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
 
 const router = express.Router();
+
+async function getSellerVerificationMethod() {
+  const result = await query(
+    "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
+  );
+  return result.rows[0]?.method || 'document';
+}
 router.use(requireAuth, requireRole('seller'));
 
 const verificationStorage = createConfiguredMediaStorage();
@@ -136,8 +143,11 @@ router.post('/profile/submit-verification', async (req, res, next) => {
     const existing = await query(`SELECT display_name, legal_name, country_code, verification_status FROM seller_profiles WHERE user_id = $1`, [req.user.id]);
     const profile = existing.rows[0];
     if (!profile?.display_name || !profile.legal_name || !profile.country_code) return res.status(400).json({ error: 'complete_seller_profile_first' });
-    const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
-    if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
+    const verificationMethod = await getSellerVerificationMethod();
+    if (verificationMethod === 'document' || verificationMethod === 'email_and_document') {
+      const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
+      if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
+    }
     if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
     if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') return res.status(409).json({ error: 'verification_already_submitted' });
 
