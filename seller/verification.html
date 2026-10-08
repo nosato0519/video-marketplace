@@ -35,8 +35,15 @@
       <div class="buyer-section-head"><div><span class="section-kicker">APPLICATION</span><h2>本人確認申請</h2></div></div>
       <div class="seller-profile-form">
         <div class="seller-profile-field">
+          <label>本人確認書類</label>
+          <small>顔写真付きの本人確認書類を1点提出してください。対応形式：JPEG・PNG・PDF、10MB以内。</small>
+          <input id="verification-document" type="file" accept="image/jpeg,image/png,application/pdf">
+          <button id="verification-document-upload" class="sell" type="button">本人確認書類をアップロードする</button>
+          <small id="verification-document-status">本人確認書類は未提出です。</small>
+        </div>
+        <div class="seller-profile-field">
           <label>申請前に確認してください</label>
-          <small>販売者情報の本名・住所・郵便番号・電話番号・国コードを正しく登録してください。運営者が登録情報を確認し、本人確認を承認します。</small>
+          <small>販売者情報の本名・住所・郵便番号・電話番号・国コードを正しく登録してください。本人確認書類と登録情報を運営者が確認し、本人確認を承認します。</small>
         </div>
         <div class="seller-profile-actions seller-profile-save-action">
           <a class="sell" href="/seller/profile-edit.html">販売者情報を確認・編集する</a>
