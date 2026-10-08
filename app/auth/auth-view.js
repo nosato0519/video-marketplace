@@ -31,3 +31,43 @@ export function renderAuth(root, mode) {
     }
   });
 }
+
+
+function bindSellerRegistration() {
+  const formElement = document.getElementById('seller-register-form');
+  if (!formElement) return;
+
+  const message = document.getElementById('seller-register-message');
+  formElement.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message.textContent = '';
+
+    const creatorName = formElement.elements['creator-name'].value.trim();
+    const email = formElement.elements.email.value.trim();
+    const password = formElement.elements.password.value;
+    const passwordConfirm = formElement.elements['password-confirm'].value;
+
+    if (password !== passwordConfirm) {
+      message.textContent = 'パスワードが一致しません。';
+      return;
+    }
+
+    const submit = formElement.querySelector('button[type="submit"]');
+    submit.disabled = true;
+
+    try {
+      await authApi.register(email, password);
+      await authApi.sellerApplication(creatorName, creatorName, 'JP');
+      message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者としてログインできます。';
+      formElement.reset();
+    } catch (error) {
+      message.textContent = (typeof error.body?.error === 'string' ? error.body.error : error.body?.error?.message) || error.message || '登録に失敗しました。';
+    } finally {
+      submit.disabled = false;
+    }
+  });
+}
+
+if (document.getElementById('seller-register-form')) {
+  bindSellerRegistration();
+}
