@@ -56,10 +56,19 @@ export function bindSellerApplicationReviewPage() {
   };
 
   const load = async () => {
-    const selected = status.value;
-    const queryStatus = selected || 'pending';
+    const statusValues = {
+      '': '',
+      '審査待ち': 'pending',
+      '審査中': 'under_review',
+      '承認済み': 'approved',
+      '却下': 'rejected',
+      '取り下げ': 'withdrawn',
+    };
+    const selected = statusValues[status.value] ?? 'pending';
+    const statuses = selected ? [selected] : ['pending', 'under_review', 'approved', 'rejected', 'withdrawn'];
     try {
-      const { applications = [] } = await api('/admin/seller-applications?status=' + encodeURIComponent(queryStatus));
+      const responses = await Promise.all(statuses.map((value) => api('/admin/seller-applications?status=' + encodeURIComponent(value))));
+      const applications = responses.flatMap((response) => response.applications || []);
       const query = search.value.trim().toLowerCase();
       render(applications.filter((item) => {
         if (!query) return true;
