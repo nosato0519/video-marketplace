@@ -51,6 +51,7 @@ export function createApp() {
     createStripeWebhookHandler({ recordPaymentEvent, completePayment, failPayment })
   );
 
+  app.use('/api/seller/profile/verification-document', express.raw({ type: ['image/jpeg', 'image/png', 'application/pdf'], limit: '10mb' }));
   app.use(express.json({ limit: '1mb' }));
   app.use(loadSessionUser);
 
