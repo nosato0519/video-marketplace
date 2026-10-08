@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
@@ -16,8 +16,8 @@ const transitions = {
   verified: new Set()
 };
 
-async function audit(actor, action, resourceId, metadata) {
-  await query(`INSERT INTO audit_events (actor_user_id, action, resource_type, resource_id, metadata) VALUES ($1,$2,'seller',$3,$4::jsonb)`, [actor, action, resourceId, JSON.stringify(metadata)]);
+async function audit(db, actor, action, resourceId, metadata) {
+  await db.query(`INSERT INTO audit_events (actor_user_id, action, resource_type, resource_id, metadata) VALUES ($1,$2,'seller',$3,$4::jsonb)`, [actor, action, resourceId, JSON.stringify(metadata)]);
 }
 
 router.get('/seller-verifications', async (req, res, next) => {
@@ -57,11 +57,14 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     if (!transitions[from]?.has(target)) return res.status(409).json({ error: 'invalid_verification_transition', from, to: target });
     const note = req.body?.note == null ? null : String(req.body.note).trim().slice(0, 1000);
     if ((action === 'reject' || action === 'request_changes') && !note) return res.status(400).json({ error: 'review_note_required' });
-    const result = await query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
-    const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
-    await query(`UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`, [req.params.userId, documentStatus]);
-    await audit(req.user.id, `seller.verification.${action}`, req.params.userId, { from_status: from, to_status: target, note });
-    return res.json({ profile: result.rows[0] });
+    const result = await withTransaction(async (db) => {
+      const updated = await db.query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
+      const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
+      await db.query(`UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`, [req.params.userId, documentStatus]);
+      await audit(db, req.user.id, `seller.verification.${action}`, req.params.userId, { from_status: from, to_status: target, note });
+      return updated.rows[0];
+    });
+    return res.json({ profile: result });
   } catch (e) { return next(e); }
 });
 
