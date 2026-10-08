@@ -174,8 +174,8 @@
 
       menus.forEach(function (menu) {
         menu.innerHTML = `
-          <a class="sell login-account-link" href="${destination}">${label}</a>
-          <button class="sell login-logout-link" type="button">ログアウト</button>
+          <a class="login-trigger login-account-link" href="${destination}">${label}</a>
+          <button class="login-trigger login-logout-link" type="button">ログアウト</button>
         `;
 
         const logout = menu.querySelector(".login-logout-link");
