@@ -85,7 +85,7 @@ router.patch('/profile', async (req, res, next) => {
 
 router.get('/profile/verification-document', async (req, res, next) => {
   try {
-    const result = await query(`SELECT id, original_filename, mime_type, byte_size, status, created_at, updated_at FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
+    const result = await query(`SELECT d.id, d.original_filename, d.mime_type, d.byte_size, d.status, d.created_at, d.updated_at, sp.verification_status AS seller_verification_status FROM seller_verification_documents d JOIN seller_profiles sp ON sp.user_id = d.user_id WHERE d.user_id = $1`, [req.user.id]);
     return res.json({ document: result.rows[0] || null });
   } catch (error) { return next(error); }
 });
