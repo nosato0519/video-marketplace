@@ -26,7 +26,7 @@
   <div><div class="eyebrow">SELLER MANAGEMENT / DIRECTORY</div><h1 class="title">販売者一覧</h1><p class="lead">販売者を検索し、対象の詳細ページで登録情報や実績を確認します。</p></div>
   <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">管理メニューへ戻る</a></div>
 </header>
-<p class="preview-note">画面確認用のサンプルデータです。販売者名を選ぶと専用の詳細ページへ移動します。</p>
+<p class="preview-note">登録済みの販売者を実データから表示します。販売者の承認後、ここに反映されます。</p>
 <section class="section">
   <div class="section-head"><div><h2>登録販売者</h2><p>アカウント状態・本人確認状況で絞り込み</p></div><span class="muted">サンプル 4件</span></div>
   <div class="admin-filterbar">
@@ -34,56 +34,10 @@
     <label>本人確認状況<select id="seller-status"><option value="">すべて</option><option>本人確認待ち</option><option>確認済み</option></select></label>
     <span id="seller-count" class="muted">4件</span>
   </div>
-  <div class="panel admin-table-scroll"><table class="table" id="seller-table"><thead><tr><th>販売者</th><th>登録日</th><th>本人確認</th><th>アカウント</th><th>出品数</th><th>詳細</th></tr></thead><tbody>
-    <tr data-status="確認済み"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>2026.06.12</td><td><span class="tag ok">確認済み</span></td><td><span class="tag ok">販売中</span></td><td>12</td><td><a class="btn small" href="/pages/admin-seller-profile.html?seller=aki">詳細を見る →</a></td></tr>
-    <tr data-status="本人確認待ち"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>2026.08.03</td><td><span class="tag warn">本人確認待ち</span></td><td><span class="tag ok">販売中</span></td><td>8</td><td><a class="btn small" href="/pages/admin-seller-profile.html?seller=ken">詳細を見る →</a></td></tr>
-    <tr data-status="確認済み"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>2026.09.15</td><td><span class="tag ok">確認済み</span></td><td><span class="tag warn">利用停止</span></td><td>3</td><td><a class="btn small" href="/pages/admin-seller-profile.html?seller=frame">詳細を見る →</a></td></tr>
-    <tr data-status="確認済み"><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td>2026.04.21</td><td><span class="tag ok">確認済み</span></td><td><span class="tag ok">販売中</span></td><td>15</td><td><a class="btn small" href="/pages/admin-seller-profile.html?seller=north">詳細を見る →</a></td></tr>
-  </tbody></table></div>
+  <div class="panel admin-table-scroll"><table class="table" id="seller-table"><thead><tr><th>販売者</th><th>登録日</th><th>本人確認</th><th>アカウント</th><th>出品数</th><th>詳細</th></tr></thead><tbody><tr><td colspan="6">販売者情報を読み込んでいます。</td></tr></tbody></table></div>
 </section>
 <footer class="footer">ADMIN ACCESS　•　SELLER DIRECTORY</footer>
 </main></div>
-<script>
-(function(){
-var table=document.getElementById('seller-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('seller-search'),status=document.getElementById('seller-status'),count=document.getElementById('seller-count');
-function filter(){var q=search.value.trim().toLowerCase(),n=0;rows.forEach(function(row){var match=row.innerText.toLowerCase().includes(q)&&(!status.value||row.dataset.status===status.value);row.hidden=!match;if(match)n++;});count.textContent=n+'件';}
-search.addEventListener('input',filter);status.addEventListener('change',filter);filter();
-})();
-</script>
-
-<script>
-(function(){
-var tableIds=["seller-table"];
-function setup(tableId){
- var table=document.getElementById(tableId);if(!table||!table.tBodies.length)return;
- var section=table.closest('section')||table.parentElement;
- var rows=Array.from(table.tBodies[0].rows),pageSize=20,currentPage=1,filteredRows=[];
- var nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ切り替え');
- var summary=document.createElement('span');summary.className='pagination-summary';
- var controls=document.createElement('div');controls.className='pagination-controls';
- nav.append(summary,controls);var panel=table.closest('.panel');(panel||table).insertAdjacentElement('afterend',nav);
- function capture(){rows=Array.from(table.tBodies[0].rows);filteredRows=rows.filter(function(row){return !row.hidden;});var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.min(currentPage,pages);render();}
- function render(){
-  var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.max(1,Math.min(currentPage,pages));
-  rows.forEach(function(row){row.hidden=true;});
-  filteredRows.slice((currentPage-1)*pageSize,currentPage*pageSize).forEach(function(row){row.hidden=false;});
-  summary.textContent=filteredRows.length+'件中 '+(filteredRows.length?((currentPage-1)*pageSize+1):0)+'–'+Math.min(currentPage*pageSize,filteredRows.length)+'件を表示';
-  controls.replaceChildren();
-  function add(label,page,disabled,active,aria){var b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=!!disabled;if(aria)b.setAttribute('aria-label',aria);if(active)b.setAttribute('aria-current','page');b.addEventListener('click',function(){currentPage=page;render();});controls.appendChild(b);}
-  add('前へ',currentPage-1,currentPage===1,false,'前のページ');
-  var shown=new Set();[1,currentPage-2,currentPage-1,currentPage,currentPage+1,currentPage+2,pages].forEach(function(p){if(p>=1&&p<=pages)shown.add(p);});
-  var sorted=Array.from(shown).sort(function(a,b){return a-b;}),previous=0;
-  sorted.forEach(function(p){if(previous&&p-previous>1){var dots=document.createElement('span');dots.className='pagination-ellipsis';dots.textContent='…';controls.appendChild(dots);}add(String(p),p,false,p===currentPage,'ページ '+p);previous=p;});
-  add('次へ',currentPage+1,currentPage===pages,false,'次のページ');
- }
- function refreshFromFilter(){currentPage=1;capture();}
- section.querySelectorAll('input,select').forEach(function(el){el.addEventListener('input',refreshFromFilter);el.addEventListener('change',refreshFromFilter);});
- section.addEventListener('click',function(event){if(event.target.closest('button[data-action]'))refreshFromFilter();});
- var save=document.getElementById('save-status');if(save)save.addEventListener('click',refreshFromFilter);
- capture();
-}
-tableIds.forEach(setup);
-})();
-</script>
+<script type="module" src="/app/admin/seller-applications.js"></script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
