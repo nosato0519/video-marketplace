@@ -72,6 +72,34 @@ if (document.getElementById('seller-register-form')) {
   bindSellerRegistration();
 }
 
+
+function bindSellerLogin() {
+  const formElement = document.getElementById('role-login-form');
+  if (!formElement) return;
+
+  const message = document.getElementById('login-message');
+  formElement.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submit = formElement.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    message.textContent = 'ログインしています…';
+
+    try {
+      await loginForRole({
+        email: formElement.elements.email.value,
+        password: formElement.elements.password.value,
+        role: 'seller',
+        redirectTo: '/seller/dashboard.html',
+      });
+    } catch (error) {
+      message.textContent = error.code === 'ROLE_NOT_ALLOWED'
+        ? '販売者アカウントではありません。'
+        : (error.body?.error?.message || 'ログインできませんでした。');
+      submit.disabled = false;
+    }
+  });
+}
+
 function bindAdminLogin() {
   const formElement = document.getElementById('admin-login-form');
   if (!formElement) return;
@@ -133,4 +161,7 @@ if (document.getElementById('admin-login-form')) {
 
 if (document.getElementById('admin-setup-form')) {
   bindAdminSetup();
+}
+if (document.getElementById('role-login-form')) {
+  bindSellerLogin();
 }
