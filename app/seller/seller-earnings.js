@@ -48,6 +48,7 @@ export function initSellerEarningsPage(view) {
   if (!list || !pagination) return;
   const pageSize = 10;
 
+  function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
   function formatYen(amount) { return `¥${Number(amount || 0).toLocaleString('ja-JP')}`; }
   function formatDate(value) { return new Date(value).toLocaleDateString('ja-JP').replaceAll('/', '.'); }
   function renderPagination(meta) {
