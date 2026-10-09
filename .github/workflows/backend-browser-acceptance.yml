@@ -2,7 +2,7 @@ name: Backend Browser Acceptance
 
 on:
   push:
-    branches: [main]
+    branches: [main, production/top-clean]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -11,7 +11,7 @@ concurrency:
   group: backend-browser-acceptance-${{ github.ref }}
   cancel-in-progress: true
 
-# Run the real backend acceptance suite and browser acceptance test against the current main/PR state.
+# Run the real backend acceptance suite and browser acceptance test against main, production, and PR states.
 # E2E uses CI-only media/payment security configuration.
 jobs:
   backend-browser-acceptance:
