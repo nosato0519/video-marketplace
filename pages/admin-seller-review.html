@@ -37,7 +37,7 @@
   <div class="admin-filterbar">
     <label>申請者を検索<input id="application-search" type="search" placeholder="表示名・氏名・メールアドレス"></label>
     <label>審査状況<select id="application-status"><option value="審査待ち" selected>審査待ち</option><option value="">すべて</option><option>審査中</option><option>承認済み</option><option>却下</option><option>取り下げ</option></select></label>
-    <span id="application-count" class="muted">4件</span>
+    <span id="application-count" class="muted">読み込み中…</span>
   </div>
   <div class="panel admin-table-scroll"><table class="table" id="application-table"><thead><tr><th>申請者</th><th>登録情報</th><th>申請日</th><th>状態</th><th>操作</th></tr></thead><tbody>
     <tr><td colspan="5">申請データを読み込んでいます…</td></tr>
@@ -49,7 +49,7 @@
   <div class="admin-filterbar">
     <label>販売者を検索<input id="verification-search" type="search" placeholder="販売者名・メールアドレス"></label>
     <label>確認状況<select id="verification-status"><option value="all">すべて</option><option value="submitted">確認待ち</option><option value="under_review">審査中</option><option value="request_changes">差し戻し</option><option value="verified">確認済み</option><option value="rejected">却下</option><option value="not_started">未申請</option></select></label>
-    <span id="verification-count" class="muted">4件</span>
+    <span id="verification-count" class="muted">読み込み中…</span>
   </div>
   <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>本人確認情報</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
     <tr><td colspan="5">本人確認データを読み込んでいます…</td></tr>
