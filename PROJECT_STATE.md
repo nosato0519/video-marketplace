@@ -36,6 +36,11 @@ The release script is `scripts/build-release.mjs`. It includes both the commerci
 
 The release-readiness checklist still identifies customer-specific production integration and final real-deployment desktop/mobile browser passes as outstanding gates. Do not describe the package as live-production-ready solely because earlier automated checks passed.
 
-## Next work point
+## Current cleanup result — 2026-10-09
 
-Continue only with narrowly scoped, evidence-based cleanup. Before deleting any further file, verify its imports/references and whether it is included in the commercial package. Do not run tests or change application code unless the user explicitly asks.
+- Removed three exact duplicate CSS blocks from `styles.css` while preserving the first copy and the unique override rules; commit `3c47452d234b223721f67c7fcdeea3498efa6a17`.
+- Removed trailing whitespace from `index.html` only; no markup, text, attributes, or layout were changed.
+- Reviewed the current repository tree: 717 tracked files; no identical blob-content duplicates were found. The agreed cleanup review found no additional file whose deletion was safe to justify.
+- Kept `app/`, `backend/`, `demo/`, the root `Dockerfile`, and feature behavior outside the edits.
+
+This records the completed scoped cleanup pass. It is not a claim that every runtime path has been tested or that deployment acceptance gates are complete.
