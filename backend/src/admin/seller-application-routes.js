@@ -116,7 +116,7 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
         ]);
         const method = setting.rows[0]?.method;
         const email = recipient.rows[0]?.email;
-        const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\\/$/, '');
+        const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
         if (method !== 'none' && email && baseUrl) {
           await sendSellerVerificationInstructionsEmail({
             email,
