@@ -26,6 +26,15 @@ function safeDocumentFilename(value) {
   return (normalized || 'identity-document').slice(0, 255);
 }
 
+function originalDocumentFilename(req) {
+  const value = req.headers['x-original-filename'];
+  if (req.headers['x-original-filename-encoded'] === '1') {
+    try { return safeDocumentFilename(decodeURIComponent(String(value || ''))); }
+    catch { return 'identity-document'; }
+  }
+  return safeDocumentFilename(value);
+}
+
 function requiredSignatureBytes(mime) {
   return mime === 'application/pdf' ? 5 : mime === 'image/png' ? 8 : 3;
 }
@@ -112,7 +121,7 @@ router.get('/profile/verification-document', async (req, res, next) => {
 router.post('/profile/verification-document', async (req, res, next) => {
   let uploadedStorageKey = null;
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
-  const filename = safeDocumentFilename(req.headers['x-original-filename']);
+  const filename = originalDocumentFilename(req);
   const declaredLength = req.headers['content-length'] == null ? null : Number(req.headers['content-length']);
   if (!VERIFICATION_DOCUMENT_MIME.has(mime)) return res.status(415).json({ error: 'unsupported_verification_document_type' });
   if (declaredLength !== null && (!Number.isSafeInteger(declaredLength) || declaredLength <= 0)) return res.status(400).json({ error: 'invalid_content_length' });
