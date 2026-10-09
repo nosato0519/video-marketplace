@@ -37,7 +37,7 @@ try {
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
   await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`]);
-  await pool.query(`INSERT INTO seller_profiles (user_id, display_name) VALUES ($1, 'Seller E2E'), ($2, 'Other Seller E2E')`, [ids.seller, ids.otherSeller]);
+  await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'verified')`, [ids.seller, ids.otherSeller]);
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
   const uploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e.mp4' }, body: uploadBytes });
