@@ -127,6 +127,7 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
 });
 
 router.get('/seller-verifications/:userId/audit', async (req, res, next) => {
+  res.set('Cache-Control', 'private, no-store');
   try {
     const result = await query(`SELECT a.id, a.actor_user_id, u.email AS actor_email, a.action, a.metadata, a.created_at FROM audit_events a LEFT JOIN users u ON u.id=a.actor_user_id WHERE a.resource_type='seller' AND a.resource_id=$1 ORDER BY a.created_at DESC LIMIT 100`, [req.params.userId]);
     return res.json({ events: result.rows });
