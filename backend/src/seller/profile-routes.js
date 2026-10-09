@@ -104,9 +104,9 @@ router.patch('/profile', async (req, res, next) => {
         (
           current.legal_name !== legalName ||
           current.country_code !== countryCode ||
-          (current.address || '') !== (address || null) ||
-          (current.postal_code || '') !== (postalCode || null) ||
-          (current.phone || '') !== (phone || null)
+          (current.address || '') !== (address || '') ||
+          (current.postal_code || '') !== (postalCode || '') ||
+          (current.phone || '') !== (phone || '')
         )
       ) {
         return { kind: 'identity_locked' };
