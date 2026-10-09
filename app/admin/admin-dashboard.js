@@ -10,13 +10,17 @@ const sections = [
   ['regions', 'Regions', 'Control country availability'],
   ['settings', 'Settings', 'Manage site configuration'],
   ['activity', 'Security & activity', 'Review important administrative actions'],
-  ['help', 'Help', 'Guided help and troubleshooting']
+  ['help', 'Help', 'Guided help and troubleshooting'],
 ];
 
 export function renderAdminDashboard() {
   return `<main class="admin-shell">
     <header class="admin-header">
-      <div><p class="eyebrow">Operator</p><h1>Admin dashboard</h1><p>Routine marketplace management without code.</p></div>
+      <div>
+        <p class="eyebrow">Operator</p>
+        <h1>Admin dashboard</h1>
+        <p>Routine marketplace management without code.</p>
+      </div>
       <a class="button secondary" href="#/">View site</a>
     </header>
     <section class="admin-alert" aria-live="polite">
@@ -32,6 +36,10 @@ export function renderAdminDashboard() {
     <section class="admin-grid" aria-label="Management sections">
       ${sections.map(([id, title, description]) => `<a class="admin-card" href="#/admin/${id}"><strong>${title}</strong><span>${description}</span></a>`).join('')}
     </section>
-    <p class="admin-footnote">Dashboard metrics remain explicitly unavailable until their authenticated live-data endpoints and health checks are wired. Never display placeholder values as real production status.</p>
+    <p class="admin-footnote">
+      Dashboard metrics remain explicitly unavailable until their authenticated live-data
+      endpoints and health checks are wired. Never display placeholder values as real
+      production status.
+    </p>
   </main>`;
 }
