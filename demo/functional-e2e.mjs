@@ -29,7 +29,7 @@ try {
   const systemCount = (html.match(/id=["']system["']/gi) || []).length;
   const legacyGuideCount = (html.match(/id=["']guide["']/gi) || []).length;
   const heroEnd = html.search(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
-  const systemStart = html.search(/id=["']system-features-force["']/i);
+  const systemStart = html.search(/id=["']system["']/i);
   if (!root.ok || !html.includes('VIDEO MARKETPLACE') || !html.includes('動画を探す') || systemCount !== 1 || legacyGuideCount !== 0 || heroEnd < 0 || systemStart < heroEnd) throw new Error('browser entrypoint/system showcase failed');
   for (let n = 3; n <= 9; n++) if (!new RegExp(`<div class="thumb t${n}"[\\s\\S]*?<div class="card-info">[\\s\\S]*?</div></div></article>`, 'i').test(html)) throw new Error(`homepage card t${n} markup failed`);
 
