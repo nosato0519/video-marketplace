@@ -76,7 +76,7 @@ export function bindSellerApplicationReviewPage() {
       }));
     } catch (error) {
       table.tBodies[0].innerHTML = '<tr><td colspan="5">販売者申請を取得できませんでした。</td></tr>';
-      count.textContent = '0件';
+      count.textContent = '取得失敗';
     }
   };
 
