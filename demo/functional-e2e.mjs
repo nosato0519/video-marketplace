@@ -26,7 +26,7 @@ try {
   console.log('STEP 2: validating homepage entrypoint and showcase markup');
   const root = await request('/');
   const html = await root.text();
-  const systemCount = (html.match(/id=["']system-features-force["']/gi) || []).length;
+  const systemCount = (html.match(/id=["']system["']/gi) || []).length;
   const legacyGuideCount = (html.match(/id=["']guide["']/gi) || []).length;
   const heroEnd = html.search(/<section\b[^>]*class=["'][^"']*\bhero\b[^"']*["'][^>]*>[\s\S]*?<\/section>/i);
   const systemStart = html.search(/id=["']system-features-force["']/i);
