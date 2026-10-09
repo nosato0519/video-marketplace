@@ -2,7 +2,7 @@ name: Clean Install
 
 on:
   push:
-    branches: [main]
+    branches: [main, production/top-clean]
   pull_request:
 
 jobs:
