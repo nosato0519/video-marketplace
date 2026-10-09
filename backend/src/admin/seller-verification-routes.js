@@ -54,24 +54,60 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     const action = String(req.body?.action || '').trim();
     const target = { request_changes: 'request_changes', reject: 'rejected', approve: 'verified', start_review: 'under_review' }[action];
     if (!target) return res.status(400).json({ error: 'invalid_review_action' });
-    const current = await query(`SELECT user_id, verification_status FROM seller_profiles WHERE user_id=$1`, [req.params.userId]);
-    if (!current.rowCount) return res.status(404).json({ error: 'seller_profile_not_found' });
-    const from = current.rows[0].verification_status;
-    if (!transitions[from]?.has(target)) return res.status(409).json({ error: 'invalid_verification_transition', from, to: target });
-    if (action === 'approve') {
-      const document = await query(`SELECT id FROM seller_verification_documents WHERE user_id = $1 AND status = 'uploaded'`, [req.params.userId]);
-      if (!document.rowCount) return res.status(409).json({ error: 'verification_document_required' });
-    }
     const note = req.body?.note == null ? null : String(req.body.note).trim().slice(0, 1000);
-    if ((action === 'reject' || action === 'request_changes') && !note) return res.status(400).json({ error: 'review_note_required' });
+    if ((action === 'reject' || action === 'request_changes') && !note) {
+      return res.status(400).json({ error: 'review_note_required' });
+    }
+
     const result = await withTransaction(async (db) => {
-      const updated = await db.query(`UPDATE seller_profiles SET verification_status=$2, verification_note=$3, verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END, updated_at=NOW() WHERE user_id=$1 RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`, [req.params.userId, target, note]);
+      const current = await db.query(
+        `SELECT user_id, verification_status FROM seller_profiles WHERE user_id=$1 FOR UPDATE`,
+        [req.params.userId]
+      );
+      if (!current.rowCount) return { kind: 'not_found' };
+
+      const from = current.rows[0].verification_status;
+      if (!transitions[from]?.has(target)) return { kind: 'invalid', from, to: target };
+
+      if (action === 'approve') {
+        const document = await db.query(
+          `SELECT id FROM seller_verification_documents WHERE user_id=$1 AND status='uploaded' FOR UPDATE`,
+          [req.params.userId]
+        );
+        if (!document.rowCount) return { kind: 'document_required' };
+      }
+
+      const updated = await db.query(
+        `UPDATE seller_profiles
+            SET verification_status=$2,
+                verification_note=$3,
+                verified_at=CASE WHEN $2='verified' THEN NOW() ELSE NULL END,
+                updated_at=NOW()
+          WHERE user_id=$1
+          RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`,
+        [req.params.userId, target, note]
+      );
       const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
-      await db.query(`UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`, [req.params.userId, documentStatus]);
-      await audit(db, req.user.id, `seller.verification.${action}`, req.params.userId, { from_status: from, to_status: target, note });
-      return updated.rows[0];
+      await db.query(
+        `UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`,
+        [req.params.userId, documentStatus]
+      );
+      await audit(db, req.user.id, `seller.verification.${action}`, req.params.userId, {
+        from_status: from,
+        to_status: target,
+        note
+      });
+      return { kind: 'ok', profile: updated.rows[0] };
     });
-    return res.json({ profile: result });
+
+    if (result.kind === 'not_found') return res.status(404).json({ error: 'seller_profile_not_found' });
+    if (result.kind === 'invalid') {
+      return res.status(409).json({ error: 'invalid_verification_transition', from: result.from, to: result.to });
+    }
+    if (result.kind === 'document_required') {
+      return res.status(409).json({ error: 'verification_document_required' });
+    }
+    return res.json({ profile: result.profile });
   } catch (e) { return next(e); }
 });
 
