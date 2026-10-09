@@ -63,14 +63,14 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-showcase\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
-  html = html.replace(/href=["']#guide["']/gi, 'href="#system"');
+  html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
   return repairHomepageMarkup(html)
     .replace('</head>', STYLE + '</head>')
     .replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
 }
 
 function servePage(pathname, res) {
-  const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/cart.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html','/pages/legal.html','/pages/privacy.html','/pages/sales-history.html','/pages/product-edit.html']);
+  const allowed = new Set(['/pages/video-list.html','/pages/product-detail.html','/pages/cart.html','/pages/checkout.html','/pages/library.html','/pages/watch.html','/pages/creator-studio.html','/pages/admin.html','/pages/login.html','/pages/register.html','/pages/account.html','/pages/orders.html','/pages/error.html','/pages/sales-history.html','/pages/product-edit.html']);
   if (!allowed.has(pathname)) return false;
   readFile(join(ROOT, pathname.slice(1)), 'utf8').then(html => {
     html = html.replace('</head>', COMMON_PAGE_STYLE + '</head>').replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
