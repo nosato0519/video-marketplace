@@ -5,7 +5,6 @@ import { requireRole } from '../auth/authorize.js';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
-import { sendSellerVerificationEmail } from '../email/smtp-mailer.js';
 
 const router = express.Router();
 
@@ -13,7 +12,8 @@ async function getSellerVerificationMethod() {
   const result = await query(
     "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
   );
-  return result.rows[0]?.method || 'document';
+  const method = result.rows[0]?.method;
+  return method === 'none' ? 'none' : 'document';
 }
 router.use(requireAuth, requireRole('seller'));
 
@@ -113,58 +113,6 @@ router.get('/profile/verification-document', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
-router.post('/profile/verification-email/send', async (req, res, next) => {
-  try {
-    const method = await getSellerVerificationMethod();
-    if (!['email', 'email_and_document'].includes(method)) {
-      return res.status(409).json({ error: 'seller_email_verification_not_required' });
-    }
-
-    const userResult = await query(
-      `SELECT email, email_verified_at FROM users WHERE id = $1 LIMIT 1`,
-      [req.user.id]
-    );
-    const user = userResult.rows[0];
-    if (!user?.email) return res.status(400).json({ error: 'seller_email_required' });
-    if (user.email_verified_at) return res.json({ verified: true });
-
-    const recent = await query(
-      `SELECT created_at
-         FROM email_verification_tokens
-        WHERE user_id = $1
-        ORDER BY created_at DESC
-        LIMIT 1`,
-      [req.user.id]
-    );
-    if (recent.rows[0] && Date.now() - new Date(recent.rows[0].created_at).getTime() < 60_000) {
-      return res.status(429).json({ error: 'verification_email_rate_limited' });
-    }
-
-    const token = crypto.randomBytes(32).toString('base64url');
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    await query(`DELETE FROM email_verification_tokens WHERE user_id = $1 AND consumed_at IS NULL`, [req.user.id]);
-    await query(
-      `INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at)
-       VALUES ($1, $2, $3, NOW() + INTERVAL '30 minutes')`,
-      [crypto.randomUUID(), req.user.id, tokenHash]
-    );
-
-    const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
-    if (!baseUrl) return res.status(503).json({ error: 'app_base_url_configuration_missing' });
-    const verificationUrl = `${baseUrl}/seller/verification.html?email_verification_token=${encodeURIComponent(token)}`;
-    try {
-      await sendSellerVerificationEmail({ email: user.email, verificationUrl });
-    } catch (error) {
-      await query(`DELETE FROM email_verification_tokens WHERE token_hash = $1`, [tokenHash]).catch(() => {});
-      throw error;
-    }
-
-    return res.json({ verified: false, sent: true });
-  } catch (error) {
-    return next(error);
-  }
-});
-
 router.post('/profile/verification-document', async (req, res, next) => {
   let uploadedStorageKey = null;
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
@@ -175,6 +123,9 @@ router.post('/profile/verification-document', async (req, res, next) => {
   if (declaredLength !== null && declaredLength > MAX_VERIFICATION_DOCUMENT_BYTES) return res.status(413).json({ error: 'verification_document_too_large' });
 
   try {
+    if (await getSellerVerificationMethod() === 'none') {
+      return res.status(409).json({ error: 'seller_verification_not_required' });
+    }
     const profile = await query(`SELECT verification_status FROM seller_profiles WHERE user_id = $1`, [req.user.id]);
     const status = profile.rows[0]?.verification_status;
     if (!profile.rowCount) return res.status(400).json({ error: 'seller_profile_required' });
@@ -212,27 +163,10 @@ router.post('/profile/submit-verification', async (req, res, next) => {
     const profile = existing.rows[0];
     if (!profile?.display_name || !profile.legal_name || !profile.country_code) return res.status(400).json({ error: 'complete_seller_profile_first' });
     const verificationMethod = await getSellerVerificationMethod();
+    if (verificationMethod === 'none') return res.status(409).json({ error: 'seller_verification_not_required' });
     if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
-    if (verificationMethod === 'email') {
-      const email = await query(`SELECT email_verified_at FROM users WHERE id = $1`, [req.user.id]);
-      if (!email.rows[0]?.email_verified_at) return res.status(400).json({ error: 'email_verification_required' });
-      const result = await query(
-        `UPDATE seller_profiles
-            SET verification_status = 'verified', submitted_at = COALESCE(submitted_at, NOW()), verified_at = COALESCE(verified_at, NOW()), verification_note = NULL, updated_at = NOW()
-          WHERE user_id = $1
-        RETURNING user_id, display_name, legal_name, country_code, verification_status, submitted_at, verified_at`,
-        [req.user.id]
-      );
-      return res.json({ profile: result.rows[0] });
-    }
-    if (verificationMethod === 'document' || verificationMethod === 'email_and_document') {
-      const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
-      if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
-    }
-    if (verificationMethod === 'email_and_document') {
-      const email = await query(`SELECT email_verified_at FROM users WHERE id = $1`, [req.user.id]);
-      if (!email.rows[0]?.email_verified_at) return res.status(400).json({ error: 'email_verification_required' });
-    }
+    const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
+    if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
     if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') return res.status(409).json({ error: 'verification_already_submitted' });
 
     const result = await query(
