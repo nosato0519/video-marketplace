@@ -13,7 +13,8 @@
 - Removed obsolete root `admin/` and `storefront/` pages from the legacy structure.
 - Restored `app/catalog/catalog.js` after confirming current modules import it.
 - Removed outdated top-level checkpoints `PROGRESS.md` and `PROGRESS-COMMERCE.md`.
-- Reviewed the repository tree for identical file contents and obvious temporary/backup artifacts. No additional files were confirmed safe to delete from that pass.
+- Reviewed the repository tree for identical file contents and obvious temporary/backup artifacts.
+- Removed `PROGRESS_LOG_520.md` after confirming it was an obsolete standalone milestone log, had no repository references, and was not included in the commercial release package.
 - Updated `PROJECT_STATE.md` and this log so they no longer present the old `main` / Render demo checkpoint as the current commercial branch.
 
 ## Scope and safeguards
@@ -28,6 +29,4 @@
 
 ## Current status and next step
 
-File cleanup has been completed for items confirmed safe in the reviewed scope. A complete source-code quality audit and end-to-end verification of every feature are not claimed.
-
-If cleanup continues, inspect one specific candidate at a time, verify references and release-package inclusion, and make only the smallest justified change. Do not repeat completed cleanup or modify application code without explicit scope.
+The cleanup pass is complete for the items that could be safely confirmed within the agreed scope. No further file deletions are justified by the current review. This is not a claim that every source file has undergone a full quality audit or that every feature has passed end-to-end verification.
