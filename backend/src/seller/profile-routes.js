@@ -44,7 +44,6 @@ router.get('/profile', async (req, res, next) => {
               sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, sp.created_at, sp.updated_at,
               CASE WHEN ps.setting_value->>'value' = 'none' THEN 'none' ELSE 'document' END AS verification_method
          FROM seller_profiles sp
-         JOIN users u ON u.id = sp.user_id
          LEFT JOIN platform_settings ps ON ps.setting_key = 'seller_verification_method'
         WHERE sp.user_id = $1`,
       [req.user.id]
