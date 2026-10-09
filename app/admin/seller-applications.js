@@ -57,7 +57,7 @@ export function bindSellerApplicationReviewPage() {
 
   const load = async () => {
     const statusValues = {
-      '': 'pending',
+      '': '',
       '審査待ち': 'pending',
       '審査中': 'under_review',
       '承認済み': 'approved',
@@ -65,7 +65,7 @@ export function bindSellerApplicationReviewPage() {
       '取り下げ': 'withdrawn',
     };
     const selected = statusValues[status.value] ?? 'pending';
-    const statuses = selected ? [selected] : ['pending'];
+    const statuses = selected ? [selected] : ['pending', 'under_review', 'approved', 'rejected', 'withdrawn'];
     try {
       const responses = await Promise.all(statuses.map((value) => api('/admin/seller-applications?status=' + encodeURIComponent(value))));
       const applications = responses.flatMap((response) => response.applications || []);
