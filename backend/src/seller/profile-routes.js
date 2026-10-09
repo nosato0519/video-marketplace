@@ -52,12 +52,21 @@ router.get('/profile', async (req, res, next) => {
     );
     if (!result.rows[0]) {
       return res.json({ profile: {
-        userId: req.user.id,
-        displayName: '', legalName: '', countryCode: null,
-        bio: null, address: null, postalCode: null, phone: null,
-        verificationStatus: 'not_started', verificationNote: null,
-        submittedAt: null, verifiedAt: null,
-        email: req.user.email, emailVerifiedAt: null, verificationMethod: 'document'
+        user_id: req.user.id,
+        display_name: '',
+        legal_name: '',
+        country_code: null,
+        bio: null,
+        address: null,
+        postal_code: null,
+        phone: null,
+        verification_status: 'not_started',
+        verification_note: null,
+        submitted_at: null,
+        verified_at: null,
+        email: req.user.email,
+        email_verified_at: null,
+        verification_method: await getSellerVerificationMethod()
       }});
     }
     return res.json({ profile: result.rows[0] });
