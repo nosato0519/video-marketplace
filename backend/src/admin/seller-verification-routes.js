@@ -41,8 +41,8 @@ router.get('/seller-verifications/:userId/document', async (req, res, next) => {
     if (!object?.stream) return res.status(404).json({ error: 'verification_document_not_found' });
     res.set('Cache-Control', 'private, no-store');
     res.set('Content-Type', document.mime_type);
-    const originalFilename = String(document.original_filename || 'identity-document').replace(/["\\\\\\r\\n]/g, '_');
-    const asciiFilename = originalFilename.replace(/[^\\x20-\\x7E]/g, '_').slice(0, 255) || 'identity-document';
+    const originalFilename = String(document.original_filename || 'identity-document').replace(/["\\\r\n]/g, '_');
+    const asciiFilename = originalFilename.replace(/[^\x20-\x7E]/g, '_').slice(0, 255) || 'identity-document';
     const encodedFilename = encodeURIComponent(originalFilename).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
     res.set('Content-Disposition', `inline; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`);
     res.set('Content-Length', String(document.byte_size));
