@@ -30,8 +30,8 @@ export function bindSellerVerificationReviewPage() {
       row.dataset.status = statusLabel[item.verification_status] || item.verification_status;
       row.dataset.userId = item.user_id;
       const actions = {
-        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button>',
-        under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button>',
+        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
+        under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
         request_changes: '<span class="muted">再申請待ち</span>',
         rejected: '<span class="muted">再申請待ち</span>',
         verified: '<span class="muted">処理済み</span>',
@@ -74,11 +74,11 @@ export function bindSellerVerificationReviewPage() {
     if (!button) return;
     const row = button.closest('tr');
     const id = row?.dataset.userId;
-    const action = { start: 'start_review', approve: 'approve', changes: 'request_changes' }[button.dataset.action];
+    const action = { start: 'start_review', approve: 'approve', changes: 'request_changes', reject: 'reject' }[button.dataset.action];
     if (!id || !action) return;
     const reviewNote = note.value.trim();
-    if (action === 'request_changes' && !reviewNote) {
-      alert('差し戻し理由を本人確認メモに入力してください。');
+    if (['request_changes', 'reject'].includes(action) && !reviewNote) {
+      alert(action === 'reject' ? '却下理由を本人確認メモに入力してください。' : '差し戻し理由を本人確認メモに入力してください。');
       note.focus();
       return;
     }
