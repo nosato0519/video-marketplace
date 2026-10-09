@@ -15,6 +15,7 @@ The customer receives the repository source and deployment documentation through
 
 The repository includes:
 
+- `CUSTOMER_SETUP_GUIDE.md` — buyer-facing step-by-step installation, storage, seller identity-verification setup and acceptance checks
 - `app/` — customer-facing browser application
 - `backend/` — API, database access and migrations
 - `demo/` — self-contained showcase demo
