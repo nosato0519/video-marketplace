@@ -93,7 +93,7 @@ router.patch('/profile', async (req, res, next) => {
 
     const saved = await withTransaction(async (db) => {
       const existing = await db.query(
-        `SELECT verification_status, legal_name, country_code
+        `SELECT verification_status, legal_name, country_code, address, postal_code, phone
            FROM seller_profiles WHERE user_id = $1 FOR UPDATE`,
         [req.user.id]
       );
@@ -101,7 +101,13 @@ router.patch('/profile', async (req, res, next) => {
       if (
         current &&
         ['submitted', 'under_review', 'verified'].includes(current.verification_status) &&
-        (current.legal_name !== legalName || current.country_code !== countryCode)
+        (
+          current.legal_name !== legalName ||
+          current.country_code !== countryCode ||
+          (current.address || '') !== (address || null) ||
+          (current.postal_code || '') !== (postalCode || null) ||
+          (current.phone || '') !== (phone || null)
+        )
       ) {
         return { kind: 'identity_locked' };
       }
