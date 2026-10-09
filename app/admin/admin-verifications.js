@@ -162,3 +162,102 @@ export async function renderAdminVerifications(root) {
       : '<section class="empty-state"><h2>Seller verification unavailable</h2><p>Please try again shortly.</p></section>';
   }
 }
+
+
+export function bindSellerVerificationReviewPage() {
+  const table = document.getElementById('verification-table');
+  if (!table) return;
+
+  const search = document.getElementById('verification-search');
+  const status = document.getElementById('verification-status');
+  const count = document.getElementById('verification-count');
+  const note = document.getElementById('verification-note');
+
+  const statusLabel = {
+    submitted: '確認待ち',
+    under_review: '審査中',
+    request_changes: '差し戻し',
+    verified: '確認済み',
+    rejected: '却下',
+    not_started: '未申請',
+  };
+
+  const render = (items) => {
+    table.tBodies[0].replaceChildren(...(items.length ? items.map((item) => {
+      const row = document.createElement('tr');
+      row.dataset.status = statusLabel[item.verification_status] || item.verification_status;
+      row.dataset.userId = item.user_id;
+      const actions = {
+        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
+        under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
+        request_changes: '<span class="muted">再申請待ち</span>',
+        rejected: '<span class="muted">再申請待ち</span>',
+        verified: '<span class="muted">処理済み</span>',
+        not_started: '<span class="muted">未申請</span>',
+      }[item.verification_status] || '<span class="muted">処理不可</span>';
+      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
+        + '<td><strong>氏名：</strong>' + esc(item.legal_name) + '<br><strong>国：</strong>' + esc(item.country_code) + '<br><strong>住所：</strong>' + esc(item.address) + '<br><strong>郵便番号：</strong>' + esc(item.postal_code) + '<br><strong>電話：</strong>' + esc(item.phone) + '<br><strong>自己紹介：</strong>' + esc(item.bio) + '<br>' + (item.verification_document_id ? '<a href="/api/admin/seller-verifications/' + encodeURIComponent(item.user_id) + '/document" target="_blank" rel="noopener">本人確認書類を確認する</a>' : '<span class="muted">本人確認書類なし</span>') + '</td>'
+        + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
+        + '<td><span class="tag ' + (item.verification_status === 'verified' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.verification_status] || item.verification_status) + '</span></td>'
+        + '<td>' + actions + '</td>';
+      return row;
+    }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">該当する本人確認はありません。</td>' })]));
+    count.textContent = items.length + '件';
+  };
+
+  const load = async () => {
+    const selectedStatus = status.value || 'submitted';
+    try {
+      let sellers = [];
+      if (selectedStatus === 'all') {
+        const statuses = ['submitted', 'under_review', 'verified', 'rejected', 'request_changes', 'not_started'];
+        const results = await Promise.all(
+          statuses.map((value) => api('/admin/seller-verifications?status=' + value))
+        );
+        sellers = results.flatMap((result) => result.sellers || []);
+      } else {
+        const result = await api('/admin/seller-verifications?status=' + encodeURIComponent(selectedStatus));
+        sellers = result.sellers || [];
+      }
+      const query = search.value.trim().toLowerCase();
+      render(sellers.filter((item) => !query || [item.display_name, item.email].some((value) => String(value ?? '').toLowerCase().includes(query))));
+    } catch (error) {
+      table.tBodies[0].innerHTML = '<tr><td colspan="5">本人確認情報を取得できませんでした。</td></tr>';
+      count.textContent = '0件';
+    }
+  };
+
+  table.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const row = button.closest('tr');
+    const id = row?.dataset.userId;
+    const action = { start: 'start_review', approve: 'approve', changes: 'request_changes', reject: 'reject' }[button.dataset.action];
+    if (!id || !action) return;
+    const reviewNote = note.value.trim();
+    if (['request_changes', 'reject'].includes(action) && !reviewNote) {
+      alert(action === 'reject' ? '却下理由を本人確認メモに入力してください。' : '差し戻し理由を本人確認メモに入力してください。');
+      note.focus();
+      return;
+    }
+    button.disabled = true;
+    try {
+      await api('/admin/seller-verifications/' + encodeURIComponent(id) + '/review', {
+        method: 'POST',
+        body: JSON.stringify({ action, note: reviewNote || null }),
+      });
+      await load();
+    } catch (error) {
+      alert('本人確認処理に失敗しました。');
+      button.disabled = false;
+    }
+  });
+
+  search.addEventListener('input', load);
+  status.addEventListener('change', load);
+  load();
+}
+
+if (document.getElementById('verification-table')) {
+  bindSellerVerificationReviewPage();
+}
