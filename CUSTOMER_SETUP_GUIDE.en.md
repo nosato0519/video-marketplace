@@ -68,6 +68,8 @@ After saving the environment variables, redeploy or restart the API service. Sto
 
 ### Seller workflow
 
+Identity-verification page: `/seller/verification.html`
+
 1. Sign in with a seller account.
 2. Complete the required seller profile fields and save the profile.
 3. Make sure the operator settings enable document-based verification. If verification is configured as not required, document uploads are not accepted.
