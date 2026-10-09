@@ -1,22 +1,181 @@
 async function api(path, options = {}) {
-  const response = await fetch(`/api${path}`, { credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+  const response = await fetch(`/api${path}`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) { const error = new Error(body?.error || 'request_failed'); error.status = response.status; error.body = body; throw error; }
+
+  if (!response.ok) {
+    const error = new Error(body?.error || 'request_failed');
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+
   return body;
 }
-const esc = (value) => String(value ?? '').replace(/[&<>\"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;' }[c]));
-const statuses = ['pending','under_review','approved','rejected','withdrawn'];
+
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
+
+const statuses = ['pending', 'under_review', 'approved', 'rejected', 'withdrawn'];
+
+function renderApplicationRows(applications) {
+  if (!applications.length) {
+    return '<tr><td colspan="5">No applications in this status.</td></tr>';
+  }
+
+  return applications.map((application) => {
+    const id = esc(application.id);
+    const actions = application.status === 'pending'
+      ? '<option value="start_review">Start review</option><option value="approve">Approve</option><option value="reject">Reject</option>'
+      : application.status === 'under_review'
+        ? '<option value="approve">Approve</option><option value="reject">Reject</option>'
+        : '';
+
+    return `
+      <tr>
+        <td>${esc(application.email)}<br><small>${esc(application.display_name)}</small></td>
+        <td>${esc(application.legal_name)}</td>
+        <td>${esc(application.country_code)}</td>
+        <td>${esc(application.message || '—')}</td>
+        <td>
+          <select data-action="${id}">
+            <option value="">Action…</option>
+            ${actions}
+          </select>
+          <input data-note="${id}" maxlength="1000" placeholder="Note (required for reject)">
+          <button class="button secondary application-action" data-id="${id}" type="button">Apply</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function bindActions(root) {
+  root.querySelectorAll('.application-action').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.id;
+      const action = root.querySelector(`select[data-action="${CSS.escape(id)}"]`)?.value;
+      const note = root.querySelector(`input[data-note="${CSS.escape(id)}"]`)?.value.trim() || null;
+      const message = root.querySelector('#seller-application-admin-message');
+
+      if (!action) {
+        message.textContent = 'Choose an action.';
+        return;
+      }
+
+      if (action === 'reject' && !note) {
+        message.textContent = 'A note is required for rejection.';
+        return;
+      }
+
+      button.disabled = true;
+      message.textContent = 'Updating…';
+
+      try {
+        await api(`/admin/seller-applications/${encodeURIComponent(id)}/review`, {
+          method: 'POST',
+          body: JSON.stringify({ action, note }),
+        });
+        await renderSellerApplications(root);
+      } catch (error) {
+        message.textContent = error.body?.error || 'Unable to update application.';
+        button.disabled = false;
+      }
+    });
+  });
+}
 
 export async function renderSellerApplications(root) {
-  root.innerHTML = '<section class="page-section"><div class="card"><p>Loading seller applications…</p></div></section>';
+  root.innerHTML = `
+    <section class="page-section">
+      <div class="card">
+        <p>Loading seller applications…</p>
+      </div>
+    </section>
+  `;
+
   try {
     const { applications = [] } = await api('/admin/seller-applications?status=pending');
-    root.innerHTML = `<section class="page-section"><div class="section-heading"><div><p class="eyebrow">Admin</p><h1>Seller applications</h1><p>Review creator applications before granting seller privileges.</p></div></div><div class="card"><div class="application-filters"><label>Status<select id="seller-application-status">${statuses.map((s) => `<option value="${s}" ${s === 'pending' ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div><div class="table-wrap"><table><thead><tr><th>Applicant</th><th>Legal name</th><th>Country</th><th>Message</th><th>Review</th></tr></thead><tbody>${applications.length ? applications.map((a) => `<tr><td>${esc(a.email)}<br><small>${esc(a.display_name)}</small></td><td>${esc(a.legal_name)}</td><td>${esc(a.country_code)}</td><td>${esc(a.message || '—')}</td><td><select data-action="${esc(a.id)}"><option value="">Action…</option>${a.status === 'pending' ? '<option value="start_review">Start review</option><option value="approve">Approve</option><option value="reject">Reject</option>' : a.status === 'under_review' ? '<option value="approve">Approve</option><option value="reject">Reject</option>' : ''}</select><input data-note="${esc(a.id)}" maxlength="1000" placeholder="Note (required for reject)"><button class="button secondary application-action" data-id="${esc(a.id)}" type="button">Apply</button></td></tr>`).join('') : '<tr><td colspan="5">No applications in this status.</td></tr>'}</tbody></table></div><p id="seller-application-admin-message" class="microcopy" aria-live="polite"></p></div></section>`;
-    const loadStatus = async (status) => { const data = await api(`/admin/seller-applications?status=${encodeURIComponent(status)}`); return data.applications || []; };
-    root.querySelector('#seller-application-status').addEventListener('change', async (event) => { const status = event.target.value; try { const list = await loadStatus(status); const rows = root.querySelector('tbody'); rows.innerHTML = list.length ? list.map((a) => `<tr><td>${esc(a.email)}<br><small>${esc(a.display_name)}</small></td><td>${esc(a.legal_name)}</td><td>${esc(a.country_code)}</td><td>${esc(a.message || '—')}</td><td><select data-action="${esc(a.id)}"><option value="">Action…</option>${a.status === 'pending' ? '<option value="start_review">Start review</option><option value="approve">Approve</option><option value="reject">Reject</option>' : a.status === 'under_review' ? '<option value="approve">Approve</option><option value="reject">Reject</option>' : ''}</select><input data-note="${esc(a.id)}" maxlength="1000" placeholder="Note (required for reject)"><button class="button secondary application-action" data-id="${esc(a.id)}" type="button">Apply</button></td></tr>`).join('') : '<tr><td colspan="5">No applications in this status.</td></tr>'; bindActions(); } catch (error) { root.querySelector('#seller-application-admin-message').textContent = error.body?.error || 'Unable to load applications.'; } });
-    function bindActions() { root.querySelectorAll('.application-action').forEach((button) => button.addEventListener('click', async () => { const id = button.dataset.id; const action = root.querySelector(`select[data-action="${CSS.escape(id)}"]`)?.value; const note = root.querySelector(`input[data-note="${CSS.escape(id)}"]`)?.value.trim() || null; const message = root.querySelector('#seller-application-admin-message'); if (!action) { message.textContent = 'Choose an action.'; return; } if (action === 'reject' && !note) { message.textContent = 'A note is required for rejection.'; return; } button.disabled = true; message.textContent = 'Updating…'; try { await api(`/admin/seller-applications/${encodeURIComponent(id)}/review`, { method: 'POST', body: JSON.stringify({ action, note }) }); await renderSellerApplications(root); } catch (error) { message.textContent = error.body?.error || 'Unable to update application.'; button.disabled = false; } })); }
-    bindActions();
-  } catch (error) { root.innerHTML = error.status === 401 || error.status === 403 ? '<section class="empty-state"><h2>Admin access required</h2><p>Your account does not have permission to review seller applications.</p></section>' : '<section class="empty-state"><h2>Seller applications unavailable</h2><p>Please try again shortly.</p></section>'; }
+    root.innerHTML = `
+      <section class="page-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Seller applications</h1>
+            <p>Review creator applications before granting seller privileges.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="application-filters">
+            <label>
+              Status
+              <select id="seller-application-status">
+                ${statuses.map((status) => `
+                  <option value="${status}" ${status === 'pending' ? 'selected' : ''}>${status}</option>
+                `).join('')}
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th>Legal name</th>
+                  <th>Country</th>
+                  <th>Message</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+              <tbody>${renderApplicationRows(applications)}</tbody>
+            </table>
+          </div>
+          <p id="seller-application-admin-message" class="microcopy" aria-live="polite"></p>
+        </div>
+      </section>
+    `;
+
+    const statusFilter = root.querySelector('#seller-application-status');
+    statusFilter.addEventListener('change', async (event) => {
+      const status = event.target.value;
+
+      try {
+        const data = await api(`/admin/seller-applications?status=${encodeURIComponent(status)}`);
+        root.querySelector('tbody').innerHTML = renderApplicationRows(data.applications || []);
+        bindActions(root);
+      } catch (error) {
+        root.querySelector('#seller-application-admin-message').textContent =
+          error.body?.error || 'Unable to load applications.';
+      }
+    });
+
+    bindActions(root);
+  } catch (error) {
+    root.innerHTML = error.status === 401 || error.status === 403
+      ? `
+        <section class="empty-state">
+          <h2>Admin access required</h2>
+          <p>Your account does not have permission to review seller applications.</p>
+        </section>
+      `
+      : `
+        <section class="empty-state">
+          <h2>Seller applications unavailable</h2>
+          <p>Please try again shortly.</p>
+        </section>
+      `;
+  }
 }
 
 
