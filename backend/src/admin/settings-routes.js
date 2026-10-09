@@ -6,14 +6,15 @@ import { requireRole } from '../auth/authorize.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
 
-const ALLOWED_METHODS = new Set(['none', 'document', 'email', 'email_and_document']);
+const ALLOWED_METHODS = new Set(['none', 'document']);
 
 router.get('/settings/seller-verification', async (_req, res, next) => {
   try {
     const result = await query(
       'SELECT setting_value->>\'value\' AS method FROM platform_settings WHERE setting_key = \'seller_verification_method\' LIMIT 1'
     );
-    const method = result.rows[0]?.method || 'document';
+    const configuredMethod = result.rows[0]?.method;
+    const method = ALLOWED_METHODS.has(configuredMethod) ? configuredMethod : 'document';
     return res.json({ method });
   } catch (error) {
     return next(error);
