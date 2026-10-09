@@ -34,7 +34,7 @@ jobs:
           PORT: 4173
         run: node scripts/ci-frontend-proxy.mjs > /tmp/video-marketplace-web.log 2>&1 &
       - name: Wait for frontend
-        run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:4173/index.html',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>30){clearInterval(t);process.exit(1)}},500)"
+        run: node -e "const http=require('http');let n=0;const t=setInterval(()=>{const r=http.get('http://127.0.0.1:4173/app/index.html',x=>{if(x.statusCode===200){clearInterval(t);process.exit(0)}});r.on('error',()=>{});if(++n>30){clearInterval(t);process.exit(1)}},500)"
       - name: Run Seller browser acceptance
         env:
           PLAYWRIGHT_EXTERNAL_SERVER: '1'
