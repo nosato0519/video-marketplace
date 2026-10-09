@@ -2,9 +2,9 @@ import { createLocalMediaStorage } from './local-media-storage.js';
 import { createMediaStorage } from './media-storage.js';
 import { createS3MediaStorage } from './s3-media-storage.js';
 
-function createUnavailableMediaStorage() {
+function createUnavailableMediaStorage(errorCode) {
   const unavailable = async () => {
-    throw Object.assign(new Error('media_storage_configuration_missing'), { statusCode: 503 });
+    throw Object.assign(new Error(errorCode), { statusCode: 503 });
   };
 
   return {
@@ -20,7 +20,10 @@ export function createConfiguredMediaStorage(env = process.env) {
 
   if (provider === 'local') {
     if (env.NODE_ENV === 'production') {
-      return createUnavailableMediaStorage();
+      return createUnavailableMediaStorage('media_storage_local_forbidden_in_production');
+    }
+    if (!env.MEDIA_STORAGE_DIR?.trim()) {
+      return createUnavailableMediaStorage('media_storage_dir_missing');
     }
     const storage = createLocalMediaStorage({ rootDir: env.MEDIA_STORAGE_DIR });
     return createMediaStorage({
@@ -32,9 +35,17 @@ export function createConfiguredMediaStorage(env = process.env) {
   }
 
   if (provider === 's3') {
-    if (!env.MEDIA_S3_BUCKET || !env.MEDIA_S3_REGION || !env.MEDIA_S3_ACCESS_KEY_ID || !env.MEDIA_S3_SECRET_ACCESS_KEY) {
-      return createUnavailableMediaStorage();
+    const missing = [
+      ['MEDIA_S3_BUCKET', env.MEDIA_S3_BUCKET],
+      ['MEDIA_S3_REGION', env.MEDIA_S3_REGION],
+      ['MEDIA_S3_ACCESS_KEY_ID', env.MEDIA_S3_ACCESS_KEY_ID],
+      ['MEDIA_S3_SECRET_ACCESS_KEY', env.MEDIA_S3_SECRET_ACCESS_KEY],
+    ].filter(([, value]) => !value?.trim()).map(([name]) => name);
+
+    if (missing.length) {
+      return createUnavailableMediaStorage(`media_s3_configuration_missing:${missing.join(',')}`);
     }
+
     const storage = createS3MediaStorage({
       bucket: env.MEDIA_S3_BUCKET,
       region: env.MEDIA_S3_REGION,
@@ -50,5 +61,5 @@ export function createConfiguredMediaStorage(env = process.env) {
     });
   }
 
-  return createUnavailableMediaStorage();
+  return createUnavailableMediaStorage('media_storage_provider_unsupported');
 }
