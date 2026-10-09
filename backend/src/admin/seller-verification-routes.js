@@ -23,6 +23,7 @@ async function audit(db, actor, action, resourceId, metadata) {
 }
 
 router.get('/seller-verifications', async (req, res, next) => {
+  res.set('Cache-Control', 'private, no-store');
   try {
     const status = String(req.query.status || 'submitted').trim();
     const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
