@@ -15,13 +15,18 @@ test('configured media stream wiring uses the local provider explicitly', () => 
   assert.ok(app.router);
 });
 
-test('configured media stream wiring rejects an unknown provider', () => {
+test('configured media stream wiring fails closed for an unknown provider', async () => {
   const app = express();
-  assert.throws(
-    () => registerConfiguredMediaStreamRoutes(app, {
-      MEDIA_STORAGE_PROVIDER: 'unknown',
-      MEDIA_STORAGE_DIR: '/tmp/video-marketplace-media',
-    }),
-    /media_storage_provider_unsupported/
+  const storage = registerConfiguredMediaStreamRoutes(app, {
+    MEDIA_STORAGE_PROVIDER: 'unknown',
+    MEDIA_STORAGE_DIR: '/tmp/video-marketplace-media',
+  });
+
+  await assert.rejects(
+    storage.putStream({ storageKey: 'test-object', stream: null }),
+    {
+      message: 'media_storage_provider_unsupported',
+      statusCode: 503,
+    }
   );
 });
