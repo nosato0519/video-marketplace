@@ -101,6 +101,7 @@ export function createApp() {
   app.use('/seller', express.static(path.join(publicRoot, 'seller')));
   app.use('/app', express.static(path.join(publicRoot, 'app')));
   app.use('/shared', express.static(path.join(publicRoot, 'shared')));
+  app.use('/locales', express.static(path.join(publicRoot, 'locales')));
 
   app.use((error, _req, res, _next) => {
     console.error(error);
