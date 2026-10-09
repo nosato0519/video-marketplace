@@ -117,11 +117,15 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
         const method = setting.rows[0]?.method;
         const email = recipient.rows[0]?.email;
         const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
-        if (method !== 'none' && email && baseUrl) {
-          await sendSellerVerificationInstructionsEmail({
-            email,
-            verificationUrl: baseUrl + '/seller/verification.html',
-          });
+        if (method !== 'none') {
+          if (!email || !baseUrl) {
+            console.error('Seller verification email skipped: recipient email or APP_BASE_URL is missing');
+          } else {
+            await sendSellerVerificationInstructionsEmail({
+              email,
+              verificationUrl: baseUrl + '/seller/verification.html',
+            });
+          }
         }
       } catch (error) {
         console.error('Seller approval completed but verification email could not be sent', error);
