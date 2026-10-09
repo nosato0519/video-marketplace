@@ -2,9 +2,9 @@ name: Browser UI Acceptance
 
 on:
   push:
-    branches: [main, feat/buyer-browser-e2e]
+    branches: [main, feat/buyer-browser-e2e, production/top-clean]
   pull_request:
-    branches: [main]
+    branches: [main, production/top-clean]
   workflow_dispatch:
 
 concurrency:
