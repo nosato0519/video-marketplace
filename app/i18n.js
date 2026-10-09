@@ -15,8 +15,6 @@ async function load(locale) {
   return messages[locale];
 }
 
-// Synchronous access is intentionally limited to strings loaded during bootstrap.
-// The application will replace this with a production i18n loader as the build system is introduced.
 const fallback = {
   'nav.discover': 'Discover',
   'nav.categories': 'Categories',
@@ -31,15 +29,24 @@ const fallback = {
   'hero.creator': 'Become a creator'
 };
 
-// The shell currently uses fallback strings for first paint and loads the full locale in the background.
 load(currentLocale).catch(() => {});
 
-export function getLocale() { return currentLocale; }
+export function getLocale() {
+  return currentLocale;
+}
 
-export function setLocale(locale) {
-  if (!supportedLocales.includes(locale)) return;
+export async function setLocale(locale) {
+  if (!supportedLocales.includes(locale)) return false;
+
+  try {
+    await load(locale);
+  } catch {
+    return false;
+  }
+
   currentLocale = locale;
   localStorage.setItem('vm_locale', locale);
+  return true;
 }
 
 export function t(key) {
