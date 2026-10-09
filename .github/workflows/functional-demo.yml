@@ -2,7 +2,7 @@ name: Functional Demo
 
 on:
   push:
-    branches: [main, production/top-clean]
+    branches: [main]
   pull_request:
 
 jobs:
