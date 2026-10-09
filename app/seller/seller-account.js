@@ -65,8 +65,14 @@ async function loadSellerProfile() {
   const emailStatus = document.querySelector('#verification-email-status');
   const documentSection = document.querySelector('#verification-document-section');
 
-  if (emailSection) emailSection.hidden = !['email', 'email_and_document'].includes(verificationMethod);
-  if (documentSection) documentSection.hidden = !['document', 'email_and_document'].includes(verificationMethod);
+  if (emailSection) {
+    emailSection.hidden = !['email', 'email_and_document'].includes(verificationMethod);
+    emailSection.style.display = emailSection.hidden ? 'none' : '';
+  }
+  if (documentSection) {
+    documentSection.hidden = !['document', 'email_and_document'].includes(verificationMethod);
+    documentSection.style.display = documentSection.hidden ? 'none' : '';
+  }
   if (emailAddress) emailAddress.textContent = profile.email ? `確認先：${profile.email}` : '登録メールアドレスを確認してください。';
   if (emailStatus) emailStatus.textContent = profile.email_verified_at ? 'メールアドレス確認済みです。' : '未確認です。';
   const payoutNote = document.querySelector('#verification-payout-note');
