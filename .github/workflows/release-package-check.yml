@@ -2,7 +2,7 @@ name: Release Package Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, production/top-clean]
   pull_request:
 
 permissions:
