@@ -201,24 +201,51 @@ router.post('/profile/verification-document', async (req, res, next) => {
 
 router.post('/profile/submit-verification', async (req, res, next) => {
   try {
-    const existing = await query(`SELECT display_name, legal_name, country_code, verification_status FROM seller_profiles WHERE user_id = $1`, [req.user.id]);
-    const profile = existing.rows[0];
-    if (!profile?.display_name || !profile.legal_name || !profile.country_code) return res.status(400).json({ error: 'complete_seller_profile_first' });
     const verificationMethod = await getSellerVerificationMethod();
     if (verificationMethod === 'none') return res.status(409).json({ error: 'seller_verification_not_required' });
-    if (profile.verification_status === 'verified') return res.status(409).json({ error: 'seller_already_verified' });
-    const document = await query(`SELECT id, status FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
-    if (!document.rowCount || document.rows[0].status !== 'uploaded') return res.status(400).json({ error: 'verification_document_required' });
-    if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') return res.status(409).json({ error: 'verification_already_submitted' });
 
-    const result = await query(
-      `UPDATE seller_profiles
-          SET verification_status = 'submitted', submitted_at = NOW(), verification_note = NULL, updated_at = NOW()
-        WHERE user_id = $1
-      RETURNING user_id, display_name, legal_name, country_code, verification_status, submitted_at, verified_at`,
-      [req.user.id]
-    );
-    return res.json({ profile: result.rows[0] });
+    const result = await withTransaction(async (db) => {
+      const existing = await db.query(
+        `SELECT display_name, legal_name, country_code, verification_status
+           FROM seller_profiles WHERE user_id = $1 FOR UPDATE`,
+        [req.user.id]
+      );
+      const profile = existing.rows[0];
+      if (!profile?.display_name || !profile.legal_name || !profile.country_code) {
+        return { kind: 'profile_incomplete' };
+      }
+      if (profile.verification_status === 'verified') return { kind: 'already_verified' };
+      if (profile.verification_status === 'submitted' || profile.verification_status === 'under_review') {
+        return { kind: 'already_submitted' };
+      }
+      if (!['not_started', 'request_changes', 'rejected'].includes(profile.verification_status)) {
+        return { kind: 'invalid_status' };
+      }
+
+      const document = await db.query(
+        `SELECT id, status FROM seller_verification_documents WHERE user_id = $1 FOR UPDATE`,
+        [req.user.id]
+      );
+      if (!document.rowCount || document.rows[0].status !== 'uploaded') {
+        return { kind: 'document_required' };
+      }
+
+      const updated = await db.query(
+        `UPDATE seller_profiles
+            SET verification_status = 'submitted', submitted_at = NOW(), verification_note = NULL, updated_at = NOW()
+          WHERE user_id = $1
+        RETURNING user_id, display_name, legal_name, country_code, verification_status, submitted_at, verified_at`,
+        [req.user.id]
+      );
+      return { kind: 'ok', profile: updated.rows[0] };
+    });
+
+    if (result.kind === 'profile_incomplete') return res.status(400).json({ error: 'complete_seller_profile_first' });
+    if (result.kind === 'already_verified') return res.status(409).json({ error: 'seller_already_verified' });
+    if (result.kind === 'already_submitted') return res.status(409).json({ error: 'verification_already_submitted' });
+    if (result.kind === 'invalid_status') return res.status(409).json({ error: 'invalid_verification_status' });
+    if (result.kind === 'document_required') return res.status(400).json({ error: 'verification_document_required' });
+    return res.json({ profile: result.profile });
   } catch (error) { return next(error); }
 });
 
