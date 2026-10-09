@@ -120,8 +120,13 @@ async function loadVerificationDocument() {
     const response = await request('/api/seller/profile/verification-document');
     const verificationDocument = response.document;
     const verificationStatus = response.verificationStatus || verificationDocument?.seller_verification_status;
+    const documentStatusLabel = verificationStatus === 'verified'
+      ? '本人確認済み'
+      : ['submitted', 'under_review'].includes(verificationStatus)
+        ? '申請済み'
+        : '書類アップロード済み';
     status.textContent = verificationDocument
-      ? `提出済み：${verificationDocument.original_filename}`
+      ? `${documentStatusLabel}：${verificationDocument.original_filename}`
       : '本人確認書類は未提出です。';
     const locked = ['submitted', 'under_review', 'verified'].includes(verificationStatus);
     input.disabled = locked;
