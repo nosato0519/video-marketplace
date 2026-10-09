@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import crypto from 'node:crypto';
@@ -152,10 +152,47 @@ router.post('/profile/verification-document', async (req, res, next) => {
     for await (const chunk of inspected.stream) chunks.push(chunk);
     if (!signatureMatches(mime, Buffer.concat(chunks))) throw Object.assign(new Error('invalid_verification_document'), { statusCode: 415 });
 
-    const previous = await query(`SELECT storage_key FROM seller_verification_documents WHERE user_id = $1`, [req.user.id]);
-    const result = await query(`INSERT INTO seller_verification_documents (id, user_id, storage_key, original_filename, mime_type, byte_size) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (user_id) DO UPDATE SET storage_key=EXCLUDED.storage_key, original_filename=EXCLUDED.original_filename, mime_type=EXCLUDED.mime_type, byte_size=EXCLUDED.byte_size, status='uploaded', updated_at=NOW() RETURNING id, original_filename, mime_type, byte_size, status, created_at, updated_at`, [id, req.user.id, storageKey, filename, mime, bytes]);
-    if (previous.rows[0]?.storage_key && previous.rows[0].storage_key !== storageKey) await verificationStorage.deleteObject({ storageKey: previous.rows[0].storage_key }).catch(() => {});
-    return res.status(201).json({ document: result.rows[0] });
+    const saved = await withTransaction(async (db) => {
+      const lockedProfile = await db.query(
+        `SELECT verification_status FROM seller_profiles WHERE user_id = $1 FOR UPDATE`,
+        [req.user.id]
+      );
+      const currentStatus = lockedProfile.rows[0]?.verification_status;
+      if (!lockedProfile.rowCount) return { kind: 'profile_required' };
+      if (!['not_started', 'request_changes', 'rejected'].includes(currentStatus)) {
+        return { kind: 'locked' };
+      }
+
+      const previous = await db.query(
+        `SELECT storage_key FROM seller_verification_documents WHERE user_id = $1 FOR UPDATE`,
+        [req.user.id]
+      );
+      const result = await db.query(
+        `INSERT INTO seller_verification_documents (id, user_id, storage_key, original_filename, mime_type, byte_size)
+         VALUES ($1,$2,$3,$4,$5,$6)
+         ON CONFLICT (user_id) DO UPDATE SET
+           storage_key=EXCLUDED.storage_key,
+           original_filename=EXCLUDED.original_filename,
+           mime_type=EXCLUDED.mime_type,
+           byte_size=EXCLUDED.byte_size,
+           status='uploaded',
+           updated_at=NOW()
+         RETURNING id, original_filename, mime_type, byte_size, status, created_at, updated_at`,
+        [id, req.user.id, storageKey, filename, mime, bytes]
+      );
+      return { kind: 'ok', document: result.rows[0], previousStorageKey: previous.rows[0]?.storage_key || null };
+    });
+    if (saved.kind !== 'ok') {
+      await verificationStorage.deleteObject({ storageKey }).catch(() => {});
+      uploadedStorageKey = null;
+      if (saved.kind === 'profile_required') return res.status(400).json({ error: 'seller_profile_required' });
+      return res.status(409).json({ error: 'verification_document_locked' });
+    }
+    uploadedStorageKey = null;
+    if (saved.previousStorageKey && saved.previousStorageKey !== storageKey) {
+      await verificationStorage.deleteObject({ storageKey: saved.previousStorageKey }).catch(() => {});
+    }
+    return res.status(201).json({ document: saved.document });
   } catch (error) {
     if (uploadedStorageKey) await verificationStorage.deleteObject({ storageKey: uploadedStorageKey }).catch(() => {});
     return next(error);
