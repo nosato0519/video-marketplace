@@ -26,7 +26,7 @@ router.put('/settings/seller-verification', async (req, res, next) => {
     if (!ALLOWED_METHODS.has(method)) return res.status(400).json({ error: 'invalid_seller_verification_method' });
     const result = await query(
       `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
-       VALUES ('seller_verification_method', jsonb_build_object('value', $1), NOW())
+       VALUES ('seller_verification_method', jsonb_build_object('value', $1::text), NOW())
        ON CONFLICT (setting_key)
        DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
        RETURNING setting_value->>'value' AS method`,
