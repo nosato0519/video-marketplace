@@ -59,11 +59,30 @@ async function loadSellerProfile() {
   const verificationStatus = document.querySelector('#verification-status');
   const verificationAction = document.querySelector('#verification-submit');
   const verificationNote = document.querySelector('#verification-note');
-  const verificationMethod = profile.verification_method || 'document';
+  const verificationMethod = ['none', 'document', 'email', 'email_and_document'].includes(profile.verification_method)
+    ? profile.verification_method
+    : 'document';
   const emailSection = document.querySelector('#verification-email-section');
   const emailAddress = document.querySelector('#verification-email-address');
   const emailStatus = document.querySelector('#verification-email-status');
   const documentSection = document.querySelector('#verification-document-section');
+  const verificationStatusSection = verificationStatus?.closest('.buyer-section');
+  const verificationApplicationSection = verificationAction?.closest('.buyer-section');
+  const payoutSection = document.querySelector('#verification-payout-note')?.closest('.buyer-section');
+  const isVerificationRequired = verificationMethod !== 'none';
+
+  for (const section of [verificationStatusSection, verificationApplicationSection, payoutSection]) {
+    if (section) {
+      section.hidden = !isVerificationRequired;
+      section.style.display = section.hidden ? 'none' : '';
+    }
+  }
+
+  const profileVerificationLink = document.querySelector('.seller-profile-save-action');
+  if (profileVerificationLink && !verificationAction) {
+    profileVerificationLink.hidden = !isVerificationRequired;
+    profileVerificationLink.style.display = profileVerificationLink.hidden ? 'none' : '';
+  }
 
   if (emailSection) {
     emailSection.hidden = !['email', 'email_and_document'].includes(verificationMethod);
@@ -77,13 +96,12 @@ async function loadSellerProfile() {
   if (emailStatus) emailStatus.textContent = profile.email_verified_at ? 'メールアドレス確認済みです。' : '未確認です。';
   const payoutNote = document.querySelector('#verification-payout-note');
   if (payoutNote) {
-    payoutNote.textContent = verificationMethod === 'none'
-      ? '本人確認は不要です。販売者マイページから出金申請を行えます。'
-      : verificationMethod === 'email'
-        ? 'メールアドレス確認が完了すると、販売者マイページから出金申請を行えます。'
-        : verificationMethod === 'email_and_document'
-          ? 'メールアドレス確認と本人確認書類の承認が完了すると、販売者マイページから出金申請を行えます。'
-          : '本人確認書類の運営者承認が完了すると、販売者マイページから出金申請を行えます。';
+    payoutNote.textContent = verificationMethod === 'email'
+      ? 'メールアドレス確認が完了すると、販売者マイページから出金申請を行えます。'
+      : verificationMethod === 'email_and_document'
+        ? 'メールアドレス確認と本人確認書類の承認が完了すると、販売者マイページから出金申請を行えます。'
+        : '本人確認書類の運営者承認が完了すると、販売者マイページから出金申請を行えます。';
+  }
 
   if (verificationStatus) {
     verificationStatus.textContent = verificationLabels[profile.verification_status] || '未申請';
@@ -92,8 +110,12 @@ async function loadSellerProfile() {
     verificationNote.textContent = profile.verification_note || '販売者登録後、本人確認の申請を行ってください。';
   }
   if (verificationAction) {
-    const canSubmit = ['document', 'email_and_document'].includes(verificationMethod)
-      && ['not_started', 'request_changes', 'rejected'].includes(profile.verification_status);
+    const eligibleStatus = ['not_started', 'request_changes', 'rejected'].includes(profile.verification_status);
+    const canSubmit = eligibleStatus && (
+      verificationMethod === 'document'
+      || verificationMethod === 'email_and_document'
+      || (verificationMethod === 'email' && Boolean(profile.email_verified_at))
+    );
     verificationAction.hidden = !canSubmit;
     verificationAction.disabled = true;
     verificationAction.textContent = profile.verification_status === 'rejected'
