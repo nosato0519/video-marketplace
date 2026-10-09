@@ -28,10 +28,8 @@
 </header>
 <p class="preview-note">販売者登録申請と本人確認の実データを確認・審査できます。</p>
 <section class="queue" aria-label="審査状況">
-  <a class="queue-card" href="#applications" data-open-tab="applications"><span>販売者申請</span><strong>12 <em>審査待ち</em></strong></a>
-  <a class="queue-card" href="#verification" data-open-tab="verification"><span>本人確認</span><strong>8 <em>要確認</em></strong></a>
-  <div class="queue-card"><span>審査中</span><strong id="reviewing-count">3 <em>件</em></strong></div>
-  <div class="queue-card"><span>今月の承認</span><strong>18 <em>件</em></strong></div>
+  <a class="queue-card" href="#applications" data-open-tab="applications"><span>販売者申請</span><strong>一覧を確認</strong></a>
+  <a class="queue-card" href="#verification" data-open-tab="verification"><span>本人確認</span><strong>一覧を確認</strong></a>
 </section>
 <section class="section" id="applications">
   <div class="section-head"><div><h2>販売者登録申請</h2><p>登録申請の審査状況と申請内容</p></div><span class="muted">実データ</span></div>
@@ -42,10 +40,7 @@
     <span id="application-count" class="muted">4件</span>
   </div>
   <div class="panel admin-table-scroll"><table class="table" id="application-table"><thead><tr><th>申請者</th><th>登録情報</th><th>申請日</th><th>状態</th><th>操作</th></tr></thead><tbody>
-    <tr data-status="審査待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP<br>申請メッセージ：映像作品を販売予定</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="審査中"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP<br>申請メッセージ：ブランド映像を登録予定</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="審査待ち"><td><strong>Northlight Works</strong><small>northlight@example.com</small></td><td>法的氏名：非表示サンプル<br>国：US<br>申請メッセージ：自然映像を販売予定</td><td>2026.09.30</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="承認済み"><td><strong>Studio M</strong><small>studio-m@example.com</small></td><td>法的氏名：非表示サンプル<br>国：JP</td><td>2026.09.27</td><td><span class="tag ok">承認済み</span></td><td><span class="muted">処理済み</span></td></tr>
+    <tr><td colspan="5">申請データを読み込んでいます…</td></tr>
   </tbody></table></div>
 </section>
 <section class="section" id="verification">
@@ -57,10 +52,7 @@
     <span id="verification-count" class="muted">4件</span>
   </div>
   <div class="panel admin-table-scroll"><table class="table" id="verification-table"><thead><tr><th>販売者</th><th>本人確認情報</th><th>申請日</th><th>確認状況</th><th>操作</th></tr></thead><tbody>
-    <tr data-status="確認待ち"><td><strong>Aki Studio</strong><small>aki@example.com</small></td><td>日本</td><td>2026.10.02</td><td><span class="tag warn">確認待ち</span></td><td><button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
-    <tr data-status="審査中"><td><strong>KEN FILMS</strong><small>ken@example.com</small></td><td>日本</td><td>2026.10.01</td><td><span class="tag warn">審査中</span></td><td><button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button></td></tr>
-    <tr data-status="差し戻し"><td><strong>FRAME LAB</strong><small>frame@example.com</small></td><td>日本</td><td>2026.09.28</td><td><span class="tag warn">差し戻し</span></td><td><button class="btn small" data-action="resubmit">再提出済みにする</button></td></tr>
-    <tr data-status="確認済み"><td><strong>NORTH COAST</strong><small>north@example.com</small></td><td>日本</td><td>2026.09.20</td><td><span class="tag ok">確認済み</span></td><td><span class="muted">処理済み</span></td></tr>
+    <tr><td colspan="5">本人確認データを読み込んでいます…</td></tr>
   </tbody></table></div>
 </section>
 <footer class="footer">ADMIN ACCESS　•　SELLER REVIEW</footer>
