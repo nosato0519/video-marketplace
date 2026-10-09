@@ -63,7 +63,7 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-showcase\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
-  html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
+  html = html.replace(/href=["']#guide["']/gi, 'href="#system"');
   return repairHomepageMarkup(html)
     .replace('</head>', STYLE + '</head>')
     .replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
