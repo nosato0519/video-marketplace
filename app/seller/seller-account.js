@@ -124,16 +124,22 @@ async function loadVerificationDocument() {
       ? '本人確認済み'
       : ['submitted', 'under_review'].includes(verificationStatus)
         ? '申請済み'
-        : '書類アップロード済み';
+        : verificationDocument?.status === 'rejected'
+          ? '書類の再提出が必要です'
+          : '書類アップロード済み';
     status.textContent = verificationDocument
       ? `${documentStatusLabel}：${verificationDocument.original_filename}`
       : '本人確認書類は未提出です。';
+    if (verificationDocument?.status === 'rejected') {
+      status.textContent += '（新しい書類をアップロードしてください）';
+    }
     const locked = ['submitted', 'under_review', 'verified'].includes(verificationStatus);
     input.disabled = locked;
     uploadButton.disabled = locked;
 
     if (verificationButton) {
       const canSubmit = !!verificationDocument &&
+        verificationDocument.status === 'uploaded' &&
         ['not_started', 'request_changes', 'rejected'].includes(verificationStatus);
       verificationButton.disabled = !canSubmit || verificationButton.hidden;
     }
