@@ -77,7 +77,7 @@ verificationForm?.addEventListener('submit', async (event) => {
     if (!response.ok) {
       const detail = typeof data.error === 'string'
         ? data.error
-        : data.error?.message || data.error?.code;
+        : [data.error?.message, data.error?.diagnosticCode, data.error?.code].filter(Boolean).join(' / ');
       throw new Error(detail || `HTTP ${response.status}`);
     }
     verificationMethod.value = data.method || verificationMethod.value;
