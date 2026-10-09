@@ -27,6 +27,11 @@
 - Do not add temporary files, duplicate implementations, or new folders.
 - No tests or live deployment checks were run as part of this cleanup. Do not infer runtime correctness from file-tree review alone.
 
-## Current status and next step
+## Current cleanup result — 2026-10-09
 
-The cleanup pass is complete for the items that could be safely confirmed within the agreed scope. No further file deletions are justified by the current review. This is not a claim that every source file has undergone a full quality audit or that every feature has passed end-to-end verification.
+- Removed three exact duplicate CSS blocks from `styles.css`, preserving the original copy and unique override rules (commit `3c47452d234b223721f67c7fcdeea3498efa6a17`).
+- Removed trailing whitespace from `index.html` only; markup and content are unchanged.
+- Reviewed the repository tree: 717 tracked files and no identical blob-content duplicates. No further file deletion was justified by the agreed-scope review.
+- `app/`, `backend/`, `demo/`, the root `Dockerfile`, and feature behavior were not changed in this cleanup pass.
+
+The scoped repository cleanup pass is complete. No runtime tests or live deployment checks were run; this note does not mark those release gates as passed.
