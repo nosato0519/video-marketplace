@@ -150,7 +150,10 @@ async function loadVerificationDocument() {
       const canSubmit = ['not_started', 'request_changes', 'rejected'].includes(
         verificationDocument?.seller_verification_status
       );
-      verificationButton.disabled = method === 'email' ? true : !verificationDocument || !canSubmit;
+      const emailVerified = document.querySelector('#verification-email-status')?.textContent === 'メールアドレス確認済みです。';
+      verificationButton.disabled = method === 'email'
+        ? !emailVerified || verificationButton.hidden
+        : !verificationDocument || !canSubmit || (method === 'email_and_document' && !emailVerified);
     }
   } catch (error) {
     status.textContent = '本人確認書類の状態を取得できませんでした。';
