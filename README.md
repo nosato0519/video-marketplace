@@ -19,6 +19,7 @@ VIDEO MARKETPLACE is built around a complete marketplace journey rather than a s
 - `demo/` — polished, self-contained commercial showcase demo
 - `.github/workflows/` — regression CI
 - `COMMERCIAL_PACKAGE.md` — commercial deployment and customer hand-off guide
+- `CUSTOMER_SETUP_GUIDE.md` / `CUSTOMER_SETUP_GUIDE.en.md` — buyer setup guides in Japanese and English
 - `SALES_PACKAGE.md` — feature inventory, positioning, customization and production requirements
 - `SALES_DEMO_SCRIPT.md` — five-minute buyer demonstration flow
 - `LICENSE.md` — commercial license terms
@@ -102,7 +103,7 @@ A browser return URL is not sufficient to grant media access; verified payment s
 
 ## Commercial deployment
 
-See `CUSTOMER_SETUP_GUIDE.md` for the step-by-step buyer installation guide, including production storage and seller identity-verification setup and acceptance checks.
+See `CUSTOMER_SETUP_GUIDE.md` (Japanese) or `CUSTOMER_SETUP_GUIDE.en.md` (English) for the step-by-step buyer installation guide, including production storage and seller identity-verification setup and acceptance checks.
 
 See `COMMERCIAL_PACKAGE.md` for the commercial deployment requirements, customer hand-off process, production configuration, and final release checklist.
 
