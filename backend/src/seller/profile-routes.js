@@ -132,6 +132,7 @@ router.patch('/profile', async (req, res, next) => {
 });
 
 router.get('/profile/verification-document', async (req, res, next) => {
+  res.set('Cache-Control', 'private, no-store');
   try {
     const result = await query(
       `SELECT sp.verification_status AS seller_verification_status,
