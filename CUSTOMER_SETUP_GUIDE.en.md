@@ -78,6 +78,8 @@ Identity-verification page: `/seller/verification.html`
 
 ### Operator workflow
 
+Identity-verification review page: `/pages/admin-seller-review.html`
+
 1. Sign in with an operator account.
 2. Open the seller identity-verification list and select a submitted application.
 3. View the document and compare it with the seller's submitted information.
