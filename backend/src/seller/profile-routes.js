@@ -42,8 +42,7 @@ router.get('/profile', async (req, res, next) => {
     const result = await query(
       `SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone,
               sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, sp.created_at, sp.updated_at,
-              u.email, u.email_verified_at,
-              COALESCE(ps.setting_value->>'value', 'document') AS verification_method
+              CASE WHEN ps.setting_value->>'value' = 'none' THEN 'none' ELSE 'document' END AS verification_method
          FROM seller_profiles sp
          JOIN users u ON u.id = sp.user_id
          LEFT JOIN platform_settings ps ON ps.setting_key = 'seller_verification_method'
@@ -64,8 +63,6 @@ router.get('/profile', async (req, res, next) => {
         verification_note: null,
         submitted_at: null,
         verified_at: null,
-        email: req.user.email,
-        email_verified_at: null,
         verification_method: await getSellerVerificationMethod()
       }});
     }
