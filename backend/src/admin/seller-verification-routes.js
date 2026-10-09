@@ -1,5 +1,6 @@
 import express from 'express';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
@@ -49,7 +50,16 @@ router.get('/seller-verifications/:userId/document', async (req, res, next) => {
     const stream = typeof object.stream.pipe === 'function'
       ? object.stream
       : Readable.fromWeb(object.stream);
-    return stream.pipe(res);
+    try {
+      await pipeline(stream, res);
+    } catch (streamError) {
+      if (res.headersSent) {
+        res.destroy(streamError);
+        return;
+      }
+      throw streamError;
+    }
+    return;
   } catch (error) { return next(error); }
 });
 
