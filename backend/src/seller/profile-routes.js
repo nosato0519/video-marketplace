@@ -133,8 +133,29 @@ router.patch('/profile', async (req, res, next) => {
 
 router.get('/profile/verification-document', async (req, res, next) => {
   try {
-    const result = await query(`SELECT d.id, d.original_filename, d.mime_type, d.byte_size, d.status, d.created_at, d.updated_at, sp.verification_status AS seller_verification_status FROM seller_verification_documents d JOIN seller_profiles sp ON sp.user_id = d.user_id WHERE d.user_id = $1`, [req.user.id]);
-    return res.json({ document: result.rows[0] || null });
+    const result = await query(
+      `SELECT sp.verification_status AS seller_verification_status,
+              d.id, d.original_filename, d.mime_type, d.byte_size, d.status, d.created_at, d.updated_at
+         FROM seller_profiles sp
+         LEFT JOIN seller_verification_documents d ON d.user_id = sp.user_id
+        WHERE sp.user_id = $1`,
+      [req.user.id]
+    );
+    const row = result.rows[0];
+    const document = row?.id ? {
+      id: row.id,
+      original_filename: row.original_filename,
+      mime_type: row.mime_type,
+      byte_size: row.byte_size,
+      status: row.status,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      seller_verification_status: row.seller_verification_status
+    } : null;
+    return res.json({
+      document,
+      verificationStatus: row?.seller_verification_status || null
+    });
   } catch (error) { return next(error); }
 });
 
