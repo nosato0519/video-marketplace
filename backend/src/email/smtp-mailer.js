@@ -66,7 +66,7 @@ export async function sendSellerVerificationInstructionsEmail({ email, verificat
       verificationUrl,
       '',
       'このメールに心当たりがない場合は、運営者へお問い合わせください。',
-    ].join('\\n'),
+    ].join('\n'),
     html: [
       '<p>VIDEO MARKETPLACEの販売者登録が承認されました。</p>',
       '<p>売上の出金申請を利用するには、本人確認書類の提出と運営者の承認が必要です。</p>',
