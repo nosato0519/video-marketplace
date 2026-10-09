@@ -27,6 +27,8 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
   "'": '&#39;',
 }[char]));
 
+const esc = escapeHtml;
+
 function renderSellerRows(sellers) {
   if (!sellers.length) {
     return '<tr><td colspan="5">No submitted seller verifications.</td></tr>';
