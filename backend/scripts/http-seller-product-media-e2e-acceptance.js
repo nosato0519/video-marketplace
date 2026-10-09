@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { createServer } from 'node:http';
-import { getPool } from '../src/db.js';
-import { createApp } from '../src/app.js';
-import { createSessionToken, hashSessionToken, sessionExpiry } from '../src/auth/session.js';
-
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
+
+const { getPool } = await import('../src/db.js');
+const { createApp } = await import('../src/app.js');
+const { createSessionToken, hashSessionToken, sessionExpiry } = await import('../src/auth/session.js');
 
 const pool = getPool();
 const server = createServer(createApp());
