@@ -50,3 +50,28 @@ export async function sendSellerVerificationEmail({ email, verificationUrl }, en
     ].join(''),
   });
 }
+
+
+export async function sendSellerVerificationInstructionsEmail({ email, verificationUrl }, env = process.env) {
+  const { transporter, from } = createTransport(env);
+  await transporter.sendMail({
+    from,
+    to: email,
+    subject: '販売者登録の承認と本人確認書類の提出について | VIDEO MARKETPLACE',
+    text: [
+      'VIDEO MARKETPLACEの販売者登録が承認されました。',
+      '',
+      '売上の出金申請を利用するには、本人確認書類の提出と運営者の承認が必要です。',
+      '販売者アカウントにログインし、以下のページから本人確認書類を提出してください。',
+      verificationUrl,
+      '',
+      'このメールに心当たりがない場合は、運営者へお問い合わせください。',
+    ].join('\\n'),
+    html: [
+      '<p>VIDEO MARKETPLACEの販売者登録が承認されました。</p>',
+      '<p>売上の出金申請を利用するには、本人確認書類の提出と運営者の承認が必要です。</p>',
+      '<p><a href="' + verificationUrl + '">本人確認書類を提出する</a></p>',
+      '<p>このメールに心当たりがない場合は、運営者へお問い合わせください。</p>',
+    ].join(''),
+  });
+}
