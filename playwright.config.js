@@ -18,7 +18,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     ...devices['Desktop Chrome'],
   },
-  ...(showcaseNavigation ? {} : {
+  ...(showcaseNavigation || process.env.PLAYWRIGHT_EXTERNAL_SERVER === '1' ? {} : {
     webServer: {
       command: 'node tests/browser-server.js',
       url: 'http://127.0.0.1:4173/app/index.html',
