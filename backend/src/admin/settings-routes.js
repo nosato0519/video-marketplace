@@ -34,7 +34,13 @@ router.put('/settings/seller-verification', async (req, res, next) => {
     );
     return res.json({ method: result.rows[0].method });
   } catch (error) {
-    return next(error);
+    console.error('Saving seller verification setting failed', error);
+    return res.status(500).json({
+      error: {
+        code: 'SELLER_VERIFICATION_SETTINGS_SAVE_FAILED',
+        diagnosticCode: typeof error?.code === 'string' ? error.code : 'UNKNOWN',
+      },
+    });
   }
 });
 
