@@ -201,14 +201,30 @@ export function bindSellerApplicationReviewPage() {
       const row = document.createElement('tr');
       row.dataset.status = statusLabel[item.status] || item.status;
       row.dataset.id = item.id;
-      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
-        + '<td>法的氏名：' + esc(item.legal_name) + '<br>国：' + esc(item.country_code) + '<br>申請メッセージ：' + esc(item.message || '') + '</td>'
-        + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
-        + '<td><span class="tag ' + (item.status === 'approved' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.status] || item.status) + '</span></td>'
-        + '<td>'
-        + (item.status === 'pending' ? '<button class="btn small" data-action="start">審査開始</button> ' : '')
-        + (item.status === 'pending' || item.status === 'under_review' ? '<button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button>' : '<span class="muted">処理済み</span>')
-        + '</td>';
+      const applicantDetails = [
+        '法的氏名：' + esc(item.legal_name),
+        '国：' + esc(item.country_code),
+        '申請メッセージ：' + esc(item.message || ''),
+      ].join('<br>');
+      const submittedDate = item.submitted_at
+        ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.')
+        : '';
+      const statusClass = item.status === 'approved' ? 'ok' : 'warn';
+      const reviewActions = item.status === 'pending'
+        ? '<button class="btn small" data-action="start">審査開始</button> '
+        : '';
+      const decisionActions = item.status === 'pending' || item.status === 'under_review'
+        ? '<button class="btn small" data-action="approve">承認</button> '
+          + '<button class="btn small" data-action="reject">却下</button>'
+        : '<span class="muted">処理済み</span>';
+
+      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>'
+        + esc(item.email) + '</small></td>'
+        + '<td>' + applicantDetails + '</td>'
+        + '<td>' + submittedDate + '</td>'
+        + '<td><span class="tag ' + statusClass + '">'
+        + esc(statusLabel[item.status] || item.status) + '</span></td>'
+        + '<td>' + reviewActions + decisionActions + '</td>';
       return row;
     }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">該当する販売者申請はありません。</td>' })]));
     count.textContent = items.length + '件';
@@ -226,12 +242,18 @@ export function bindSellerApplicationReviewPage() {
     const selected = statusValues[status.value] ?? 'pending';
     const statuses = selected ? [selected] : ['pending', 'under_review', 'approved', 'rejected', 'withdrawn'];
     try {
-      const responses = await Promise.all(statuses.map((value) => api('/admin/seller-applications?status=' + encodeURIComponent(value))));
+      const responses = await Promise.all(
+        statuses.map((value) => api(
+          '/admin/seller-applications?status=' + encodeURIComponent(value),
+        )),
+      );
       const applications = responses.flatMap((response) => response.applications || []);
       const query = search.value.trim().toLowerCase();
       render(applications.filter((item) => {
         if (!query) return true;
-        return [item.display_name, item.legal_name, item.email].some((value) => String(value ?? '').toLowerCase().includes(query));
+        return [item.display_name, item.legal_name, item.email].some((value) => (
+          String(value ?? '').toLowerCase().includes(query)
+        ));
       }));
     } catch (error) {
       table.tBodies[0].innerHTML = '<tr><td colspan="5">販売者申請を取得できませんでした。</td></tr>';
