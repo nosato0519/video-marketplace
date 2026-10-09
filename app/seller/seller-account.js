@@ -155,7 +155,8 @@ async function uploadVerificationDocument() {
       credentials: 'same-origin',
       headers: {
         'Content-Type': file.type,
-        'X-Original-Filename': file.name,
+        'X-Original-Filename': encodeURIComponent(file.name),
+        'X-Original-Filename-Encoded': '1',
       },
       body: file,
     });
