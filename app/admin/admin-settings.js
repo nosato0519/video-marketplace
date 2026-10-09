@@ -73,12 +73,19 @@ verificationForm?.addEventListener('submit', async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: verificationMethod.value }),
     });
-    if (!response.ok) throw new Error('settings_save_failed');
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const detail = typeof data.error === 'string'
+        ? data.error
+        : data.error?.message || data.error?.code;
+      throw new Error(detail || `HTTP ${response.status}`);
+    }
     verificationMethod.value = data.method || verificationMethod.value;
     verificationStatus.textContent = '設定を保存しました';
-  } catch {
-    verificationStatus.textContent = '設定を保存できませんでした';
+  } catch (error) {
+    verificationStatus.textContent = error instanceof Error && error.message
+      ? `設定を保存できませんでした：${error.message}`
+      : '設定を保存できませんでした';
   }
 });
 
