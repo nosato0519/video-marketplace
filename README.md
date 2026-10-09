@@ -102,6 +102,8 @@ A browser return URL is not sufficient to grant media access; verified payment s
 
 ## Commercial deployment
 
+See `CUSTOMER_SETUP_GUIDE.md` for the step-by-step buyer installation guide, including production storage and seller identity-verification setup and acceptance checks.
+
 See `COMMERCIAL_PACKAGE.md` for the commercial deployment requirements, customer hand-off process, production configuration, and final release checklist.
 
 See `SALES_PACKAGE.md` for the buyer-facing feature inventory and sales positioning, and `SALES_DEMO_SCRIPT.md` for the recommended five-minute demonstration sequence.
