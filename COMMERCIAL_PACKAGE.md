@@ -60,6 +60,23 @@ The buyer must configure their own production environment before going live:
 
 The system must not be represented as live-payment-ready until the buyer has supplied and verified those production integrations.
 
+## Production media storage configuration
+
+Production must use an S3-compatible object store for both uploaded video media and seller identity-verification documents. Local filesystem storage is development-only because files may not survive a container restart or redeploy.
+
+Set these environment variables in the API service's secret/environment settings:
+
+- `MEDIA_STORAGE_PROVIDER=s3`
+- `MEDIA_S3_BUCKET` — the private bucket name
+- `MEDIA_S3_REGION` — the bucket region (use the provider's documented value)
+- `MEDIA_S3_ACCESS_KEY_ID` — a storage access key with only the required bucket permissions
+- `MEDIA_S3_SECRET_ACCESS_KEY` — the matching secret key
+- `MEDIA_S3_ENDPOINT` — only when the provider requires a custom S3-compatible endpoint
+
+Keep the bucket private; do not expose identity documents through public object URLs. Never commit real storage credentials. After configuring the variables, redeploy/restart the API service and test upload, operator-side document retrieval, approval, and existing video upload/playback.
+
+If the storage settings are absent or incomplete, production uploads will fail until the configuration is completed. Do not enable local filesystem storage in production as a workaround.
+
 ## Commercial hand-off checklist
 
 The repository has passed the recorded automated showcase and application acceptance gates. Final customer-production steps remain intentionally separate.
