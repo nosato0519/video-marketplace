@@ -2,6 +2,7 @@ import express from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
+import { sendSellerVerificationInstructionsEmail } from '../email/smtp-mailer.js';
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
@@ -107,6 +108,25 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
       );
       return updated.rows[0];
     });
+    if (result.status === 'approved') {
+      try {
+        const [recipient, setting] = await Promise.all([
+          query(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [result.user_id]),
+          query(`SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1`),
+        ]);
+        const method = setting.rows[0]?.method;
+        const email = recipient.rows[0]?.email;
+        const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\\/$/, '');
+        if (method !== 'none' && email && baseUrl) {
+          await sendSellerVerificationInstructionsEmail({
+            email,
+            verificationUrl: baseUrl + '/seller/verification.html',
+          });
+        }
+      } catch (error) {
+        console.error('Seller approval completed but verification email could not be sent', error);
+      }
+    }
     return res.json({ application: result });
   } catch (error) { return next(error); }
 });
