@@ -22,7 +22,7 @@ const MAX_VERIFICATION_DOCUMENT_BYTES = 10 * 1024 * 1024;
 const VERIFICATION_DOCUMENT_MIME = new Set(['image/jpeg', 'image/png', 'application/pdf']);
 
 function safeDocumentFilename(value) {
-  const normalized = String(value || 'identity-document').replace(/[\\u0000-\\u001f\\u007f]/g, '_').trim();
+  const normalized = String(value || 'identity-document').replace(/[\u0000-\u001f\u007f]/g, '_').trim();
   return (normalized || 'identity-document').slice(0, 255);
 }
 
