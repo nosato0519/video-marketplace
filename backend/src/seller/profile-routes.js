@@ -91,23 +91,43 @@ router.patch('/profile', async (req, res, next) => {
     if (!displayName || !legalName) return res.status(400).json({ error: 'display_name_and_legal_name_required' });
     if (countryCode && !/^[A-Z]{2}$/.test(countryCode)) return res.status(400).json({ error: 'invalid_country_code' });
 
-    const result = await query(
-      `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, bio, address, postal_code, phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT (user_id) DO UPDATE SET
-         display_name = EXCLUDED.display_name,
-         legal_name = EXCLUDED.legal_name,
-         country_code = EXCLUDED.country_code,
-         bio = EXCLUDED.bio,
-         address = EXCLUDED.address,
-         postal_code = EXCLUDED.postal_code,
-         phone = EXCLUDED.phone,
-         updated_at = NOW()
-       RETURNING user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
-                 verification_status, verification_note, submitted_at, verified_at, created_at, updated_at`,
-      [req.user.id, displayName, legalName, countryCode, bio || null, address || null, postalCode || null, phone || null]
-    );
-    return res.json({ profile: result.rows[0] });
+    const saved = await withTransaction(async (db) => {
+      const existing = await db.query(
+        `SELECT verification_status, legal_name, country_code
+           FROM seller_profiles WHERE user_id = $1 FOR UPDATE`,
+        [req.user.id]
+      );
+      const current = existing.rows[0];
+      if (
+        current &&
+        ['submitted', 'under_review', 'verified'].includes(current.verification_status) &&
+        (current.legal_name !== legalName || current.country_code !== countryCode)
+      ) {
+        return { kind: 'identity_locked' };
+      }
+
+      const result = await db.query(
+        `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, bio, address, postal_code, phone)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (user_id) DO UPDATE SET
+           display_name = EXCLUDED.display_name,
+           legal_name = EXCLUDED.legal_name,
+           country_code = EXCLUDED.country_code,
+           bio = EXCLUDED.bio,
+           address = EXCLUDED.address,
+           postal_code = EXCLUDED.postal_code,
+           phone = EXCLUDED.phone,
+           updated_at = NOW()
+         RETURNING user_id, display_name, legal_name, country_code, bio, address, postal_code, phone,
+                   verification_status, verification_note, submitted_at, verified_at, created_at, updated_at`,
+        [req.user.id, displayName, legalName, countryCode, bio || null, address || null, postalCode || null, phone || null]
+      );
+      return { kind: 'ok', profile: result.rows[0] };
+    });
+    if (saved.kind === 'identity_locked') {
+      return res.status(409).json({ error: 'verified_identity_fields_locked' });
+    }
+    return res.json({ profile: saved.profile });
   } catch (error) { return next(error); }
 });
 
