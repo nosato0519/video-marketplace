@@ -158,6 +158,19 @@ async function uploadVerificationDocument() {
   const file = input?.files?.[0];
   if (!file || !button || !status) return;
 
+  const allowedTypes = new Set(['image/jpeg', 'image/png', 'application/pdf']);
+  const maxBytes = 10 * 1024 * 1024;
+  if (!allowedTypes.has(file.type)) {
+    status.textContent = 'JPEG・PNG・PDF形式のファイルを選択してください。';
+    alert('本人確認書類はJPEG・PNG・PDF形式に対応しています。');
+    return;
+  }
+  if (file.size <= 0 || file.size > maxBytes) {
+    status.textContent = 'ファイルサイズを確認してください。';
+    alert('本人確認書類は10MB以下のファイルを選択してください。');
+    return;
+  }
+
   button.disabled = true;
   status.textContent = 'アップロード中…';
   let refreshState = true;
