@@ -26,32 +26,6 @@ function createTransport(env = process.env) {
   return { transporter, from: config.from };
 }
 
-export async function sendSellerVerificationEmail({ email, verificationUrl }, env = process.env) {
-  const { transporter, from } = createTransport(env);
-  await transporter.sendMail({
-    from,
-    to: email,
-    subject: '販売者メールアドレスの確認 | VIDEO MARKETPLACE',
-    text: [
-      'VIDEO MARKETPLACEの販売者メールアドレス確認です。',
-      '',
-      '以下のリンクを開いてメールアドレスを確認してください。',
-      verificationUrl,
-      '',
-      'このリンクは30分間有効です。',
-      '心当たりがない場合は、このメールを破棄してください。',
-    ].join('\n'),
-    html: [
-      '<p>VIDEO MARKETPLACEの販売者メールアドレス確認です。</p>',
-      '<p>以下のリンクを開いてメールアドレスを確認してください。</p>',
-      `<p><a href="${verificationUrl}">メールアドレスを確認する</a></p>`,
-      '<p>このリンクは30分間有効です。</p>',
-      '<p>心当たりがない場合は、このメールを破棄してください。</p>',
-    ].join(''),
-  });
-}
-
-
 export async function sendSellerVerificationInstructionsEmail({ email, verificationUrl }, env = process.env) {
   const { transporter, from } = createTransport(env);
   await transporter.sendMail({
