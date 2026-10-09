@@ -1,5 +1,7 @@
 # Customer Setup and Production Deployment Guide
 
+[日本語版（Japanese）](CUSTOMER_SETUP_GUIDE.md)
+
 This guide walks you through configuring VIDEO MARKETPLACE for your production environment. Prepare the application host, PostgreSQL database, private object storage, HTTPS, and payment provider in the order below. Complete the pre-launch checklist before opening the marketplace to users.
 
 ## 1. Requirements
