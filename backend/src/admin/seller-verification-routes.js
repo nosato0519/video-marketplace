@@ -58,6 +58,10 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     if (!current.rowCount) return res.status(404).json({ error: 'seller_profile_not_found' });
     const from = current.rows[0].verification_status;
     if (!transitions[from]?.has(target)) return res.status(409).json({ error: 'invalid_verification_transition', from, to: target });
+    if (action === 'approve') {
+      const document = await query(`SELECT id FROM seller_verification_documents WHERE user_id = $1 AND status = 'uploaded'`, [req.params.userId]);
+      if (!document.rowCount) return res.status(409).json({ error: 'verification_document_required' });
+    }
     const note = req.body?.note == null ? null : String(req.body.note).trim().slice(0, 1000);
     if ((action === 'reject' || action === 'request_changes') && !note) return res.status(400).json({ error: 'review_note_required' });
     const result = await withTransaction(async (db) => {
