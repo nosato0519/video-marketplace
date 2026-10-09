@@ -197,10 +197,30 @@ export function bindSellerVerificationReviewPage() {
         verified: '<span class="muted">処理済み</span>',
         not_started: '<span class="muted">未申請</span>',
       }[item.verification_status] || '<span class="muted">処理不可</span>';
-      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>' + esc(item.email) + '</small></td>'
-        + '<td><strong>氏名：</strong>' + esc(item.legal_name) + '<br><strong>国：</strong>' + esc(item.country_code) + '<br><strong>住所：</strong>' + esc(item.address) + '<br><strong>郵便番号：</strong>' + esc(item.postal_code) + '<br><strong>電話：</strong>' + esc(item.phone) + '<br><strong>自己紹介：</strong>' + esc(item.bio) + '<br>' + (item.verification_document_id ? '<a href="/api/admin/seller-verifications/' + encodeURIComponent(item.user_id) + '/document" target="_blank" rel="noopener">本人確認書類を確認する</a>' : '<span class="muted">本人確認書類なし</span>') + '</td>'
-        + '<td>' + (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.') : '') + '</td>'
-        + '<td><span class="tag ' + (item.verification_status === 'verified' ? 'ok' : 'warn') + '">' + esc(statusLabel[item.verification_status] || item.verification_status) + '</span></td>'
+      const sellerDetails = [
+        '<strong>氏名：</strong>' + esc(item.legal_name),
+        '<strong>国：</strong>' + esc(item.country_code),
+        '<strong>住所：</strong>' + esc(item.address),
+        '<strong>郵便番号：</strong>' + esc(item.postal_code),
+        '<strong>電話：</strong>' + esc(item.phone),
+        '<strong>自己紹介：</strong>' + esc(item.bio),
+        item.verification_document_id
+          ? '<a href="/api/admin/seller-verifications/' + encodeURIComponent(item.user_id)
+            + '/document" target="_blank" rel="noopener">本人確認書類を確認する</a>'
+          : '<span class="muted">本人確認書類なし</span>',
+      ].join('<br>');
+      const submittedDate = item.submitted_at
+        ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.')
+        : '';
+      const statusClass = item.verification_status === 'verified' ? 'ok' : 'warn';
+
+      row.innerHTML = '<td><strong>' + esc(item.display_name) + '</strong><small>'
+        + esc(item.email) + '</small></td>'
+        + '<td>' + sellerDetails + '</td>'
+        + '<td>' + submittedDate + '</td>'
+        + '<td><span class="tag ' + statusClass + '">'
+        + esc(statusLabel[item.verification_status] || item.verification_status)
+        + '</span></td>'
         + '<td>' + actions + '</td>';
       return row;
     }) : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">該当する本人確認はありません。</td>' })]));
