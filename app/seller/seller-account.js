@@ -92,6 +92,10 @@ async function loadSellerProfile() {
     documentSection.hidden = verificationMethod !== 'document';
     documentSection.style.display = documentSection.hidden ? 'none' : '';
   }
+  if (verificationAction) {
+    verificationAction.hidden = verificationMethod !== 'document';
+    verificationAction.style.display = verificationAction.hidden ? 'none' : '';
+  }
   const payoutNote = document.querySelector('#verification-payout-note');
   if (payoutNote) {
     payoutNote.textContent = verificationMethod === 'none'
