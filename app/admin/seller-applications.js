@@ -276,10 +276,15 @@ export function bindSellerApplicationReviewPage() {
     }
     button.disabled = true;
     try {
-      await api('/admin/seller-applications/' + encodeURIComponent(id) + '/review', {
+      const result = await api('/admin/seller-applications/' + encodeURIComponent(id) + '/review', {
         method: 'POST',
         body: JSON.stringify({ action, note: reviewNote || null }),
       });
+      if (action === 'approve' && result.registrationEmailStatus !== 'sent') {
+        alert(result.registrationEmailStatus === 'skipped'
+          ? '販売者登録は承認されましたが、自動メールは送信されませんでした。運営者メールアドレスと APP_BASE_URL の設定を確認してください。'
+          : '販売者登録は承認されましたが、自動メールの送信に失敗しました。SMTP設定と送信元アドレスの認証を確認してください。');
+      }
       await load();
     } catch (error) {
       alert('審査処理に失敗しました。');
