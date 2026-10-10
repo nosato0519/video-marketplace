@@ -11,7 +11,8 @@ async function requireVerifiedSeller(req, res, next) {
     const setting = await query(
       "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
     );
-    const method = setting.rows[0]?.method === 'document' ? 'document' : 'none';
+    const configuredMethod = setting.rows[0]?.method;
+    const method = ['email', 'document'].includes(configuredMethod) ? configuredMethod : 'none';
     if (method === 'none') return next();
 
     const result = await query(
@@ -21,10 +22,8 @@ async function requireVerifiedSeller(req, res, next) {
         WHERE sp.user_id = $1`,
       [req.user.id]
     );
-    if (
-      result.rows[0]?.verification_status === 'verified'
-      && result.rows[0]?.verification_document_status === 'approved'
-    ) return next();
+    if (result.rows[0]?.verification_status === 'verified'
+      && (method === 'email' || result.rows[0]?.verification_document_status === 'approved')) return next();
     return res.status(403).json({
       error: {
         code: 'SELLER_VERIFICATION_REQUIRED',
