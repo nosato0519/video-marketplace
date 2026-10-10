@@ -30,7 +30,7 @@ router.get('/seller-verifications', async (req, res, next) => {
     const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
     if (!allowed.has(status)) return res.status(400).json({ error: 'invalid_status' });
     const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email,
-              CASE WHEN ps.setting_value->>'value' = 'document' THEN 'document' ELSE 'none' END AS verification_method,
+              CASE WHEN ps.setting_value->>'value' IN ('email', 'document') THEN ps.setting_value->>'value' ELSE 'none' END AS verification_method,
               svd.id AS verification_document_id, svd.original_filename AS verification_document_filename, svd.mime_type AS verification_document_mime_type, svd.status AS verification_document_status
          FROM seller_profiles sp
          JOIN users u ON u.id=sp.user_id
@@ -100,7 +100,9 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
             WHERE setting_key='seller_verification_method'
             LIMIT 1`
         );
-        const method = setting.rows[0]?.method === 'document' ? 'document' : 'none';
+        const configuredMethod = setting.rows[0]?.method;
+        const method = ['email', 'document'].includes(configuredMethod) ? configuredMethod : 'none';
+        if (method === 'none') return { kind: 'verification_not_required' };
         if (!transitions[from]?.has(target) && method !== 'none') {
           return { kind: 'invalid', from, to: target };
         }
@@ -108,13 +110,10 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
           `SELECT id FROM seller_verification_documents WHERE user_id=$1 AND status='uploaded' FOR UPDATE`,
           [req.params.userId]
         );
-        const emailApprovedOptionalSeller = method === 'none' && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(from);
-        if (!document.rowCount && !emailApprovedOptionalSeller) {
-          return { kind: 'document_required' };
-        }
-        if (!document.rowCount && emailApprovedOptionalSeller && !note) {
-          return { kind: 'email_review_note_required' };
-        }
+        const emailApproval = method === 'email' && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(from);
+        if (method === 'document' && !document.rowCount) return { kind: 'document_required' };
+        if (emailApproval && document.rowCount) return { kind: 'email_mode_document_conflict' };
+        if (emailApproval && !note) return { kind: 'email_review_note_required' };
       }
 
       const updated = await db.query(
@@ -145,6 +144,12 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     if (result.kind === 'not_found') return res.status(404).json({ error: 'seller_profile_not_found' });
     if (result.kind === 'invalid') {
       return res.status(409).json({ error: 'invalid_verification_transition', from: result.from, to: result.to });
+    }
+    if (result.kind === 'verification_not_required') {
+      return res.status(409).json({ error: 'seller_verification_not_required' });
+    }
+    if (result.kind === 'email_mode_document_conflict') {
+      return res.status(409).json({ error: 'email_verification_must_not_use_uploaded_document' });
     }
     if (result.kind === 'document_required') {
       return res.status(409).json({ error: 'verification_document_required' });
