@@ -73,7 +73,7 @@ router.get('/profile', async (req, res, next) => {
         submitted_at: null,
         verified_at: null,
         verification_method: await getSellerVerificationMethod(),
-        operator_email: (await query("SELECT setting_value->>'value' AS value FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1')).rows[0]?.value || ''
+        operator_email: (await query("SELECT setting_value->>'value' AS value FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1")).rows[0]?.value || ''
       }});
     }
     return res.json({ profile: result.rows[0] });
