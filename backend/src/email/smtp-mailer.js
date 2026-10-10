@@ -35,7 +35,14 @@ export async function sendSellerVerificationInstructionsEmail({
   body,
 }, env = process.env) {
   const { transporter, from } = createTransport(env);
-  const safeOperatorEmail = String(operatorEmail || '').trim();
+  const safeOperatorEmail = String(operatorEmail || '').trim().toLowerCase();
+  const configuredFrom = String(from || '').trim();
+  const configuredFromEmail = (configuredFrom.match(/<([^>]+)>/)?.[1] || configuredFrom).trim().toLowerCase();
+  if (safeOperatorEmail && configuredFromEmail !== safeOperatorEmail) {
+    const error = new Error('smtp_from_must_match_operator_email');
+    error.statusCode = 503;
+    throw error;
+  }
   const defaultBody = method === 'email'
     ? `販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（${safeOperatorEmail}）へ送信してください。`
     : `販売者登録が承認されました。本人確認が必要な場合は、販売者ページから本人確認書類を提出してください。\n${verificationUrl}`;
@@ -49,7 +56,7 @@ export async function sendSellerVerificationInstructionsEmail({
     .replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>');
   await transporter.sendMail({
-    from: safeOperatorEmail || from,
+    from,
     ...(safeOperatorEmail ? { replyTo: safeOperatorEmail } : {}),
     to: email,
     subject: String(subject || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE')
