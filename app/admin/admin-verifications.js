@@ -27,6 +27,47 @@ const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   "'": '&#39;',
 }[char]));
 
+export function renderAdminVerifications(root) {
+  root.innerHTML = `
+    <section class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Operator</p>
+          <h1>Seller identity verification</h1>
+          <p>Review submitted documents or record verification received by email.</p>
+        </div>
+        <a class="button secondary" href="#/admin">Back to dashboard</a>
+      </header>
+      <section class="admin-panel">
+        <div class="admin-toolbar">
+          <label for="verification-search">Search seller</label>
+          <input id="verification-search" type="search" autocomplete="off" placeholder="Name or email">
+          <label for="verification-status">Status</label>
+          <select id="verification-status">
+            <option value="submitted">確認待ち</option>
+            <option value="under_review">審査中</option>
+            <option value="request_changes">差し戻し</option>
+            <option value="verified">確認済み</option>
+            <option value="rejected">却下</option>
+            <option value="not_started">未申請</option>
+            <option value="all">すべて</option>
+          </select>
+          <span id="verification-count" aria-live="polite">0件</span>
+        </div>
+        <label for="verification-note">本人確認メモ（承認・差し戻し・却下時）</label>
+        <textarea id="verification-note" rows="3" maxlength="2000" placeholder="メールで受け取った書類の確認内容、または差し戻し・却下理由"></textarea>
+        <div class="table-wrap">
+          <table id="verification-table">
+            <thead><tr><th>販売者</th><th>本人確認情報</th><th>申請日</th><th>状態</th><th>操作</th></tr></thead>
+            <tbody><tr><td colspan="5">読み込み中…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  `;
+  bindSellerVerificationReviewPage();
+}
+
 export function bindSellerVerificationReviewPage() {
   const table = document.getElementById('verification-table');
   if (!table) return;
