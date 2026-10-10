@@ -13,7 +13,7 @@ async function getSellerVerificationMethod() {
     "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
   );
   const method = result.rows[0]?.method;
-  return method === 'document' ? 'document' : 'none';
+  return ['email', 'document'].includes(method) ? method : 'none';
 }
 router.use(requireAuth, requireRole('seller'));
 
@@ -51,7 +51,8 @@ router.get('/profile', async (req, res, next) => {
     const result = await query(
       `SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone,
               sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, sp.created_at, sp.updated_at,
-              CASE WHEN ps.setting_value->>'value' = 'document' THEN 'document' ELSE 'none' END AS verification_method
+              CASE WHEN ps.setting_value->>'value' IN ('email', 'document') THEN ps.setting_value->>'value' ELSE 'none' END AS verification_method,
+              COALESCE((SELECT setting_value->>'value' FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1), '') AS operator_email
          FROM seller_profiles sp
          LEFT JOIN platform_settings ps ON ps.setting_key = 'seller_verification_method'
         WHERE sp.user_id = $1`,
@@ -71,7 +72,8 @@ router.get('/profile', async (req, res, next) => {
         verification_note: null,
         submitted_at: null,
         verified_at: null,
-        verification_method: await getSellerVerificationMethod()
+        verification_method: await getSellerVerificationMethod(),
+        operator_email: (await query("SELECT setting_value->>'value' AS value FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1')).rows[0]?.value || ''
       }});
     }
     return res.json({ profile: result.rows[0] });
@@ -176,8 +178,9 @@ router.post('/profile/verification-document', async (req, res, next) => {
   if (declaredLength !== null && declaredLength > MAX_VERIFICATION_DOCUMENT_BYTES) return res.status(413).json({ error: 'verification_document_too_large' });
 
   try {
-    if (await getSellerVerificationMethod() === 'none') {
-      return res.status(409).json({ error: 'seller_verification_not_required' });
+    const verificationMethod = await getSellerVerificationMethod();
+    if (verificationMethod !== 'document') {
+      return res.status(409).json({ error: verificationMethod === 'email' ? 'document_upload_not_available_for_email_verification' : 'seller_verification_not_required' });
     }
     const profile = await query(
       `SELECT sp.verification_status, svd.status AS verification_document_status
