@@ -15,10 +15,16 @@ async function requireVerifiedSeller(req, res, next) {
     if (method === 'none') return next();
 
     const result = await query(
-      `SELECT verification_status FROM seller_profiles WHERE user_id = $1`,
+      `SELECT sp.verification_status, svd.status AS verification_document_status
+         FROM seller_profiles sp
+         LEFT JOIN seller_verification_documents svd ON svd.user_id = sp.user_id
+        WHERE sp.user_id = $1`,
       [req.user.id]
     );
-    if (result.rows[0]?.verification_status === 'verified') return next();
+    if (
+      result.rows[0]?.verification_status === 'verified'
+      && result.rows[0]?.verification_document_status === 'approved'
+    ) return next();
     return res.status(403).json({
       error: {
         code: 'SELLER_VERIFICATION_REQUIRED',
