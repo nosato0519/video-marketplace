@@ -61,7 +61,9 @@
   submit.type = 'submit';
   create.append(recipientLabel, subjectLabel, bodyLabel, submit);
   section.append(notice, create, layout);
-  main.prepend(section);
+  const anchor = main.querySelector('.buyer-head, .topbar, .support-card');
+  if (anchor) anchor.insertAdjacentElement('afterend', section);
+  else main.prepend(section);
   let currentThread = null;
   let userRole = '';
   const button = (label, callback) => {
