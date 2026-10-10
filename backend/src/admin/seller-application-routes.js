@@ -108,7 +108,9 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
       );
       return updated.rows[0];
     });
+    let registrationEmailStatus = 'not_applicable';
     if (result.status === 'approved') {
+      registrationEmailStatus = 'failed';
       try {
         const [recipient, settingsResult] = await Promise.all([
           query(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [result.user_id]),
@@ -122,6 +124,7 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
         const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
         {
           if (!email || !baseUrl || !operatorEmail) {
+            registrationEmailStatus = 'skipped';
             console.error('Seller registration email skipped: recipient, APP_BASE_URL, or operator email is missing');
           } else {
             await sendSellerVerificationInstructionsEmail({
@@ -132,13 +135,15 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
               subject: settings.seller_verification_email_subject?.value,
               body: settings.seller_verification_email_body?.value,
             });
+            registrationEmailStatus = 'sent';
           }
         }
       } catch (error) {
-        console.error('Seller approval completed but verification email could not be sent', error);
+        registrationEmailStatus = 'failed';
+        console.error('Seller approval completed but registration email could not be sent', error);
       }
     }
-    return res.json({ application: result });
+    return res.json({ application: result, registrationEmailStatus });
   } catch (error) { return next(error); }
 });
 
