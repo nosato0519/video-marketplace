@@ -25,7 +25,7 @@ try{
   if(/if\(text==='ログイン'\)\{[^}]*go\(/.test(nav))throw new Error('parent login trigger must not navigate');
   const sellerLogin=await request('/pages/login.html?role=seller');
   const buyerLogin=await request('/pages/login.html?role=buyer');
-  if(!sellerLogin.includes("role==='seller'?'seller':'buyer'")||!sellerLogin.includes("'/pages/creator-studio.html'"))throw new Error('seller login role routing missing');
+  if(!sellerLogin.includes("get('role')==='seller'?'seller':'buyer'")||!sellerLogin.includes("'/pages/creator-studio.html'"))throw new Error('seller login role routing missing');
   if(!buyerLogin.includes("'/pages/account.html'"))throw new Error('buyer login role routing missing');
   const list=await request('/pages/video-list.html');
   if((list.match(/class="card"/g)||[]).length<1)throw new Error('video list cards missing');
