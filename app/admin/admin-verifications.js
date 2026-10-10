@@ -195,7 +195,9 @@ export function bindSellerVerificationReviewPage() {
         request_changes: '<span class="muted">再申請待ち</span>',
         rejected: '<span class="muted">再申請待ち</span>',
         verified: '<span class="muted">処理済み</span>',
-        not_started: '<span class="muted">未申請</span>',
+        not_started: item.verification_method === 'none'
+          ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
+          : '<span class="muted">本人確認書類の提出待ち</span>',
       }[item.verification_status] || '<span class="muted">処理不可</span>';
       const sellerDetails = [
         '<strong>氏名：</strong>' + esc(item.legal_name),
