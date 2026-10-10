@@ -104,7 +104,7 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
           `SELECT id FROM seller_verification_documents WHERE user_id=$1 AND status='uploaded' FOR UPDATE`,
           [req.params.userId]
         );
-        const emailApprovedOptionalSeller = from === 'not_started' && method === 'none';
+        const emailApprovedOptionalSeller = method === 'none' && ['not_started', 'submitted', 'under_review'].includes(from);
         if (!document.rowCount && !emailApprovedOptionalSeller) {
           return { kind: 'document_required' };
         }
