@@ -90,7 +90,8 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
       if (!current.rowCount) return { kind: 'not_found' };
 
       const from = current.rows[0].verification_status;
-      if (!transitions[from]?.has(target)) return { kind: 'invalid', from, to: target };
+      const transitionAllowed = transitions[from]?.has(target) || (action === 'approve' && ['request_changes', 'rejected'].includes(from));
+      if (!transitionAllowed) return { kind: 'invalid', from, to: target };
 
       if (action === 'approve') {
         const setting = await db.query(
@@ -100,11 +101,14 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
             LIMIT 1`
         );
         const method = setting.rows[0]?.method === 'document' ? 'document' : 'none';
+        if (!transitions[from]?.has(target) && method !== 'none') {
+          return { kind: 'invalid', from, to: target };
+        }
         const document = await db.query(
           `SELECT id FROM seller_verification_documents WHERE user_id=$1 AND status='uploaded' FOR UPDATE`,
           [req.params.userId]
         );
-        const emailApprovedOptionalSeller = method === 'none' && ['not_started', 'submitted', 'under_review'].includes(from);
+        const emailApprovedOptionalSeller = method === 'none' && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(from);
         if (!document.rowCount && !emailApprovedOptionalSeller) {
           return { kind: 'document_required' };
         }
