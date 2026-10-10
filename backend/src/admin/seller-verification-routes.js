@@ -103,7 +103,7 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
         const configuredMethod = setting.rows[0]?.method;
         const method = ['email', 'document'].includes(configuredMethod) ? configuredMethod : 'none';
         if (method === 'none') return { kind: 'verification_not_required' };
-        if (!transitions[from]?.has(target) && method !== 'none') {
+        if (!transitions[from]?.has(target) && method !== 'email') {
           return { kind: 'invalid', from, to: target };
         }
         const document = await db.query(
@@ -112,7 +112,6 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
         );
         const emailApproval = method === 'email' && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(from);
         if (method === 'document' && !document.rowCount) return { kind: 'document_required' };
-        if (emailApproval && document.rowCount) return { kind: 'email_mode_document_conflict' };
         if (emailApproval && !note) return { kind: 'email_review_note_required' };
       }
 
@@ -126,13 +125,19 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
           RETURNING user_id, display_name, legal_name, country_code, verification_status, verification_note, submitted_at, verified_at`,
         [req.params.userId, target, note]
       );
-      const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
-      await db.query(
-        `UPDATE seller_verification_documents
-            SET status=$2, updated_at=NOW()
-          WHERE user_id=$1 AND status='uploaded'`,
-        [req.params.userId, documentStatus]
+      const currentMethod = await db.query(
+        `SELECT setting_value->>'value' AS method
+           FROM platform_settings WHERE setting_key='seller_verification_method' LIMIT 1`
       );
+      if ((currentMethod.rows[0]?.method || 'none') === 'document') {
+        const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
+        await db.query(
+          `UPDATE seller_verification_documents
+              SET status=$2, updated_at=NOW()
+            WHERE user_id=$1 AND status='uploaded'`,
+          [req.params.userId, documentStatus]
+        );
+      }
       await audit(db, req.user.id, `seller.verification.${action}`, req.params.userId, {
         from_status: from,
         to_status: target,
@@ -147,9 +152,6 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     }
     if (result.kind === 'verification_not_required') {
       return res.status(409).json({ error: 'seller_verification_not_required' });
-    }
-    if (result.kind === 'email_mode_document_conflict') {
-      return res.status(409).json({ error: 'email_verification_must_not_use_uploaded_document' });
     }
     if (result.kind === 'document_required') {
       return res.status(409).json({ error: 'verification_document_required' });
