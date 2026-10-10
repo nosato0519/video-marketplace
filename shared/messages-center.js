@@ -26,6 +26,7 @@
   list.style.minWidth = '0';
   list.append(h('strong', '', '問い合わせ・履歴'));
   const threadList = h('div', '');
+  list.append(threadList);
   const detail = h('div', 'buyer-menu-card');
   detail.style.minWidth = '0';
   detail.append(h('strong', '', 'メッセージ'));
