@@ -54,16 +54,16 @@ export function bindSellerVerificationReviewPage() {
       row.dataset.verificationMethod = item.verification_method || 'none';
       row.dataset.verificationDocumentStatus = item.verification_document_status || 'missing';
       const actions = {
-        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
-        under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
+        submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">' + (item.verification_method === 'email' ? 'メール確認を承認' : '確認済み') + '</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
+        under_review: '<button class="btn small" data-action="approve">' + (item.verification_method === 'email' ? 'メール確認を承認' : '確認済み') + '</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
         request_changes: item.verification_method === 'email'
           ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
           : '<span class="muted">再申請待ち</span>',
-        rejected: item.verification_method === 'none'
+        rejected: item.verification_method === 'email'
           ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
           : '<span class="muted">再申請待ち</span>',
         verified: '<span class="muted">処理済み</span>',
-        not_started: item.verification_method === 'none'
+        not_started: item.verification_method === 'email'
           ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
           : '<span class="muted">本人確認書類の提出待ち</span>',
       }[item.verification_status] || '<span class="muted">処理不可</span>';
