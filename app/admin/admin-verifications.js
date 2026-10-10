@@ -19,15 +19,13 @@ async function api(path, options = {}) {
   return body;
 }
 
-const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;',
   "'": '&#39;',
 }[char]));
-
-const esc = escapeHtml;
 
 export function bindSellerVerificationReviewPage() {
   const table = document.getElementById('verification-table');
