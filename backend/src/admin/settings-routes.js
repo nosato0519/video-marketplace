@@ -22,7 +22,7 @@ router.get('/settings/seller-verification', async (_req, res, next) => {
       method,
       operatorEmail: String(settings.operator_email?.value || ''),
       emailSubject: String(settings.seller_verification_email_subject?.value || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE'),
-      emailBody: String(settings.seller_verification_email_body?.value || '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類をこのメールアドレスへ送信してください。'),
+      emailBody: String(settings.seller_verification_email_body?.value || '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（{operatorEmail}）へ送信するか、本人確認ページ（{verificationUrl}）から提出してください。'),
     });
   } catch (error) {
     return next(error);
