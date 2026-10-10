@@ -11,7 +11,7 @@ async function requireVerifiedSeller(req, res, next) {
     const setting = await query(
       "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
     );
-    const method = setting.rows[0]?.method === 'none' ? 'none' : 'document';
+    const method = setting.rows[0]?.method === 'document' ? 'document' : 'none';
     if (method === 'none') return next();
 
     const result = await query(
