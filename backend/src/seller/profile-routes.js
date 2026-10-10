@@ -280,7 +280,9 @@ router.post('/profile/verification-document', async (req, res, next) => {
 router.post('/profile/submit-verification', async (req, res, next) => {
   try {
     const verificationMethod = await getSellerVerificationMethod();
-    if (verificationMethod === 'none') return res.status(409).json({ error: 'seller_verification_not_required' });
+    if (verificationMethod !== 'document') {
+      return res.status(409).json({ error: verificationMethod === 'email' ? 'document_submission_not_available_for_email_verification' : 'seller_verification_not_required' });
+    }
 
     const result = await withTransaction(async (db) => {
       const existing = await db.query(
