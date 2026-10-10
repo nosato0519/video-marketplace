@@ -133,7 +133,10 @@ async function loadVerificationDocument() {
     if (verificationDocument?.status === 'rejected') {
       status.textContent += '（新しい書類をアップロードしてください）';
     }
-    const locked = ['submitted', 'under_review', 'verified'].includes(verificationStatus);
+    const canReplaceEmailApproval = verificationStatus === 'verified'
+      && verificationDocument?.status !== 'approved';
+    const locked = ['submitted', 'under_review'].includes(verificationStatus)
+      || (verificationStatus === 'verified' && !canReplaceEmailApproval);
     input.disabled = locked;
     uploadButton.disabled = locked;
 
