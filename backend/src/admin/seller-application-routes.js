@@ -2,7 +2,6 @@ import express from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
-import { sendSellerVerificationInstructionsEmail } from '../email/smtp-mailer.js';
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
@@ -108,40 +107,7 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
       );
       return updated.rows[0];
     });
-    let registrationEmailStatus = 'not_applicable';
-    if (result.status === 'approved') {
-      registrationEmailStatus = 'failed';
-      try {
-        const [recipient, settingsResult] = await Promise.all([
-          query(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [result.user_id]),
-          query(`SELECT setting_key, setting_value FROM platform_settings
-                  WHERE setting_key IN ('seller_verification_method', 'operator_email', 'seller_verification_email_subject', 'seller_verification_email_body')`),
-        ]);
-        const settings = Object.fromEntries(settingsResult.rows.map((row) => [row.setting_key, row.setting_value]));
-        const method = settings.seller_verification_method?.value || 'none';
-        const operatorEmail = String(settings.operator_email?.value || '');
-        const email = recipient.rows[0]?.email;
-        const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
-        if (!email || !baseUrl || !operatorEmail) {
-          registrationEmailStatus = 'skipped';
-          console.error('Seller registration email skipped: recipient, APP_BASE_URL, or operator email is missing');
-        } else {
-          await sendSellerVerificationInstructionsEmail({
-            email,
-            verificationUrl: baseUrl + '/seller/verification.html',
-            operatorEmail,
-            method,
-            subject: settings.seller_verification_email_subject?.value,
-            body: settings.seller_verification_email_body?.value,
-          });
-          registrationEmailStatus = 'sent';
-        }
-      } catch (error) {
-        registrationEmailStatus = 'failed';
-        console.error('Seller approval completed but registration email could not be sent', error);
-      }
-    }
-    return res.json({ application: result, registrationEmailStatus });
+    return res.json({ application: result });
   } catch (error) { return next(error); }
 });
 
