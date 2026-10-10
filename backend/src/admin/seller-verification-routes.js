@@ -11,6 +11,7 @@ const verificationStorage = createConfiguredMediaStorage();
 router.use(requireAuth, requireRole('admin'));
 
 const transitions = {
+  not_started: new Set(['verified']),
   submitted: new Set(['under_review', 'verified', 'rejected', 'request_changes']),
   under_review: new Set(['verified', 'rejected', 'request_changes']),
   request_changes: new Set(['submitted']),
@@ -29,7 +30,14 @@ router.get('/seller-verifications', async (req, res, next) => {
     const allowed = new Set(['submitted','under_review','verified','rejected','request_changes','not_started']);
     if (!allowed.has(status)) return res.status(400).json({ error: 'invalid_status' });
     const result = await query(`SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone, sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, u.email,
-              svd.id AS verification_document_id, svd.original_filename AS verification_document_filename, svd.mime_type AS verification_document_mime_type, svd.status AS verification_document_status FROM seller_profiles sp JOIN users u ON u.id=sp.user_id LEFT JOIN seller_verification_documents svd ON svd.user_id=sp.user_id WHERE sp.verification_status=$1 ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
+              CASE WHEN ps.setting_value->>'value' = 'document' THEN 'document' ELSE 'none' END AS verification_method,
+              svd.id AS verification_document_id, svd.original_filename AS verification_document_filename, svd.mime_type AS verification_document_mime_type, svd.status AS verification_document_status
+         FROM seller_profiles sp
+         JOIN users u ON u.id=sp.user_id
+         LEFT JOIN platform_settings ps ON ps.setting_key='seller_verification_method'
+         LEFT JOIN seller_verification_documents svd ON svd.user_id=sp.user_id
+        WHERE sp.verification_status=$1
+        ORDER BY sp.submitted_at DESC NULLS LAST LIMIT 200`, [status]);
     return res.json({ sellers: result.rows });
   } catch (e) { return next(e); }
 });
@@ -85,11 +93,21 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
       if (!transitions[from]?.has(target)) return { kind: 'invalid', from, to: target };
 
       if (action === 'approve') {
+        const setting = await db.query(
+          `SELECT setting_value->>'value' AS method
+             FROM platform_settings
+            WHERE setting_key='seller_verification_method'
+            LIMIT 1`
+        );
+        const method = setting.rows[0]?.method === 'document' ? 'document' : 'none';
         const document = await db.query(
           `SELECT id FROM seller_verification_documents WHERE user_id=$1 AND status='uploaded' FOR UPDATE`,
           [req.params.userId]
         );
-        if (!document.rowCount) return { kind: 'document_required' };
+        const emailApprovedOptionalSeller = from === 'not_started' && method === 'none';
+        if (!document.rowCount && !emailApprovedOptionalSeller) {
+          return { kind: 'document_required' };
+        }
       }
 
       const updated = await db.query(
