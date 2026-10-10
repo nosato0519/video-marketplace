@@ -129,7 +129,9 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
       );
       const documentStatus = target === 'verified' ? 'approved' : target === 'rejected' ? 'rejected' : 'uploaded';
       await db.query(
-        `UPDATE seller_verification_documents SET status=$2, updated_at=NOW() WHERE user_id=$1`,
+        `UPDATE seller_verification_documents
+            SET status=$2, updated_at=NOW()
+          WHERE user_id=$1 AND status='uploaded'`,
         [req.params.userId, documentStatus]
       );
       await audit(db, req.user.id, `seller.verification.${action}`, req.params.userId, {
