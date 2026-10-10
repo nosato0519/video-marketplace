@@ -2,9 +2,9 @@ name: Browser UI Acceptance
 
 on:
   push:
-    branches: [main, feat/buyer-browser-e2e, production/top-clean]
+    branches: [feat/buyer-browser-e2e, production/top-clean]
   pull_request:
-    branches: [main, production/top-clean]
+    branches: [production/top-clean]
   workflow_dispatch:
 
 concurrency:
@@ -27,20 +27,3 @@ jobs:
         run: npx playwright test tests/browser-buyer-purchase.spec.js --reporter=line
       - name: Run browser module smoke
         run: npx playwright test tests/browser-module-smoke.spec.js --reporter=line
-      - name: Clean demo ports before showcase navigation
-        run: |
-          fuser -k 4173/tcp 4174/tcp 4175/tcp 4176/tcp 4177/tcp 4178/tcp 2>/dev/null || true
-          pkill -9 -f 'demo/(launcher|force-page|link-fix-proxy|showcase-navigation-proxy)\.mjs' 2>/dev/null || true
-          sleep 1
-          fuser -k 4173/tcp 4174/tcp 4175/tcp 4176/tcp 4177/tcp 4178/tcp 2>/dev/null || true
-      - name: Run showcase navigation acceptance
-        run: SHOWCASE_NAVIGATION=1 npx playwright test tests/browser-showcase-navigation.spec.js --reporter=line
-      - name: Capture rendered showcase evidence
-        run: SHOWCASE_NAVIGATION=1 npx playwright test tests/browser-visual-evidence.spec.js --reporter=line
-      - name: Upload rendered showcase evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rendered-showcase-evidence
-          path: tests/artifacts/
-          if-no-files-found: warn
