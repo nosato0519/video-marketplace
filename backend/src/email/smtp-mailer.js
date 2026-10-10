@@ -49,7 +49,7 @@ export async function sendSellerVerificationInstructionsEmail({
     .replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>');
   await transporter.sendMail({
-    from,
+    from: safeOperatorEmail || from,
     ...(safeOperatorEmail ? { replyTo: safeOperatorEmail } : {}),
     to: email,
     subject: String(subject || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE')
