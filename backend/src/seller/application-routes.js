@@ -1,6 +1,5 @@
 import express from 'express';
 import { query } from '../db.js';
-import { sendSellerApplicationNotificationEmail } from '../email/smtp-mailer.js';
 import { requireAuth } from '../auth/require-auth.js';
 
 const router = express.Router();
@@ -40,33 +39,7 @@ router.post('/application', async (req, res, next) => {
                  review_note, submitted_at, reviewed_at, reviewed_by, created_at, updated_at`,
       [req.user.id, displayName, legalName, countryCode, message]
     );
-    let notificationEmailStatus = 'skipped';
-    try {
-      const settingsResult = await query(
-        `SELECT setting_value->>'value' AS operator_email
-           FROM platform_settings
-          WHERE setting_key = 'operator_email'
-          LIMIT 1`
-      );
-      const operatorEmail = String(settingsResult.rows[0]?.operator_email || '').trim();
-      if (operatorEmail) {
-        await sendSellerApplicationNotificationEmail({
-          operatorEmail,
-          sellerEmail: req.user.email,
-          displayName,
-          legalName,
-          countryCode,
-        });
-        notificationEmailStatus = 'sent';
-      } else {
-        console.error('Seller application notification email skipped: operator email is missing');
-      }
-    } catch (emailError) {
-      notificationEmailStatus = 'failed';
-      console.error('Seller application was saved but operator notification email could not be sent', emailError);
-    }
-
-    return res.status(201).json({ application: result.rows[0], notificationEmailStatus });
+    return res.status(201).json({ application: result.rows[0] });
   } catch (error) {
     if (error?.code === '23505') return res.status(409).json({ error: 'seller_application_already_active' });
     return next(error);
