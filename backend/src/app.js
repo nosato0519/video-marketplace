@@ -31,6 +31,7 @@ import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import adminSettingsRoutes from './admin/settings-routes.js';
 import contentReportRoutes from './content-report-routes.js';
+import messageRoutes from './message-routes.js';
 import { registerPaymentProviderRoutes } from './payment-provider-routes.js';
 
 export function createApp() {
@@ -79,6 +80,7 @@ export function createApp() {
   registerProductTranslationRoutes(app);
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
+  app.use('/api/messages', messageRoutes);
   app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
