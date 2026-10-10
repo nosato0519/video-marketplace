@@ -59,6 +59,10 @@ router.get('/profile', async (req, res, next) => {
       [req.user.id]
     );
     if (!result.rows[0]) {
+      const [verificationMethod, operatorEmailResult] = await Promise.all([
+        getSellerVerificationMethod(),
+        query("SELECT setting_value->>'value' AS value FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1")
+      ]);
       return res.json({ profile: {
         user_id: req.user.id,
         display_name: '',
@@ -72,8 +76,8 @@ router.get('/profile', async (req, res, next) => {
         verification_note: null,
         submitted_at: null,
         verified_at: null,
-        verification_method: await getSellerVerificationMethod(),
-        operator_email: (await query("SELECT setting_value->>'value' AS value FROM platform_settings WHERE setting_key = 'operator_email' LIMIT 1")).rows[0]?.value || ''
+        verification_method: verificationMethod,
+        operator_email: operatorEmailResult.rows[0]?.value || ''
       }});
     }
     return res.json({ profile: result.rows[0] });
