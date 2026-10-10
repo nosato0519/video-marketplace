@@ -8,6 +8,7 @@ const verificationStatus = document.getElementById('seller-verification-status')
 const operatorEmail = document.getElementById('operator-email');
 const verificationEmailSubject = document.getElementById('verification-email-subject');
 const verificationEmailBody = document.getElementById('verification-email-body');
+let lastDefaultEmailBody = '';
 
 function saveSecurityDemo() {
   if (!securityForm) return;
@@ -62,12 +63,28 @@ async function loadVerificationSetting() {
     verificationMethod.value = ['none', 'email', 'document'].includes(data.method) ? data.method : 'none';
     if (operatorEmail) operatorEmail.value = data.operatorEmail || '';
     if (verificationEmailSubject) verificationEmailSubject.value = data.emailSubject || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE';
-    if (verificationEmailBody) verificationEmailBody.value = data.emailBody || '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（{operatorEmail}）へ送信するか、本人確認ページ（{verificationUrl}）から提出してください。';
+    if (verificationEmailBody) {
+      verificationEmailBody.value = data.emailBody || defaultVerificationEmailBody(data.method);
+      lastDefaultEmailBody = defaultVerificationEmailBody(data.method);
+    }
     verificationStatus.textContent = '現在の設定を読み込みました';
   } catch {
     verificationStatus.textContent = '設定を読み込めませんでした';
   }
 }
+
+function defaultVerificationEmailBody(method) {
+  if (method === 'email') return '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（{operatorEmail}）へメールで送信してください。販売者ページ：{verificationUrl}';
+  if (method === 'document') return '販売者登録が承認されました。本人確認が必要な場合は、販売者ページの本人確認画面（{verificationUrl}）から本人確認書類を提出してください。';
+  return '販売者登録が承認されました。本人確認は現在必須ではありません。販売者ページ：{verificationUrl}';
+}
+
+verificationMethod?.addEventListener('change', () => {
+  if (!verificationEmailBody || verificationEmailBody.value === lastDefaultEmailBody) {
+    lastDefaultEmailBody = defaultVerificationEmailBody(verificationMethod.value);
+    if (verificationEmailBody) verificationEmailBody.value = lastDefaultEmailBody;
+  }
+});
 
 verificationForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
