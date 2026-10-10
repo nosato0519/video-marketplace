@@ -11,13 +11,17 @@ const isAdmin = (req) => req.user.role === 'admin';
 async function getThread(id, user) {
   const result = await query(
     `SELECT t.id, t.created_by, t.assigned_to, t.subject, t.status, t.created_at, t.updated_at,
-            creator.display_name AS creator_name, creator.role AS creator_role,
-            assignee.display_name AS assignee_name, assignee.role AS assignee_role,
+            COALESCE(NULLIF(creator_profile.display_name, ''), creator.email) AS creator_name,
+            creator.role AS creator_role,
+            COALESCE(NULLIF(assignee_profile.display_name, ''), assignee.email) AS assignee_name,
+            assignee.role AS assignee_role,
             (SELECT COUNT(*)::int FROM messages m
               WHERE m.thread_id = t.id AND m.sender_id <> $2 AND m.read_at IS NULL) AS unread_count
        FROM message_threads t
        JOIN users creator ON creator.id = t.created_by
+       LEFT JOIN seller_profiles creator_profile ON creator_profile.user_id = creator.id
        LEFT JOIN users assignee ON assignee.id = t.assigned_to
+       LEFT JOIN seller_profiles assignee_profile ON assignee_profile.user_id = assignee.id
       WHERE t.id = $1
         AND ($3::boolean OR t.created_by = $2 OR t.assigned_to = $2)`,
     [id, user.id, isAdmin({ user })]
@@ -36,8 +40,10 @@ router.get('/contacts', async (req, res, next) => {
     else if (req.user.role === 'seller') roles = ['buyer'];
     else roles = ['buyer', 'seller'];
     const result = await query(
-      `SELECT id, display_name, role FROM users
-        WHERE role = ANY($1::text[]) AND status = 'active'
+      `SELECT u.id, COALESCE(NULLIF(sp.display_name, ''), u.email) AS display_name, u.role
+         FROM users u
+         LEFT JOIN seller_profiles sp ON sp.user_id = u.id
+        WHERE u.role = ANY($1::text[]) AND u.status = 'active'
         ORDER BY display_name ASC LIMIT 200`,
       [roles]
     );
@@ -49,15 +55,19 @@ router.get('/threads', async (req, res, next) => {
   try {
     const result = await query(
       `SELECT t.id, t.created_by, t.assigned_to, t.subject, t.status, t.created_at, t.updated_at,
-              creator.display_name AS creator_name, creator.role AS creator_role,
-              assignee.display_name AS assignee_name, assignee.role AS assignee_role,
+              COALESCE(NULLIF(creator_profile.display_name, ''), creator.email) AS creator_name,
+              creator.role AS creator_role,
+              COALESCE(NULLIF(assignee_profile.display_name, ''), assignee.email) AS assignee_name,
+              assignee.role AS assignee_role,
               last_message.body AS last_message,
               last_message.created_at AS last_message_at,
               (SELECT COUNT(*)::int FROM messages m
                 WHERE m.thread_id = t.id AND m.sender_id <> $1 AND m.read_at IS NULL) AS unread_count
          FROM message_threads t
          JOIN users creator ON creator.id = t.created_by
+         LEFT JOIN seller_profiles creator_profile ON creator_profile.user_id = creator.id
          LEFT JOIN users assignee ON assignee.id = t.assigned_to
+         LEFT JOIN seller_profiles assignee_profile ON assignee_profile.user_id = assignee.id
          LEFT JOIN LATERAL (
            SELECT body, created_at FROM messages
             WHERE thread_id = t.id ORDER BY created_at DESC LIMIT 1
@@ -120,9 +130,12 @@ router.get('/threads/:id', async (req, res, next) => {
     const thread = await getThread(req.params.id, req.user);
     if (!thread) return res.status(404).json({ error: 'thread_not_found' });
     const result = await query(
-      `SELECT m.id, m.sender_id, u.display_name AS sender_name, u.role AS sender_role,
-              m.body, m.created_at, m.read_at
-         FROM messages m JOIN users u ON u.id = m.sender_id
+      `SELECT m.id, m.sender_id,
+              COALESCE(NULLIF(sp.display_name, ''), u.email) AS sender_name,
+              u.role AS sender_role, m.body, m.created_at, m.read_at
+         FROM messages m
+         JOIN users u ON u.id = m.sender_id
+         LEFT JOIN seller_profiles sp ON sp.user_id = u.id
         WHERE m.thread_id = $1 ORDER BY m.created_at ASC`,
       [thread.id]
     );
