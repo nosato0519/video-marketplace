@@ -18,11 +18,16 @@ router.get('/settings/seller-verification', async (_req, res, next) => {
     const settings = Object.fromEntries(result.rows.map((row) => [row.setting_key, row.setting_value]));
     const configuredMethod = settings.seller_verification_method?.value;
     const method = ALLOWED_METHODS.has(configuredMethod) ? configuredMethod : 'none';
+    const defaultEmailBody = method === 'email'
+      ? '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（{operatorEmail}）へメールで送信してください。販売者ページ：{verificationUrl}'
+      : method === 'document'
+        ? '販売者登録が承認されました。本人確認が必要な場合は、販売者ページの本人確認画面（{verificationUrl}）から本人確認書類を提出してください。'
+        : '販売者登録が承認されました。本人確認は現在必須ではありません。販売者ページ：{verificationUrl}';
     return res.json({
       method,
       operatorEmail: String(settings.operator_email?.value || ''),
-      emailSubject: String(settings.seller_verification_email_subject?.value || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE'),
-      emailBody: String(settings.seller_verification_email_body?.value || '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（{operatorEmail}）へ送信するか、本人確認ページ（{verificationUrl}）から提出してください。'),
+      emailSubject: String(settings.seller_verification_email_subject?.value || '販売者登録の承認について | VIDEO MARKETPLACE'),
+      emailBody: String(settings.seller_verification_email_body?.value || defaultEmailBody),
     });
   } catch (error) {
     return next(error);
@@ -39,8 +44,8 @@ router.put('/settings/seller-verification', async (req, res, next) => {
     if (operatorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(operatorEmail)) {
       return res.status(400).json({ error: 'invalid_operator_email' });
     }
-    if (method === 'email' && !operatorEmail) {
-      return res.status(400).json({ error: 'operator_email_required_for_email_verification' });
+    if (!operatorEmail) {
+      return res.status(400).json({ error: 'operator_email_required_for_registration_email' });
     }
     if (!emailSubject || !emailBody) return res.status(400).json({ error: 'verification_email_template_required' });
     const values = [
