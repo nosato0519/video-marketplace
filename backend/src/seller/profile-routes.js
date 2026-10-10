@@ -179,10 +179,19 @@ router.post('/profile/verification-document', async (req, res, next) => {
     if (await getSellerVerificationMethod() === 'none') {
       return res.status(409).json({ error: 'seller_verification_not_required' });
     }
-    const profile = await query(`SELECT verification_status FROM seller_profiles WHERE user_id = $1`, [req.user.id]);
+    const profile = await query(
+      `SELECT sp.verification_status, svd.status AS verification_document_status
+         FROM seller_profiles sp
+         LEFT JOIN seller_verification_documents svd ON svd.user_id = sp.user_id
+        WHERE sp.user_id = $1`,
+      [req.user.id]
+    );
     const status = profile.rows[0]?.verification_status;
+    const canReplaceEmailApproval = status === 'verified' && profile.rows[0]?.verification_document_status !== 'approved';
     if (!profile.rowCount) return res.status(400).json({ error: 'seller_profile_required' });
-    if (!['not_started', 'request_changes', 'rejected'].includes(status)) return res.status(409).json({ error: 'verification_document_locked' });
+    if (!['not_started', 'request_changes', 'rejected'].includes(status) && !canReplaceEmailApproval) {
+      return res.status(409).json({ error: 'verification_document_locked' });
+    }
 
     const id = crypto.randomUUID();
     const extension = mime === 'application/pdf' ? '.pdf' : mime === 'image/png' ? '.png' : '.jpg';
@@ -202,12 +211,18 @@ router.post('/profile/verification-document', async (req, res, next) => {
 
     const saved = await withTransaction(async (db) => {
       const lockedProfile = await db.query(
-        `SELECT verification_status FROM seller_profiles WHERE user_id = $1 FOR UPDATE`,
+        `SELECT sp.verification_status, svd.status AS verification_document_status
+           FROM seller_profiles sp
+           LEFT JOIN seller_verification_documents svd ON svd.user_id = sp.user_id
+          WHERE sp.user_id = $1
+          FOR UPDATE OF sp`,
         [req.user.id]
       );
       const currentStatus = lockedProfile.rows[0]?.verification_status;
+      const canReplaceEmailApproval = currentStatus === 'verified'
+        && lockedProfile.rows[0]?.verification_document_status !== 'approved';
       if (!lockedProfile.rowCount) return { kind: 'profile_required' };
-      if (!['not_started', 'request_changes', 'rejected'].includes(currentStatus)) {
+      if (!['not_started', 'request_changes', 'rejected'].includes(currentStatus) && !canReplaceEmailApproval) {
         return { kind: 'locked' };
       }
 
@@ -228,6 +243,18 @@ router.post('/profile/verification-document', async (req, res, next) => {
          RETURNING id, original_filename, mime_type, byte_size, status, created_at, updated_at`,
         [id, req.user.id, storageKey, filename, mime, bytes]
       );
+      if (canReplaceEmailApproval) {
+        await db.query(
+          `UPDATE seller_profiles
+              SET verification_status = 'not_started',
+                  submitted_at = NULL,
+                  verified_at = NULL,
+                  verification_note = NULL,
+                  updated_at = NOW()
+            WHERE user_id = $1`,
+          [req.user.id]
+        );
+      }
       return { kind: 'ok', document: result.rows[0], previousStorageKey: previous.rows[0]?.storage_key || null };
     });
     if (saved.kind !== 'ok') {
