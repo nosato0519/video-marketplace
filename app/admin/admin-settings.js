@@ -5,6 +5,9 @@ const securityReset = document.getElementById('reset-settings');
 const verificationForm = document.getElementById('seller-verification-form');
 const verificationMethod = document.getElementById('seller-verification-method');
 const verificationStatus = document.getElementById('seller-verification-status');
+const operatorEmail = document.getElementById('operator-email');
+const verificationEmailSubject = document.getElementById('verification-email-subject');
+const verificationEmailBody = document.getElementById('verification-email-body');
 
 function saveSecurityDemo() {
   if (!securityForm) return;
@@ -56,7 +59,10 @@ async function loadVerificationSetting() {
     const response = await fetch('/api/admin/settings/seller-verification', { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('settings_load_failed');
     const data = await response.json();
-    verificationMethod.value = data.method === 'document' ? 'document' : 'none';
+    verificationMethod.value = ['none', 'email', 'document'].includes(data.method) ? data.method : 'none';
+    if (operatorEmail) operatorEmail.value = data.operatorEmail || '';
+    if (verificationEmailSubject) verificationEmailSubject.value = data.emailSubject || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE';
+    if (verificationEmailBody) verificationEmailBody.value = data.emailBody || '販売者登録が承認されました。本人確認が必要な場合は、本人確認書類をこのメールアドレスへ送信してください。';
     verificationStatus.textContent = '現在の設定を読み込みました';
   } catch {
     verificationStatus.textContent = '設定を読み込めませんでした';
@@ -71,7 +77,12 @@ verificationForm?.addEventListener('submit', async (event) => {
       method: 'PUT',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ method: verificationMethod.value }),
+      body: JSON.stringify({
+        method: verificationMethod.value,
+        operatorEmail: operatorEmail?.value || '',
+        emailSubject: verificationEmailSubject?.value || '',
+        emailBody: verificationEmailBody?.value || '',
+      }),
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -81,6 +92,9 @@ verificationForm?.addEventListener('submit', async (event) => {
       throw new Error(detail || `HTTP ${response.status}`);
     }
     verificationMethod.value = data.method || verificationMethod.value;
+    if (operatorEmail) operatorEmail.value = data.operatorEmail ?? operatorEmail.value;
+    if (verificationEmailSubject) verificationEmailSubject.value = data.emailSubject ?? verificationEmailSubject.value;
+    if (verificationEmailBody) verificationEmailBody.value = data.emailBody ?? verificationEmailBody.value;
     verificationStatus.textContent = '設定を保存しました';
   } catch (error) {
     verificationStatus.textContent = error instanceof Error && error.message
