@@ -36,7 +36,7 @@ router.put('/settings/seller-verification', async (req, res, next) => {
     const emailSubject = String(req.body?.emailSubject || '').trim().slice(0, 200);
     const emailBody = String(req.body?.emailBody || '').trim().slice(0, 5000);
     if (!ALLOWED_METHODS.has(method)) return res.status(400).json({ error: 'invalid_seller_verification_method' });
-    if (operatorEmail && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(operatorEmail)) {
+    if (operatorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(operatorEmail)) {
       return res.status(400).json({ error: 'invalid_operator_email' });
     }
     if (method === 'email' && !operatorEmail) {
