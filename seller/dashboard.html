@@ -54,7 +54,7 @@
         <a href="/seller/products.html" class="buyer-menu-card message-card"><span>01</span><strong>動画を管理</strong><small>登録・編集・翻訳をまとめて管理</small><b>確認 →</b></a>
         <a href="/seller/sales.html" class="buyer-menu-card message-card"><span>02</span><strong>売上管理</strong><small>販売数・売上・販売分析をまとめて確認</small><b>確認 →</b></a>
         <a href="/seller/profile.html" class="buyer-menu-card message-card"><span>03</span><strong>販売者情報</strong><small>プロフィール・登録情報の確認・編集</small><b>確認 →</b></a>
-        <a href="/seller/verification.html" class="buyer-menu-card message-card"><span>04</span><strong>本人確認</strong><small>本人確認を申請し、審査状況を確認</small><b>確認 →</b></a>
+        <a id="seller-verification-card" href="/seller/verification.html" class="buyer-menu-card message-card"><span>04</span><strong>本人確認</strong><small>本人確認を申請し、審査状況を確認</small><b>確認 →</b></a>
       </div>
     </section>
 
@@ -149,6 +149,12 @@ async function loadDashboard() {
     request('/api/seller/products'),
     request('/api/seller/earnings')
   ]);
+  const profileResponse = await request('/api/seller/profile').catch(() => null);
+  const verificationCard = document.querySelector('#seller-verification-card');
+  if (verificationCard && profileResponse?.profile?.verification_method === 'none') {
+    verificationCard.hidden = true;
+    verificationCard.style.display = 'none';
+  }
   const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
   document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
   document.querySelector('#sale-count').textContent = Number(earnings.summary?.sale_count || 0).toLocaleString('ja-JP');
