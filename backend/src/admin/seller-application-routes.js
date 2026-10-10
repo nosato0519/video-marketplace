@@ -110,20 +110,27 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
     });
     if (result.status === 'approved') {
       try {
-        const [recipient, setting] = await Promise.all([
+        const [recipient, settingsResult] = await Promise.all([
           query(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [result.user_id]),
-          query(`SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1`),
+          query(`SELECT setting_key, setting_value FROM platform_settings
+                  WHERE setting_key IN ('seller_verification_method', 'operator_email', 'seller_verification_email_subject', 'seller_verification_email_body')`),
         ]);
-        const method = setting.rows[0]?.method;
+        const settings = Object.fromEntries(settingsResult.rows.map((row) => [row.setting_key, row.setting_value]));
+        const method = settings.seller_verification_method?.value || 'none';
+        const operatorEmail = String(settings.operator_email?.value || '');
         const email = recipient.rows[0]?.email;
         const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
         if (method !== 'none') {
-          if (!email || !baseUrl) {
-            console.error('Seller verification email skipped: recipient email or APP_BASE_URL is missing');
+          if (!email || !baseUrl || (method === 'email' && !operatorEmail)) {
+            console.error('Seller verification email skipped: recipient, APP_BASE_URL, or operator email is missing');
           } else {
             await sendSellerVerificationInstructionsEmail({
               email,
               verificationUrl: baseUrl + '/seller/verification.html',
+              operatorEmail,
+              method,
+              subject: settings.seller_verification_email_subject?.value,
+              body: settings.seller_verification_email_body?.value,
             });
           }
         }
