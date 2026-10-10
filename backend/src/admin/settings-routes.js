@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 
@@ -54,15 +54,17 @@ router.put('/settings/seller-verification', async (req, res, next) => {
       ['seller_verification_email_subject', emailSubject],
       ['seller_verification_email_body', emailBody],
     ];
-    for (const [key, value] of values) {
-      await query(
-        `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
-         VALUES ($1, jsonb_build_object('value', $2::text), NOW())
-         ON CONFLICT (setting_key)
-         DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
-        [key, value]
-      );
-    }
+    await withTransaction(async (db) => {
+      for (const [key, value] of values) {
+        await db.query(
+          `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
+           VALUES ($1, jsonb_build_object('value', $2::text), NOW())
+           ON CONFLICT (setting_key)
+           DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+          [key, value]
+        );
+      }
+    });
     return res.json({ method, operatorEmail, emailSubject, emailBody });
   } catch (error) {
     console.error('Saving seller verification setting failed', error);
