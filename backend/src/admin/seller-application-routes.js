@@ -122,21 +122,19 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
         const operatorEmail = String(settings.operator_email?.value || '');
         const email = recipient.rows[0]?.email;
         const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
-        {
-          if (!email || !baseUrl || !operatorEmail) {
-            registrationEmailStatus = 'skipped';
-            console.error('Seller registration email skipped: recipient, APP_BASE_URL, or operator email is missing');
-          } else {
-            await sendSellerVerificationInstructionsEmail({
-              email,
-              verificationUrl: baseUrl + '/seller/verification.html',
-              operatorEmail,
-              method,
-              subject: settings.seller_verification_email_subject?.value,
-              body: settings.seller_verification_email_body?.value,
-            });
-            registrationEmailStatus = 'sent';
-          }
+        if (!email || !baseUrl || !operatorEmail) {
+          registrationEmailStatus = 'skipped';
+          console.error('Seller registration email skipped: recipient, APP_BASE_URL, or operator email is missing');
+        } else {
+          await sendSellerVerificationInstructionsEmail({
+            email,
+            verificationUrl: baseUrl + '/seller/verification.html',
+            operatorEmail,
+            method,
+            subject: settings.seller_verification_email_subject?.value,
+            body: settings.seller_verification_email_body?.value,
+          });
+          registrationEmailStatus = 'sent';
         }
       } catch (error) {
         registrationEmailStatus = 'failed';
