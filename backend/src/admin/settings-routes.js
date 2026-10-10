@@ -44,10 +44,9 @@ router.put('/settings/seller-verification', async (req, res, next) => {
     if (operatorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(operatorEmail)) {
       return res.status(400).json({ error: 'invalid_operator_email' });
     }
-    if (!operatorEmail) {
-      return res.status(400).json({ error: 'operator_email_required_for_registration_email' });
+    if (method === 'email' && !operatorEmail) {
+      return res.status(400).json({ error: 'operator_email_required_for_email_verification' });
     }
-    if (!emailSubject || !emailBody) return res.status(400).json({ error: 'verification_email_template_required' });
     const values = [
       ['seller_verification_method', method],
       ['operator_email', operatorEmail],
