@@ -141,8 +141,15 @@
       userRole = context.user.role;
       const contacts = await api('/contacts');
       recipient.replaceChildren();
-      if (userRole === 'buyer' || userRole === 'seller') recipient.append(h('option', '', '運営者へ問い合わせ（サイト内）'));
-      else recipient.append(h('option', '', '宛先を選択してください'));
+      if (userRole === 'buyer' || userRole === 'seller') {
+        const operatorOption = h('option', '', '運営者へ問い合わせ（サイト内）');
+        operatorOption.value = '';
+        recipient.append(operatorOption);
+      } else {
+        const placeholder = h('option', '', '宛先を選択してください');
+        placeholder.value = '';
+        recipient.append(placeholder);
+      }
       (contacts.contacts || []).forEach((contact) => {
         const option = h('option', '', contact.display_name + (contact.role === 'seller' ? '（販売者）' : contact.role === 'buyer' ? '（購入者）' : ''));
         option.value = contact.id; recipient.append(option);
