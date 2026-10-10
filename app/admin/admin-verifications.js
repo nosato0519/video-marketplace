@@ -129,8 +129,7 @@ export function bindSellerVerificationReviewPage() {
     const reviewNote = note.value.trim();
     const emailApproval = action === 'approve'
       && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(row?.dataset.verificationStatus)
-      && row?.dataset.verificationMethod === 'email'
-      && row?.dataset.verificationDocumentStatus !== 'uploaded';
+      && row?.dataset.verificationMethod === 'email';
     if (emailApproval && !reviewNote) {
       alert('メールで受け取った本人確認書類の確認内容を本人確認メモに入力してください。');
       note.focus();
