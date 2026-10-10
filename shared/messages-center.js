@@ -140,13 +140,13 @@
       userRole = context.user.role;
       const contacts = await api('/contacts');
       recipient.replaceChildren();
-      if (userRole === 'seller') recipient.append(h('option', '', '運営者へ問い合わせ（サイト内）'));
+      if (userRole === 'buyer' || userRole === 'seller') recipient.append(h('option', '', '運営者へ問い合わせ（サイト内）'));
       else recipient.append(h('option', '', '宛先を選択してください'));
       (contacts.contacts || []).forEach((contact) => {
         const option = h('option', '', contact.display_name + (contact.role === 'seller' ? '（販売者）' : contact.role === 'buyer' ? '（購入者）' : ''));
         option.value = contact.id; recipient.append(option);
       });
-      if (userRole !== 'seller') recipient.required = true;
+      if (userRole === 'admin') recipient.required = true;
       await loadThreads();
     } catch (error) {
       notice.textContent = 'ログインするとサイト内メッセージを利用できます。' + (error.message ? ' ' + error.message : '');
