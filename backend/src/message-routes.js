@@ -79,7 +79,7 @@ router.post('/threads', async (req, res, next) => {
     if (!subject || !body) return res.status(400).json({ error: 'subject_and_message_required' });
 
     let assignedTo = null;
-    if (req.user.role === 'seller' && !recipientId) {
+    if ((req.user.role === 'buyer' || req.user.role === 'seller') && !recipientId) {
       const admin = await query(`SELECT id FROM users WHERE role = 'admin' AND status = 'active' ORDER BY created_at ASC LIMIT 1`);
       assignedTo = admin.rows[0]?.id || null;
       if (!assignedTo) return res.status(503).json({ error: 'operator_account_unavailable' });
