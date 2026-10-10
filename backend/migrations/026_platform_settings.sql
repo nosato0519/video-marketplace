@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS platform_settings (
 );
 
 INSERT INTO platform_settings (setting_key, setting_value)
-VALUES ('seller_verification_method', '{"value":"document"}'::jsonb)
+VALUES ('seller_verification_method', '{"value":"none"}'::jsonb)
 ON CONFLICT (setting_key) DO NOTHING;
