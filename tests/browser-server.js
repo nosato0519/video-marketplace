@@ -23,18 +23,17 @@ const mimeTypes = {
 function resolveStaticPath(requestPath) {
   if (requestPath === '/') return path.join(root, 'app', 'index.html');
 
-  const repositoryPath = path.resolve(root, `.${requestPath}`);
-  if (repositoryPath.startsWith(root + path.sep) && fs.existsSync(repositoryPath) && fs.statSync(repositoryPath).isFile()) {
-    return repositoryPath;
-  }
-
-  // Render serves app/ as the static-site root, so production asset imports
-  // such as /main.js and /i18n.js resolve directly under that root. The local
-  // acceptance server serves the repository root, so fall back to app/ for
-  // root-relative frontend assets and nested modules.
+  // The application is deployed with app/ as its static root. Resolve
+  // root-relative frontend assets there first so repository-level files such
+  // as /styles.css cannot shadow the application's own stylesheet or modules.
   const appPath = path.resolve(root, 'app', `.${requestPath}`);
   if (appPath.startsWith(path.join(root, 'app') + path.sep) && fs.existsSync(appPath) && fs.statSync(appPath).isFile()) {
     return appPath;
+  }
+
+  const repositoryPath = path.resolve(root, `.${requestPath}`);
+  if (repositoryPath.startsWith(root + path.sep) && fs.existsSync(repositoryPath) && fs.statSync(repositoryPath).isFile()) {
+    return repositoryPath;
   }
 
   return null;
