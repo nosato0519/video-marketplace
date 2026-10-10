@@ -56,7 +56,7 @@ async function loadVerificationSetting() {
     const response = await fetch('/api/admin/settings/seller-verification', { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('settings_load_failed');
     const data = await response.json();
-    verificationMethod.value = data.method || 'document';
+    verificationMethod.value = data.method === 'document' ? 'document' : 'none';
     verificationStatus.textContent = '現在の設定を読み込みました';
   } catch {
     verificationStatus.textContent = '設定を読み込めませんでした';
