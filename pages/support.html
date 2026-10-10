@@ -5,20 +5,6 @@
 </style></head>
 <body class="library-page">
 <header class="nav"><a class="logo" href="/" aria-label="VIDEO MARKETPLACE"><span class="logo-symbol" aria-hidden="true"><i></i></span><span class="logo-wordmark"><b>VIDEO</b><i>MARKETPLACE</i></span></a><div class="nav-right"><nav><a href="/pages/buyer.html">マイページ</a><a href="/pages/video-list.html">動画を探す</a></nav></div></header>
-<main class="support-main"><section class="support-card"><span class="section-kicker">CUSTOMER SUPPORT</span><h1>お問い合わせ</h1><p>購入・視聴、注文、アカウント、出金などについて運営へお問い合わせいただけます。</p>
-<form id="support-form" class="support-form">
-<label>ご利用区分<select id="support-type" required><option value="購入者">購入者</option><option value="販売者">販売者</option></select></label>
-<label>お名前<input id="support-name" required maxlength="80" autocomplete="name" placeholder="お名前"></label>
-<label class="wide">お問い合わせ分類<select id="support-category" required><option value="購入・再生">購入・再生</option><option value="注文・決済">注文・決済</option><option value="返金">返金</option><option value="出金">出金</option><option value="本人確認">本人確認</option><option value="アカウント">アカウント</option><option value="その他">その他</option></select></label>
-<label class="wide">件名<input id="support-subject" required maxlength="120" placeholder="お問い合わせの件名"></label>
-<label class="wide">お問い合わせ内容<textarea id="support-message" required maxlength="4000" placeholder="状況や確認したい内容をご記入ください。"></textarea></label>
-<p class="support-note wide">この段階では入力内容をこのブラウザ内のデモデータとして保存します。実際の送信・運営者との共有にはバックエンド連携が必要です。</p>
-<button type="submit">問い合わせ内容を登録</button>
-</form><div id="support-success" class="support-success" hidden></div></section></main>
+<main class="support-main"><section class="support-card"><span class="section-kicker">CUSTOMER SUPPORT</span><h1>お問い合わせ・メッセージ</h1><p>購入者・販売者・運営者がサイト内で問い合わせや返信を行えます。メッセージと履歴はサイト内に保存され、メールソフトやメール送信設定は不要です。</p></section></main>
 <footer class="footer"><div>VIDEO MARKETPLACE</div><span>© 2026 VIDEO MARKETPLACE</span></footer>
-<script>
-(function(){
-const form=document.getElementById('support-form'),success=document.getElementById('support-success');
-form.addEventListener('submit',e=>{e.preventDefault();const item={id:'INQ-'+Date.now().toString().slice(-6),type:document.getElementById('support-type').value,name:document.getElementById('support-name').value.trim(),category:document.getElementById('support-category').value,subject:document.getElementById('support-subject').value.trim(),message:document.getElementById('support-message').value.trim(),status:'未対応',date:new Date().toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),createdAt:Date.now()};if(!item.name||!item.subject||!item.message)return;const key='vm-demo-inquiries';const items=JSON.parse(localStorage.getItem(key)||'[]');items.unshift(item);localStorage.setItem(key,JSON.stringify(items));success.hidden=false;success.textContent='問い合わせをデモ登録しました。受付番号：'+item.id+'。運営者画面の「問い合わせ管理」で確認できます（同じブラウザ内のデモ保存です）。';form.reset();});
-})();
-</script><script src="/shared/site-branding.js"></script></body></html>
+<script src="/shared/messages-center.js"></script><script src="/shared/site-branding.js"></script></body></html>
