@@ -108,6 +108,9 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
         if (!document.rowCount && !emailApprovedOptionalSeller) {
           return { kind: 'document_required' };
         }
+        if (!document.rowCount && emailApprovedOptionalSeller && !note) {
+          return { kind: 'email_review_note_required' };
+        }
       }
 
       const updated = await db.query(
@@ -139,6 +142,9 @@ router.post('/seller-verifications/:userId/review', async (req, res, next) => {
     }
     if (result.kind === 'document_required') {
       return res.status(409).json({ error: 'verification_document_required' });
+    }
+    if (result.kind === 'email_review_note_required') {
+      return res.status(400).json({ error: 'email_verification_review_note_required' });
     }
     return res.json({ profile: result.profile });
   } catch (e) { return next(e); }
