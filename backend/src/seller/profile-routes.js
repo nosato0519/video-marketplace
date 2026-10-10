@@ -13,7 +13,7 @@ async function getSellerVerificationMethod() {
     "SELECT setting_value->>'value' AS method FROM platform_settings WHERE setting_key = 'seller_verification_method' LIMIT 1"
   );
   const method = result.rows[0]?.method;
-  return method === 'none' ? 'none' : 'document';
+  return method === 'document' ? 'document' : 'none';
 }
 router.use(requireAuth, requireRole('seller'));
 
@@ -51,7 +51,7 @@ router.get('/profile', async (req, res, next) => {
     const result = await query(
       `SELECT sp.user_id, sp.display_name, sp.legal_name, sp.country_code, sp.bio, sp.address, sp.postal_code, sp.phone,
               sp.verification_status, sp.verification_note, sp.submitted_at, sp.verified_at, sp.created_at, sp.updated_at,
-              CASE WHEN ps.setting_value->>'value' = 'none' THEN 'none' ELSE 'document' END AS verification_method
+              CASE WHEN ps.setting_value->>'value' = 'document' THEN 'document' ELSE 'none' END AS verification_method
          FROM seller_profiles sp
          LEFT JOIN platform_settings ps ON ps.setting_key = 'seller_verification_method'
         WHERE sp.user_id = $1`,
