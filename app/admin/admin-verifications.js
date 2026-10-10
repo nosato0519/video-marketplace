@@ -56,7 +56,7 @@ export function bindSellerVerificationReviewPage() {
       const actions = {
         submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
         under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
-        request_changes: item.verification_method === 'none'
+        request_changes: item.verification_method === 'email'
           ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
           : '<span class="muted">再申請待ち</span>',
         rejected: item.verification_method === 'none'
@@ -129,7 +129,7 @@ export function bindSellerVerificationReviewPage() {
     const reviewNote = note.value.trim();
     const emailApproval = action === 'approve'
       && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(row?.dataset.verificationStatus)
-      && row?.dataset.verificationMethod === 'none'
+      && row?.dataset.verificationMethod === 'email'
       && row?.dataset.verificationDocumentStatus !== 'uploaded';
     if (emailApproval && !reviewNote) {
       alert('メールで受け取った本人確認書類の確認内容を本人確認メモに入力してください。');
