@@ -68,3 +68,47 @@ export async function sendSellerVerificationInstructionsEmail({
     html: '<p>' + htmlMessage + '</p>',
   });
 }
+
+export async function sendSellerApplicationNotificationEmail({
+  operatorEmail,
+  sellerEmail,
+  displayName,
+  legalName,
+  countryCode,
+}, env = process.env) {
+  const { transporter, from } = createTransport(env);
+  const recipient = String(operatorEmail || '').trim().toLowerCase();
+  const configuredFrom = String(from || '').trim();
+  const configuredFromEmail = (configuredFrom.match(/<([^>]+)>/)?.[1] || configuredFrom).trim().toLowerCase();
+  if (!recipient || configuredFromEmail !== recipient) {
+    const error = new Error('smtp_from_must_match_operator_email');
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const subject = '新しい販売者登録申請が届きました | VIDEO MARKETPLACE';
+  const text = [
+    '新しい販売者登録申請が届きました。',
+    '',
+    `メールアドレス：${String(sellerEmail || '')}`,
+    `クリエイター名：${String(displayName || '')}`,
+    `氏名：${String(legalName || '')}`,
+    `国・地域コード：${String(countryCode || '')}`,
+    '',
+    '運営者ページから申請内容を確認してください。',
+  ].join('\\n');
+
+  await transporter.sendMail({
+    from,
+    to: recipient,
+    replyTo: String(sellerEmail || '').trim(),
+    subject,
+    text,
+    html: '<p>' + text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\\n/g, '<br>') + '</p>',
+  });
+}
+
