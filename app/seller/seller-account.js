@@ -105,7 +105,15 @@ async function loadSellerProfile() {
     verificationStatus.textContent = verificationLabels[profile.verification_status] || '未申請';
   }
   if (verificationNote) {
-    verificationNote.textContent = profile.verification_note || '販売者登録後、本人確認の申請を行ってください。';
+    verificationNote.textContent = profile.verification_note || (
+      verificationMethod === 'email'
+        ? '本人確認書類を上記の運営者メールアドレスへ送信してください。'
+        : '販売者情報を確認してから本人確認書類を提出してください。'
+    );
+  }
+  const beforeSubmitNote = document.querySelector('#verification-before-submit-note');
+  if (beforeSubmitNote && verificationMethod === 'email') {
+    beforeSubmitNote.textContent = '販売者情報の本名・住所・郵便番号・電話番号・国コードを正しく登録してください。運営者はメールで受け取った書類と登録情報を照合して審査します。';
   }
   if (verificationAction) {
     const eligibleStatus = ['not_started', 'request_changes', 'rejected'].includes(profile.verification_status);
