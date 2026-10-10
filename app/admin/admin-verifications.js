@@ -195,8 +195,12 @@ export function bindSellerVerificationReviewPage() {
       const actions = {
         submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
         under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
-        request_changes: '<span class="muted">再申請待ち</span>',
-        rejected: '<span class="muted">再申請待ち</span>',
+        request_changes: item.verification_method === 'none'
+          ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
+          : '<span class="muted">再申請待ち</span>',
+        rejected: item.verification_method === 'none'
+          ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
+          : '<span class="muted">再申請待ち</span>',
         verified: '<span class="muted">処理済み</span>',
         not_started: item.verification_method === 'none'
           ? '<button class="btn small" data-action="approve">メール確認を承認</button>'
@@ -263,7 +267,7 @@ export function bindSellerVerificationReviewPage() {
     if (!id || !action) return;
     const reviewNote = note.value.trim();
     const emailApproval = action === 'approve'
-      && ['not_started', 'submitted', 'under_review'].includes(row?.dataset.verificationStatus)
+      && ['not_started', 'submitted', 'under_review', 'request_changes', 'rejected'].includes(row?.dataset.verificationStatus)
       && row?.dataset.verificationMethod === 'none'
       && row?.dataset.verificationDocumentStatus !== 'uploaded';
     if (emailApproval && !reviewNote) {
