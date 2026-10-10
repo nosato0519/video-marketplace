@@ -26,26 +26,38 @@ function createTransport(env = process.env) {
   return { transporter, from: config.from };
 }
 
-export async function sendSellerVerificationInstructionsEmail({ email, verificationUrl }, env = process.env) {
+export async function sendSellerVerificationInstructionsEmail({
+  email,
+  verificationUrl,
+  operatorEmail = '',
+  method = 'document',
+  subject,
+  body,
+}, env = process.env) {
   const { transporter, from } = createTransport(env);
+  const safeOperatorEmail = String(operatorEmail || '').trim();
+  const defaultBody = method === 'email'
+    ? `販売者登録が承認されました。本人確認が必要な場合は、本人確認書類を運営者メールアドレス（${safeOperatorEmail}）へ送信してください。`
+    : `販売者登録が承認されました。本人確認が必要な場合は、販売者ページから本人確認書類を提出してください。\n${verificationUrl}`;
+  const message = String(body || defaultBody)
+    .replaceAll('{sellerEmail}', String(email || ''))
+    .replaceAll('{verificationUrl}', String(verificationUrl || ''))
+    .replaceAll('{operatorEmail}', safeOperatorEmail);
+  const htmlMessage = message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
   await transporter.sendMail({
     from,
+    ...(safeOperatorEmail ? { replyTo: safeOperatorEmail } : {}),
     to: email,
-    subject: '販売者登録の承認と本人確認書類の提出について | VIDEO MARKETPLACE',
-    text: [
-      'VIDEO MARKETPLACEの販売者登録が承認されました。',
-      '',
-      '売上の出金申請を利用するには、本人確認書類の提出と運営者の承認が必要です。',
-      '販売者アカウントにログインし、以下のページから本人確認書類を提出してください。',
-      verificationUrl,
-      '',
-      'このメールに心当たりがない場合は、運営者へお問い合わせください。',
-    ].join('\n'),
-    html: [
-      '<p>VIDEO MARKETPLACEの販売者登録が承認されました。</p>',
-      '<p>売上の出金申請を利用するには、本人確認書類の提出と運営者の承認が必要です。</p>',
-      '<p><a href="' + verificationUrl + '">本人確認書類を提出する</a></p>',
-      '<p>このメールに心当たりがない場合は、運営者へお問い合わせください。</p>',
-    ].join(''),
+    subject: String(subject || '販売者登録の承認と本人確認について | VIDEO MARKETPLACE')
+      .replaceAll('{sellerEmail}', String(email || ''))
+      .replaceAll('{verificationUrl}', String(verificationUrl || ''))
+      .replaceAll('{operatorEmail}', safeOperatorEmail)
+      .slice(0, 200),
+    text: message,
+    html: '<p>' + htmlMessage + '</p>',
   });
 }
