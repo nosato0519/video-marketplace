@@ -120,9 +120,9 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
         const operatorEmail = String(settings.operator_email?.value || '');
         const email = recipient.rows[0]?.email;
         const baseUrl = String(process.env.APP_BASE_URL || '').trim().replace(/\/$/, '');
-        if (method !== 'none') {
-          if (!email || !baseUrl || (method === 'email' && !operatorEmail)) {
-            console.error('Seller verification email skipped: recipient, APP_BASE_URL, or operator email is missing');
+        {
+          if (!email || !baseUrl || !operatorEmail) {
+            console.error('Seller registration email skipped: recipient, APP_BASE_URL, or operator email is missing');
           } else {
             await sendSellerVerificationInstructionsEmail({
               email,
