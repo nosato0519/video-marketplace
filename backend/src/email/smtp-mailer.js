@@ -96,7 +96,7 @@ export async function sendSellerApplicationNotificationEmail({
     `国・地域コード：${String(countryCode || '')}`,
     '',
     '運営者ページから申請内容を確認してください。',
-  ].join('\\n');
+  ].join('\n');
 
   await transporter.sendMail({
     from,
@@ -108,7 +108,7 @@ export async function sendSellerApplicationNotificationEmail({
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/\\n/g, '<br>') + '</p>',
+      .replace(/\n/g, '<br>') + '</p>',
   });
 }
 
