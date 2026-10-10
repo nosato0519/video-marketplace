@@ -58,7 +58,7 @@ router.put('/settings/seller-verification', async (req, res, next) => {
       for (const [key, value] of values) {
         await db.query(
           `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
-           VALUES ($1, jsonb_build_object('value', $2::text), NOW())
+           VALUES ($1::text, jsonb_build_object('value', $2::text), NOW())
            ON CONFLICT (setting_key)
            DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
           [key, value]
