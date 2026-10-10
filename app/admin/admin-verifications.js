@@ -188,8 +188,10 @@ export function bindSellerVerificationReviewPage() {
     table.tBodies[0].replaceChildren(...(items.length ? items.map((item) => {
       const row = document.createElement('tr');
       row.dataset.status = statusLabel[item.verification_status] || item.verification_status;
+      row.dataset.verificationStatus = item.verification_status;
       row.dataset.userId = item.user_id;
       row.dataset.verificationMethod = item.verification_method || 'none';
+      row.dataset.verificationDocumentStatus = item.verification_document_status || 'missing';
       const actions = {
         submitted: '<button class="btn small" data-action="start">審査開始</button> <button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
         under_review: '<button class="btn small" data-action="approve">確認済み</button> <button class="btn small" data-action="changes">差し戻し</button> <button class="btn small" data-action="reject">却下</button>',
@@ -261,8 +263,9 @@ export function bindSellerVerificationReviewPage() {
     if (!id || !action) return;
     const reviewNote = note.value.trim();
     const emailApproval = action === 'approve'
-      && row?.dataset.status === statusLabel.not_started
-      && row?.dataset.verificationMethod === 'none';
+      && ['not_started', 'submitted', 'under_review'].includes(row?.dataset.verificationStatus)
+      && row?.dataset.verificationMethod === 'none'
+      && row?.dataset.verificationDocumentStatus !== 'uploaded';
     if (emailApproval && !reviewNote) {
       alert('メールで受け取った本人確認書類の確認内容を本人確認メモに入力してください。');
       note.focus();
