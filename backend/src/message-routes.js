@@ -25,6 +25,26 @@ async function getThread(id, user) {
   return result.rows[0] || null;
 }
 
+router.get('/context', async (req, res) => {
+  return res.json({ user: { id: req.user.id, role: req.user.role, displayName: req.user.display_name || '' } });
+});
+
+router.get('/contacts', async (req, res, next) => {
+  try {
+    let roles;
+    if (req.user.role === 'buyer') roles = ['seller'];
+    else if (req.user.role === 'seller') roles = ['buyer'];
+    else roles = ['buyer', 'seller'];
+    const result = await query(
+      `SELECT id, display_name, role FROM users
+        WHERE role = ANY($1::text[]) AND status = 'active'
+        ORDER BY display_name ASC LIMIT 200`,
+      [roles]
+    );
+    return res.json({ contacts: result.rows });
+  } catch (error) { return next(error); }
+});
+
 router.get('/threads', async (req, res, next) => {
   try {
     const result = await query(
