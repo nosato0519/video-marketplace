@@ -64,6 +64,8 @@ function finalize(html) {
   html = html.replace(/<section\b[^>]*class=["'][^"']*\bsystem-guide-teaser\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/<section\b[^>]*id=["']guide["'][^>]*>[\s\S]*?<\/section>/gi, '');
   html = html.replace(/href=["']#guide["']/gi, 'href="#system-features-force"');
+  const systemFeatures = '<section class="complete-system" id="system-features-force"><div class="section-head"><div><small>02 / COMPLETE SYSTEM</small><h2>売るために必要な機能を、<br><em>最初から一つに。</em></h2></div><p>購入者向け・販売者向け・運営者向け。それぞれの画面と機能をつなげ、実際の運営をイメージできる構成です。</p></div><div class="complete-system-grid"><article class="complete-system-card buyer"><small>01 / BUYER</small><h3>購入者</h3><p>動画検索から購入後の視聴まで。</p><a href="/pages/video-list.html">購入者デモを見る →</a></article><article class="complete-system-card seller"><small>02 / SELLER</small><h3>販売者</h3><p>動画登録・公開・売上管理。</p><a href="/pages/creator-studio.html">販売者デモを見る →</a></article><article class="complete-system-card admin"><small>03 / ADMIN</small><h3>運営者</h3><p>審査・ユーザー・注文・出金管理。</p><a href="/pages/admin.html">運営者デモを見る →</a></article></div></section>';
+  html = html.replace('<section class="trustbar">', systemFeatures + '<section class="trustbar">');
   return repairHomepageMarkup(html)
     .replace('</head>', STYLE + '</head>')
     .replace('</body>', DEMO_FUNCTION_SCRIPT + '</body>');
