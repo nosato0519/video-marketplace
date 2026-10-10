@@ -149,12 +149,6 @@ async function loadDashboard() {
     request('/api/seller/products'),
     request('/api/seller/earnings')
   ]);
-  const profileResponse = await request('/api/seller/profile').catch(() => null);
-  const verificationCard = document.querySelector('#seller-verification-card');
-  if (verificationCard && profileResponse?.profile?.verification_method === 'none') {
-    verificationCard.hidden = true;
-    verificationCard.style.display = 'none';
-  }
   const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
   document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
   document.querySelector('#sale-count').textContent = Number(earnings.summary?.sale_count || 0).toLocaleString('ja-JP');
@@ -180,7 +174,7 @@ async function applyVerificationCardVisibility() {
   try {
     const data = await request('/api/seller/profile', { cache: 'no-store' });
     const method = data.profile?.verification_method;
-    if (method === 'document') {
+    if (method === 'email' || method === 'document') {
       card.hidden = false;
       card.style.display = '';
     }
