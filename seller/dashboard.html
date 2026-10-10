@@ -164,9 +164,28 @@ async function loadDashboard() {
   document.querySelector('#dashboard-sales-last-month-count').textContent = `先月の売上　${periods.lastMonth.length.toLocaleString('ja-JP')}件`;
 }
 
+async function applyVerificationCardVisibility() {
+  const card = document.querySelector('a[href="/seller/verification.html"]');
+  if (!card) return;
+
+  try {
+    const data = await request('/api/seller/profile');
+    const method = data.profile?.verification_method;
+    if (method !== 'none' && method !== 'document') return;
+
+    card.hidden = method === 'none';
+    card.style.display = card.hidden ? 'none' : '';
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.href = '/pages/seller-login.html';
+    }
+  }
+}
+
 loadDashboard().catch((error) => {
   if (error.status === 401) window.location.href = '/pages/seller-login.html';
 });
+applyVerificationCardVisibility();
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
