@@ -59,9 +59,16 @@ async function loadSellerProfile() {
   const verificationStatus = document.querySelector('#verification-status');
   const verificationAction = document.querySelector('#verification-submit');
   const verificationNote = document.querySelector('#verification-note');
-  const verificationMethod = ['none', 'document'].includes(profile.verification_method)
+  const verificationMethod = ['none', 'email', 'document'].includes(profile.verification_method)
     ? profile.verification_method
-    : 'document';
+    : 'none';
+  const emailSection = document.querySelector('#verification-email-section');
+  const operatorEmailElement = document.querySelector('#verification-operator-email');
+  if (emailSection) {
+    emailSection.hidden = verificationMethod !== 'email';
+    emailSection.style.display = emailSection.hidden ? 'none' : '';
+  }
+  if (operatorEmailElement) operatorEmailElement.textContent = profile.operator_email || '運営者メールアドレスが未設定です。運営へお問い合わせください。';
   const documentSection = document.querySelector('#verification-document-section');
   const verificationStatusSection = verificationStatus?.closest('.buyer-section');
   const verificationApplicationSection = verificationAction?.closest('.buyer-section');
@@ -89,7 +96,9 @@ async function loadSellerProfile() {
   if (payoutNote) {
     payoutNote.textContent = verificationMethod === 'none'
       ? '本人確認は必須ではありません。出金には残高や振込先など、その他の出金条件が適用されます。'
-      : '本人確認書類を提出し、運営者の承認が完了すると出金申請を行えます。';
+      : verificationMethod === 'email'
+        ? '運営者がメールで受け取った本人確認書類を確認し、承認すると出金申請を行えます。'
+        : '本人確認書類をサイト内で提出し、運営者の承認が完了すると出金申請を行えます。';
   }
 
   if (verificationStatus) {
