@@ -14,7 +14,7 @@ router.get('/settings/seller-verification', async (_req, res, next) => {
       'SELECT setting_value->>\'value\' AS method FROM platform_settings WHERE setting_key = \'seller_verification_method\' LIMIT 1'
     );
     const configuredMethod = result.rows[0]?.method;
-    const method = ALLOWED_METHODS.has(configuredMethod) ? configuredMethod : 'document';
+    const method = ALLOWED_METHODS.has(configuredMethod) ? configuredMethod : 'none';
     return res.json({ method });
   } catch (error) {
     return next(error);
