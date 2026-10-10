@@ -77,7 +77,9 @@ export function bindSellerVerificationReviewPage() {
         item.verification_document_id
           ? '<a href="/api/admin/seller-verifications/' + encodeURIComponent(item.user_id)
             + '/document" target="_blank" rel="noopener">本人確認書類を確認する</a>'
-          : '<span class="muted">本人確認書類なし</span>',
+          : item.verification_method === 'email'
+            ? '<span class="muted">メール受信箱で提出書類を確認</span>'
+            : '<span class="muted">本人確認書類なし</span>',
       ].join('<br>');
       const submittedDate = item.submitted_at
         ? new Date(item.submitted_at).toLocaleDateString('ja-JP').replaceAll('/', '.')
