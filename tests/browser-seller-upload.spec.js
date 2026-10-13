@@ -11,7 +11,7 @@ test('seller upload waits for the configured upload limit before enabling submis
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ maxUploadBytes: 24 }),
+      body: JSON.stringify({ maxUploadBytes: 24 * 1024 * 1024 }),
     });
   });
 
