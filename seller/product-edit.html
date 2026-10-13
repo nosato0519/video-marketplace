@@ -212,6 +212,11 @@ async function saveProduct() {
         replacementVideoInput.focus();
         return;
       }
+      if (replacementVideo.size === 0) {
+        alert('空の動画ファイルはアップロードできません。');
+        replacementVideoInput.focus();
+        return;
+      }
       const upload = await request('/api/seller/media/upload', {
         method: 'POST',
         headers: {
