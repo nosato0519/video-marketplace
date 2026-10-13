@@ -309,15 +309,25 @@ async function saveProduct() {
     productCreated = true;
     window.location.href = '/seller/products.html';
   } catch (error) {
+    let productMayExist = productCreated;
     if (uploadedMediaAssetId && !productCreated) {
       try {
         await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
       } catch (cleanupError) {
-        console.error('seller_product_create_cleanup_failed', cleanupError);
+        if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+          productMayExist = true;
+        } else {
+          console.error('seller_product_create_cleanup_failed', cleanupError);
+        }
       }
     }
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    if (productMayExist) {
+      alert('下書きが作成されている可能性があります。重複登録を避けるため、動画管理で確認してください。');
+      window.location.href = '/seller/products.html';
       return;
     }
     const detail = error.body?.error?.message || error.body?.error;
