@@ -50,7 +50,7 @@ test.describe('seller upload browser acceptance', () => {
     const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
     await saveAction.click();
     await expect.poll(() => uploadCalls).toBe(1);
-    await expect(saveAction).toHaveAttribute('aria-busy', 'true');
+    await expect(saveAction.locator('b')).toHaveAttribute('aria-busy', 'true');
     await saveAction.click({ force: true });
     expect(uploadCalls).toBe(1);
     expect(draftCalls).toBe(0);
