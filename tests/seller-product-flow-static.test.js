@@ -10,6 +10,7 @@ const products = fs.readFileSync(path.join(root, 'seller', 'products.html'), 'ut
 const productsScript = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-products.js'), 'utf8');
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
 const productEdit = fs.readFileSync(path.join(root, 'seller', 'product-edit.html'), 'utf8');
+const spaUpload = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-upload.js'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -47,5 +48,9 @@ assert.match(productEdit, /body\.mediaAssetId = uploadedMediaAssetId/);
 assert.match(productEdit, /currentProductStatus === 'published'/);
 assert.match(productEdit, /isSaving/);
 assert.match(productEdit, /replacementVideo\.size > maxUploadBytes/);
+assert.match(productEdit, /function getVideoMime\(file\)/);
+assert.match(productEdit, /'Content-Type': getVideoMime\(replacementVideo\)/);
+assert.match(spaUpload, /function getVideoMime\(file\)/);
+assert.match(spaUpload, /'content-type': getVideoMime\(file\)/);
 
 console.log('Seller product upload flow static contract checks passed.');
