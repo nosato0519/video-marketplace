@@ -74,8 +74,8 @@ function editorMarkup(product = null) {
       <label>Title<input name="title" type="text" maxlength="255" value="${escapeHtml(product?.title || '')}" placeholder="Give your video a clear title" required></label>
       <label>Description<textarea name="description" maxlength="5000" rows="6" placeholder="Explain what buyers will get and what makes this video useful.">${escapeHtml(product?.description || '')}</textarea></label>
       <div class="seller-form__row"><label>Price<input name="priceAmount" type="number" min="1" step="1" value="${escapeHtml(product?.price_amount ?? 1000)}" required></label><label>Currency<select name="priceCurrency"><option value="JPY" ${product?.price_currency === 'JPY' || !product ? 'selected' : ''}>JPY — Japanese Yen</option><option value="USD" ${product?.price_currency === 'USD' ? 'selected' : ''}>USD — US Dollar</option><option value="EUR" ${product?.price_currency === 'EUR' ? 'selected' : ''}>EUR — Euro</option></select></label></div>
-      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint"><option value="">No video attached</option></select></label>
-      <p id="seller-media-hint" class="seller-form__hint">${editing ? 'Choose one of your uploaded videos, or select No video attached. Published products are locked.' : 'You can create a product without a video, then attach one of your uploaded videos before publishing.'}</p>
+      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint" required><option value="">Select an uploaded video</option></select></label>
+      <p id="seller-media-hint" class="seller-form__hint">${editing ? 'Select a ready uploaded video to save changes. Published products are locked.' : 'Upload a video first, then select it here to create the product.'}</p>
       <div class="seller-form__actions"><button class="button" type="submit">${editing ? 'Save changes' : 'Create product'}</button>${!editing ? '<a class="button secondary" href="#/seller/upload">Upload a video instead</a>' : ''}</div>
       <p id="seller-product-form-message" class="microcopy" aria-live="polite"></p>
     </form>
@@ -100,13 +100,15 @@ export async function renderSellerProducts(root) {
       const data = await request('/api/seller/media/assets');
       const assets = Array.isArray(data.mediaAssets) ? data.mediaAssets : [];
       const selectable = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'ready');
-      mediaSelect.innerHTML = `<option value="">No video attached</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
+      mediaSelect.innerHTML = `<option value="">Select an uploaded video</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
       const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
       if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
       else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', `<option value="" selected>Current video unavailable — choose another</option>`);
+      mediaSelect.required = true;
     } catch (error) {
       mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
-      formMessage.textContent = 'Your product details can still be edited, but available videos could not be loaded.';
+      mediaSelect.required = !editing;
+      formMessage.textContent = editing ? 'Available videos could not be loaded. You can still save details without changing the video.' : 'Upload a video first. Available videos could not be loaded, so this product cannot be created yet.';
     }
 
     editorRoot.querySelector('[data-editor-action="close"]')?.addEventListener('click', closeEditor);
@@ -121,12 +123,14 @@ export async function renderSellerProducts(root) {
       const priceCurrency = String(data.get('priceCurrency') || 'JPY').toUpperCase();
       const mediaValue = String(data.get('mediaAssetId') || '').trim();
       if (!title || !Number.isFinite(priceAmount) || priceAmount <= 0) { formMessage.textContent = 'Enter a title and a valid price.'; return; }
+      if (!id && !mediaValue) { formMessage.textContent = 'Upload and select a video before creating a product.'; return; }
+      if (id && mediaSelect.required && !mediaValue) { formMessage.textContent = 'Select a ready uploaded video before saving changes.'; return; }
       const submit = form.querySelector('button[type="submit"]');
       submit.disabled = true;
       formMessage.textContent = 'Saving…';
       try {
         const payload = { title, description, priceAmount, priceCurrency };
-        if (mediaSelect.options.length > 1) payload.mediaAssetId = mediaValue || null;
+        if (mediaValue) payload.mediaAssetId = mediaValue;
         await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
         closeEditor();
         await load();
