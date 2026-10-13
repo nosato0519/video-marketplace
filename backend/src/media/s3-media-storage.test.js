@@ -107,20 +107,27 @@ test('S3 adapter rejects traversal keys before making a network request', async 
   assert.equal(called, false);
 });
 
-test('S3 adapter rejects non-success responses for reads, metadata, and writes', async () => {
+test('S3 adapter rejects non-success responses and releases their response bodies', async () => {
+  const bodies = [];
   const storage = createS3MediaStorage({
     bucket: 'private-media',
     region: 'us-east-1',
     accessKeyId: 'ACCESS',
     secretAccessKey: 'SECRET',
     endpoint: 'https://objects.example.test',
-    fetchImpl: async () => response({ ok: false, status: 500 }),
+    fetchImpl: async () => {
+      const body = Readable.from(['provider error body']);
+      bodies.push(body);
+      return response({ ok: false, status: 500, body });
+    },
   });
 
   await assert.rejects(storage.getStream({ storageKey: 'private/a.mp4' }), /media_storage_get_failed:500/);
   await assert.rejects(storage.getMetadata({ storageKey: 'private/a.mp4' }), /media_storage_metadata_failed:500/);
   await assert.rejects(storage.putStream({ storageKey: 'private/a.mp4', stream: Readable.from(['x']) }), /media_storage_put_failed:500/);
   await assert.rejects(storage.deleteObject({ storageKey: 'private/a.mp4' }), /media_storage_delete_failed:500/);
+  assert.equal(bodies.length, 4);
+  assert.ok(bodies.every((body) => body.destroyed));
 });
 
 test('S3 adapter treats a missing object as a successful idempotent delete', async () => {
