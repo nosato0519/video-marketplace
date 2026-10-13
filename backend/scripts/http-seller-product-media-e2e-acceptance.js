@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { createServer } from 'node:http';
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
+process.env.MEDIA_MAX_UPLOAD_BYTES = '24';
 
 const { getPool } = await import('../src/db.js');
 const { createConfiguredMediaStorage } = await import('../src/media/media-storage-factory.js');
@@ -55,6 +56,13 @@ try {
     body: Buffer.from('notvideo')
   });
   assert.equal(invalidUploadResponse.response.status, 415, JSON.stringify(invalidUploadResponse.body));
+  const oversizedUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '25', 'x-original-filename': 'oversized.mp4' },
+    body: Buffer.alloc(25)
+  });
+  assert.equal(oversizedUploadResponse.response.status, 413, JSON.stringify(oversizedUploadResponse.body));
+  assert.equal(oversizedUploadResponse.body.error, 'media_too_large');
   const assetsAfterInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsAfterInvalidUpload.response.status, 200, JSON.stringify(assetsAfterInvalidUpload.body));
   assert.deepEqual(
