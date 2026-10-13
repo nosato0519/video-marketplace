@@ -323,9 +323,13 @@ try {
   }
   ids.media = null;
 
+  const filesBeforeLinkedDelete = await localSellerMediaFiles(ids.seller);
   const linkedReplacementDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.replacementMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(linkedReplacementDeleteResponse.response.status, 409, JSON.stringify(linkedReplacementDeleteResponse.body));
   assert.equal(linkedReplacementDeleteResponse.body.error, 'media_asset_in_use');
+  if (filesBeforeLinkedDelete !== null) {
+    assert.deepEqual(await localSellerMediaFiles(ids.seller), filesBeforeLinkedDelete, 'Rejecting deletion of linked media must preserve its stored file');
+  }
 
   const republishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(republishResponse.response.status, 200, JSON.stringify(republishResponse.body));
