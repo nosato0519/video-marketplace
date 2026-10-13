@@ -25,7 +25,7 @@ function encodePath(pathname) {
 }
 
 function amzDate(date = new Date()) {
-  return date.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  return date.toISOString().replace(/[:-]|\\.\\d{3}/g, '');
 }
 
 function signingKey(secret, date, region, service = 's3') {
@@ -36,7 +36,7 @@ function signingKey(secret, date, region, service = 's3') {
 }
 
 function endpointFor({ endpoint, bucket, region }) {
-  if (endpoint) return endpoint.replace(/\/$/, '');
+  if (endpoint) return endpoint.replace(/\\/$/, '');
   return `https://${bucket}.s3.${region}.amazonaws.com`;
 }
 
@@ -47,7 +47,7 @@ function objectUrl({ endpoint, bucket, region, storageKey }) {
 }
 
 function validateKey(storageKey) {
-  if (!storageKey || storageKey.includes('\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
+  if (!storageKey || storageKey.includes('\\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
     throw new Error('media_storage_key_invalid');
   }
 }
@@ -77,7 +77,7 @@ export function createS3MediaStorage({
     };
     if (range) headers.range = `bytes=${range.start}-${range.end}`;
 
-    const canonicalHeaders = Object.keys(headers).sort().map((key) => `${key}:${headers[key].trim()}\n`).join('');
+    const canonicalHeaders = Object.keys(headers).sort().map((key) => `${key}:${headers[key].trim()}\\n`).join('');
     const signedHeaders = Object.keys(headers).sort().join(';');
     const canonicalRequest = [
       method,
@@ -86,9 +86,9 @@ export function createS3MediaStorage({
       canonicalHeaders,
       signedHeaders,
       payloadHash,
-    ].join('\n');
+    ].join('\\n');
     const scope = `${date}/${region}/s3/aws4_request`;
-    const stringToSign = ['AWS4-HMAC-SHA256', timestamp, scope, sha256(canonicalRequest)].join('\n');
+    const stringToSign = ['AWS4-HMAC-SHA256', timestamp, scope, sha256(canonicalRequest)].join('\\n');
     const signature = crypto.createHmac('sha256', signingKey(secretAccessKey, date, region)).update(stringToSign).digest('hex');
     headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
@@ -104,6 +104,18 @@ export function createS3MediaStorage({
   return {
     async getStream({ storageKey, range } = {}) {
       const response = await request('GET', storageKey, { range });
+      if (range) {
+        const expectedRange = `bytes ${range.start}-${range.end}/`;
+        const contentRange = response.headers.get('content-range') || '';
+        if (response.status !== 206 || !contentRange.startsWith(expectedRange)) {
+          if (typeof response.body?.cancel === 'function') {
+            await response.body.cancel().catch(() => {});
+          } else {
+            response.body?.destroy?.();
+          }
+          throw new Error(`media_storage_range_failed:${response.status}`);
+        }
+      }
       if (!response.ok) throw new Error(`media_storage_get_failed:${response.status}`);
       return { stream: response.body, size: Number(response.headers.get('content-length') || 0) };
     },
