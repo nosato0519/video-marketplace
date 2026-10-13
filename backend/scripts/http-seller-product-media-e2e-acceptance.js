@@ -74,6 +74,12 @@ try {
   await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'not_started')`, [ids.seller, ids.otherSeller]);
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
+  const configuredUploadLimit = await request(baseUrl, '/api/seller/media/limits', { headers: { cookie: sellerCookie } });
+  assert.equal(configuredUploadLimit.response.status, 200, JSON.stringify(configuredUploadLimit.body));
+  assert.equal(configuredUploadLimit.body.maxUploadBytes, 24, 'Seller upload limit endpoint must expose the configured backend limit');
+  const unauthenticatedUploadLimit = await request(baseUrl, '/api/seller/media/limits');
+  assert.equal(unauthenticatedUploadLimit.response.status, 401, 'Upload limit endpoint must require seller authentication');
+
   const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   const filesBeforeInvalidUpload = await localSellerMediaFiles(ids.seller);
   assert.equal(assetsBeforeInvalidUpload.response.status, 200, JSON.stringify(assetsBeforeInvalidUpload.body));
