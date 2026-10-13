@@ -100,13 +100,15 @@ test.describe('seller browser acceptance', () => {
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
 
-    await page.getByRole('button', { name: 'Upload and create draft' }).click();
-    await expect.poll(() => uploadCalls).toBe(1);
-    await page.locator('#seller-upload-form').evaluate((form) => form.requestSubmit());
-    await expect.poll(() => uploadCalls).toBe(1);
-    expect(draftCalls).toBe(0);
-
-    releaseUpload();
+    try {
+      await page.getByRole('button', { name: 'Upload and create draft' }).click();
+      await expect.poll(() => uploadCalls).toBe(1);
+      await page.locator('#seller-upload-form').evaluate((form) => form.requestSubmit());
+      await expect.poll(() => uploadCalls).toBe(1);
+      expect(draftCalls).toBe(0);
+    } finally {
+      releaseUpload();
+    }
     await expect(page.getByText(/Draft SPA Upload created successfully\./)).toBeVisible();
     expect(uploadCalls).toBe(1);
     expect(draftCalls).toBe(1);
