@@ -32,7 +32,7 @@ router.use(requireAuth, requireRole('seller'));
 
 router.get('/assets', async (req, res, next) => {
   try {
-    const result = await query(`SELECT id, original_filename, mime_type, byte_size, status, created_at FROM media_assets WHERE owner_user_id = $1 ORDER BY created_at DESC`, [req.user.id]);
+    const result = await query(`SELECT media_assets.id, media_assets.original_filename, media_assets.mime_type, media_assets.byte_size, media_assets.status, media_assets.created_at, EXISTS (SELECT 1 FROM products WHERE products.media_asset_id = media_assets.id) AS in_use FROM media_assets WHERE media_assets.owner_user_id = $1 ORDER BY media_assets.created_at DESC`, [req.user.id]);
     return res.json({ mediaAssets: result.rows });
   } catch (error) { return next(error); }
 });
