@@ -303,6 +303,38 @@ test('disables the save action while a video upload is pending', async ({ page }
     expect(productCalls).toBe(0);
   });
 
+  test('cleans up and does not register an upload that is not ready', async ({ page }) => {
+    await mockSellerSession(page);
+    let productCalls = 0;
+    let cleanupCalled = false;
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'media-not-ready', status: 'processing' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') productCalls += 1;
+      await fulfillJson(route, { products: [] });
+    });
+    await page.route('**/api/seller/media/assets/media-not-ready', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      cleanupCalled = true;
+      await route.fulfill({ status: 204, body: '' });
+    });
+
+    await page.goto(appUrl('#/seller/upload'));
+    await page.locator('#video-file').setInputFiles({
+      name: 'not-ready.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from('fake-mp4-test-payload'),
+    });
+    await page.getByLabel('Title').fill('Video not ready');
+    await page.getByLabel('Price (JPY)').fill('1000');
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+
+    await expect(page.getByText(/uploaded video is not ready to register/i)).toBeVisible();
+    expect(productCalls).toBe(0);
+    expect(cleanupCalled).toBe(true);
+  });
+
   test('shows My videos recovery guidance when draft creation response is ambiguous', async ({ page }) => {
     await mockSellerSession(page);
 
