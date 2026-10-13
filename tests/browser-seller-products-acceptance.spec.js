@@ -39,7 +39,7 @@ test.describe('seller products browser acceptance', () => {
     await expect.poll(() => publishCalled).toBe(true);
   });
 
-  test('seller can create a product from the products page without a video and gets a clear next step', async ({ page }) => {
+  test('seller can create a draft product with a selected ready video', async ({ page }) => {
     await mockSellerSession(page);
     let products = [];
     await page.route('**/api/seller/media/assets', async (route) => { expect(route.request().method()).toBe('GET'); await fulfillJson(route, { mediaAssets: [{ id: 'media-ready', original_filename: 'ready.mp4', mime_type: 'video/mp4', byte_size: 5242880, status: 'ready' }] }); });
@@ -50,18 +50,21 @@ test.describe('seller products browser acceptance', () => {
       expect(body.title).toBe('Draft Product');
       expect(body.priceAmount).toBe(1000);
       expect(body.priceCurrency).toBe('JPY');
-      expect(body.mediaAssetId).toBeNull();
-      products = [{ id: 'product-draft', title: 'Draft Product', description: '', price_amount: 1000, price_currency: 'JPY', status: 'draft', media_asset_id: null }];
-      await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft' } });
+      expect(body.mediaAssetId).toBe('media-ready');
+      products = [{ id: 'product-draft', title: 'Draft Product', description: '', price_amount: 1000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 }];
+      await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft', media_asset_id: 'media-ready' } });
     });
     await page.goto(appUrl('#/seller/products'));
     await page.getByRole('button', { name: 'Create product' }).click();
-    await expect(page.getByLabel('Protected video')).toBeVisible();
+    const mediaSelect = page.getByLabel('Protected video');
+    await expect(mediaSelect).toBeVisible();
+    await mediaSelect.selectOption('media-ready');
     await page.getByLabel('Title').fill('Draft Product');
     await page.getByLabel('Price').fill('1000');
     await page.getByRole('button', { name: 'Create product', exact: true }).last().click();
     await expect(page.getByText('1 product')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Draft Product' })).toBeVisible();
+    await expect(page.getByText('ready.mp4 · 5.0 MB')).toBeVisible();
   });
 
   test('seller can attach an existing ready video and explicitly remove it from a draft', async ({ page }) => {
