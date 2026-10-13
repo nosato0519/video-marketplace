@@ -7,12 +7,18 @@ on:
       - 'backend/**'
       - 'demo/**'
       - '.devcontainer/**'
+      - 'app/seller/**'
+      - 'seller/**'
+      - 'tests/browser-seller-upload-acceptance.spec.js'
       - '.github/workflows/backend-regression.yml'
   pull_request:
     paths:
       - 'backend/**'
       - 'demo/**'
       - '.devcontainer/**'
+      - 'app/seller/**'
+      - 'seller/**'
+      - 'tests/browser-seller-upload-acceptance.spec.js'
       - '.github/workflows/backend-regression.yml'
   workflow_dispatch:
 
