@@ -43,6 +43,20 @@
 
 AWS S3 以外の S3 互換サービスを利用する場合、エンドポイント・リージョン値・アクセスキー権限の仕様はサービス事業者の案内を確認してください。
 
+### Supabase Storage を利用する場合
+
+既存の Supabase プロジェクトを動画保存先にする場合は、Supabase Dashboard の Storage 設定で S3 接続を有効にし、動画用の非公開バケットを作成してください。S3 設定画面に表示される endpoint・region と、そこで生成した S3 access key ID / secret access key を使用します。endpoint の形式は通常 `https://<project-ref>.storage.supabase.co/storage/v1/s3` ですが、実際の値は Dashboard の表示を優先してください。
+
+| このシステムの環境変数 | Supabase の設定画面で取得する値 |
+|---|---|
+| `MEDIA_S3_BUCKET` | 作成した非公開バケット名 |
+| `MEDIA_S3_REGION` | S3 設定に表示された region |
+| `MEDIA_S3_ENDPOINT` | S3 設定に表示された endpoint |
+| `MEDIA_S3_ACCESS_KEY_ID` | 生成した S3 access key ID |
+| `MEDIA_S3_SECRET_ACCESS_KEY` | 生成した S3 secret access key |
+
+S3 access key はサーバー側専用で、Storage の操作権限が広く RLS を迂回するため、フロントエンドや公開環境変数へ設定しないでください。秘密鍵は表示時に安全な場所へ保管し、リポジトリやチャットへ貼り付けないでください。設定後は API サービスを再起動し、テスト用動画のアップロード・取得・削除を確認します。
+
 ### 3-2. API サービスに環境変数を登録する
 
 本番 API サービスの環境変数・秘密情報設定へ、次を登録します。
