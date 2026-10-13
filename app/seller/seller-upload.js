@@ -41,6 +41,14 @@ export async function renderSellerUpload(root) {
   const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
   const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 
+  function getVideoMime(file) {
+    const declaredType = file.type.toLowerCase();
+    if (allowedVideoTypes.has(declaredType)) return declaredType;
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const mimeByExtension = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', mkv: 'video/x-matroska' };
+    return mimeByExtension[extension] || '';
+  }
+
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
     selectedFile.textContent = file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} MB` : 'No file selected yet.';
@@ -56,7 +64,7 @@ export async function renderSellerUpload(root) {
       message.textContent = 'Choose a video and enter a valid title and positive whole-number price.';
       return;
     }
-    if (!allowedVideoTypes.has(file.type.toLowerCase())) {
+    if (!getVideoMime(file)) {
       message.textContent = 'Unsupported video format. Choose MP4, WebM, MOV, or MKV.';
       fileInput.focus();
       return;
@@ -76,7 +84,7 @@ export async function renderSellerUpload(root) {
     let uploadedMediaAssetId = null;
     let productCreated = false;
     try {
-      const media = await request('/api/seller/media/upload', { method: 'POST', headers: { 'content-type': file.type, 'x-original-filename': file.name }, body: file });
+      const media = await request('/api/seller/media/upload', { method: 'POST', headers: { 'content-type': getVideoMime(file), 'x-original-filename': file.name }, body: file });
       uploadedMediaAssetId = media.mediaAsset.id;
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
       productCreated = true;
