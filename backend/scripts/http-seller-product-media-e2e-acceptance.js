@@ -234,6 +234,9 @@ try {
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
+  const publishedProductDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(publishedProductDeleteResponse.response.status, 409, JSON.stringify(publishedProductDeleteResponse.body));
+  assert.equal(publishedProductDeleteResponse.body.error, 'published_product_locked');
 
   const listResponse = await request(baseUrl, '/api/seller/products', { headers: { cookie: sellerCookie } });
   assert.equal(listResponse.response.status, 200, JSON.stringify(listResponse.body));
