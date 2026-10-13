@@ -51,7 +51,11 @@ assert.match(productEdit, /currentProductStatus === 'published'/);
 assert.match(productEdit, /isSaving/);
 assert.match(productEdit, /replacementVideo\.size > maxUploadBytes/);
 assert.match(productEdit, /function getVideoMime\(file\)/);
-assert.match(productEdit, /'Content-Type': getVideoMime\(replacementVideo\)/);
+assert.match(productEdit, /function uploadReplacementVideo\(file, onProgress\)/);
+assert.match(productEdit, /xhr\.setRequestHeader\('Content-Type', getVideoMime\(file\)\)/);
+assert.match(productEdit, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
+assert.match(productEdit, /xhr\.send\(file\)/);
+assert.match(productEdit, /xhr\.upload\.addEventListener\('progress'/);
 assert.match(spaUpload, /function getVideoMime\(file\)/);
 assert.match(spaUpload, /'content-type': getVideoMime\(file\)/);
 
