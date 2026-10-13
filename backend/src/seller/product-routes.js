@@ -169,14 +169,24 @@ router.post('/products/:productId/publish', async (req, res, next) => {
   if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
 
   try {
-    const seller = await query(
-      `SELECT verification_status
-         FROM seller_profiles
-        WHERE user_id = $1`,
-      [req.user.id]
+    const verificationSetting = await query(
+      `SELECT setting_value->>'value' AS method
+         FROM platform_settings
+        WHERE setting_key = 'seller_verification_method'
+        LIMIT 1`
     );
-    if (seller.rows[0]?.verification_status !== 'verified') {
-      return res.status(403).json({ error: 'seller_verification_required' });
+    const configuredMethod = verificationSetting.rows[0]?.method;
+    const verificationMethod = ['email', 'document'].includes(configuredMethod) ? configuredMethod : 'none';
+    if (verificationMethod !== 'none') {
+      const seller = await query(
+        `SELECT verification_status
+           FROM seller_profiles
+          WHERE user_id = $1`,
+        [req.user.id]
+      );
+      if (seller.rows[0]?.verification_status !== 'verified') {
+        return res.status(403).json({ error: 'seller_verification_required' });
+      }
     }
 
     const publication = await withTransaction(async (client) => {
