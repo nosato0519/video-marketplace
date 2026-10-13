@@ -138,6 +138,36 @@ router.patch('/products/:productId', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+router.delete('/products/:productId', async (req, res, next) => {
+  if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
+
+  try {
+    const deletion = await withTransaction(async (client) => {
+      const product = await client.query(
+        'SELECT id, status FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
+        [req.params.productId, req.user.id]
+      );
+      if (!product.rows.length) return { error: 'product_not_found' };
+      if (product.rows[0].status === 'published') return { error: 'published_product_locked' };
+
+      const references = await client.query(
+        `SELECT EXISTS (SELECT 1 FROM orders WHERE product_id = $1)
+                OR EXISTS (SELECT 1 FROM entitlements WHERE product_id = $1) AS has_purchase_history`,
+        [req.params.productId]
+      );
+      if (references.rows[0]?.has_purchase_history) return { error: 'product_has_purchase_history' };
+
+      await client.query('DELETE FROM products WHERE id = $1 AND seller_id = $2', [req.params.productId, req.user.id]);
+      return { deleted: true };
+    });
+
+    if (deletion.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
+    if (deletion.error === 'published_product_locked') return res.status(409).json({ error: 'published_product_locked' });
+    if (deletion.error === 'product_has_purchase_history') return res.status(409).json({ error: 'product_has_purchase_history' });
+    return res.status(204).end();
+  } catch (error) { return next(error); }
+});
+
 router.post('/products/:productId/publish', async (req, res, next) => {
   if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
 
