@@ -14,6 +14,6 @@ assert.match(html, /href="\/seller\/withdrawal\.html"/);
 assert.match(html, /id="seller-verification-card"/);
 assert.match(html, /credentials: 'same-origin'/);
 assert.match(html, /error\.status === 401/);
-assert.match(html, /Products/);
-assert.match(html, /Storefront/);
+assert.match(html, /href="\/seller\/products\.html"/);
+assert.match(html, /href="\/seller\/creator\.html"/);
 console.log('Seller dashboard static contract checks passed.');
