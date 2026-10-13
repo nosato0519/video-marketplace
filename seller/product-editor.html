@@ -195,7 +195,7 @@
 const titleInput = document.querySelector('.product-input-card input[type="text"]');
 const priceInput = document.querySelector('.product-input-card input[inputmode="numeric"]');
 const descriptionInput = document.querySelector('.product-description-card textarea');
-const videoInput = document.querySelector('input[type="file"][accept="video/*"]');
+const videoInput = document.querySelector('input[type="file"][accept="video/mp4,video/webm,video/quicktime,video/x-matroska"]');
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
