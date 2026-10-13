@@ -73,6 +73,10 @@ try {
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
   assert.equal(otherAssetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), false);
 
+  const malformedMediaDeleteResponse = await request(baseUrl, '/api/seller/media/assets/not-a-uuid', { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(malformedMediaDeleteResponse.response.status, 404, JSON.stringify(malformedMediaDeleteResponse.body));
+  assert.equal(malformedMediaDeleteResponse.body.error, 'media_asset_not_found');
+
   const otherSellerDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: otherSellerCookie } });
   assert.equal(otherSellerDeleteResponse.response.status, 404, JSON.stringify(otherSellerDeleteResponse.body));
   const assetAfterUnauthorizedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
