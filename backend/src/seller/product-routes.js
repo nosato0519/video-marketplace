@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { validateProductForPublishing } from '../catalog/publish-guard.js';
@@ -11,10 +11,10 @@ function isUuid(value) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-async function getSellerMediaAsset(mediaAssetId, userId) {
+async function getSellerMediaAsset(mediaAssetId, userId, client = { query }) {
   if (!isUuid(mediaAssetId)) return null;
-  const result = await query(
-    'SELECT id, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
+  const result = await client.query(
+    'SELECT id, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\' FOR UPDATE',
     [mediaAssetId, userId]
   );
   return result.rows[0] || null;
@@ -79,11 +79,16 @@ router.post('/products', async (req, res, next) => {
       return res.status(422).json({ error: 'invalid_product_price' });
     }
     if (mediaAssetId == null) return res.status(422).json({ error: 'media_asset_required' });
-    const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id);
-    if (!mediaAsset) return res.status(422).json({ error: 'media_asset_not_owned' });
-    if (mediaAsset.status !== 'ready') return res.status(422).json({ error: 'media_asset_not_ready' });
-    const result = await query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, String(priceCurrency).toUpperCase(), normalizedTitle, String(description)]);
-    return res.status(201).json({ product: result.rows[0] });
+    const creation = await withTransaction(async (client) => {
+      const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
+      if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
+      if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
+      const result = await client.query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, String(priceCurrency).toUpperCase(), normalizedTitle, String(description)]);
+      return { product: result.rows[0] };
+    });
+    if (creation.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
+    if (creation.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    return res.status(201).json({ product: creation.product });
   } catch (error) { return next(error); }
 });
 
@@ -110,13 +115,18 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (hasMediaAssetId && mediaAssetId == null) {
       return res.status(422).json({ error: 'media_asset_required' });
     }
-    if (hasMediaAssetId) {
-      const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id);
-      if (!mediaAsset) return res.status(422).json({ error: 'media_asset_not_owned' });
-      if (mediaAsset.status !== 'ready') return res.status(422).json({ error: 'media_asset_not_ready' });
-    }
-    const result = await query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
-    return res.json({ product: result.rows[0] });
+    const update = await withTransaction(async (client) => {
+      if (hasMediaAssetId) {
+        const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
+        if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
+        if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
+      }
+      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
+      return { product: result.rows[0] };
+    });
+    if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
+    if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    return res.json({ product: update.product });
   } catch (error) { return next(error); }
 });
 
