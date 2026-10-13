@@ -18,7 +18,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 
@@ -132,6 +132,7 @@ try {
 
   const unverifiedSellerDraftResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: otherSellerCookie }, body: JSON.stringify({ title: 'Optional Verification Product', description: 'Publishing should not require identity verification when the setting is none.', priceAmount: 1200, priceCurrency: 'JPY', mediaAssetId: ids.otherSellerMedia }) });
   assert.equal(unverifiedSellerDraftResponse.response.status, 201, JSON.stringify(unverifiedSellerDraftResponse.body));
+  ids.optionalVerificationProduct = unverifiedSellerDraftResponse.body.product.id;
   const unverifiedSellerPublishResponse = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}/publish`, { method: 'POST', headers: { cookie: otherSellerCookie } });
   assert.equal(unverifiedSellerPublishResponse.response.status, 200, JSON.stringify(unverifiedSellerPublishResponse.body));
   assert.equal(unverifiedSellerPublishResponse.body.product.status, 'published');
@@ -353,7 +354,7 @@ try {
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
   if (ids.product) await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]).catch(() => {});
-  for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct].filter(Boolean)) {
+  for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct, ids.optionalVerificationProduct].filter(Boolean)) {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
