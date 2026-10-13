@@ -15,12 +15,12 @@ async function request(path, options = {}) {
   return body;
 }
 
-function uploadVideo(file, onProgress) {
+function uploadVideo(file, mimeType, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/seller/media/upload');
     xhr.withCredentials = true;
-    xhr.setRequestHeader('Content-Type', getVideoMime(file));
+    xhr.setRequestHeader('Content-Type', mimeType);
     xhr.setRequestHeader('X-Original-Filename', file.name);
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
@@ -116,7 +116,7 @@ export async function renderSellerUpload(root) {
     let uploadedMediaAssetId = null;
     let productCreated = false;
     try {
-      const media = await uploadVideo(file, (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
+      const media = await uploadVideo(file, getVideoMime(file), (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
       uploadedMediaAssetId = media.mediaAsset.id;
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
       productCreated = true;
