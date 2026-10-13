@@ -38,6 +38,7 @@ assert.match(editor, /5 \* 1024 \* 1024 \* 1024/);
 assert.match(editor, /video\/mp4/);
 assert.match(editor, /file\.size === 0/);
 assert.match(editor, /uploadedMediaAssetId && !productCreated/);
+assert.match(editor, /upload\.mediaAsset\.status !== 'ready'/);
 
 
 assert.match(productsScript, /product-edit\.html\?productId=/);
@@ -50,6 +51,7 @@ assert.match(productEdit, /\/api\/seller\/media\/upload/);
 assert.match(productEdit, /\/api\/seller\/media\/assets\//);
 assert.match(productEdit, /method: 'DELETE'/);
 assert.match(productEdit, /body\.mediaAssetId = uploadedMediaAssetId/);
+assert.match(productEdit, /upload\.mediaAsset\.status !== 'ready'/);
 assert.match(productEdit, /currentProductStatus === 'published'/);
 assert.match(productEdit, /isSaving/);
 assert.match(productEdit, /replacementVideo\.size > maxUploadBytes/);
@@ -68,6 +70,7 @@ assert.match(spaUpload, /xhr\.setRequestHeader\('X-Original-Filename', file\.nam
 assert.match(spaUpload, /xhr\.send\(file\)/);
 assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
 assert.match(spaUpload, /`Uploading \$\{file\.name\}… \$\{percent\}%`/);
+assert.match(spaUpload, /media\.mediaAsset\.status !== 'ready'/);
 assert.match(mediaUploadRoute, /media_upload_cleanup_failed/);
 assert.match(mediaUploadRoute, /INSERT INTO media_assets \(id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status\)/);
 assert.match(mediaUploadRoute, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, 'deleted'\)/);
