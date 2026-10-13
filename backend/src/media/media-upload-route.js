@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
-import { query, withTransaction } from '../db.js';
+import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-validation.js';
