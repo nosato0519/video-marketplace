@@ -11,6 +11,7 @@ const productsScript = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
 const productEdit = fs.readFileSync(path.join(root, 'seller', 'product-edit.html'), 'utf8');
 const spaUpload = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-upload.js'), 'utf8');
+const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'media', 'media-upload-route.js'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -67,5 +68,9 @@ assert.match(spaUpload, /xhr\.setRequestHeader\('X-Original-Filename', file\.nam
 assert.match(spaUpload, /xhr\.send\(file\)/);
 assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
 assert.match(spaUpload, /`Uploading \$\{file\.name\}… \$\{percent\}%`/);
+assert.match(mediaUploadRoute, /media_upload_cleanup_failed/);
+assert.match(mediaUploadRoute, /INSERT INTO media_assets \(id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status\)/);
+assert.match(mediaUploadRoute, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, 'deleted'\)/);
+assert.match(mediaUploadRoute, /media_upload_orphan_record_failed/);
 
 console.log('Seller product upload flow static contract checks passed.');
