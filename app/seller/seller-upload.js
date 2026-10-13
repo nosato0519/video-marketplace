@@ -38,6 +38,8 @@ export async function renderSellerUpload(root) {
   const selectedFile = form.querySelector('#selected-file');
   const message = form.querySelector('#seller-upload-message');
   const submit = form.querySelector('#upload-submit');
+  const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+  const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
@@ -50,8 +52,23 @@ export async function renderSellerUpload(root) {
     const title = form.querySelector('#video-title').value.trim();
     const description = form.querySelector('#video-description').value.trim();
     const price = Number(form.querySelector('#video-price').value);
-    if (!file || !title || !Number.isFinite(price) || price <= 0) {
-      message.textContent = 'Choose a video and enter a valid title and price.';
+    if (!file || !title || !Number.isSafeInteger(price) || price <= 0) {
+      message.textContent = 'Choose a video and enter a valid title and positive whole-number price.';
+      return;
+    }
+    if (!allowedVideoTypes.has(file.type.toLowerCase())) {
+      message.textContent = 'Unsupported video format. Choose MP4, WebM, MOV, or MKV.';
+      fileInput.focus();
+      return;
+    }
+    if (file.size === 0) {
+      message.textContent = 'The selected video file is empty.';
+      fileInput.focus();
+      return;
+    }
+    if (file.size > maxUploadBytes) {
+      message.textContent = 'The video exceeds the 5 GB upload limit.';
+      fileInput.focus();
       return;
     }
     submit.disabled = true;
