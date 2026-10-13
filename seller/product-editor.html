@@ -201,6 +201,7 @@ const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let isSaving = false;
+let isStarting = false;
 
 function parsePrice(value) {
   const normalized = String(value ?? '').trim().replace(/[¥￥,\s]/g, '');
@@ -257,7 +258,11 @@ const sellerSessionPromise = (async () => {
 })();
 
 async function saveProduct() {
-  if (isSaving || !(await sellerSessionPromise)) return;
+  if (isSaving || isStarting) return;
+  isStarting = true;
+  const sessionReady = await sellerSessionPromise;
+  isStarting = false;
+  if (!sessionReady || isSaving) return;
 
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
