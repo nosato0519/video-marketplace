@@ -308,8 +308,9 @@ async function saveProduct() {
       window.location.href = '/seller/products.html';
       return;
     }
-    const detail = error.body?.error?.message || error.body?.error || error.message;
-    alert(typeof detail === 'string' ? detail : '変更を保存できませんでした。');
+    const bodyError = error.body?.error;
+    const detail = error.message || (typeof bodyError === 'string' ? bodyError : bodyError?.message);
+    alert(typeof detail === 'string' && detail ? detail : '変更を保存できませんでした。');
   } finally {
     isSaving = false;
     if (saveLabel && originalSaveLabel !== undefined) saveLabel.textContent = originalSaveLabel;
