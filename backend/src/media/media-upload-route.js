@@ -138,7 +138,9 @@ router.post('/upload', async (req, res, next) => {
         await query(
           `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
            VALUES ($1, $2, $3, $4, $5, $6, 'deleted')
-           ON CONFLICT (id) DO NOTHING`,
+           ON CONFLICT (id) DO UPDATE SET status = 'deleted'
+           WHERE media_assets.owner_user_id = EXCLUDED.owner_user_id
+             AND media_assets.storage_key = EXCLUDED.storage_key`,
           [id, req.user.id, storageKey, filename, mime, bytes]
         );
       } catch (recordError) {
