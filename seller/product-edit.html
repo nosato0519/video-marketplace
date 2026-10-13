@@ -154,6 +154,34 @@ async function request(path, options = {}) {
   return body;
 }
 
+function uploadReplacementVideo(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/seller/media/upload');
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Content-Type', getVideoMime(file));
+    xhr.setRequestHeader('X-Original-Filename', file.name);
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    });
+    xhr.addEventListener('load', () => {
+      let body = null;
+      try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch {}
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body);
+        return;
+      }
+      const error = new Error(body?.error?.message || body?.error || '動画をアップロードできませんでした。');
+      error.status = xhr.status;
+      error.body = body;
+      reject(error);
+    });
+    xhr.addEventListener('error', () => reject(new Error('アップロード中に通信エラーが発生しました。')));
+    xhr.addEventListener('abort', () => reject(new Error('動画アップロードが中断されました。')));
+    xhr.send(file);
+  });
+}
+
 async function loadProduct() {
   if (!productId) throw new Error('product_required');
   const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}`);
@@ -235,16 +263,12 @@ async function saveProduct() {
         replacementVideoInput.focus();
         return;
       }
-      const upload = await request('/api/seller/media/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': getVideoMime(replacementVideo),
-          'X-Original-Filename': replacementVideo.name
-        },
-        body: replacementVideo
+      const upload = await uploadReplacementVideo(replacementVideo, (percent) => {
+        if (saveLabel) saveLabel.textContent = `アップロード中… ${percent}%`;
       });
       uploadedMediaAssetId = upload.mediaAsset.id;
       body.mediaAssetId = uploadedMediaAssetId;
+      if (saveLabel) saveLabel.textContent = '作品情報を保存中…';
     }
     await request(`/api/seller/products/${encodeURIComponent(productId)}`, {
       method: 'PATCH',
