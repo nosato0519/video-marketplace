@@ -212,4 +212,66 @@ test.describe('seller upload browser acceptance', () => {
     expect(productCalls).toBe(0);
   });
 
+
+  test('seller can replace the video while editing an existing draft', async ({ page }) => {
+    await mockSellerSession(page);
+    const productId = '11111111-1111-4111-8111-111111111111';
+    let replacementUploaded = false;
+    let productUpdated = false;
+
+    await page.route(`**/api/seller/products/${productId}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, {
+          product: {
+            id: productId,
+            title: 'Existing draft',
+            description: 'Existing description',
+            price_amount: 1200,
+            price_currency: 'JPY',
+            status: 'draft',
+            media_asset_id: 'old-media',
+            media_original_filename: 'existing.mp4',
+            media_byte_size: 1024,
+          },
+        });
+        return;
+      }
+      if (route.request().method() === 'PATCH') {
+        const body = route.request().postDataJSON();
+        expect(body.title).toBe('Updated draft');
+        expect(body.description).toBe('Updated description');
+        expect(body.priceAmount).toBe(2400);
+        expect(body.mediaAssetId).toBe('replacement-media');
+        productUpdated = true;
+        await fulfillJson(route, { product: { id: productId, status: 'draft' } });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await page.route('**/api/seller/media/upload', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      expect(route.request().headers()['content-type']).toBe('video/mp4');
+      expect(route.request().headers()['x-original-filename']).toBe('replacement.mp4');
+      replacementUploaded = true;
+      await fulfillJson(route, { mediaAsset: { id: 'replacement-media', status: 'ready' } }, 201);
+    });
+
+    await page.goto(`/seller/product-edit.html?productId=${productId}`);
+    await expect(page.locator('#product-title')).toHaveValue('Existing draft');
+    await page.locator('#product-title').fill('Updated draft');
+    await page.locator('#product-description').fill('Updated description');
+    await page.locator('#product-price').fill('2400');
+    await page.locator('#replacement-video').setInputFiles({
+      name: 'replacement.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('#save-product').click();
+
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
+    expect(replacementUploaded).toBe(true);
+    expect(productUpdated).toBe(true);
+  });
+
 });
