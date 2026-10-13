@@ -125,6 +125,7 @@ const replacementVideoInput = document.querySelector('#replacement-video');
 const currentVideoFilename = document.querySelector('#current-video-filename');
 const currentVideoSize = document.querySelector('#current-video-size');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let isSaving = false;
 let currentProductStatus = null;
 const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
@@ -218,6 +219,11 @@ async function saveProduct() {
       }
       if (replacementVideo.size === 0) {
         alert('空の動画ファイルはアップロードできません。');
+        replacementVideoInput.focus();
+        return;
+      }
+      if (replacementVideo.size > maxUploadBytes) {
+        alert('動画ファイルは5GB以下にしてください。');
         replacementVideoInput.focus();
         return;
       }
