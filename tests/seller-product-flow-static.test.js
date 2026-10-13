@@ -57,6 +57,10 @@ assert.match(productEdit, /xhr\.setRequestHeader\('X-Original-Filename', file\.n
 assert.match(productEdit, /xhr\.send\(file\)/);
 assert.match(productEdit, /xhr\.upload\.addEventListener\('progress'/);
 assert.match(spaUpload, /function getVideoMime\(file\)/);
-assert.match(spaUpload, /'content-type': getVideoMime\(file\)/);
+assert.match(spaUpload, /function uploadVideo\(file, mimeType, onProgress\)/);
+assert.match(spaUpload, /xhr\.setRequestHeader\('Content-Type', mimeType\)/);
+assert.match(spaUpload, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
+assert.match(spaUpload, /xhr\.send\(file\)/);
+assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
 
 console.log('Seller product upload flow static contract checks passed.');
