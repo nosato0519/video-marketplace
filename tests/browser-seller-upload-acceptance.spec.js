@@ -91,6 +91,6 @@ test.describe('seller upload browser acceptance', () => {
     await page.getByRole('button', { name: 'Upload and create draft' }).click();
 
     await expect(page.getByText('The draft appears to have been created. Check')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'My videos' })).toHaveAttribute('href', '#/seller/products');
+    await expect(page.locator('#seller-upload-message').getByRole('link', { name: 'My videos' })).toHaveAttribute('href', '#/seller/products');
   });
 });
