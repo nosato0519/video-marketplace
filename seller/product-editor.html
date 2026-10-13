@@ -199,6 +199,7 @@ const videoInput = document.querySelector('input[type="file"][accept="video/mp4,
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let isSaving = false;
 
 function parsePrice(value) {
@@ -275,6 +276,11 @@ async function saveProduct() {
   if (file.size === 0) {
     videoInput?.focus();
     alert('空の動画ファイルはアップロードできません。');
+    return;
+  }
+  if (file.size > maxUploadBytes) {
+    videoInput?.focus();
+    alert('動画ファイルは5GB以下にしてください。');
     return;
   }
 
