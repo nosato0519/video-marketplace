@@ -40,6 +40,22 @@ try {
   await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'verified')`, [ids.seller, ids.otherSeller]);
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
+  const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsBeforeInvalidUpload.response.status, 200, JSON.stringify(assetsBeforeInvalidUpload.body));
+  const invalidUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '8', 'x-original-filename': 'invalid.mp4' },
+    body: Buffer.from('notvideo')
+  });
+  assert.equal(invalidUploadResponse.response.status, 415, JSON.stringify(invalidUploadResponse.body));
+  const assetsAfterInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsAfterInvalidUpload.response.status, 200, JSON.stringify(assetsAfterInvalidUpload.body));
+  assert.deepEqual(
+    assetsAfterInvalidUpload.body.mediaAssets.map((asset) => asset.id).sort(),
+    assetsBeforeInvalidUpload.body.mediaAssets.map((asset) => asset.id).sort(),
+    'Invalid video uploads must not create media asset records'
+  );
+
   const uploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e.mp4' }, body: uploadBytes });
   assert.equal(uploadResponse.response.status, 201, JSON.stringify(uploadResponse.body));
   assert.equal(uploadResponse.body.mediaAsset.mime_type, 'video/mp4');
