@@ -326,7 +326,8 @@ async function saveProduct() {
     const upload = await uploadVideo(file, (percent) => {
       if (saveAction) saveAction.textContent = `アップロード中… ${percent}%`;
     });
-    uploadedMediaAssetId = upload.mediaAsset.id;
+    uploadedMediaAssetId = typeof upload?.mediaAsset?.id === 'string' ? upload.mediaAsset.id : null;
+    if (!uploadedMediaAssetId) throw new Error('動画アップロードの応答が不正です。');
     if (saveAction) saveAction.textContent = '作品情報を保存中…';
     await request('/api/seller/products', {
       method: 'POST',
