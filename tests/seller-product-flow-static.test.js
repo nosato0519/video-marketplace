@@ -30,7 +30,6 @@ assert.match(editor, /video\/mp4/);
 assert.match(editor, /file\.size === 0/);
 assert.match(editor, /uploadedMediaAssetId && !productCreated/);
 
-console.log('Seller product upload flow static contract checks passed.');
 
 assert.match(products, /seller-video-edit/);
 assert.match(products, /product-edit\.html\?productId=/);
@@ -45,3 +44,5 @@ assert.match(productEdit, /body\.mediaAssetId = uploadedMediaAssetId/);
 assert.match(productEdit, /currentProductStatus === 'published'/);
 assert.match(productEdit, /isSaving/);
 assert.match(productEdit, /replacementVideo\.size > maxUploadBytes/);
+
+console.log('Seller product upload flow static contract checks passed.');
