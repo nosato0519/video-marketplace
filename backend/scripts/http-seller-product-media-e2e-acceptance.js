@@ -15,7 +15,7 @@ const mediaRoot = process.env.MEDIA_STORAGE_DIR;
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, replacementMedia: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 
@@ -65,6 +65,10 @@ try {
   const assetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsResponse.response.status, 200, JSON.stringify(assetsResponse.body));
   assert.equal(assetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), true);
+  const otherSellerUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: otherSellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'other-seller-e2e.mp4' }, body: uploadBytes });
+  assert.equal(otherSellerUploadResponse.response.status, 201, JSON.stringify(otherSellerUploadResponse.body));
+  ids.otherSellerMedia = otherSellerUploadResponse.body.mediaAsset.id;
+
   const otherAssetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: otherSellerCookie } });
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
   assert.equal(otherAssetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), false);
@@ -107,6 +111,10 @@ try {
   const missingMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
   assert.equal(missingMediaPatchResponse.response.status, 422, JSON.stringify(missingMediaPatchResponse.body));
   assert.equal(missingMediaPatchResponse.body.error, 'media_asset_required');
+
+  const otherSellerMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.otherSellerMedia }) });
+  assert.equal(otherSellerMediaPatchResponse.response.status, 422, JSON.stringify(otherSellerMediaPatchResponse.body));
+  assert.equal(otherSellerMediaPatchResponse.body.error, 'media_asset_not_owned');
 
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
@@ -158,7 +166,7 @@ try {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [ids.product]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
   }
-  for (const mediaId of [ids.media, ids.replacementMedia].filter(Boolean)) {
+  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia].filter(Boolean)) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
     if (media.rows[0]?.storage_key) await fs.rm(`${mediaRoot}/${media.rows[0].storage_key}`, { force: true }).catch(() => {});
