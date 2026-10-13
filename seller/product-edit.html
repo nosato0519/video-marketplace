@@ -137,8 +137,9 @@ async function request(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
   const body = await response.json().catch(() => null);
   if (!response.ok) {
-    const error = new Error(body?.error || '動画情報を取得できませんでした。');
+    const error = new Error(body?.error?.message || body?.error || '動画情報を取得できませんでした。');
     error.status = response.status;
+    error.body = body;
     throw error;
   }
   return body;
@@ -246,7 +247,8 @@ async function saveProduct() {
       window.location.href = '/pages/seller-login.html';
       return;
     }
-    alert('変更を保存できませんでした。');
+    const detail = error.body?.error?.message || error.body?.error;
+    alert(typeof detail === 'string' ? detail : '変更を保存できませんでした。');
   } finally {
     isSaving = false;
     saveButton.removeAttribute('aria-busy');
