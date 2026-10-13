@@ -68,7 +68,7 @@ S3 access key はサーバー側専用で、Storage の操作権限が広く RLS
 | `MEDIA_S3_REGION` | ストレージ事業者が指定するリージョン値 |
 | `MEDIA_S3_ACCESS_KEY_ID` | 発行したアクセスキーID |
 | `MEDIA_S3_SECRET_ACCESS_KEY` | 発行したシークレットアクセスキー |
-| `MEDIA_S3_ENDPOINT` | カスタムエンドポイントが必要な場合のみ設定 |
+| `MEDIA_S3_ENDPOINT` | Supabase などの S3 互換サービスでは Dashboard の endpoint を設定。AWS S3 では省略可 |
 | `MEDIA_URL_SECRET` | 任意設定だが、設定する場合は32文字以上の秘密値 |
 | `MEDIA_MAX_UPLOAD_BYTES` | 必要に応じて設定するアップロード上限（バイト単位） |
 
