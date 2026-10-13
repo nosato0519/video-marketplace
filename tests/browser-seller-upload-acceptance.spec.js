@@ -258,7 +258,7 @@ test.describe('seller upload browser acceptance', () => {
     });
     await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
 
-    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(alertMessage).toContain('削除を再試行');
   });
 
