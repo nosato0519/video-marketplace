@@ -626,8 +626,8 @@ test('disables the save action while a video upload is pending', async ({ page }
     await page.locator('#save-product').click();
 
     expect(patchCalls).toBe(0);
-    expect(cleanupCalled).toBe(true);
-    expect(alertMessage).toContain('利用可能な状態ではありません');
+    await expect.poll(() => cleanupCalled).toBe(true);
+    await expect.poll(() => alertMessage).toContain('利用可能な状態ではありません');
     await expect(page).toHaveURL(new RegExp(`/seller/product-edit\\.html\\?productId=${productId}`));
   });
 
