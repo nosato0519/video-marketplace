@@ -31,6 +31,8 @@ assert.match(editor, /xhr\.setRequestHeader\('Content-Type', getVideoMime\(file\
 assert.match(editor, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
 assert.match(editor, /xhr\.send\(file\)/);
 assert.match(editor, /xhr\.upload\.addEventListener\('progress'/);
+assert.match(editor, /`アップロード中… \$\{percent\}%`/);
+assert.match(editor, /'作品情報を保存中…'/);
 assert.match(editor, /5 \* 1024 \* 1024 \* 1024/);
 assert.match(editor, /video\/mp4/);
 assert.match(editor, /file\.size === 0/);
@@ -56,11 +58,15 @@ assert.match(productEdit, /xhr\.setRequestHeader\('Content-Type', getVideoMime\(
 assert.match(productEdit, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
 assert.match(productEdit, /xhr\.send\(file\)/);
 assert.match(productEdit, /xhr\.upload\.addEventListener\('progress'/);
+assert.match(productEdit, /`アップロード中… \$\{percent\}%`/);
+assert.match(productEdit, /'作品情報を保存中…'/);
 assert.match(spaUpload, /function getVideoMime\(file\)/);
 assert.match(spaUpload, /function uploadVideo\(file, mimeType, onProgress\)/);
 assert.match(spaUpload, /xhr\.setRequestHeader\('Content-Type', mimeType\)/);
 assert.match(spaUpload, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
 assert.match(spaUpload, /xhr\.send\(file\)/);
 assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
+assert.match(spaUpload, /`アップロード中… \$\{percent\}%`/);
+assert.match(spaUpload, /'作品情報を保存中…'/);
 
 console.log('Seller product upload flow static contract checks passed.');
