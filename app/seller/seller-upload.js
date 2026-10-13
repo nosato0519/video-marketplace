@@ -68,6 +68,7 @@ export async function renderSellerUpload(root) {
   const submit = form.querySelector('#upload-submit');
   const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
   let maxUploadBytes = 5 * 1024 * 1024 * 1024;
+  let uploadLimitLoaded = false;
   const uploadLimitLabel = form.querySelector('#video-upload-limit');
   const formatBytes = (bytes) => {
     const gb = bytes / (1024 ** 3);
@@ -79,6 +80,7 @@ export async function renderSellerUpload(root) {
       throw new Error('Invalid upload limit response.');
     }
     maxUploadBytes = limits.maxUploadBytes;
+    uploadLimitLoaded = true;
     uploadLimitLabel.textContent = `MP4, WebM, MOV or MKV · up to ${formatBytes(maxUploadBytes)}`;
     submit.disabled = false;
   }).catch(() => {
@@ -108,6 +110,11 @@ export async function renderSellerUpload(root) {
     const title = form.querySelector('#video-title').value.trim();
     const description = form.querySelector('#video-description').value.trim();
     const price = Number(form.querySelector('#video-price').value);
+    if (!uploadLimitLoaded) {
+      message.textContent = 'Unable to load the upload limit. Refresh this page before uploading.';
+      submit.disabled = true;
+      return;
+    }
     if (!file || !title || !Number.isSafeInteger(price) || price <= 0) {
       message.textContent = 'Choose a video and enter a valid title and positive whole-number price.';
       return;
@@ -168,7 +175,7 @@ export async function renderSellerUpload(root) {
       }
     } finally {
       isUploading = false;
-      submit.disabled = false;
+      submit.disabled = !uploadLimitLoaded;
     }
   });
 }
