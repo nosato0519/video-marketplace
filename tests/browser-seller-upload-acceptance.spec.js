@@ -62,6 +62,29 @@ test.describe('seller upload browser acceptance', () => {
     expect(draftCreated).toBe(true);
   });
 
+  test('product editor infers MIME type when browser reports a blank type', async ({ page }) => {
+    await mockSellerSession(page);
+    await page.route('**/api/seller/media/upload', async (route) => {
+      expect(route.request().headers()['content-type']).toBe('video/mp4');
+      await fulfillJson(route, { mediaAsset: { id: 'media-blank-mime', status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      expect(route.request().postDataJSON().mediaAssetId).toBe('media-blank-mime');
+      await fulfillJson(route, { product: { id: 'product-blank-mime', status: 'draft' } }, 201);
+    });
+
+    await page.goto('/seller/product-editor.html');
+    await page.locator('.product-input-card input[type="text"]').first().fill('Blank MIME Video');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'blank-mime.mp4',
+      mimeType: '',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+  });
+
   test('dashboard-linked editor avoids duplicate registration after an ambiguous create response', async ({ page }) => {
     await mockSellerSession(page);
     await page.route('**/api/seller/media/upload', async (route) => {
