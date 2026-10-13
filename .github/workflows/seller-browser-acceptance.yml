@@ -8,6 +8,7 @@ on:
       - 'tests/browser-seller-products-acceptance.spec.js'
       - 'tests/browser-seller-upload-acceptance.spec.js'
       - 'playwright.config.js'
+      - 'scripts/ci-frontend-proxy.mjs'
       - 'package.json'
       - '.github/workflows/seller-browser-acceptance.yml'
   pull_request:
@@ -15,6 +16,7 @@ on:
       - 'app/**'
       - 'tests/browser-seller-acceptance.spec.js'
       - 'playwright.config.js'
+      - 'scripts/ci-frontend-proxy.mjs'
       - 'package.json'
       - '.github/workflows/seller-browser-acceptance.yml'
   workflow_dispatch:
