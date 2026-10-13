@@ -85,14 +85,23 @@ export async function renderSellerUpload(root) {
       selectedFile.textContent = 'No file selected yet.';
       form.querySelector('#video-price').value = '1000';
     } catch (error) {
+      let productWasCreated = productCreated;
       if (uploadedMediaAssetId && !productCreated) {
         try {
           await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
         } catch (cleanupError) {
-          console.error('seller_upload_cleanup_failed', cleanupError);
+          if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+            productWasCreated = true;
+          } else {
+            console.error('seller_upload_cleanup_failed', cleanupError);
+          }
         }
       }
-      message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to upload video.';
+      if (productWasCreated) {
+        message.innerHTML = `The draft appears to have been created. Check <a href="#/seller/products">My videos</a> before trying again.`;
+      } else {
+        message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to upload video.';
+      }
     } finally {
       submit.disabled = false;
     }
