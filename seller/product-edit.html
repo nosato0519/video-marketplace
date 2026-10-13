@@ -67,8 +67,8 @@
       <div class="buyer-section-head"><div><span class="section-kicker">VIDEO</span><h2>アップロード済みファイル</h2></div></div>
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card">
-          <span>MAIN VIDEO</span><strong>the-last-signal.mp4</strong><small>アップロード済み　4.2 GB</small>
-          <input type="file" accept="video/*" aria-label="動画ファイルを変更">
+          <span>MAIN VIDEO</span><strong id="current-video-filename">登録済み動画</strong><small id="current-video-size">動画ファイルを変更する場合のみ選択してください。</small>
+          <input id="replacement-video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" aria-label="動画ファイルを変更">
         </div>
         <div class="buyer-menu-card">
           <span>THUMBNAIL</span><strong>the-last-signal.jpg</strong><small>現在のサムネイルを変更</small>
@@ -121,6 +121,11 @@ const priceInput = document.querySelector('#product-price');
 const descriptionInput = document.querySelector('#product-description');
 const statusElement = document.querySelector('#product-status');
 const saveButton = document.querySelector('#save-product');
+const replacementVideoInput = document.querySelector('#replacement-video');
+const currentVideoFilename = document.querySelector('#current-video-filename');
+const currentVideoSize = document.querySelector('#current-video-size');
+const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+let isSaving = false;
 const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
 
 function formatStatus(status) {
@@ -146,6 +151,8 @@ async function loadProduct() {
   descriptionInput.value = product.description || '';
   statusElement.textContent = formatStatus(product.status);
   statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
+  currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
+  currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function publishProduct() {
@@ -176,16 +183,35 @@ async function publishProduct() {
 }
 
 async function saveProduct() {
-  if (!productId) return;
+  if (!productId || isSaving) return;
+  isSaving = true;
   saveButton.setAttribute('aria-busy', 'true');
   try {
+    const body = {
+      title: titleInput.value,
+      description: descriptionInput.value,
+      priceAmount: Number(priceInput.value || 0)
+    };
+    const replacementVideo = replacementVideoInput.files?.[0];
+    if (replacementVideo) {
+      if (!allowedVideoTypes.has(replacementVideo.type.toLowerCase())) {
+        alert('対応形式は MP4・WebM・MOV・MKV です。');
+        replacementVideoInput.focus();
+        return;
+      }
+      const upload = await request('/api/seller/media/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': replacementVideo.type,
+          'X-Original-Filename': replacementVideo.name
+        },
+        body: replacementVideo
+      });
+      body.mediaAssetId = upload.mediaAsset.id;
+    }
     await request(`/api/seller/products/${encodeURIComponent(productId)}`, {
       method: 'PATCH',
-      body: JSON.stringify({
-        title: titleInput.value,
-        description: descriptionInput.value,
-        priceAmount: Number(priceInput.value || 0)
-      })
+      body: JSON.stringify(body)
     });
     window.location.href = '/seller/products.html';
   } catch (error) {
@@ -195,6 +221,7 @@ async function saveProduct() {
     }
     alert('変更を保存できませんでした。');
   } finally {
+    isSaving = false;
     saveButton.removeAttribute('aria-busy');
   }
 }
