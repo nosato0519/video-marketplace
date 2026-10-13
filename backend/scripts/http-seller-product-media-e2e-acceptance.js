@@ -69,6 +69,11 @@ try {
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
   assert.equal(otherAssetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), false);
 
+  const otherSellerDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: otherSellerCookie } });
+  assert.equal(otherSellerDeleteResponse.response.status, 404, JSON.stringify(otherSellerDeleteResponse.body));
+  const assetAfterUnauthorizedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetAfterUnauthorizedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), true);
+
   const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY' }) });
   assert.equal(missingMediaProductResponse.response.status, 422, JSON.stringify(missingMediaProductResponse.body));
   assert.equal(missingMediaProductResponse.body.error, 'media_asset_required');
