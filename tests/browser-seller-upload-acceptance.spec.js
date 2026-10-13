@@ -54,7 +54,7 @@ test.describe('seller upload browser acceptance', () => {
     await saveAction.click({ force: true });
     releaseSession();
 
-    await expect(page).toHaveURL(new RegExp('seller/products\\.html
+    await expect(page).toHaveURL(/seller\/products\.html$/);
     expect(uploadCalls).toBe(1);
     expect(draftCalls).toBe(1);
   });
