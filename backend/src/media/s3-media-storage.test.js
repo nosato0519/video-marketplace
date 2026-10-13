@@ -22,7 +22,7 @@ test('S3 adapter signs requests and forwards byte ranges', async () => {
   });
 
   const result = await storage.getStream({ storageKey: 'private/video file.mp4', range: { start: 10, end: 19 } });
-  assert.equal(result.size, 100);
+  assert.equal(result.size, 10);
   assert.match(captured.url, /^https:\/\/s3\.example\.test\/private-media\/private\/video%20file\.mp4$/);
   assert.equal(captured.options.method, 'GET');
   assert.equal(captured.options.headers.range, 'bytes=10-19');
