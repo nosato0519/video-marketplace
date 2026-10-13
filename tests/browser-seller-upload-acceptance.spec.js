@@ -369,4 +369,47 @@ test.describe('seller upload browser acceptance', () => {
     expect(deleted).toBe(true);
   });
 
+  test('published product cannot be edited until it is unpublished', async ({ page }) => {
+    await mockSellerSession(page);
+    const productId = '55555555-5555-4555-8555-555555555555';
+    let patchCalls = 0;
+    let uploadCalls = 0;
+    await page.route(`**/api/seller/products/${productId}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { product: {
+          id: productId,
+          title: 'Published product',
+          description: 'Must unpublish before editing',
+          price_amount: 1600,
+          price_currency: 'JPY',
+          status: 'published',
+          media_asset_id: 'published-media',
+          media_status: 'ready',
+          media_mime_type: 'video/mp4',
+          media_byte_size: 1024,
+          media_original_filename: 'published.mp4',
+        } });
+        return;
+      }
+      if (route.request().method() === 'PATCH') patchCalls += 1;
+      await route.fallback();
+    });
+    await page.route('**/api/seller/media/upload', async (route) => {
+      uploadCalls += 1;
+      await fulfillJson(route, { mediaAsset: { id: 'unexpected-replacement', status: 'ready' } }, 201);
+    });
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto(`/seller/product-edit.html?productId=${productId}`);
+    await expect(page.locator('#product-status')).toHaveText('公開中');
+    await page.locator('#product-title').fill('Should not save');
+    await page.locator('#replacement-video').setInputFiles({
+      name: 'blocked-replacement.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('#save-product').click();
+    expect(patchCalls).toBe(0);
+    expect(uploadCalls).toBe(0);
+  });
+
 });
