@@ -15,6 +15,34 @@ async function request(path, options = {}) {
   return body;
 }
 
+function uploadVideo(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/seller/media/upload');
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Content-Type', getVideoMime(file));
+    xhr.setRequestHeader('X-Original-Filename', file.name);
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    });
+    xhr.addEventListener('load', () => {
+      let body = null;
+      try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch {}
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body);
+        return;
+      }
+      const error = new Error(body?.error?.message || body?.error || 'Unable to upload video.');
+      error.status = xhr.status;
+      error.body = body;
+      reject(error);
+    });
+    xhr.addEventListener('error', () => reject(new Error('Network error while uploading video.')));
+    xhr.addEventListener('abort', () => reject(new Error('Video upload was interrupted.')));
+    xhr.send(file);
+  });
+}
+
 export async function renderSellerUpload(root) {
   root.innerHTML = `<main class="seller-shell">
     <header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>Upload video</h1><p>Add your protected video, then turn it into a product draft ready for review and publishing.</p></div><a class="button secondary" href="#/seller/products">My videos</a></header>
@@ -88,7 +116,7 @@ export async function renderSellerUpload(root) {
     let uploadedMediaAssetId = null;
     let productCreated = false;
     try {
-      const media = await request('/api/seller/media/upload', { method: 'POST', headers: { 'content-type': getVideoMime(file), 'x-original-filename': file.name }, body: file });
+      const media = await uploadVideo(file, (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
       uploadedMediaAssetId = media.mediaAsset.id;
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
       productCreated = true;
