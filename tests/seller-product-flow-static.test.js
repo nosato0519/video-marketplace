@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 const products = fs.readFileSync(path.join(root, 'seller', 'products.html'), 'utf8');
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
+const productEdit = fs.readFileSync(path.join(root, 'seller', 'product-edit.html'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -30,3 +31,17 @@ assert.match(editor, /file\.size === 0/);
 assert.match(editor, /uploadedMediaAssetId && !productCreated/);
 
 console.log('Seller product upload flow static contract checks passed.');
+
+assert.match(products, /seller-video-edit/);
+assert.match(products, /product-edit\.html\?productId=/);
+
+assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
+assert.match(productEdit, /\/api\/seller\/products\//);
+assert.match(productEdit, /method: 'PATCH'/);
+assert.match(productEdit, /\/api\/seller\/media\/upload/);
+assert.match(productEdit, /\/api\/seller\/media\/assets\//);
+assert.match(productEdit, /method: 'DELETE'/);
+assert.match(productEdit, /body\.mediaAssetId = uploadedMediaAssetId/);
+assert.match(productEdit, /currentProductStatus === 'published'/);
+assert.match(productEdit, /isSaving/);
+assert.match(productEdit, /replacementVideo\.size > maxUploadBytes/);
