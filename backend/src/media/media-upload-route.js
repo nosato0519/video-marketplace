@@ -37,6 +37,24 @@ router.get('/assets', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+router.delete('/assets/:assetId', async (req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT id, storage_key FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
+      [req.params.assetId, req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'media_asset_not_found' });
+
+    const asset = result.rows[0];
+    const linked = await query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
+    if (linked.rows.length) return res.status(409).json({ error: 'media_asset_in_use' });
+
+    await mediaStorage.deleteObject({ storageKey: asset.storage_key });
+    await query('DELETE FROM media_assets WHERE id = $1 AND owner_user_id = $2', [asset.id, req.user.id]);
+    return res.status(204).end();
+  } catch (error) { return next(error); }
+});
+
 router.post('/upload', async (req, res, next) => {
   const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
   const filename = safeOriginalFilename(req.headers['x-original-filename']);
