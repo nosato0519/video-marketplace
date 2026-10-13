@@ -814,7 +814,7 @@ footer{border-radius:0;background:#07090c}
 .seller-products-page .seller-products-links{display:flex;align-items:center;gap:20px}
 .seller-products-page .seller-products-links a{color:var(--accent);text-decoration:none;font-family:inherit;font-size:10px;line-height:1.4}
 .seller-video-list{display:grid;gap:1px;border-top:1px solid #252d36;border-bottom:1px solid #252d36;background:#252d36}
-.seller-video-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 58px;align-items:center;gap:20px;padding:18px 20px;background:#11161c}
+.seller-video-row{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;align-items:center;gap:20px;padding:18px 20px;background:#11161c}
 .seller-video-info strong{display:block;font-size:13px;line-height:1.4}
 .seller-video-info small{display:block;margin-top:7px;color:#7f8a96;font-size:9px;line-height:1.5}
 .seller-video-status{font-size:10px;text-align:center;white-space:nowrap}
@@ -822,7 +822,7 @@ footer{border-radius:0;background:#07090c}
 .seller-video-status.is-pending{color:var(--accent)}
 .seller-video-status.is-draft{color:#9aa4ae}
 .seller-video-status.is-rejected{color:#d98282}
-.seller-video-edit{justify-self:end;color:var(--accent);text-decoration:none;font-size:10px;white-space:nowrap}
+.seller-video-actions{display:flex;align-items:center;justify-self:end;gap:12px}.seller-video-edit{justify-self:end;color:var(--accent);text-decoration:none;font-size:10px;white-space:nowrap}.seller-video-actions button.seller-video-edit{padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer}
 .seller-pagination{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:24px}
 .seller-pagination a{min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #252d36;background:#11161c;color:#8f99a5;text-decoration:none;font-size:10px;border-radius:4px}
 .seller-pagination a.is-current,.seller-pagination a:hover{color:var(--accent);border-color:var(--accent)}
@@ -830,7 +830,7 @@ footer{border-radius:0;background:#07090c}
   .seller-products-page .seller-products-links{gap:12px}
   .seller-video-row{grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:16px}
   .seller-video-status{grid-column:2;grid-row:1}
-  .seller-video-edit{grid-column:2;grid-row:2}
+  .seller-video-actions{grid-column:2;grid-row:2;flex-direction:column;align-items:flex-end;gap:8px}.seller-video-edit{grid-column:2;grid-row:2}
 }
 
 /* Seller product editor */
