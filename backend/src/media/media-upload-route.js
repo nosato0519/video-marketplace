@@ -38,6 +38,10 @@ router.get('/assets', async (req, res, next) => {
 });
 
 router.delete('/assets/:assetId', async (req, res, next) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.assetId)) {
+    return res.status(404).json({ error: 'media_asset_not_found' });
+  }
+
   try {
     const result = await query(
       'SELECT id, storage_key FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
