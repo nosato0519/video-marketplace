@@ -188,4 +188,21 @@ test.describe('seller products browser acceptance', () => {
     await expect(page.locator('[data-product-id="product-draft"]')).toHaveCount(0);
   });
 
+  test('seller is told when a draft with purchase history cannot be deleted', async ({ page }) => {
+    await mockSellerSession(page);
+    await page.route('**/api/seller/products', async (route) => {
+      await fulfillJson(route, { products: [{ id: 'product-history', title: 'Purchased Video', description: '', price_amount: 1500, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 }] });
+    });
+    await page.route('**/api/seller/products/product-history', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      await fulfillJson(route, { error: 'product_has_purchase_history' }, 409);
+    });
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto(appUrl('#/seller/products'));
+    const card = page.locator('[data-product-id="product-history"]');
+    await card.getByRole('button', { name: 'Delete draft' }).click();
+    await expect(page.getByText('product_has_purchase_history')).toBeVisible();
+    await expect(card).toBeVisible();
+  });
+
 });
