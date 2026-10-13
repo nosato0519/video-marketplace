@@ -171,7 +171,7 @@
         <div><span class="section-kicker">ACTIONS</span><h2>登録を完了する</h2></div>
       </div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card">
+        <div class="buyer-menu-card" role="button" tabindex="0" aria-label="動画を保存する">
           <span>SAVE</span>
           <strong>動画を保存する</strong>
           <small>入力した内容を保存して動画管理へ戻ります。</small>
@@ -199,6 +199,7 @@ const videoInput = document.querySelector('input[type="file"][accept="video/*"]'
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+let isSaving = false;
 
 function parsePrice(value) {
   const amount = Number(String(value || '').replace(/[^0-9]/g, ''));
@@ -245,7 +246,7 @@ const sellerSessionPromise = (async () => {
 })();
 
 async function saveProduct() {
-  if (!(await sellerSessionPromise)) return;
+  if (isSaving || !(await sellerSessionPromise)) return;
 
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
@@ -272,6 +273,7 @@ async function saveProduct() {
     return;
   }
 
+  isSaving = true;
   saveAction?.setAttribute('aria-busy', 'true');
   try {
     const upload = await uploadVideo(file);
@@ -295,6 +297,7 @@ async function saveProduct() {
     const detail = error.body?.error?.message || error.body?.error;
     alert(typeof detail === 'string' ? detail : '動画を保存できませんでした。');
   } finally {
+    isSaving = false;
     saveAction?.removeAttribute('aria-busy');
   }
 }
