@@ -105,7 +105,8 @@ export async function renderSellerProducts(root) {
       mediaSelect.innerHTML = `<option value="">Select an uploaded video</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
       const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
       if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
-      else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', `<option value="" selected>Current video unavailable — choose another</option>`);
+      else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="" selected>Current video unavailable — keep existing</option>');
+      if (editing && currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="__remove__">Remove current video</option>');
       mediaSelect.required = !editing;
     } catch (error) {
       mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
@@ -132,7 +133,7 @@ export async function renderSellerProducts(root) {
       formMessage.textContent = 'Saving…';
       try {
         const payload = { title, description, priceAmount, priceCurrency };
-        if (id) payload.mediaAssetId = mediaValue || null;
+        if (id && mediaValue === '__remove__') payload.mediaAssetId = null;
         else if (mediaValue) payload.mediaAssetId = mediaValue;
         await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
         closeEditor();
