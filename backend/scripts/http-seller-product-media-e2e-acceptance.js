@@ -42,6 +42,13 @@ try {
 
   const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsBeforeInvalidUpload.response.status, 200, JSON.stringify(assetsBeforeInvalidUpload.body));
+  const emptyUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '0', 'x-original-filename': 'empty.mp4' },
+    body: Buffer.alloc(0)
+  });
+  assert.equal(emptyUploadResponse.response.status, 400, JSON.stringify(emptyUploadResponse.body));
+  assert.equal(emptyUploadResponse.body.error, 'empty_upload_body');
   const invalidUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
     method: 'POST',
     headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '8', 'x-original-filename': 'invalid.mp4' },
