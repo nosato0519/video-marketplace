@@ -56,14 +56,25 @@ export async function renderSellerUpload(root) {
     }
     submit.disabled = true;
     message.textContent = `Uploading ${file.name}… This can take a while for large videos.`;
+    let uploadedMediaAssetId = null;
+    let productCreated = false;
     try {
       const media = await request('/api/seller/media/upload', { method: 'POST', headers: { 'content-type': file.type, 'x-original-filename': file.name }, body: file });
-      const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: media.mediaAsset.id }) });
+      uploadedMediaAssetId = media.mediaAsset.id;
+      const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
+      productCreated = true;
       message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
       form.reset();
       selectedFile.textContent = 'No file selected yet.';
       form.querySelector('#video-price').value = '1000';
     } catch (error) {
+      if (uploadedMediaAssetId && !productCreated) {
+        try {
+          await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
+        } catch (cleanupError) {
+          console.error('seller_upload_cleanup_failed', cleanupError);
+        }
+      }
       message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to upload video.';
     } finally {
       submit.disabled = false;
