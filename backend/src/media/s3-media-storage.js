@@ -120,22 +120,30 @@ export function createS3MediaStorage({
           throw new Error(`media_storage_range_failed:${response.status}`);
         }
       }
-      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_get_failed:${response.status}`);\n      }
+      if (!response.ok) {
+        await cancelResponseBody(response);
+        throw new Error(`media_storage_get_failed:${response.status}`);\n      }
       return { stream: response.body, size: Number(response.headers.get('content-length') || 0) };
     },
     async getMetadata({ storageKey } = {}) {
       const response = await request('HEAD', storageKey);
-      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_metadata_failed:${response.status}`);\n      }
+      if (!response.ok) {
+        await cancelResponseBody(response);
+        throw new Error(`media_storage_metadata_failed:${response.status}`);\n      }
       return { size: Number(response.headers.get('content-length') || 0) };
     },
     async putStream({ storageKey, stream } = {}) {
       const response = await request('PUT', storageKey, { body: stream });
-      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_put_failed:${response.status}`);\n      }
+      if (!response.ok) {
+        await cancelResponseBody(response);
+        throw new Error(`media_storage_put_failed:${response.status}`);\n      }
       return { size: Number(response.headers.get('content-length') || 0) || null };
     },
     async deleteObject({ storageKey } = {}) {
       const response = await request('DELETE', storageKey);
-      if (!response.ok && response.status !== 404) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_delete_failed:${response.status}`);\n      }
+      if (!response.ok && response.status !== 404) {
+        await cancelResponseBody(response);
+        throw new Error(`media_storage_delete_failed:${response.status}`);\n      }
     },
   };
 }
