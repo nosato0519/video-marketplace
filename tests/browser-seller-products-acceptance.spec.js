@@ -153,4 +153,39 @@ test.describe('seller products browser acceptance', () => {
     expect(createCalled).toBe(false);
   });
 
+  test('seller can unpublish a product and delete an unpurchased draft', async ({ page }) => {
+    await mockSellerSession(page);
+    const actions = [];
+    let products = [
+      { id: 'product-published', title: 'Published Video', description: '', price_amount: 1500, price_currency: 'JPY', status: 'published', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 },
+      { id: 'product-draft', title: 'Draft Video', description: '', price_amount: 1000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 },
+    ];
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'GET') { await fulfillJson(route, { products }); return; }
+      await route.fallback();
+    });
+    await page.route('**/api/seller/products/product-published/unpublish', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      actions.push('unpublish');
+      products = products.map((product) => product.id === 'product-published' ? { ...product, status: 'draft' } : product);
+      await fulfillJson(route, { product: { id: 'product-published', status: 'draft' } });
+    });
+    await page.route('**/api/seller/products/product-draft', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      actions.push('delete-draft');
+      products = products.filter((product) => product.id !== 'product-draft');
+      await route.fulfill({ status: 204, body: '' });
+    });
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto(appUrl('#/seller/products'));
+    const publishedCard = page.locator('[data-product-id="product-published"]');
+    await publishedCard.getByRole('button', { name: 'Unpublish' }).click();
+    await expect.poll(() => actions).toContain('unpublish');
+    await expect(publishedCard.getByText('Draft', { exact: true })).toBeVisible();
+    const draftCard = page.locator('[data-product-id="product-draft"]');
+    await draftCard.getByRole('button', { name: 'Delete draft' }).click();
+    await expect.poll(() => actions).toContain('delete-draft');
+    await expect(page.locator('[data-product-id="product-draft"]')).toHaveCount(0);
+  });
+
 });
