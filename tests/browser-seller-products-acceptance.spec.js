@@ -205,4 +205,21 @@ test.describe('seller products browser acceptance', () => {
     await expect(card).toBeVisible();
   });
 
+  test('published products cannot be edited until they are unpublished', async ({ page }) => {
+    await mockSellerSession(page);
+    let editFetches = 0;
+    await page.route('**/api/seller/products', async (route) => {
+      await fulfillJson(route, { products: [{ id: 'product-published', title: 'Published Video', description: '', price_amount: 1500, price_currency: 'JPY', status: 'published', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 }] });
+    });
+    await page.route('**/api/seller/products/product-published', async (route) => {
+      editFetches += 1;
+      await fulfillJson(route, { product: { id: 'product-published', status: 'published' } });
+    });
+    await page.goto(appUrl('#/seller/products'));
+    const card = page.locator('[data-product-id="product-published"]');
+    await expect(card.getByRole('button', { name: 'Edit details' })).toBeDisabled();
+    await expect(card.getByRole('button', { name: 'Change video' })).toBeDisabled();
+    expect(editFetches).toBe(0);
+  });
+
 });
