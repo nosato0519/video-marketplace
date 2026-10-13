@@ -266,7 +266,8 @@ async function saveProduct() {
       const upload = await uploadReplacementVideo(replacementVideo, (percent) => {
         if (saveLabel) saveLabel.textContent = `アップロード中… ${percent}%`;
       });
-      uploadedMediaAssetId = upload.mediaAsset.id;
+      uploadedMediaAssetId = typeof upload?.mediaAsset?.id === 'string' ? upload.mediaAsset.id : null;
+      if (!uploadedMediaAssetId) throw new Error('動画アップロードの応答が不正です。');
       body.mediaAssetId = uploadedMediaAssetId;
       if (saveLabel) saveLabel.textContent = '作品情報を保存中…';
     }
