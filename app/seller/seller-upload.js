@@ -54,8 +54,11 @@ export async function renderSellerUpload(root) {
     selectedFile.textContent = file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} MB` : 'No file selected yet.';
   });
 
+  let isUploading = false;
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (isUploading) return;
     const file = fileInput.files?.[0];
     const title = form.querySelector('#video-title').value.trim();
     const description = form.querySelector('#video-description').value.trim();
@@ -79,6 +82,7 @@ export async function renderSellerUpload(root) {
       fileInput.focus();
       return;
     }
+    isUploading = true;
     submit.disabled = true;
     message.textContent = `Uploading ${file.name}… This can take a while for large videos.`;
     let uploadedMediaAssetId = null;
@@ -111,6 +115,7 @@ export async function renderSellerUpload(root) {
         message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to upload video.';
       }
     } finally {
+      isUploading = false;
       submit.disabled = false;
     }
   });
