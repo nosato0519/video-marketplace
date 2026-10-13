@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { createServer } from 'node:http';
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
 
 const { getPool } = await import('../src/db.js');
+const { createConfiguredMediaStorage } = await import('../src/media/media-storage-factory.js');
 const { createApp } = await import('../src/app.js');
 const { createSessionToken, hashSessionToken, sessionExpiry } = await import('../src/auth/session.js');
 
 const pool = getPool();
 const server = createServer(createApp());
-const mediaRoot = process.env.MEDIA_STORAGE_DIR;
+const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
@@ -185,7 +185,7 @@ try {
   for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia].filter(Boolean)) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
-    if (media.rows[0]?.storage_key) await fs.rm(`${mediaRoot}/${media.rows[0].storage_key}`, { force: true }).catch(() => {});
+    if (media.rows[0]?.storage_key) await mediaStorage.deleteObject({ storageKey: media.rows[0].storage_key }).catch(() => {});
   }
   await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
   await pool.query(`DELETE FROM seller_profiles WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
