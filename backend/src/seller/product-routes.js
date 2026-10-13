@@ -91,10 +91,19 @@ router.patch('/products/:productId', async (req, res, next) => {
     const hasMediaAssetId = Object.prototype.hasOwnProperty.call(body, 'mediaAssetId');
     const mediaAssetId = body.mediaAssetId;
     if (product.status === 'published') return res.status(409).json({ error: 'published_product_locked' });
-    if (hasMediaAssetId && mediaAssetId != null && !(await verifyMediaAssetOwnership(mediaAssetId, req.user.id))) {
+    if (title != null && !String(title).trim()) {
+      return res.status(422).json({ error: 'product_title_required' });
+    }
+    if (priceAmount != null && (!Number.isSafeInteger(priceAmount) || priceAmount <= 0)) {
+      return res.status(422).json({ error: 'invalid_product_price' });
+    }
+    if (hasMediaAssetId && mediaAssetId == null) {
+      return res.status(422).json({ error: 'media_asset_required' });
+    }
+    if (hasMediaAssetId && !(await verifyMediaAssetOwnership(mediaAssetId, req.user.id))) {
       return res.status(422).json({ error: 'media_asset_not_owned' });
     }
-    const result = await query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
+    const result = await query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
     return res.json({ product: result.rows[0] });
   } catch (error) { return next(error); }
 });
