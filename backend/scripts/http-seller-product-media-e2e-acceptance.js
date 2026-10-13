@@ -16,7 +16,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 
@@ -112,6 +112,26 @@ try {
   const otherSellerUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: otherSellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'other-seller-e2e.mp4' }, body: uploadBytes });
   assert.equal(otherSellerUploadResponse.response.status, 201, JSON.stringify(otherSellerUploadResponse.body));
   ids.otherSellerMedia = otherSellerUploadResponse.body.mediaAsset.id;
+
+  // Race product creation against deletion of the same unused media asset.
+  // Exactly one operation may win: creation links the asset, or deletion removes it.
+  const raceUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-race.mp4' }, body: uploadBytes });
+  assert.equal(raceUploadResponse.response.status, 201, JSON.stringify(raceUploadResponse.body));
+  ids.raceMedia = raceUploadResponse.body.mediaAsset.id;
+  const [raceCreateResponse, raceDeleteResponse] = await Promise.all([
+    request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Concurrent Media Product', description: 'Media deletion race acceptance', priceAmount: 2300, priceCurrency: 'JPY', mediaAssetId: ids.raceMedia }) }),
+    request(baseUrl, `/api/seller/media/assets/${ids.raceMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } })
+  ]);
+  assert.ok([201, 422].includes(raceCreateResponse.response.status), JSON.stringify(raceCreateResponse.body));
+  assert.ok([204, 409].includes(raceDeleteResponse.response.status), JSON.stringify(raceDeleteResponse.body));
+  assert.equal(
+    (raceCreateResponse.response.status === 201 && raceDeleteResponse.response.status === 409)
+      || (raceCreateResponse.response.status === 422 && raceDeleteResponse.response.status === 204),
+    true,
+    `Concurrent media create/delete must have one consistent winner; create=${raceCreateResponse.response.status}, delete=${raceDeleteResponse.response.status}`
+  );
+  if (raceCreateResponse.response.status === 201) ids.raceProduct = raceCreateResponse.body.product.id;
+  else ids.raceMedia = null;
 
   const otherAssetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: otherSellerCookie } });
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
@@ -240,11 +260,11 @@ try {
 
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
-  if (ids.product) {
-    await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [ids.product]).catch(() => {});
-    await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
+  for (const productId of [ids.product, ids.raceProduct].filter(Boolean)) {
+    await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
+    await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
-  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia].filter(Boolean)) {
+  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia, ids.raceMedia].filter(Boolean)) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
     if (media.rows[0]?.storage_key) await mediaStorage.deleteObject({ storageKey: media.rows[0].storage_key }).catch(() => {});
