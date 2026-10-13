@@ -86,6 +86,12 @@ try {
   assert.equal(invalidPriceProductResponse.response.status, 422, JSON.stringify(invalidPriceProductResponse.body));
   assert.equal(invalidPriceProductResponse.body.error, 'invalid_product_price');
 
+  await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
+  const processingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Processing Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  assert.equal(processingMediaProductResponse.response.status, 422, JSON.stringify(processingMediaProductResponse.body));
+  assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
+  await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
+
   const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
   assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
   assert.equal(createResponse.body.product.status, 'draft');
