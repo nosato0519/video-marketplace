@@ -229,6 +229,39 @@ test.describe('seller upload browser acceptance', () => {
     await expect(page).toHaveURL(/\/seller\/product-editor\.html$/);
   });
 
+  test('routes to video management when a rejected draft leaves cleanup pending', async ({ page }) => {
+    await mockSellerSession(page);
+    let alertMessage = '';
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'media-cleanup-pending', status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      await fulfillJson(route, { error: 'invalid_product_data' }, 422);
+    });
+    await page.route('**/api/seller/media/assets/media-cleanup-pending', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      await fulfillJson(route, { error: 'media_storage_unavailable' }, 503);
+    });
+    page.on('dialog', async (dialog) => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    await page.goto('/seller/product-editor.html');
+    await page.locator('.product-input-card input[type="text"]').first().fill('Rejected draft cleanup');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'cleanup-pending.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+
+    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+    expect(alertMessage).toContain('削除を再試行');
+  });
+
   test('rejects an unsupported file before starting an upload', async ({ page }) => {
     await mockSellerSession(page);
     let uploadCalls = 0;
