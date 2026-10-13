@@ -112,9 +112,6 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (priceAmount != null && (!Number.isSafeInteger(priceAmount) || priceAmount <= 0)) {
       return res.status(422).json({ error: 'invalid_product_price' });
     }
-    if (hasMediaAssetId && mediaAssetId == null) {
-      return res.status(422).json({ error: 'media_asset_required' });
-    }
     const update = await withTransaction(async (client) => {
       const lockedProduct = await client.query(
         'SELECT status FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
@@ -122,7 +119,7 @@ router.patch('/products/:productId', async (req, res, next) => {
       );
       if (!lockedProduct.rows.length) return { error: 'product_not_found' };
       if (lockedProduct.rows[0].status === 'published') return { error: 'published_product_locked' };
-      if (hasMediaAssetId) {
+      if (hasMediaAssetId && mediaAssetId != null) {
         const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
