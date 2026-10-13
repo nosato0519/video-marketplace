@@ -129,4 +129,28 @@ test.describe('seller products browser acceptance', () => {
     expect(Object.prototype.hasOwnProperty.call(patchBodies[0], 'mediaAssetId')).toBe(false);
   });
 
+
+  test('seller cannot create a product without selecting a video', async ({ page }) => {
+    await mockSellerSession(page);
+    let createCalled = false;
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [{ id: 'media-ready', original_filename: 'ready.mp4', mime_type: 'video/mp4', byte_size: 5242880, status: 'ready' }] });
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { products: [] });
+        return;
+      }
+      createCalled = true;
+      await fulfillJson(route, { error: 'media_asset_required' }, 422);
+    });
+    await page.goto(appUrl('#/seller/products'));
+    await page.getByRole('button', { name: 'Create product' }).click();
+    await page.getByLabel('Title').fill('Missing video');
+    await page.getByLabel('Price').fill('1000');
+    await page.getByRole('button', { name: 'Create product', exact: true }).last().click();
+    await expect(page.getByText('Upload and select a video before creating a product.')).toBeVisible();
+    expect(createCalled).toBe(false);
+  });
+
 });
