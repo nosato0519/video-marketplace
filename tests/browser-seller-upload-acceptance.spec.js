@@ -412,4 +412,34 @@ test.describe('seller upload browser acceptance', () => {
     expect(uploadCalls).toBe(0);
   });
 
+  test('seller can delete unused media without exposing media linked to a product', async ({ page }) => {
+    await mockSellerSession(page);
+    const unusedId = '66666666-6666-4666-8666-666666666666';
+    const linkedId = '77777777-7777-4777-8777-777777777777';
+    let deleted = false;
+    await page.route('**/api/seller/products?*', async (route) => {
+      await fulfillJson(route, { products: [], counts: { total: 0, published: 0, review: 0, draft: 0 }, pagination: { page: 1, per_page: 10, total_count: 0, total_pages: 1 } });
+    });
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [
+        ...(!deleted ? [{ id: unusedId, original_filename: 'unused.mp4', mime_type: 'video/mp4', byte_size: 1048576, status: 'ready', in_use: false, created_at: '2026-10-13T00:00:00.000Z' }] : []),
+        { id: linkedId, original_filename: 'linked.mp4', mime_type: 'video/mp4', byte_size: 2097152, status: 'ready', in_use: true, created_at: '2026-10-13T00:00:00.000Z' },
+      ] });
+    });
+    await page.route(`**/api/seller/media/assets/${unusedId}`, async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      deleted = true;
+      await route.fulfill({ status: 204, body: '' });
+    });
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto('/seller/products.html');
+    const mediaList = page.locator('#seller-unused-media-list');
+    await expect(mediaList.getByText('unused.mp4')).toBeVisible();
+    await expect(mediaList.getByText('linked.mp4')).toHaveCount(0);
+    await mediaList.getByRole('button', { name: '動画ファイルを削除' }).click();
+    await expect(mediaList.getByText('unused.mp4')).toHaveCount(0);
+    await expect(mediaList.getByText('削除できる未使用の動画ファイルはありません。')).toBeVisible();
+    expect(deleted).toBe(true);
+  });
+
 });
