@@ -116,6 +116,12 @@ router.patch('/products/:productId', async (req, res, next) => {
       return res.status(422).json({ error: 'media_asset_required' });
     }
     const update = await withTransaction(async (client) => {
+      const lockedProduct = await client.query(
+        'SELECT status FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
+        [req.params.productId, req.user.id]
+      );
+      if (!lockedProduct.rows.length) return { error: 'product_not_found' };
+      if (lockedProduct.rows[0].status === 'published') return { error: 'published_product_locked' };
       if (hasMediaAssetId) {
         const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
@@ -124,6 +130,8 @@ router.patch('/products/:productId', async (req, res, next) => {
       const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
       return { product: result.rows[0] };
     });
+    if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
+    if (update.error === 'published_product_locked') return res.status(409).json({ error: 'published_product_locked' });
     if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
     return res.json({ product: update.product });
