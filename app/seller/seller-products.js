@@ -160,6 +160,36 @@ export async function renderSellerProducts(root) {
   }
 
   root.querySelector('#new-product').addEventListener('click', () => { void showEditor(); });
+  async function loadUnusedMedia() {
+    const response = await fetch('/api/seller/media/assets', { credentials: 'same-origin' });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) { const error = new Error(body?.error?.message || body?.error || '動画ファイルを取得できませんでした。'); error.status = response.status; throw error; }
+    const unused = (Array.isArray(body?.mediaAssets) ? body.mediaAssets : []).filter((asset) => !asset.in_use && asset.status !== 'deleted');
+    unusedMediaList.innerHTML = unused.length ? unused.map((asset) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(asset.original_filename || '名称なし')}</strong><small>${escape(asset.mime_type || '')}　${(Number(asset.byte_size || 0) / (1024 * 1024)).toFixed(1)} MB　${new Date(asset.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status is-draft">未使用</span><div class="seller-video-actions"><button type="button" class="seller-video-edit" data-delete-media="${escape(asset.id)}">動画ファイルを削除</button></div></div>`).join('') : '<small>削除できる未使用の動画ファイルはありません。</small>';
+  }
+
+  unusedMediaList.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-delete-media]');
+    if (!button || button.disabled) return;
+    const assetId = button.dataset.deleteMedia;
+    if (!window.confirm('この未使用の動画ファイルを完全に削除しますか？')) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`/api/seller/media/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE', credentials: 'same-origin' });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) { const error = new Error(body?.error?.message || body?.error || '動画ファイルを削除できませんでした。'); error.status = response.status; throw error; }
+      await loadUnusedMedia();
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) { window.location.href = '/pages/seller-login.html'; return; }
+      if (error.status === 409 || error.message === 'media_asset_in_use') {
+        window.alert('作品に登録済みの動画は削除できません。動画一覧を再読み込みします。');
+        await loadUnusedMedia().catch(() => {});
+        return;
+      }
+      window.alert(error.message || '動画ファイルを削除できませんでした.');
+      button.disabled = false;
+    }
+  });
   list.addEventListener('click', async (event) => {
     const emptyAction = event.target.closest('[data-empty-action]');
     if (emptyAction?.dataset.emptyAction === 'create') { void showEditor(); return; }
@@ -185,7 +215,8 @@ export async function renderSellerProducts(root) {
 export function initSellerProductsPage() {
   const list = document.querySelector('#seller-product-list');
   const pagination = document.querySelector('.seller-pagination');
-  if (!list || !pagination) return;
+  const unusedMediaList = document.querySelector('#seller-unused-media-list');
+  if (!list || !pagination || !unusedMediaList) return;
 
   const escape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const labels = { published: '公開中', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', draft: '下書き', rejected: '却下' };
@@ -261,6 +292,7 @@ export function initSellerProductsPage() {
 
   const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
   load(initialPage).catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; });
+  loadUnusedMedia().catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; else unusedMediaList.innerHTML = '<small>未使用の動画ファイルを読み込めませんでした。</small>'; });
 }
 
 if (document.querySelector('#seller-product-list')) initSellerProductsPage();
