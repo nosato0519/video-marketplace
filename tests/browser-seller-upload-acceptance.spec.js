@@ -50,9 +50,12 @@ test.describe('seller upload browser acceptance', () => {
     });
 
     const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
-    await saveAction.click();
-    await saveAction.click({ force: true });
-    releaseSession();
+    try {
+      await saveAction.click();
+      await saveAction.click({ force: true });
+    } finally {
+      releaseSession();
+    }
 
     await expect(page).toHaveURL(/seller\/products\.html$/);
     expect(uploadCalls).toBe(1);
@@ -90,14 +93,16 @@ test('disables the save action while a video upload is pending', async ({ page }
     });
 
     const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
-    await saveAction.click();
-    await expect.poll(() => uploadCalls).toBe(1);
-    await expect(saveAction.locator('b')).toHaveAttribute('aria-busy', 'true');
-    await saveAction.click({ force: true });
-    expect(uploadCalls).toBe(1);
-    expect(draftCalls).toBe(0);
-
-    releaseUpload();
+    try {
+      await saveAction.click();
+      await expect.poll(() => uploadCalls).toBe(1);
+      await expect(saveAction.locator('b')).toHaveAttribute('aria-busy', 'true');
+      await saveAction.click({ force: true });
+      expect(uploadCalls).toBe(1);
+      expect(draftCalls).toBe(0);
+    } finally {
+      releaseUpload();
+    }
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(uploadCalls).toBe(1);
     expect(draftCalls).toBe(1);
