@@ -76,6 +76,13 @@ try {
     body: Buffer.from('notvideo')
   });
   assert.equal(invalidUploadResponse.response.status, 415, JSON.stringify(invalidUploadResponse.body));
+  const mismatchedLengthUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length - 1), 'x-original-filename': 'length-mismatch.mp4' },
+    body: uploadBytes
+  });
+  assert.equal(mismatchedLengthUploadResponse.response.status, 400, JSON.stringify(mismatchedLengthUploadResponse.body));
+  assert.equal(mismatchedLengthUploadResponse.body.error, 'content_length_mismatch');
   const oversizedUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
     method: 'POST',
     headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '25', 'x-original-filename': 'oversized.mp4' },
