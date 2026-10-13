@@ -77,3 +77,23 @@ test('seller upload stays disabled when the backend upload limit cannot be loade
   await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeDisabled();
   await expect(page.locator('#seller-upload-message')).toContainText('Unable to load the upload limit');
 });
+
+
+test('seller upload stays disabled when the backend returns an invalid upload limit', async ({ page }) => {
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ maxUploadBytes: '5 GB' }),
+    });
+  });
+
+  await page.goto('/app/index.html');
+  await page.evaluate(async () => {
+    const { renderSellerUpload } = await import('/seller/seller-upload.js');
+    await renderSellerUpload(document.querySelector('#app'));
+  });
+
+  await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeDisabled();
+  await expect(page.locator('#seller-upload-message')).toContainText('Unable to load the upload limit');
+});
