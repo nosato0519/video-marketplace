@@ -96,6 +96,18 @@ try {
   assert.equal(patchResponse.response.status, 200, JSON.stringify(patchResponse.body));
   assert.equal(patchResponse.body.product.description, 'Updated seller E2E product description');
 
+  const emptyTitlePatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: '   ' }) });
+  assert.equal(emptyTitlePatchResponse.response.status, 422, JSON.stringify(emptyTitlePatchResponse.body));
+  assert.equal(emptyTitlePatchResponse.body.error, 'product_title_required');
+
+  const invalidPricePatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ priceAmount: 0 }) });
+  assert.equal(invalidPricePatchResponse.response.status, 422, JSON.stringify(invalidPricePatchResponse.body));
+  assert.equal(invalidPricePatchResponse.body.error, 'invalid_product_price');
+
+  const missingMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
+  assert.equal(missingMediaPatchResponse.response.status, 422, JSON.stringify(missingMediaPatchResponse.body));
+  assert.equal(missingMediaPatchResponse.body.error, 'media_asset_required');
+
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
