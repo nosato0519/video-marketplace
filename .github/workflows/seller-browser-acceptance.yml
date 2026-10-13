@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'app/**'
+      - 'seller/**'
       - 'tests/browser-seller-acceptance.spec.js'
       - 'tests/browser-seller-products-acceptance.spec.js'
       - 'tests/browser-seller-upload-acceptance.spec.js'
@@ -14,6 +15,7 @@ on:
   pull_request:
     paths:
       - 'app/**'
+      - 'seller/**'
       - 'tests/browser-seller-acceptance.spec.js'
       - 'playwright.config.js'
       - 'scripts/ci-frontend-proxy.mjs'
