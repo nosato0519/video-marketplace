@@ -14,10 +14,13 @@ const MAX_BYTES = Number.isSafeInteger(configuredMaxBytes) && configuredMaxBytes
 const ALLOWED_MIME = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 const mediaStorage = createConfiguredMediaStorage();
 
-function safeExtension(filename, mime) {
-  const ext = filename ? filename.toLowerCase().match(/\.[a-z0-9]{1,8}$/)?.[0] : null;
-  if (ext) return ext;
-  return mime === 'video/webm' ? '.webm' : mime === 'video/quicktime' ? '.mov' : mime === 'video/x-matroska' ? '.mkv' : '.mp4';
+function safeExtension(mime) {
+  return {
+    'video/mp4': '.mp4',
+    'video/webm': '.webm',
+    'video/quicktime': '.mov',
+    'video/x-matroska': '.mkv',
+  }[mime];
 }
 
 function safeOriginalFilename(value) {
@@ -48,7 +51,7 @@ router.post('/upload', async (req, res, next) => {
   if (!req.readable) return res.status(400).json({ error: 'upload_body_required' });
 
   const id = crypto.randomUUID();
-  const storageKey = `${req.user.id}/${id}${safeExtension(filename, mime)}`;
+  const storageKey = `${req.user.id}/${id}${safeExtension(mime)}`;
   let bytes = 0;
   const limiter = async function* () {
     for await (const chunk of req) {
