@@ -253,15 +253,33 @@ async function saveProduct() {
     productUpdated = true;
     window.location.href = '/seller/products.html';
   } catch (error) {
+    let replacementMayBeLinked = productUpdated;
+    let cleanupPending = false;
     if (uploadedMediaAssetId && !productUpdated) {
       try {
         await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
       } catch (cleanupError) {
-        console.error('seller_product_edit_cleanup_failed', cleanupError);
+        if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+          replacementMayBeLinked = true;
+        } else {
+          cleanupPending = true;
+          console.error('seller_product_edit_cleanup_failed', cleanupError);
+          if (error.status >= 500 || !error.status) replacementMayBeLinked = true;
+        }
       }
     }
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
+      return;
+    }
+    if (replacementMayBeLinked) {
+      alert('動画の差し替えが完了している可能性があります。重複操作を避けるため、動画管理ページで状態を確認してください。');
+      window.location.href = '/seller/products.html';
+      return;
+    }
+    if (cleanupPending) {
+      alert('変更は保存されていませんが、新しい動画の削除が完了していません。動画管理ページで「削除を再試行」してください。');
+      window.location.href = '/seller/products.html';
       return;
     }
     const detail = error.body?.error?.message || error.body?.error;
