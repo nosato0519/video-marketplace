@@ -208,6 +208,7 @@ try {
   assert.equal(linkedMediaDeleteResponse.body.error, 'media_asset_in_use');
   const assetAfterLinkedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetAfterLinkedDelete.response.status, 200, JSON.stringify(assetAfterLinkedDelete.body));
+  assert.equal(assetAfterLinkedDelete.body.mediaAssets.find((asset) => asset.id === ids.media)?.in_use, true, 'A linked video must be marked as in use');
   assert.equal(
     assetAfterLinkedDelete.body.mediaAssets.some((asset) => asset.id === ids.media && asset.status === 'ready'),
     true,
@@ -319,6 +320,9 @@ try {
   const unusedUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-unused.mp4' }, body: uploadBytes });
   assert.equal(unusedUploadResponse.response.status, 201, JSON.stringify(unusedUploadResponse.body));
   const unusedMediaId = unusedUploadResponse.body.mediaAsset.id;
+  const assetsBeforeUnusedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsBeforeUnusedDelete.response.status, 200, JSON.stringify(assetsBeforeUnusedDelete.body));
+  assert.equal(assetsBeforeUnusedDelete.body.mediaAssets.find((asset) => asset.id === unusedMediaId)?.in_use, false, 'An unlinked video must be marked as unused');
   const localFilesBeforeUnusedDelete = await localSellerMediaFiles(ids.seller);
   const deleteUnusedMediaResponse = await request(baseUrl, `/api/seller/media/assets/${unusedMediaId}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(deleteUnusedMediaResponse.response.status, 204, JSON.stringify(deleteUnusedMediaResponse.body));
