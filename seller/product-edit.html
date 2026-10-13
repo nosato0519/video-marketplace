@@ -197,6 +197,9 @@ async function saveProduct() {
     return;
   }
   isSaving = true;
+  const saveLabel = saveButton.querySelector('b');
+  const originalSaveLabel = saveLabel?.textContent;
+  if (saveLabel) saveLabel.textContent = 'アップロード・保存中…';
   saveButton.setAttribute('aria-busy', 'true');
   let uploadedMediaAssetId = null;
   let productUpdated = false;
@@ -251,6 +254,7 @@ async function saveProduct() {
     alert(typeof detail === 'string' ? detail : '変更を保存できませんでした。');
   } finally {
     isSaving = false;
+    if (saveLabel && originalSaveLabel !== undefined) saveLabel.textContent = originalSaveLabel;
     saveButton.removeAttribute('aria-busy');
   }
 }
