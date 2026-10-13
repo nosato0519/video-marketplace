@@ -93,4 +93,47 @@ test.describe('seller upload browser acceptance', () => {
     await expect(page.getByText('The draft appears to have been created. Check')).toBeVisible();
     await expect(page.locator('#seller-upload-message').getByRole('link', { name: 'My videos' })).toHaveAttribute('href', '#/seller/products');
   });
+  test('rejects an unsupported file before starting an upload', async ({ page }) => {
+    await mockSellerSession(page);
+    let uploadCalls = 0;
+    await page.route('**/api/seller/media/upload', async (route) => {
+      uploadCalls += 1;
+      await fulfillJson(route, { mediaAsset: { id: 'unexpected' } }, 201);
+    });
+    await page.goto(appUrl('#/seller/upload'));
+    await page.locator('#video-file').setInputFiles({
+      name: 'notes.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('not a video'),
+    });
+    await page.getByLabel('Title').fill('Unsupported file');
+    await page.getByLabel('Price (JPY)').fill('1000');
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+    await expect(page.getByText('Unsupported video format. Choose MP4, WebM, MOV, or MKV.')).toBeVisible();
+    expect(uploadCalls).toBe(0);
+  });
+
+  test('does not create a product when video upload fails', async ({ page }) => {
+    await mockSellerSession(page);
+    let productCalls = 0;
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { error: 'media_storage_unavailable' }, 503);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') productCalls += 1;
+      await fulfillJson(route, { products: [] });
+    });
+    await page.goto(appUrl('#/seller/upload'));
+    await page.locator('#video-file').setInputFiles({
+      name: 'sample.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from('fake-mp4-test-payload'),
+    });
+    await page.getByLabel('Title').fill('Upload failure');
+    await page.getByLabel('Price (JPY)').fill('1000');
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+    await expect(page.getByText('media_storage_unavailable')).toBeVisible();
+    expect(productCalls).toBe(0);
+  });
+
 });
