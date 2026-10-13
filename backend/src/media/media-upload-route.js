@@ -111,7 +111,11 @@ router.post('/upload', async (req, res, next) => {
     );
     return res.status(201).json({ mediaAsset: result.rows[0] });
   } catch (error) {
-    await mediaStorage.deleteObject({ storageKey }).catch(() => {});
+    try {
+      await mediaStorage.deleteObject({ storageKey });
+    } catch (cleanupError) {
+      console.error('media_upload_cleanup_failed', cleanupError);
+    }
     return next(error);
   }
 });
