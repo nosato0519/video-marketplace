@@ -69,6 +69,14 @@ try {
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
   assert.equal(otherAssetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), false);
 
+  const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY' }) });
+  assert.equal(missingMediaProductResponse.response.status, 422, JSON.stringify(missingMediaProductResponse.body));
+  assert.equal(missingMediaProductResponse.body.error, 'media_asset_required');
+
+  const invalidPriceProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Price Product', priceAmount: 0, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  assert.equal(invalidPriceProductResponse.response.status, 422, JSON.stringify(invalidPriceProductResponse.body));
+  assert.equal(invalidPriceProductResponse.body.error, 'invalid_product_price');
+
   const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
   assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
   assert.equal(createResponse.body.product.status, 'draft');
