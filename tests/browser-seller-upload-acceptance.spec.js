@@ -350,6 +350,30 @@ test.describe('seller upload browser acceptance', () => {
       await fulfillJson(route, { mediaAsset: { id: 'replacement-media', status: 'ready' } }, 201);
     });
 
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, {
+          products: [{
+            id: productId, title: 'Updated draft', status: 'draft', price_amount: 2400,
+            media_asset_id: 'replacement-media', media_status: 'ready',
+            media_original_filename: 'replacement.mp4', media_byte_size: 1024,
+          }],
+          counts: { total: 1, published: 0, review: 0, draft: 1 },
+          pagination: { page: 1, per_page: 10, total_count: 1, total_pages: 1 },
+        });
+        return;
+      }
+      await route.fallback();
+    });
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, {
+        mediaAssets: [
+          { id: 'old-media', original_filename: 'existing.mp4', mime_type: 'video/mp4', byte_size: 1024, status: 'ready', in_use: false, created_at: '2026-10-13T00:00:00.000Z' },
+          { id: 'replacement-media', original_filename: 'replacement.mp4', mime_type: 'video/mp4', byte_size: 1024, status: 'ready', in_use: true, created_at: '2026-10-13T00:01:00.000Z' },
+        ],
+      });
+    });
+
     await page.goto(`/seller/product-edit.html?productId=${productId}`);
     await expect(page.locator('#product-title')).toHaveValue('Existing draft');
     await page.locator('#product-title').fill('Updated draft');
@@ -365,6 +389,8 @@ test.describe('seller upload browser acceptance', () => {
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(replacementUploaded).toBe(true);
     expect(productUpdated).toBe(true);
+    await expect(page.locator('#seller-unused-media-list').getByText('existing.mp4')).toBeVisible();
+    await expect(page.locator('#seller-unused-media-list').getByText('replacement.mp4')).toHaveCount(0);
   });
 
 
