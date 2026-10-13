@@ -73,12 +73,15 @@ export async function renderSellerUpload(root) {
     const gb = bytes / (1024 ** 3);
     return gb >= 1 ? `${Number(gb.toFixed(2))} GB` : `${Number((bytes / (1024 ** 2)).toFixed(1))} MB`;
   };
+  submit.disabled = true;
   request('/api/seller/media/limits').then((limits) => {
     if (Number.isSafeInteger(limits?.maxUploadBytes) && limits.maxUploadBytes > 0) {
       maxUploadBytes = limits.maxUploadBytes;
       uploadLimitLabel.textContent = `MP4, WebM, MOV or MKV · up to ${formatBytes(maxUploadBytes)}`;
     }
-  }).catch(() => {});
+  }).catch(() => {}).finally(() => {
+    submit.disabled = false;
+  });
 
   function getVideoMime(file) {
     const declaredType = file.type.toLowerCase();
