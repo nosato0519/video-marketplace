@@ -32,8 +32,8 @@ assert.match(editor, /file\.size === 0/);
 assert.match(editor, /uploadedMediaAssetId && !productCreated/);
 
 
+assert.match(productsScript, /product-edit\.html\?productId=/);
 assert.match(productsScript, /seller-video-edit/);
-assert.match(products, /product-edit\.html\?productId=/);
 
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
 assert.match(productEdit, /\/api\/seller\/products\//);
