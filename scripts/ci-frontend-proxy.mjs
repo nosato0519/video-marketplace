@@ -23,15 +23,21 @@ function proxyApi(req, res) {
 http.createServer((req, res) => {
   if (req.url?.startsWith('/api/')) return proxyApi(req, res);
   const requestPath = decodeURIComponent((req.url || '/').split('?')[0]);
-  const rootRelative = requestPath === '/' ? '/app/index.html' : requestPath;
-  const rootFile = path.resolve(root, `.${rootRelative}`);
-  const relative = requestPath.startsWith('/app/') || fs.existsSync(rootFile)
-    ? rootRelative
-    : `/app${requestPath}`;
-  const file = path.resolve(root, `.${relative}`);
-  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+  const candidates = requestPath === '/'
+    ? ['/app/index.html']
+    : requestPath.startsWith('/app/')
+      ? [requestPath]
+      : [`/app${requestPath}`, requestPath];
+  const relative = candidates.find((candidate) => {
+    const candidateFile = path.resolve(root, `.${candidate}`);
+    return candidateFile.startsWith(root + path.sep)
+      && fs.existsSync(candidateFile)
+      && fs.statSync(candidateFile).isFile();
+  });
+  if (!relative) {
     res.writeHead(404); res.end('Not found'); return;
   }
+  const file = path.resolve(root, `.${relative}`);
   const ext = path.extname(file);
   res.writeHead(200, { 'content-type': mime[ext] || 'application/octet-stream' });
   fs.createReadStream(file).pipe(res);
