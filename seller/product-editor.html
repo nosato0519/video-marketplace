@@ -326,6 +326,7 @@ async function saveProduct() {
           productMayExist = true;
         } else {
           console.error('seller_product_create_cleanup_failed', cleanupError);
+          if (error.status >= 500 || !error.status) productMayExist = true;
         }
       }
     }
