@@ -7,6 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 const products = fs.readFileSync(path.join(root, 'seller', 'products.html'), 'utf8');
+const productsScript = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-products.js'), 'utf8');
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
 const productEdit = fs.readFileSync(path.join(root, 'seller', 'product-edit.html'), 'utf8');
 
@@ -31,7 +32,7 @@ assert.match(editor, /file\.size === 0/);
 assert.match(editor, /uploadedMediaAssetId && !productCreated/);
 
 
-assert.match(products, /seller-video-edit/);
+assert.match(productsScript, /seller-video-edit/);
 assert.match(products, /product-edit\.html\?productId=/);
 
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
