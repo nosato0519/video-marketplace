@@ -17,7 +17,49 @@ async function fulfillJson(route, body, status = 200) {
 }
 
 test.describe('seller upload browser acceptance', () => {
-  test('disables the save action while a video upload is pending', async ({ page }) => {
+  test('prevents duplicate saves while seller session is resolving', async ({ page }) => {
+    let releaseSession;
+    const sessionGate = new Promise((resolve) => { releaseSession = resolve; });
+    let uploadCalls = 0;
+    let draftCalls = 0;
+
+    await page.route('**/api/auth/me', async (route) => {
+      await sessionGate;
+      await fulfillJson(route, { user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } });
+    });
+    await page.route('**/api/seller/media/upload', async (route) => {
+      uploadCalls += 1;
+      await fulfillJson(route, { mediaAsset: { id: 'media-session-race', status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') {
+        draftCalls += 1;
+        await fulfillJson(route, { product: { id: 'draft-session-race', status: 'draft' } }, 201);
+      } else {
+        await route.fallback();
+      }
+    });
+
+    await page.goto('/seller/product-editor.html');
+    await page.locator('.product-input-card input[type="text"]').first().fill('Session Race Video');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'session-race.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+
+    const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
+    await saveAction.click();
+    await saveAction.click({ force: true });
+    releaseSession();
+
+    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+    expect(uploadCalls).toBe(1);
+    expect(draftCalls).toBe(1);
+  });
+
+test('disables the save action while a video upload is pending', async ({ page }) => {
     await mockSellerSession(page);
     let releaseUpload;
     const uploadGate = new Promise((resolve) => { releaseUpload = resolve; });
