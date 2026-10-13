@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import { createS3MediaStorage } from './s3-media-storage.js';
 
-function response({ ok = true, status = 200, body = Readable.from(['video']), length = '5' } = {}) {
-  return { ok, status, body, headers: new Headers({ 'content-length': length }) };
+function response({ ok = true, status = 200, body = Readable.from(['video']), length = '5', contentRange } = {}) {
+  return { ok, status, body, headers: new Headers({ 'content-length': length, ...(contentRange ? { 'content-range': contentRange } : {}) }) };
 }
 
 test('S3 adapter signs requests and forwards byte ranges', async () => {
@@ -17,7 +17,7 @@ test('S3 adapter signs requests and forwards byte ranges', async () => {
     endpoint: 'https://s3.example.test',
     fetchImpl: async (url, options) => {
       captured = { url: String(url), options };
-      return response({ length: '100' });
+      return response({ status: 206, length: '10', contentRange: 'bytes 10-19/100' });
     },
   });
 
@@ -28,6 +28,22 @@ test('S3 adapter signs requests and forwards byte ranges', async () => {
   assert.equal(captured.options.headers.range, 'bytes=10-19');
   assert.equal(captured.options.headers['x-amz-content-sha256'], 'UNSIGNED-PAYLOAD');
   assert.match(captured.options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=AKIA_TEST\//);
+});
+
+
+test('S3 adapter rejects a range request if the provider returns a full response', async () => {
+  let body;
+  const storage = createS3MediaStorage({
+    bucket: 'private-media', region: 'us-east-1', accessKeyId: 'ACCESS', secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async () => {
+      body = Readable.from(['large video body']);
+      return response({ status: 200, body, length: '100000000' });
+    },
+  });
+
+  await assert.rejects(storage.getStream({ storageKey: 'private/a.mp4', range: { start: 0, end: 11 } }), /media_storage_range_failed:200/);
+  assert.equal(body.destroyed, true);
 });
 
 test('S3 adapter supports metadata, upload, and delete through the same signed boundary', async () => {
