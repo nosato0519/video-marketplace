@@ -46,6 +46,25 @@ test('S3 adapter rejects a range request if the provider returns a full response
   assert.equal(body.destroyed, true);
 });
 
+
+test('S3 adapter cancels a partial response when its Content-Range does not match the requested bytes', async () => {
+  let body;
+  const storage = createS3MediaStorage({
+    bucket: 'private-media', region: 'us-east-1', accessKeyId: 'ACCESS', secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async () => {
+      body = Readable.from(['unexpected partial body']);
+      return response({ status: 206, body, length: '10', contentRange: 'bytes 20-29/100' });
+    },
+  });
+
+  await assert.rejects(
+    storage.getStream({ storageKey: 'private/a.mp4', range: { start: 0, end: 9 } }),
+    /media_storage_range_failed:206/,
+  );
+  assert.equal(body.destroyed, true);
+});
+
 test('S3 adapter supports metadata, upload, and delete through the same signed boundary', async () => {
   const calls = [];
   const urls = [];
