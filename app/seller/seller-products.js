@@ -146,7 +146,8 @@ export async function renderSellerProducts(root) {
       message.textContent = `${products.length} ${products.length === 1 ? 'product' : 'products'}`;
     } catch (error) {
       list.innerHTML = '<section class="error-state"><h2>Products could not be loaded</h2><p>Please try again. Your drafts are not affected.</p></section>';
-      message.textContent = error.status === 401 ? 'Please sign in as a seller.' : 'Unable to load products.';
+      if (error.status === 401 || error.status === 403) { window.location.href = '/pages/seller-login.html'; return; }
+      message.textContent = 'Unable to load products.';
     }
   }
 
@@ -212,11 +213,11 @@ export function initSellerProductsPage() {
     event.preventDefault();
     const page = Number(link.dataset.page);
     history.replaceState(null, '', `?page=${page}`);
-    load(page).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+    load(page).catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; });
   });
 
   const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
-  load(initialPage).catch((error) => { if (error.status === 401) window.location.href = '/pages/seller-login.html'; });
+  load(initialPage).catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; });
 }
 
 if (document.querySelector('#seller-product-list')) initSellerProductsPage();
