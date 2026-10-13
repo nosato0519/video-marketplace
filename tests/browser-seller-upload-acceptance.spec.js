@@ -61,4 +61,36 @@ test.describe('seller upload browser acceptance', () => {
     expect(uploaded).toBe(true);
     expect(draftCreated).toBe(true);
   });
+
+  test('shows My videos recovery guidance when draft creation response is ambiguous', async ({ page }) => {
+    await mockSellerSession(page);
+
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'media-ambiguous', status: 'ready' } }, 201);
+    });
+
+    await page.route('**/api/seller/products', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      await fulfillJson(route, { error: 'upstream_response_lost' }, 502);
+    });
+
+    await page.route('**/api/seller/media/assets/media-ambiguous', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      await fulfillJson(route, { error: 'media_asset_in_use' }, 409);
+    });
+
+    await page.goto(appUrl('#/seller/upload'));
+    await page.locator('#video-file').setInputFiles({
+      name: 'sample.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from('fake-mp4-test-payload'),
+    });
+    await page.getByLabel('Title').fill('Sample Video');
+    await page.getByLabel('Description').fill('Uploaded from browser acceptance.');
+    await page.getByLabel('Price (JPY)').fill('1500');
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+
+    await expect(page.getByText('The draft appears to have been created. Check')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'My videos' })).toHaveAttribute('href', '#/seller/products');
+  });
 });
