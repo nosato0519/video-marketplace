@@ -90,7 +90,7 @@ test.describe('seller upload browser acceptance', () => {
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
     await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
-    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
 
   test('seller can upload a video and create a product draft', async ({ page }) => {
