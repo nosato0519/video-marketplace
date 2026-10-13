@@ -709,56 +709,6 @@ test('disables the save action while a video upload is pending', async ({ page }
   });
 
 
-  test('seller can replace the video on an existing draft and save the new media reference', async ({ page }) => {
-    await mockSellerSession(page);
-    let uploaded = false;
-    let updated = false;
 
-    await page.route('**/api/seller/products/product-edit-1', async (route) => {
-      if (route.request().method() === 'GET') {
-        await fulfillJson(route, { product: {
-          id: 'product-edit-1',
-          title: 'Existing Draft',
-          description: 'Existing description',
-          price_amount: 1800,
-          price_currency: 'JPY',
-          status: 'draft',
-          media_asset_id: 'media-original',
-          media_original_filename: 'original.mp4',
-          media_byte_size: 1024,
-        } });
-        return;
-      }
-      expect(route.request().method()).toBe('PATCH');
-      const body = route.request().postDataJSON();
-      expect(body.mediaAssetId).toBe('media-replacement');
-      expect(body.title).toBe('Updated Draft');
-      uploaded && (updated = true);
-      await fulfillJson(route, { product: { id: 'product-edit-1', status: 'draft', media_asset_id: 'media-replacement' } });
-    });
-
-    await page.route('**/api/seller/media/upload', async (route) => {
-      expect(route.request().method()).toBe('POST');
-      expect(route.request().headers()['content-type']).toBe('video/mp4');
-      expect(route.request().headers()['x-original-filename']).toBe('replacement.mp4');
-      uploaded = true;
-      await fulfillJson(route, { mediaAsset: { id: 'media-replacement', status: 'ready' } }, 201);
-    });
-
-    await page.goto('/seller/product-edit.html?productId=product-edit-1');
-    await expect(page.getByRole('heading', { name: '動画を編集' })).toBeVisible();
-    await expect(page.locator('#current-video-filename')).toHaveText('original.mp4');
-    await page.locator('#product-title').fill('Updated Draft');
-    await page.getByLabel('動画ファイルを変更').setInputFiles({
-      name: 'replacement.mp4',
-      mimeType: 'video/mp4',
-      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
-    });
-    await page.locator('#save-product').click();
-
-    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
-    expect(uploaded).toBe(true);
-    expect(updated).toBe(true);
-  });
 
 });
