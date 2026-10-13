@@ -152,17 +152,40 @@ router.post('/products/:productId/publish', async (req, res, next) => {
       return res.status(403).json({ error: 'seller_verification_required' });
     }
 
-    const result = await query(`SELECT p.*, m.id AS media_id, m.owner_user_id AS media_owner_user_id, m.status AS media_status FROM products p LEFT JOIN media_assets m ON m.id = p.media_asset_id WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
-    if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
-    const row = result.rows[0];
-    const validation = validateProductForPublishing({
-      product: { seller_id: row.seller_id, title: row.title, price_amount: row.price_amount, price_currency: row.price_currency, media_asset_id: row.media_asset_id },
-      mediaAsset: row.media_id ? { id: row.media_id, owner_user_id: row.media_owner_user_id, status: row.media_status } : null,
+    const publication = await withTransaction(async (client) => {
+      const productResult = await client.query(
+        'SELECT * FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
+        [req.params.productId, req.user.id]
+      );
+      if (!productResult.rows.length) return { error: 'product_not_found' };
+
+      const row = productResult.rows[0];
+      let mediaAsset = null;
+      if (row.media_asset_id) {
+        const mediaResult = await client.query(
+          'SELECT id, owner_user_id, status FROM media_assets WHERE id = $1 FOR UPDATE',
+          [row.media_asset_id]
+        );
+        if (mediaResult.rows.length) mediaAsset = mediaResult.rows[0];
+      }
+
+      const validation = validateProductForPublishing({
+        product: { seller_id: row.seller_id, title: row.title, price_amount: row.price_amount, price_currency: row.price_currency, media_asset_id: row.media_asset_id },
+        mediaAsset,
+      });
+      if (!validation.allowed) return { error: 'product_not_publishable', reasons: validation.errors };
+
+      const published = await client.query(
+        `UPDATE products SET status = 'published', published_at = COALESCE(published_at, NOW()), updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status IN ('draft','processing','submitted','under_review','approved') RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`,
+        [req.params.productId, req.user.id]
+      );
+      if (!published.rows.length) return { error: 'product_status_not_publishable' };
+      return { product: published.rows[0] };
     });
-    if (!validation.allowed) return res.status(422).json({ error: 'product_not_publishable', reasons: validation.errors });
-    const published = await query(`UPDATE products SET status = 'published', published_at = COALESCE(published_at, NOW()), updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status IN ('draft','processing','submitted','under_review','approved') RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, req.user.id]);
-    if (!published.rows.length) return res.status(409).json({ error: 'product_status_not_publishable' });
-    return res.json({ product: published.rows[0] });
+    if (publication.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
+    if (publication.error === 'product_not_publishable') return res.status(422).json({ error: publication.error, reasons: publication.reasons });
+    if (publication.error === 'product_status_not_publishable') return res.status(409).json({ error: 'product_status_not_publishable' });
+    return res.json({ product: publication.product });
   } catch (error) { return next(error); }
 });
 
