@@ -213,10 +213,43 @@ export function initSellerProductsPage() {
     document.querySelector('#published-count').textContent = Number(counts.published || 0).toLocaleString('ja-JP');
     document.querySelector('#review-count').textContent = Number(counts.review || 0).toLocaleString('ja-JP');
     document.querySelector('#draft-count').textContent = Number(counts.draft || 0).toLocaleString('ja-JP');
-    list.innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(product.title || '無題の動画')}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${escape(labels[product.status] || product.status || '')}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${escape(labels[product.status] || product.status || '')}</span><a href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}" class="seller-video-edit">編集</a></div>`).join('') : '<small>登録されている動画はありません。</small>';
+    list.innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(product.title || '無題の動画')}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${escape(labels[product.status] || product.status || '')}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${escape(labels[product.status] || product.status || '')}</span><a href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}" class="seller-video-edit">編集</a>${product.status === 'draft' ? `<button type="button" class="seller-video-edit" data-delete-product="${escape(product.id)}">下書きを削除</button>` : ''}</div>`).join('') : '<small>登録されている動画はありません。</small>';
     renderPagination(body?.pagination);
   }
 
+  list.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-delete-product]');
+    if (!button || button.disabled) return;
+    const productId = button.dataset.deleteProduct;
+    if (!window.confirm('この下書きを削除しますか？購入履歴がある作品は削除できません。')) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`/api/seller/products/${encodeURIComponent(productId)}`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        const error = new Error(body?.error?.message || body?.error || '下書きを削除できませんでした。');
+        error.status = response.status;
+        throw error;
+      }
+      await load(1);
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) {
+        window.location.href = '/pages/seller-login.html';
+        return;
+      }
+      if (error.message === 'product_has_purchase_history') {
+        window.alert('購入履歴がある作品は削除できません。');
+      } else if (error.message === 'published_product_locked') {
+        window.alert('公開中の作品は削除できません。先に公開を停止してください。');
+      } else {
+        window.alert(error.message || '下書きを削除できませんでした。');
+      }
+      button.disabled = false;
+    }
+  });
   pagination.addEventListener('click', (event) => {
     const link = event.target.closest('[data-page]');
     if (!link) return;
