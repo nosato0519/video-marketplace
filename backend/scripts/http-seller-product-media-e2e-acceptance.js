@@ -78,6 +78,10 @@ try {
   const assetAfterUnauthorizedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetAfterUnauthorizedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), true);
 
+  const malformedMediaResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Malformed Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: 'not-a-uuid' }) });
+  assert.equal(malformedMediaResponse.response.status, 422, JSON.stringify(malformedMediaResponse.body));
+  assert.equal(malformedMediaResponse.body.error, 'media_asset_not_owned');
+
   const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY' }) });
   assert.equal(missingMediaProductResponse.response.status, 422, JSON.stringify(missingMediaProductResponse.body));
   assert.equal(missingMediaProductResponse.body.error, 'media_asset_required');
