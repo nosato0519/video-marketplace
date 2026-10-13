@@ -75,7 +75,7 @@ function editorMarkup(product = null) {
       <label>Title<input name="title" type="text" maxlength="255" value="${escapeHtml(product?.title || '')}" placeholder="Give your video a clear title" required></label>
       <label>Description<textarea name="description" maxlength="5000" rows="6" placeholder="Explain what buyers will get and what makes this video useful.">${escapeHtml(product?.description || '')}</textarea></label>
       <div class="seller-form__row"><label>Price<input name="priceAmount" type="number" min="1" step="1" value="${escapeHtml(product?.price_amount ?? 1000)}" required></label><label>Currency<select name="priceCurrency"><option value="JPY" ${product?.price_currency === 'JPY' || !product ? 'selected' : ''}>JPY — Japanese Yen</option><option value="USD" ${product?.price_currency === 'USD' ? 'selected' : ''}>USD — US Dollar</option><option value="EUR" ${product?.price_currency === 'EUR' ? 'selected' : ''}>EUR — Euro</option></select></label></div>
-      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint" required><option value="">Select an uploaded video</option></select></label>
+      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint"><option value="">Select an uploaded video</option></select></label>
       <p id="seller-media-hint" class="seller-form__hint">${editing ? 'Select a ready uploaded video to save changes. Published products are locked.' : 'Upload a video first, then select it here to create the product.'}</p>
       <div class="seller-form__actions"><button class="button" type="submit">${editing ? 'Save changes' : 'Create product'}</button>${!editing ? '<a class="button secondary" href="#/seller/upload">Upload a video instead</a>' : ''}</div>
       <p id="seller-product-form-message" class="microcopy" aria-live="polite"></p>
@@ -107,10 +107,10 @@ export async function renderSellerProducts(root) {
       if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
       else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="" selected>Current video unavailable — keep existing</option>');
       if (editing && currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="__remove__">Remove current video</option>');
-      mediaSelect.required = !editing;
+      mediaSelect.required = false;
     } catch (error) {
       mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
-      mediaSelect.required = !editing;
+      mediaSelect.required = false;
       formMessage.textContent = editing ? 'Available videos could not be loaded. You can still save details without changing the video.' : 'Upload a video first. Available videos could not be loaded, so this product cannot be created yet.';
     }
 
