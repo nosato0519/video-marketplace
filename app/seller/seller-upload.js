@@ -48,7 +48,7 @@ export async function renderSellerUpload(root) {
     <header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>Upload video</h1><p>Add your protected video, then turn it into a product draft ready for review and publishing.</p></div><a class="button secondary" href="#/seller/products">My videos</a></header>
     <section class="seller-upload-layout">
       <form id="seller-upload-form" class="seller-upload-card">
-        <div class="seller-upload-dropzone"><span class="seller-upload-icon">↑</span><strong>Select your video</strong><span>MP4, WebM, MOV or MKV · up to 5 GB</span><input id="video-file" aria-label="Video file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" required></div>
+        <div class="seller-upload-dropzone"><span class="seller-upload-icon">↑</span><strong>Select your video</strong><span id="video-upload-limit">MP4, WebM, MOV or MKV · up to 5 GB</span><input id="video-file" aria-label="Video file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" required></div>
         <p id="selected-file" class="seller-form__hint">No file selected yet.</p>
         <div class="seller-form__divider"></div>
         <label>Product title<input id="video-title" aria-label="Title" type="text" maxlength="255" placeholder="Give your video a clear title" required></label>
@@ -67,7 +67,18 @@ export async function renderSellerUpload(root) {
   const message = form.querySelector('#seller-upload-message');
   const submit = form.querySelector('#upload-submit');
   const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
-  const maxUploadBytes = 5 * 1024 * 1024 * 1024;
+  let maxUploadBytes = 5 * 1024 * 1024 * 1024;
+  const uploadLimitLabel = form.querySelector('#video-upload-limit');
+  const formatBytes = (bytes) => {
+    const gb = bytes / (1024 ** 3);
+    return gb >= 1 ? `${Number(gb.toFixed(2))} GB` : `${Number((bytes / (1024 ** 2)).toFixed(1))} MB`;
+  };
+  request('/api/seller/media/limits').then((limits) => {
+    if (Number.isSafeInteger(limits?.maxUploadBytes) && limits.maxUploadBytes > 0) {
+      maxUploadBytes = limits.maxUploadBytes;
+      uploadLimitLabel.textContent = `MP4, WebM, MOV or MKV · up to ${formatBytes(maxUploadBytes)}`;
+    }
+  }).catch(() => {});
 
   function getVideoMime(file) {
     const declaredType = file.type.toLowerCase();
@@ -106,7 +117,7 @@ export async function renderSellerUpload(root) {
       return;
     }
     if (file.size > maxUploadBytes) {
-      message.textContent = 'The video exceeds the 5 GB upload limit.';
+      message.textContent = `The video exceeds the ${formatBytes(maxUploadBytes)} upload limit.`;
       fileInput.focus();
       return;
     }
