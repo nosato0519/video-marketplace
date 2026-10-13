@@ -69,6 +69,7 @@ router.post('/upload', async (req, res, next) => {
   if (declaredLength !== null && (!Number.isSafeInteger(declaredLength) || declaredLength < 0)) {
     return res.status(400).json({ error: 'invalid_content_length' });
   }
+  if (declaredLength === 0) return res.status(400).json({ error: 'empty_upload_body' });
   if (declaredLength !== null && declaredLength > MAX_BYTES) return res.status(413).json({ error: 'media_too_large' });
   if (!req.readable) return res.status(400).json({ error: 'upload_body_required' });
 
@@ -86,6 +87,9 @@ router.post('/upload', async (req, res, next) => {
   try {
     await mediaStorage.putStream({ storageKey, stream: Readable.from(limiter()) });
 
+    if (bytes === 0) {
+      throw Object.assign(new Error('empty_upload_body'), { statusCode: 400 });
+    }
     if (declaredLength !== null && bytes !== declaredLength) {
       throw Object.assign(new Error('content_length_mismatch'), { statusCode: 400 });
     }
