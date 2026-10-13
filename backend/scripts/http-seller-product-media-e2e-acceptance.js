@@ -16,7 +16,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 
@@ -57,7 +57,7 @@ try {
   });
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
-  await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`]);
+  await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active'), ($5, $6, $6, 'buyer', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`]);
   await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'verified')`, [ids.seller, ids.otherSeller]);
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
@@ -169,6 +169,12 @@ try {
   assert.equal(createResponse.body.product.status, 'draft');
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
   ids.product = createResponse.body.product.id;
+
+  await pool.query(`INSERT INTO orders (buyer_id, product_id, amount, currency, status) VALUES ($1, $2, 2200, 'JPY', 'pending')`, [ids.buyer, ids.product]);
+  const productWithOrderDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(productWithOrderDeleteResponse.response.status, 409, JSON.stringify(productWithOrderDeleteResponse.body));
+  assert.equal(productWithOrderDeleteResponse.body.error, 'product_has_purchase_history');
+  await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]);
 
   const deletableProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Deletable Draft', description: 'Draft deletion acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
   assert.equal(deletableProductResponse.response.status, 201, JSON.stringify(deletableProductResponse.body));
@@ -306,6 +312,7 @@ try {
 
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
+  if (ids.product) await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]).catch(() => {});
   for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct].filter(Boolean)) {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
@@ -317,7 +324,7 @@ try {
   }
   await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
   await pool.query(`DELETE FROM seller_profiles WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
-  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
+  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller, ids.buyer]]).catch(() => {});
   await new Promise((resolve) => server.close(resolve));
   await pool.end();
 }
