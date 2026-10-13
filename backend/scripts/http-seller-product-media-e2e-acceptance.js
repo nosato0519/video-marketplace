@@ -236,6 +236,12 @@ try {
   assert.equal(unpublishResponse.response.status, 200, JSON.stringify(unpublishResponse.body));
   assert.equal(unpublishResponse.body.product.status, 'draft');
 
+  await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
+  const processingMediaPublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(processingMediaPublishResponse.response.status, 422, JSON.stringify(processingMediaPublishResponse.body));
+  assert.equal(processingMediaPublishResponse.body.error, 'product_not_publishable');
+  await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
+
   const replacementUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-replacement.mp4' }, body: uploadBytes });
   assert.equal(replacementUploadResponse.response.status, 201, JSON.stringify(replacementUploadResponse.body));
   ids.replacementMedia = replacementUploadResponse.body.mediaAsset.id;
