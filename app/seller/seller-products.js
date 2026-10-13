@@ -128,7 +128,6 @@ export async function renderSellerProducts(root) {
       const mediaValue = String(data.get('mediaAssetId') || '').trim();
       if (!title || !Number.isFinite(priceAmount) || priceAmount <= 0) { formMessage.textContent = 'Enter a title and a valid price.'; return; }
       if (!id && !mediaValue) { formMessage.textContent = 'Upload and select a video before creating a product.'; return; }
-      if (id && mediaSelect.required && !mediaValue) { formMessage.textContent = 'Select a ready uploaded video before saving changes.'; return; }
       const submit = form.querySelector('button[type="submit"]');
       submit.disabled = true;
       formMessage.textContent = 'Saving…';
