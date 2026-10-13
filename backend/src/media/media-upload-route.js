@@ -45,22 +45,34 @@ router.delete('/assets/:assetId', async (req, res, next) => {
   try {
     const deletion = await withTransaction(async (client) => {
       const result = await client.query(
-        'SELECT id, storage_key FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\' FOR UPDATE',
+        'SELECT id, storage_key, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 FOR UPDATE',
         [req.params.assetId, req.user.id]
       );
       if (!result.rows.length) return { notFound: true };
 
       const asset = result.rows[0];
-      const linked = await client.query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
-      if (linked.rows.length) return { inUse: true };
+      if (asset.status !== 'deleted') {
+        const linked = await client.query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
+        if (linked.rows.length) return { inUse: true };
 
-      await mediaStorage.deleteObject({ storageKey: asset.storage_key });
-      await client.query('DELETE FROM media_assets WHERE id = $1 AND owner_user_id = $2', [asset.id, req.user.id]);
-      return { deleted: true };
+        await client.query(
+          "UPDATE media_assets SET status = 'deleted' WHERE id = $1 AND owner_user_id = $2",
+          [asset.id, req.user.id]
+        );
+      }
+
+      return { asset };
     });
 
     if (deletion.notFound) return res.status(404).json({ error: 'media_asset_not_found' });
     if (deletion.inUse) return res.status(409).json({ error: 'media_asset_in_use' });
+
+    // Keep the tombstone until storage deletion succeeds; retries can safely finish cleanup.
+    await mediaStorage.deleteObject({ storageKey: deletion.asset.storage_key });
+    await query(
+      "DELETE FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status = 'deleted'",
+      [deletion.asset.id, req.user.id]
+    );
     return res.status(204).end();
   } catch (error) { return next(error); }
 });
