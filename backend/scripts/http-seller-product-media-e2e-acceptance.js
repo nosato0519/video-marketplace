@@ -71,7 +71,7 @@ try {
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
   await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active'), ($5, $6, $6, 'buyer', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`]);
-  await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'verified')`, [ids.seller, ids.otherSeller]);
+  await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'not_started')`, [ids.seller, ids.otherSeller]);
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
   const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
@@ -129,6 +129,12 @@ try {
   const otherSellerUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: otherSellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'other-seller-e2e.mp4' }, body: uploadBytes });
   assert.equal(otherSellerUploadResponse.response.status, 201, JSON.stringify(otherSellerUploadResponse.body));
   ids.otherSellerMedia = otherSellerUploadResponse.body.mediaAsset.id;
+
+  const unverifiedSellerDraftResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: otherSellerCookie }, body: JSON.stringify({ title: 'Optional Verification Product', description: 'Publishing should not require identity verification when the setting is none.', priceAmount: 1200, priceCurrency: 'JPY', mediaAssetId: ids.otherSellerMedia }) });
+  assert.equal(unverifiedSellerDraftResponse.response.status, 201, JSON.stringify(unverifiedSellerDraftResponse.body));
+  const unverifiedSellerPublishResponse = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}/publish`, { method: 'POST', headers: { cookie: otherSellerCookie } });
+  assert.equal(unverifiedSellerPublishResponse.response.status, 200, JSON.stringify(unverifiedSellerPublishResponse.body));
+  assert.equal(unverifiedSellerPublishResponse.body.product.status, 'published');
 
   // Race product creation against deletion of the same unused media asset.
   // Exactly one operation may win: creation links the asset, or deletion removes it.
