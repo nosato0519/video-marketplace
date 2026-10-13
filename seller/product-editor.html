@@ -275,8 +275,11 @@ async function saveProduct() {
 
   isSaving = true;
   saveAction?.setAttribute('aria-busy', 'true');
+  let uploadedMediaAssetId = null;
+  let productCreated = false;
   try {
     const upload = await uploadVideo(file);
+    uploadedMediaAssetId = upload.mediaAsset.id;
     await request('/api/seller/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -285,11 +288,15 @@ async function saveProduct() {
         description: descriptionInput?.value.trim() || '',
         priceAmount,
         priceCurrency: 'JPY',
-        mediaAssetId: upload.mediaAsset.id
+        mediaAssetId: uploadedMediaAssetId
       })
     });
+    productCreated = true;
     window.location.href = '/seller/products.html';
   } catch (error) {
+    if (uploadedMediaAssetId && !productCreated) {
+      await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' }).catch(() => {});
+    }
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
       return;
