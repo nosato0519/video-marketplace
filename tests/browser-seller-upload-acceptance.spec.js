@@ -311,6 +311,7 @@ test.describe('seller upload browser acceptance', () => {
     const productId = '11111111-1111-4111-8111-111111111111';
     let replacementUploaded = false;
     let productUpdated = false;
+    let oldMediaDeleted = false;
 
     await page.route(`**/api/seller/products/${productId}`, async (route) => {
       if (route.request().method() === 'GET') {
@@ -368,10 +369,18 @@ test.describe('seller upload browser acceptance', () => {
     await page.route('**/api/seller/media/assets', async (route) => {
       await fulfillJson(route, {
         mediaAssets: [
-          { id: 'old-media', original_filename: 'existing.mp4', mime_type: 'video/mp4', byte_size: 1024, status: 'ready', in_use: false, created_at: '2026-10-13T00:00:00.000Z' },
+          ...(!oldMediaDeleted ? [{ id: 'old-media', original_filename: 'existing.mp4', mime_type: 'video/mp4', byte_size: 1024, status: 'ready', in_use: false, created_at: '2026-10-13T00:00:00.000Z' }] : []),
           { id: 'replacement-media', original_filename: 'replacement.mp4', mime_type: 'video/mp4', byte_size: 1024, status: 'ready', in_use: true, created_at: '2026-10-13T00:01:00.000Z' },
         ],
       });
+    });
+    await page.route('**/api/seller/media/assets/old-media', async (route) => {
+      if (route.request().method() === 'DELETE') {
+        oldMediaDeleted = true;
+        await route.fulfill({ status: 204 });
+        return;
+      }
+      await route.fallback();
     });
 
     await page.goto(`/seller/product-edit.html?productId=${productId}`);
@@ -389,8 +398,13 @@ test.describe('seller upload browser acceptance', () => {
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(replacementUploaded).toBe(true);
     expect(productUpdated).toBe(true);
-    await expect(page.locator('#seller-unused-media-list').getByText('existing.mp4')).toBeVisible();
-    await expect(page.locator('#seller-unused-media-list').getByText('replacement.mp4')).toHaveCount(0);
+    const unusedMediaList = page.locator('#seller-unused-media-list');
+    await expect(unusedMediaList.getByText('existing.mp4')).toBeVisible();
+    await expect(unusedMediaList.getByText('replacement.mp4')).toHaveCount(0);
+    page.on('dialog', (dialog) => dialog.accept());
+    await unusedMediaList.locator('[data-delete-media="old-media"]').click();
+    await expect(unusedMediaList.getByText('existing.mp4')).toHaveCount(0);
+    expect(oldMediaDeleted).toBe(true);
   });
 
 
