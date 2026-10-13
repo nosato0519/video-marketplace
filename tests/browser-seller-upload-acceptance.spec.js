@@ -17,6 +17,51 @@ async function fulfillJson(route, body, status = 200) {
 }
 
 test.describe('seller upload browser acceptance', () => {
+  test('seller can upload a video and save a draft from the production-linked editor page', async ({ page }) => {
+    await mockSellerSession(page);
+
+    let uploaded = false;
+    let draftCreated = false;
+
+    await page.route('**/api/seller/media/upload', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      expect(route.request().headers()['content-type']).toBe('video/mp4');
+      expect(route.request().headers()['x-original-filename']).toBe('product-editor.mp4');
+      expect(route.request().postDataBuffer()?.length || 0).toBeGreaterThan(0);
+      uploaded = true;
+      await fulfillJson(route, { mediaAsset: { id: 'media-product-editor', status: 'ready' } }, 201);
+    });
+
+    await page.route('**/api/seller/products', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      const body = route.request().postDataJSON();
+      expect(body.title).toBe('Product Editor Video');
+      expect(body.description).toBe('Saved through the seller page linked from the dashboard.');
+      expect(body.priceAmount).toBe(1800);
+      expect(body.priceCurrency).toBe('JPY');
+      expect(body.mediaAssetId).toBe('media-product-editor');
+      draftCreated = true;
+      await fulfillJson(route, { product: { id: 'product-editor-draft', title: body.title, status: 'draft' } }, 201);
+    });
+
+    await page.goto('/seller/product-editor.html');
+    await expect(page.getByRole('heading', { name: '新しい動画を登録する' })).toBeVisible();
+    await page.locator('.product-input-card input[type="text"]').first().fill('Product Editor Video');
+    await page.locator('.product-description-card textarea').fill('Saved through the seller page linked from the dashboard.');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'product-editor.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+
+    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
+    expect(uploaded).toBe(true);
+    expect(draftCreated).toBe(true);
+  });
+
   test('seller can upload a video and create a product draft', async ({ page }) => {
     await mockSellerSession(page);
 
