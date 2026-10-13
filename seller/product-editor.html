@@ -223,11 +223,19 @@ async function request(path, options = {}) {
   return body;
 }
 
+function getVideoMime(file) {
+  const declaredType = file.type.toLowerCase();
+  if (allowedVideoTypes.has(declaredType)) return declaredType;
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  const mimeByExtension = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', mkv: 'video/x-matroska' };
+  return mimeByExtension[extension] || '';
+}
+
 async function uploadVideo(file) {
   return request('/api/seller/media/upload', {
     method: 'POST',
     headers: {
-      'Content-Type': file.type,
+      'Content-Type': getVideoMime(file),
       'X-Original-Filename': file.name
     },
     body: file
@@ -270,7 +278,7 @@ async function saveProduct() {
     alert('販売する動画ファイルを選択してください。');
     return;
   }
-  if (!allowedVideoTypes.has(file.type.toLowerCase())) {
+  if (!getVideoMime(file)) {
     videoInput?.focus();
     alert('対応形式は MP4・WebM・MOV・MKV です。');
     return;
