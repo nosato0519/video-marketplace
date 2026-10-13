@@ -362,7 +362,7 @@ test.describe('seller upload browser acceptance', () => {
     await page.goto('/seller/products.html');
     await expect(page.getByText('Draft to delete')).toBeVisible();
     await expect(page.getByRole('button', { name: '下書きを削除' })).toBeVisible();
-    await expect(page.getByText('Published video').locator('..').locator('..').getByRole('button', { name: '下書きを削除' })).toHaveCount(0);
+    await expect(page.locator('.seller-video-row').filter({ hasText: 'Published video' }).getByRole('button', { name: '下書きを削除' })).toHaveCount(0);
     await page.getByRole('button', { name: '下書きを削除' }).click();
     await expect(page.getByText('Draft to delete')).toHaveCount(0);
     await expect(page.getByText('Published video')).toBeVisible();
