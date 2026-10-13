@@ -122,6 +122,12 @@ try {
   assert.equal(otherSellerMediaPatchResponse.response.status, 422, JSON.stringify(otherSellerMediaPatchResponse.body));
   assert.equal(otherSellerMediaPatchResponse.body.error, 'media_asset_not_owned');
 
+  await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.replacementMedia]);
+  const processingMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.replacementMedia }) });
+  assert.equal(processingMediaPatchResponse.response.status, 422, JSON.stringify(processingMediaPatchResponse.body));
+  assert.equal(processingMediaPatchResponse.body.error, 'media_asset_not_ready');
+  await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.replacementMedia]);
+
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
