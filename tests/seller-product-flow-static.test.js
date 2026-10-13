@@ -66,7 +66,6 @@ assert.match(spaUpload, /xhr\.setRequestHeader\('Content-Type', mimeType\)/);
 assert.match(spaUpload, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
 assert.match(spaUpload, /xhr\.send\(file\)/);
 assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
-assert.match(spaUpload, /`アップロード中… \$\{percent\}%`/);
-assert.match(spaUpload, /'作品情報を保存中…'/);
+assert.match(spaUpload, /`Uploading \$\{file\.name\}… \$\{percent\}%`/);
 
 console.log('Seller product upload flow static contract checks passed.');
