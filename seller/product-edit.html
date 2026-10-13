@@ -236,7 +236,11 @@ async function saveProduct() {
     window.location.href = '/seller/products.html';
   } catch (error) {
     if (uploadedMediaAssetId && !productUpdated) {
-      await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' }).catch(() => {});
+      try {
+        await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
+      } catch (cleanupError) {
+        console.error('seller_product_edit_cleanup_failed', cleanupError);
+      }
     }
     if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
