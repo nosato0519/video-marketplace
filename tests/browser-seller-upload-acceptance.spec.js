@@ -99,7 +99,7 @@ test.describe('seller upload browser acceptance', () => {
     });
     await page.route('**/api/seller/media/assets/media-editor-ambiguous', async (route) => {
       expect(route.request().method()).toBe('DELETE');
-      await fulfillJson(route, { error: 'media_asset_in_use' }, 409);
+      await fulfillJson(route, { error: 'media_storage_unavailable' }, 503);
     });
 
     page.on('dialog', (dialog) => dialog.accept());
