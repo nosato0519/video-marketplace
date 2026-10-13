@@ -15,7 +15,7 @@ const mediaRoot = process.env.MEDIA_STORAGE_DIR;
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), media: null, replacementMedia: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 
@@ -81,15 +81,31 @@ try {
   assert.equal(lockedUpdateResponse.response.status, 409, JSON.stringify(lockedUpdateResponse.body));
   assert.equal(lockedUpdateResponse.body.error, 'published_product_locked');
 
+  const unpublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(unpublishResponse.response.status, 200, JSON.stringify(unpublishResponse.body));
+  assert.equal(unpublishResponse.body.product.status, 'draft');
+
+  const replacementUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-replacement.mp4' }, body: uploadBytes });
+  assert.equal(replacementUploadResponse.response.status, 201, JSON.stringify(replacementUploadResponse.body));
+  ids.replacementMedia = replacementUploadResponse.body.mediaAsset.id;
+
+  const replaceMediaResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.replacementMedia }) });
+  assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
+  assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
+
+  const republishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(republishResponse.response.status, 200, JSON.stringify(republishResponse.body));
+  assert.equal(republishResponse.body.product.status, 'published');
+
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
   if (ids.product) {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [ids.product]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [ids.product]).catch(() => {});
   }
-  if (ids.media) {
-    const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [ids.media]).catch(() => ({ rows: [] }));
-    await pool.query(`DELETE FROM media_assets WHERE id = $1`, [ids.media]).catch(() => {});
+  for (const mediaId of [ids.media, ids.replacementMedia].filter(Boolean)) {
+    const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
+    await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
     if (media.rows[0]?.storage_key) await fs.rm(`${mediaRoot}/${media.rows[0].storage_key}`, { force: true }).catch(() => {});
   }
   await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
