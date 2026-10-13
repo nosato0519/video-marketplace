@@ -194,6 +194,26 @@ try {
   assert.equal(otherSellerMediaPatchResponse.response.status, 422, JSON.stringify(otherSellerMediaPatchResponse.body));
   assert.equal(otherSellerMediaPatchResponse.body.error, 'media_asset_not_owned');
 
+  // Race an edit against publishing; editing must either finish before publish or be rejected after publish.
+  const editPublishRaceCreateResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edit Publish Race Product', description: 'Concurrent edit/publish acceptance', priceAmount: 2250, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  assert.equal(editPublishRaceCreateResponse.response.status, 201, JSON.stringify(editPublishRaceCreateResponse.body));
+  ids.editPublishRaceProduct = editPublishRaceCreateResponse.body.product.id;
+  const [racePatchResponse, racePublishResponse] = await Promise.all([
+    request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edited Before Publish' }) }),
+    request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/publish`, { method: 'POST', headers: { cookie: sellerCookie } })
+  ]);
+  assert.ok([200, 409].includes(racePatchResponse.response.status), JSON.stringify(racePatchResponse.body));
+  assert.equal(racePublishResponse.response.status, 200, JSON.stringify(racePublishResponse.body));
+  assert.equal(racePublishResponse.body.product.status, 'published');
+  const raceProductAfterPublish = await request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { headers: { cookie: sellerCookie } });
+  assert.equal(raceProductAfterPublish.response.status, 200, JSON.stringify(raceProductAfterPublish.body));
+  assert.equal(raceProductAfterPublish.body.product.status, 'published');
+  if (racePatchResponse.response.status === 409) {
+    assert.equal(racePatchResponse.body.error, 'published_product_locked');
+  } else {
+    assert.equal(racePatchResponse.body.product.title, 'Edited Before Publish');
+  }
+
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
@@ -260,7 +280,7 @@ try {
 
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
-  for (const productId of [ids.product, ids.raceProduct].filter(Boolean)) {
+  for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct].filter(Boolean)) {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
