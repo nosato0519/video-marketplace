@@ -75,12 +75,15 @@ export async function renderSellerUpload(root) {
   };
   submit.disabled = true;
   request('/api/seller/media/limits').then((limits) => {
-    if (Number.isSafeInteger(limits?.maxUploadBytes) && limits.maxUploadBytes > 0) {
-      maxUploadBytes = limits.maxUploadBytes;
-      uploadLimitLabel.textContent = `MP4, WebM, MOV or MKV · up to ${formatBytes(maxUploadBytes)}`;
+    if (!Number.isSafeInteger(limits?.maxUploadBytes) || limits.maxUploadBytes <= 0) {
+      throw new Error('Invalid upload limit response.');
     }
-  }).catch(() => {}).finally(() => {
+    maxUploadBytes = limits.maxUploadBytes;
+    uploadLimitLabel.textContent = `MP4, WebM, MOV or MKV · up to ${formatBytes(maxUploadBytes)}`;
     submit.disabled = false;
+  }).catch(() => {
+    message.textContent = 'Unable to load the upload limit. Refresh this page before uploading.';
+    submit.disabled = true;
   });
 
   function getVideoMime(file) {
