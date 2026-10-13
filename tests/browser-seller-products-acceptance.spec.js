@@ -64,14 +64,20 @@ test.describe('seller products browser acceptance', () => {
     await expect(page.getByRole('heading', { name: 'Draft Product' })).toBeVisible();
   });
 
-  test('seller can attach an existing ready video and clear the attachment on a draft', async ({ page }) => {
+  test('seller can attach an existing ready video and explicitly remove it from a draft', async ({ page }) => {
     await mockSellerSession(page);
     let patchBodies = [];
+    let currentMediaId = null;
+    const product = () => ({ id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: currentMediaId });
     await page.route('**/api/seller/media/assets', async (route) => { await fulfillJson(route, { mediaAssets: [{ id: 'media-one', original_filename: 'first.mp4', mime_type: 'video/mp4', byte_size: 10485760, status: 'ready' }, { id: 'media-processing', original_filename: 'processing.mp4', mime_type: 'video/mp4', byte_size: 2097152, status: 'processing' }] }); });
-    await page.route('**/api/seller/products', async (route) => { await fulfillJson(route, { products: [{ id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: null }] }); });
+    await page.route('**/api/seller/products', async (route) => { await fulfillJson(route, { products: [product()] }); });
     await page.route('**/api/seller/products/product-draft', async (route) => {
-      if (route.request().method() === 'GET') { await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: null } }); return; }
-      expect(route.request().method()).toBe('PATCH'); patchBodies.push(route.request().postDataJSON()); await fulfillJson(route, { product: { id: 'product-draft', status: 'draft' } });
+      if (route.request().method() === 'GET') { await fulfillJson(route, { product: product() }); return; }
+      expect(route.request().method()).toBe('PATCH');
+      const body = route.request().postDataJSON();
+      patchBodies.push(body);
+      if (Object.prototype.hasOwnProperty.call(body, 'mediaAssetId')) currentMediaId = body.mediaAssetId;
+      await fulfillJson(route, { product: product() });
     });
     await page.goto(appUrl('#/seller/products'));
     await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Add video' }).click();
@@ -84,9 +90,11 @@ test.describe('seller products browser acceptance', () => {
     expect(patchBodies[0].mediaAssetId).toBe('media-one');
     await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Edit details' }).click();
     const secondMediaSelect = page.getByLabel('Protected video');
-    await secondMediaSelect.selectOption('');
+    await expect(secondMediaSelect.locator('option[value="__remove__"]')).toHaveCount(1);
+    await secondMediaSelect.selectOption('__remove__');
     await page.getByRole('button', { name: 'Save changes' }).click();
     await expect.poll(() => patchBodies.length).toBe(2);
     expect(patchBodies[1].mediaAssetId).toBeNull();
+    expect(currentMediaId).toBeNull();
   });
 });
