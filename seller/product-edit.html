@@ -233,7 +233,7 @@ async function saveProduct() {
     if (uploadedMediaAssetId && !productUpdated) {
       await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' }).catch(() => {});
     }
-    if (error.status === 401) {
+    if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
       return;
     }
