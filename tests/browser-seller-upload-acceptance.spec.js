@@ -368,6 +368,48 @@ test.describe('seller upload browser acceptance', () => {
   });
 
 
+  test('avoids repeating a video replacement when the save response is ambiguous', async ({ page }) => {
+    await mockSellerSession(page);
+    const productId = '12121212-1212-4212-8212-121212121212';
+    let alertMessage = '';
+    await page.route(`**/api/seller/products/${productId}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { product: {
+          id: productId, title: 'Existing draft', description: 'Existing description',
+          price_amount: 1200, price_currency: 'JPY', status: 'draft',
+          media_asset_id: 'old-media', media_original_filename: 'existing.mp4', media_byte_size: 1024,
+        } });
+        return;
+      }
+      if (route.request().method() === 'PATCH') {
+        await fulfillJson(route, { error: 'upstream_response_lost' }, 502);
+        return;
+      }
+      await route.fallback();
+    });
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'replacement-ambiguous', status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/media/assets/replacement-ambiguous', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      await fulfillJson(route, { error: 'media_asset_in_use' }, 409);
+    });
+    page.on('dialog', async (dialog) => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    await page.goto(`/seller/product-edit.html?productId=${productId}`);
+    await page.locator('#replacement-video').setInputFiles({
+      name: 'replacement.mp4', mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('#save-product').click();
+
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
+    expect(alertMessage).toContain('差し替えが完了している可能性');
+  });
+
   test('seller can publish and unpublish a product from the editor page', async ({ page }) => {
     await mockSellerSession(page);
     const productId = '22222222-2222-4222-8222-222222222222';
