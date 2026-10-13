@@ -25,7 +25,7 @@ function encodePath(pathname) {
 }
 
 function amzDate(date = new Date()) {
-  return date.toISOString().replace(/[:-]|\\.\\d{3}/g, '');
+  return date.toISOString().replace(/[:-]|\.\d{3}/g, '');
 }
 
 function signingKey(secret, date, region, service = 's3') {
@@ -36,7 +36,7 @@ function signingKey(secret, date, region, service = 's3') {
 }
 
 function endpointFor({ endpoint, bucket, region }) {
-  if (endpoint) return endpoint.replace(/\\/$/, '');
+  if (endpoint) return endpoint.replace(/\/$/, '');
   return `https://${bucket}.s3.${region}.amazonaws.com`;
 }
 
@@ -47,7 +47,7 @@ function objectUrl({ endpoint, bucket, region, storageKey }) {
 }
 
 function validateKey(storageKey) {
-  if (!storageKey || storageKey.includes('\\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
+  if (!storageKey || storageKey.includes('\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
     throw new Error('media_storage_key_invalid');
   }
 }
@@ -86,9 +86,9 @@ export function createS3MediaStorage({
       canonicalHeaders,
       signedHeaders,
       payloadHash,
-    ].join('\\n');
+    ].join('\n');
     const scope = `${date}/${region}/s3/aws4_request`;
-    const stringToSign = ['AWS4-HMAC-SHA256', timestamp, scope, sha256(canonicalRequest)].join('\\n');
+    const stringToSign = ['AWS4-HMAC-SHA256', timestamp, scope, sha256(canonicalRequest)].join('\n');
     const signature = crypto.createHmac('sha256', signingKey(secretAccessKey, date, region)).update(stringToSign).digest('hex');
     headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
