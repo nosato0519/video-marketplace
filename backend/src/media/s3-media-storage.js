@@ -46,6 +46,14 @@ function objectUrl({ endpoint, bucket, region, storageKey }) {
   return new URL(`${base}/${path}`);
 }
 
+async function cancelResponseBody(response) {
+  if (typeof response.body?.cancel === 'function') {
+    await response.body.cancel().catch(() => {});
+  } else {
+    response.body?.destroy?.();
+  }
+}
+
 function validateKey(storageKey) {
   if (!storageKey || storageKey.includes('\0') || storageKey.startsWith('/') || storageKey.split('/').includes('..')) {
     throw new Error('media_storage_key_invalid');
@@ -108,30 +116,26 @@ export function createS3MediaStorage({
         const expectedRange = `bytes ${range.start}-${range.end}/`;
         const contentRange = response.headers.get('content-range') || '';
         if (response.status !== 206 || !contentRange.startsWith(expectedRange)) {
-          if (typeof response.body?.cancel === 'function') {
-            await response.body.cancel().catch(() => {});
-          } else {
-            response.body?.destroy?.();
-          }
+          await cancelResponseBody(response);
           throw new Error(`media_storage_range_failed:${response.status}`);
         }
       }
-      if (!response.ok) throw new Error(`media_storage_get_failed:${response.status}`);
+      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_get_failed:${response.status}`);\n      }
       return { stream: response.body, size: Number(response.headers.get('content-length') || 0) };
     },
     async getMetadata({ storageKey } = {}) {
       const response = await request('HEAD', storageKey);
-      if (!response.ok) throw new Error(`media_storage_metadata_failed:${response.status}`);
+      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_metadata_failed:${response.status}`);\n      }
       return { size: Number(response.headers.get('content-length') || 0) };
     },
     async putStream({ storageKey, stream } = {}) {
       const response = await request('PUT', storageKey, { body: stream });
-      if (!response.ok) throw new Error(`media_storage_put_failed:${response.status}`);
+      if (!response.ok) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_put_failed:${response.status}`);\n      }
       return { size: Number(response.headers.get('content-length') || 0) || null };
     },
     async deleteObject({ storageKey } = {}) {
       const response = await request('DELETE', storageKey);
-      if (!response.ok && response.status !== 404) throw new Error(`media_storage_delete_failed:${response.status}`);
+      if (!response.ok && response.status !== 404) {\n        await cancelResponseBody(response);\n        throw new Error(`media_storage_delete_failed:${response.status}`);\n      }
     },
   };
 }
