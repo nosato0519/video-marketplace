@@ -272,6 +272,11 @@ async function saveProduct() {
     alert('対応形式は MP4・WebM・MOV・MKV です。');
     return;
   }
+  if (file.size === 0) {
+    videoInput?.focus();
+    alert('空の動画ファイルはアップロードできません。');
+    return;
+  }
 
   isSaving = true;
   saveAction?.setAttribute('aria-busy', 'true');
