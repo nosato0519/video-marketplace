@@ -92,6 +92,7 @@ export async function renderSellerProducts(root) {
   function closeEditor() { editorRoot.innerHTML = ''; }
 
   async function showEditor(product = null) {
+    const editing = Boolean(product);
     editorRoot.innerHTML = editorMarkup(product);
     const form = editorRoot.querySelector('#seller-product-form');
     const mediaSelect = form.querySelector('select[name="mediaAssetId"]');
