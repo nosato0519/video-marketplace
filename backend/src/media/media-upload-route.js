@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-validation.js';
@@ -43,18 +43,24 @@ router.delete('/assets/:assetId', async (req, res, next) => {
   }
 
   try {
-    const result = await query(
-      'SELECT id, storage_key FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
-      [req.params.assetId, req.user.id]
-    );
-    if (!result.rows.length) return res.status(404).json({ error: 'media_asset_not_found' });
+    const deletion = await withTransaction(async (client) => {
+      const result = await client.query(
+        'SELECT id, storage_key FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\' FOR UPDATE',
+        [req.params.assetId, req.user.id]
+      );
+      if (!result.rows.length) return { notFound: true };
 
-    const asset = result.rows[0];
-    const linked = await query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
-    if (linked.rows.length) return res.status(409).json({ error: 'media_asset_in_use' });
+      const asset = result.rows[0];
+      const linked = await client.query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
+      if (linked.rows.length) return { inUse: true };
 
-    await mediaStorage.deleteObject({ storageKey: asset.storage_key });
-    await query('DELETE FROM media_assets WHERE id = $1 AND owner_user_id = $2', [asset.id, req.user.id]);
+      await mediaStorage.deleteObject({ storageKey: asset.storage_key });
+      await client.query('DELETE FROM media_assets WHERE id = $1 AND owner_user_id = $2', [asset.id, req.user.id]);
+      return { deleted: true };
+    });
+
+    if (deletion.notFound) return res.status(404).json({ error: 'media_asset_not_found' });
+    if (deletion.inUse) return res.status(409).json({ error: 'media_asset_in_use' });
     return res.status(204).end();
   } catch (error) { return next(error); }
 });
