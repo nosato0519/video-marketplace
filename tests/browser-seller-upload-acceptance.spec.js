@@ -278,6 +278,31 @@ test('disables the save action while a video upload is pending', async ({ page }
     expect(draftCreated).toBe(true);
   });
 
+  test('does not create a draft when the SPA upload response omits the media asset id', async ({ page }) => {
+    await mockSellerSession(page);
+    let productCalls = 0;
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') productCalls += 1;
+      await fulfillJson(route, { products: [] });
+    });
+
+    await page.goto(appUrl('#/seller/upload'));
+    await page.locator('#video-file').setInputFiles({
+      name: 'missing-asset-id.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from('fake-mp4-test-payload'),
+    });
+    await page.getByLabel('Title').fill('Missing media asset ID');
+    await page.getByLabel('Price (JPY)').fill('1000');
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+
+    await expect(page.getByText(/Upload response did not include a media asset ID/)).toBeVisible();
+    expect(productCalls).toBe(0);
+  });
+
   test('shows My videos recovery guidance when draft creation response is ambiguous', async ({ page }) => {
     await mockSellerSession(page);
 
