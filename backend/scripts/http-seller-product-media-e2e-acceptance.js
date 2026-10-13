@@ -313,10 +313,14 @@ try {
   assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
   assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
 
+  const localFilesBeforeUnusedDelete = await localSellerMediaFiles(ids.seller);
   const deleteUnusedMediaResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(deleteUnusedMediaResponse.response.status, 204);
   const assetsAfterUnusedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsAfterUnusedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), false);
+  if (localFilesBeforeUnusedDelete !== null) {
+    assert.equal((await localSellerMediaFiles(ids.seller)).length, localFilesBeforeUnusedDelete.length - 1, 'Deleting unused media must remove its stored file');
+  }
   ids.media = null;
 
   const linkedReplacementDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.replacementMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
