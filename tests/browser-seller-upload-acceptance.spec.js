@@ -582,6 +582,55 @@ test('disables the save action while a video upload is pending', async ({ page }
   });
 
 
+  test('cleans up a replacement upload that is not ready without patching the draft', async ({ page }) => {
+    await mockSellerSession(page);
+    const productId = '13131313-1313-4313-8313-131313131313';
+    let patchCalls = 0;
+    let cleanupCalled = false;
+    let alertMessage = '';
+
+    await page.route(`**/api/seller/products/${productId}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { product: {
+          id: productId, title: 'Existing draft', description: 'Existing description',
+          price_amount: 1200, price_currency: 'JPY', status: 'draft',
+          media_asset_id: 'old-media', media_original_filename: 'existing.mp4', media_byte_size: 1024,
+        } });
+        return;
+      }
+      if (route.request().method() === 'PATCH') {
+        patchCalls += 1;
+        await fulfillJson(route, { product: { id: productId, status: 'draft' } });
+        return;
+      }
+      await route.fallback();
+    });
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'replacement-not-ready', status: 'processing' } }, 201);
+    });
+    await page.route('**/api/seller/media/assets/replacement-not-ready', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      cleanupCalled = true;
+      await route.fulfill({ status: 204, body: '' });
+    });
+    page.on('dialog', async (dialog) => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    await page.goto(`/seller/product-edit.html?productId=${productId}`);
+    await page.locator('#replacement-video').setInputFiles({
+      name: 'replacement-processing.mp4', mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('#save-product').click();
+
+    expect(patchCalls).toBe(0);
+    expect(cleanupCalled).toBe(true);
+    expect(alertMessage).toContain('利用可能な状態ではありません');
+    await expect(page).toHaveURL(new RegExp(`/seller/product-edit\\.html\\?productId=${productId}`));
+  });
+
   test('avoids repeating a video replacement when the save response is ambiguous', async ({ page }) => {
     await mockSellerSession(page);
     const productId = '12121212-1212-4212-8212-121212121212';
