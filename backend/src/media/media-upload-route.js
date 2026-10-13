@@ -133,6 +133,17 @@ router.post('/upload', async (req, res, next) => {
       await mediaStorage.deleteObject({ storageKey });
     } catch (cleanupError) {
       console.error('media_upload_cleanup_failed', cleanupError);
+      try {
+        // Keep a retryable tombstone when storage cleanup fails after a partial upload.
+        await query(
+          `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
+           VALUES ($1, $2, $3, $4, $5, $6, 'deleted')
+           ON CONFLICT (id) DO NOTHING`,
+          [id, req.user.id, storageKey, filename, mime, bytes]
+        );
+      } catch (recordError) {
+        console.error('media_upload_orphan_record_failed', recordError);
+      }
     }
     return next(error);
   }
