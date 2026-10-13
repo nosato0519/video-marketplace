@@ -162,6 +162,10 @@ try {
   assert.equal(processingMediaPatchResponse.body.error, 'media_asset_not_ready');
   await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.replacementMedia]);
 
+  const malformedProductEditResponse = await request(baseUrl, '/api/seller/products/not-a-uuid', { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Malformed Product ID' }) });
+  assert.equal(malformedProductEditResponse.response.status, 404, JSON.stringify(malformedProductEditResponse.body));
+  assert.equal(malformedProductEditResponse.body.error, 'product_not_found');
+
   const replaceMediaResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.replacementMedia }) });
   assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
   assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
