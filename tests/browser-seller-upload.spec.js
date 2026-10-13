@@ -28,3 +28,37 @@ test('seller upload waits for the configured upload limit before enabling submis
   await expect(submit).toBeEnabled();
   await expect(page.getByText('MP4, WebM, MOV or MKV · up to 24 MB')).toBeVisible();
 });
+
+test('seller upload rejects a file larger than the backend-provided limit before sending it', async ({ page }) => {
+  let uploadRequested = false;
+
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ maxUploadBytes: 1024 }),
+    });
+  });
+  await page.route('**/api/seller/media/upload', async (route) => {
+    uploadRequested = true;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ mediaAsset: { id: 'asset-1', status: 'ready' } }) });
+  });
+
+  await page.goto('/app/index.html');
+  await page.evaluate(async () => {
+    const { renderSellerUpload } = await import('/seller/seller-upload.js');
+    await renderSellerUpload(document.querySelector('#app'));
+  });
+
+  await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeEnabled();
+  await page.locator('#video-file').setInputFiles({
+    name: 'oversized.mp4',
+    mimeType: 'video/mp4',
+    buffer: Buffer.from('x'.repeat(1025)),
+  });
+  await page.getByLabel('Title').fill('Oversized test video');
+  await page.getByRole('button', { name: 'Upload and create draft' }).click();
+
+  await expect(page.locator('#seller-upload-message')).toContainText('exceeds the 1 KB upload limit');
+  expect(uploadRequested).toBe(false);
+});
