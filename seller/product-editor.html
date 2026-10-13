@@ -279,6 +279,8 @@ async function saveProduct() {
   }
 
   isSaving = true;
+  const originalSaveLabel = saveAction?.textContent;
+  if (saveAction) saveAction.textContent = 'アップロード・保存中…';
   saveAction?.setAttribute('aria-busy', 'true');
   let uploadedMediaAssetId = null;
   let productCreated = false;
@@ -314,6 +316,7 @@ async function saveProduct() {
     alert(typeof detail === 'string' ? detail : '動画を保存できませんでした。');
   } finally {
     isSaving = false;
+    if (saveAction && originalSaveLabel !== undefined) saveAction.textContent = originalSaveLabel;
     saveAction?.removeAttribute('aria-busy');
   }
 }
