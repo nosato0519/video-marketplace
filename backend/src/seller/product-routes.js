@@ -78,12 +78,16 @@ router.post('/products', async (req, res, next) => {
     if (!Number.isSafeInteger(priceAmount) || priceAmount <= 0) {
       return res.status(422).json({ error: 'invalid_product_price' });
     }
+    const normalizedCurrency = String(priceCurrency).trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(normalizedCurrency)) {
+      return res.status(422).json({ error: 'invalid_product_currency' });
+    }
     if (mediaAssetId == null) return res.status(422).json({ error: 'media_asset_required' });
     const creation = await withTransaction(async (client) => {
       const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
       if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
       if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
-      const result = await client.query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, String(priceCurrency).toUpperCase(), normalizedTitle, String(description)]);
+      const result = await client.query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, normalizedCurrency, normalizedTitle, String(description)]);
       return { product: result.rows[0] };
     });
     if (creation.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
@@ -112,6 +116,10 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (priceAmount != null && (!Number.isSafeInteger(priceAmount) || priceAmount <= 0)) {
       return res.status(422).json({ error: 'invalid_product_price' });
     }
+    const normalizedCurrency = priceCurrency == null ? null : String(priceCurrency).trim().toUpperCase();
+    if (normalizedCurrency != null && !/^[A-Z]{3}$/.test(normalizedCurrency)) {
+      return res.status(422).json({ error: 'invalid_product_currency' });
+    }
     const update = await withTransaction(async (client) => {
       const lockedProduct = await client.query(
         'SELECT status FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
@@ -124,7 +132,7 @@ router.patch('/products/:productId', async (req, res, next) => {
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
       }
-      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, priceCurrency == null ? null : String(priceCurrency).toUpperCase(), hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
+      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
       return { product: result.rows[0] };
     });
     if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
