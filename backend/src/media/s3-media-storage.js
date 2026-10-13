@@ -77,7 +77,7 @@ export function createS3MediaStorage({
     };
     if (range) headers.range = `bytes=${range.start}-${range.end}`;
 
-    const canonicalHeaders = Object.keys(headers).sort().map((key) => `${key}:${headers[key].trim()}\\n`).join('');
+    const canonicalHeaders = Object.keys(headers).sort().map((key) => `${key}:${headers[key].trim()}\n`).join('');
     const signedHeaders = Object.keys(headers).sort().join(';');
     const canonicalRequest = [
       method,
