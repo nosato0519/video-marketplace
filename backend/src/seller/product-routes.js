@@ -82,6 +82,10 @@ router.post('/products', async (req, res, next) => {
 });
 
 router.patch('/products/:productId', async (req, res, next) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.productId)) {
+    return res.status(404).json({ error: 'product_not_found' });
+  }
+
   try {
     const current = await query('SELECT * FROM products WHERE id = $1 AND seller_id = $2', [req.params.productId, req.user.id]);
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
