@@ -166,6 +166,16 @@ try {
   assert.equal(malformedProductEditResponse.response.status, 404, JSON.stringify(malformedProductEditResponse.body));
   assert.equal(malformedProductEditResponse.body.error, 'product_not_found');
 
+  const malformedProductGetResponse = await request(baseUrl, '/api/seller/products/not-a-uuid', { headers: { cookie: sellerCookie } });
+  assert.equal(malformedProductGetResponse.response.status, 404, JSON.stringify(malformedProductGetResponse.body));
+  assert.equal(malformedProductGetResponse.body.error, 'product_not_found');
+  const malformedProductPublishResponse = await request(baseUrl, '/api/seller/products/not-a-uuid/publish', { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(malformedProductPublishResponse.response.status, 404, JSON.stringify(malformedProductPublishResponse.body));
+  assert.equal(malformedProductPublishResponse.body.error, 'product_not_found');
+  const malformedProductUnpublishResponse = await request(baseUrl, '/api/seller/products/not-a-uuid/unpublish', { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(malformedProductUnpublishResponse.response.status, 404, JSON.stringify(malformedProductUnpublishResponse.body));
+  assert.equal(malformedProductUnpublishResponse.body.error, 'published_product_not_found');
+
   const replaceMediaResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.replacementMedia }) });
   assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
   assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
