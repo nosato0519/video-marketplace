@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { createServer, request as httpRequest } from 'node:http';
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
@@ -19,6 +21,17 @@ const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
 const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
+
+async function localSellerMediaFiles(sellerId) {
+  if ((process.env.MEDIA_STORAGE_PROVIDER || 'local') !== 'local') return null;
+  const sellerDir = path.join(process.env.MEDIA_STORAGE_DIR, sellerId);
+  try {
+    return (await fs.readdir(sellerDir)).sort();
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
 
 async function request(baseUrl, path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
@@ -62,6 +75,7 @@ try {
   await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
 
   const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  const filesBeforeInvalidUpload = await localSellerMediaFiles(ids.seller);
   assert.equal(assetsBeforeInvalidUpload.response.status, 200, JSON.stringify(assetsBeforeInvalidUpload.body));
   const emptyUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
     method: 'POST',
@@ -99,6 +113,9 @@ try {
     assetsBeforeInvalidUpload.body.mediaAssets.map((asset) => asset.id).sort(),
     'Invalid video uploads must not create media asset records'
   );
+  if (filesBeforeInvalidUpload !== null) {
+    assert.deepEqual(await localSellerMediaFiles(ids.seller), filesBeforeInvalidUpload, 'Rejected uploads must not leave partial local media files');
+  }
 
   const uploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e.mp4' }, body: uploadBytes });
   assert.equal(uploadResponse.response.status, 201, JSON.stringify(uploadResponse.body));
