@@ -170,6 +170,16 @@ try {
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
   ids.product = createResponse.body.product.id;
 
+  const deletableProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Deletable Draft', description: 'Draft deletion acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  assert.equal(deletableProductResponse.response.status, 201, JSON.stringify(deletableProductResponse.body));
+  const deletableProductId = deletableProductResponse.body.product.id;
+  const otherSellerProductDeleteResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { method: 'DELETE', headers: { cookie: otherSellerCookie } });
+  assert.equal(otherSellerProductDeleteResponse.response.status, 404, JSON.stringify(otherSellerProductDeleteResponse.body));
+  const draftDeleteResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(draftDeleteResponse.response.status, 204, JSON.stringify(draftDeleteResponse.body));
+  const deletedDraftDetailResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { headers: { cookie: sellerCookie } });
+  assert.equal(deletedDraftDetailResponse.response.status, 404, JSON.stringify(deletedDraftDetailResponse.body));
+
   const linkedMediaDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(linkedMediaDeleteResponse.response.status, 409, JSON.stringify(linkedMediaDeleteResponse.body));
   assert.equal(linkedMediaDeleteResponse.body.error, 'media_asset_in_use');
