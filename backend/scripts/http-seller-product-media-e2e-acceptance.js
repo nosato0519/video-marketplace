@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
 process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
 process.env.MEDIA_MAX_UPLOAD_BYTES = '24';
@@ -25,6 +25,26 @@ async function request(baseUrl, path, options = {}) {
   const contentType = response.headers.get('content-type') || '';
   const body = contentType.includes('application/json') ? await response.json() : Buffer.from(await response.arrayBuffer());
   return { response, body };
+}
+
+async function requestChunked(baseUrl, path, { headers, body }) {
+  const url = new URL(path, baseUrl);
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(url, { method: 'POST', headers: { ...headers, 'transfer-encoding': 'chunked' } }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => {
+        const rawBody = Buffer.concat(chunks);
+        let parsedBody = rawBody;
+        if ((response.headers['content-type'] || '').includes('application/json')) {
+          try { parsedBody = JSON.parse(rawBody.toString('utf8')); } catch {}
+        }
+        resolve({ response: { status: response.statusCode }, body: parsedBody });
+      });
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
 }
 
 const sellerCookie = `video_marketplace_session=${encodeURIComponent(sellerToken)}`;
@@ -63,6 +83,15 @@ try {
   });
   assert.equal(oversizedUploadResponse.response.status, 413, JSON.stringify(oversizedUploadResponse.body));
   assert.equal(oversizedUploadResponse.body.error, 'media_too_large');
+
+  // Exercise the streaming byte limiter separately from the Content-Length pre-check.
+  const chunkedOversizedUploadResponse = await requestChunked(baseUrl, '/api/seller/media/upload', {
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'x-original-filename': 'chunked-oversized.mp4' },
+    body: Buffer.alloc(25)
+  });
+  assert.equal(chunkedOversizedUploadResponse.response.status, 413, JSON.stringify(chunkedOversizedUploadResponse.body));
+  assert.equal(chunkedOversizedUploadResponse.body.error, 'media_too_large');
+
   const assetsAfterInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsAfterInvalidUpload.response.status, 200, JSON.stringify(assetsAfterInvalidUpload.body));
   assert.deepEqual(
