@@ -57,11 +57,12 @@ function productRow(product) {
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
     : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
   const videoAction = '<button class="button secondary" data-action="edit" data-id="' + escapeHtml(product.id) + '">' + (product.media_asset_id ? 'Change video' : 'Add video') + '</button>';
+  const deleteAction = published ? '' : '<button class="button secondary" data-action="delete" data-id="' + escapeHtml(product.id) + '">Delete draft</button>';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
     <div class="seller-product-card__meta"><span>${escapeHtml(media.label)}</span><span>${escapeHtml(media.detail)}</span><span>${published ? 'Visible in marketplace' : 'Not visible to buyers'}</span></div>
-    <div class="seller-product-card__actions"><button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Edit details</button>${videoAction}${publishAction}</div>
+    <div class="seller-product-card__actions"><button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}">Edit details</button>${videoAction}${publishAction}${deleteAction}</div>
   </article>`;
 }
 
@@ -166,8 +167,10 @@ export async function renderSellerProducts(root) {
     const action = button.dataset.action;
     try {
       if (action === 'edit') { const current = await request(`/api/seller/products/${encodeURIComponent(id)}`); await showEditor(current.product); return; }
+      if (action === 'delete' && !window.confirm('Delete this draft? Products with purchase history cannot be deleted.')) return;
       button.disabled = true;
-      await request(`/api/seller/products/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
+      if (action === 'delete') await request(`/api/seller/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      else await request(`/api/seller/products/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
       await load();
     } catch (error) {
       message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to update product.';
