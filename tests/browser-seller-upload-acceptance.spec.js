@@ -323,4 +323,50 @@ test.describe('seller upload browser acceptance', () => {
     expect(status).toBe('draft');
   });
 
+  test('seller can delete a draft from the production-linked video list', async ({ page }) => {
+    await mockSellerSession(page);
+    const draftId = '33333333-3333-4333-8333-333333333333';
+    let deleted = false;
+    const products = () => deleted ? [{
+      id: '44444444-4444-4444-8444-444444444444',
+      title: 'Published video',
+      price_amount: 1500,
+      status: 'published',
+      created_at: '2026-10-13T00:00:00.000Z',
+    }] : [{
+      id: draftId,
+      title: 'Draft to delete',
+      price_amount: 1200,
+      status: 'draft',
+      created_at: '2026-10-13T00:00:00.000Z',
+    }, {
+      id: '44444444-4444-4444-8444-444444444444',
+      title: 'Published video',
+      price_amount: 1500,
+      status: 'published',
+      created_at: '2026-10-13T00:00:00.000Z',
+    }];
+    await page.route('**/api/seller/products?*', async (route) => {
+      await fulfillJson(route, {
+        products: products(),
+        counts: { total: products().length, published: 1, review: 0, draft: deleted ? 0 : 1 },
+        pagination: { page: 1, per_page: 10, total_count: products().length, total_pages: 1 },
+      });
+    });
+    await page.route(`**/api/seller/products/${draftId}`, async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      deleted = true;
+      await route.fulfill({ status: 204, body: '' });
+    });
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto('/seller/products.html');
+    await expect(page.getByText('Draft to delete')).toBeVisible();
+    await expect(page.getByRole('button', { name: '下書きを削除' })).toBeVisible();
+    await expect(page.getByText('Published video').locator('..').locator('..').getByRole('button', { name: '下書きを削除' })).toHaveCount(0);
+    await page.getByRole('button', { name: '下書きを削除' }).click();
+    await expect(page.getByText('Draft to delete')).toHaveCount(0);
+    await expect(page.getByText('Published video')).toBeVisible();
+    expect(deleted).toBe(true);
+  });
+
 });
