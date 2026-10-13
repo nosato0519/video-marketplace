@@ -7,8 +7,12 @@ import { validateProductForPublishing } from '../catalog/publish-guard.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
 
+function isUuid(value) {
+  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
 async function getSellerMediaAsset(mediaAssetId, userId) {
-  if (typeof mediaAssetId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mediaAssetId)) return null;
+  if (!isUuid(mediaAssetId)) return null;
   const result = await query(
     'SELECT id, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
     [mediaAssetId, userId]
@@ -57,6 +61,8 @@ router.get('/products', async (req, res, next) => {
 });
 
 router.get('/products/:productId', async (req, res, next) => {
+  if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
+
   try {
     const result = await query(`${PRODUCT_SELECT} WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
@@ -82,7 +88,7 @@ router.post('/products', async (req, res, next) => {
 });
 
 router.patch('/products/:productId', async (req, res, next) => {
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.productId)) {
+  if (!isUuid(req.params.productId)) {
     return res.status(404).json({ error: 'product_not_found' });
   }
 
@@ -115,6 +121,8 @@ router.patch('/products/:productId', async (req, res, next) => {
 });
 
 router.post('/products/:productId/publish', async (req, res, next) => {
+  if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
+
   try {
     const seller = await query(
       `SELECT verification_status
@@ -141,6 +149,8 @@ router.post('/products/:productId/publish', async (req, res, next) => {
 });
 
 router.post('/products/:productId/unpublish', async (req, res, next) => {
+  if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'published_product_not_found' });
+
   try {
     const result = await query(`UPDATE products SET status = 'draft', published_at = NULL, updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status = 'published' RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'published_product_not_found' });
