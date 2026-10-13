@@ -181,6 +181,9 @@ try {
   const invalidPriceProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Price Product', priceAmount: 0, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
   assert.equal(invalidPriceProductResponse.response.status, 422, JSON.stringify(invalidPriceProductResponse.body));
   assert.equal(invalidPriceProductResponse.body.error, 'invalid_product_price');
+  const invalidCurrencyProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Currency Product', priceAmount: 2200, priceCurrency: 'JP', mediaAssetId: ids.media }) });
+  assert.equal(invalidCurrencyProductResponse.response.status, 422, JSON.stringify(invalidCurrencyProductResponse.body));
+  assert.equal(invalidCurrencyProductResponse.body.error, 'invalid_product_currency');
 
   await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
   const processingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Processing Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
@@ -233,6 +236,9 @@ try {
   const invalidPricePatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ priceAmount: 0 }) });
   assert.equal(invalidPricePatchResponse.response.status, 422, JSON.stringify(invalidPricePatchResponse.body));
   assert.equal(invalidPricePatchResponse.body.error, 'invalid_product_price');
+  const invalidCurrencyPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ priceCurrency: 'JPY!' }) });
+  assert.equal(invalidCurrencyPatchResponse.response.status, 422, JSON.stringify(invalidCurrencyPatchResponse.body));
+  assert.equal(invalidCurrencyPatchResponse.body.error, 'invalid_product_currency');
 
   const detachMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
   assert.equal(detachMediaPatchResponse.response.status, 200, JSON.stringify(detachMediaPatchResponse.body));
