@@ -6,13 +6,13 @@ on:
       - 'seller/products.html'
       - 'seller/product-editor.html'
       - 'seller/product-edit.html'
-      - 'seller/product-edit.html'
       - 'tests/seller-product-flow-static.test.js'
       - '.github/workflows/seller-product-flow-static-regression.yml'
   pull_request:
     paths:
       - 'seller/products.html'
       - 'seller/product-editor.html'
+      - 'seller/product-edit.html'
       - 'tests/seller-product-flow-static.test.js'
       - '.github/workflows/seller-product-flow-static-regression.yml'
 
