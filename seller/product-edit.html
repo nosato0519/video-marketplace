@@ -126,6 +126,7 @@ const currentVideoFilename = document.querySelector('#current-video-filename');
 const currentVideoSize = document.querySelector('#current-video-size');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 let isSaving = false;
+let currentProductStatus = null;
 const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
 
 function formatStatus(status) {
@@ -149,19 +150,25 @@ async function loadProduct() {
   titleInput.value = product.title || '';
   priceInput.value = product.price_amount ?? '';
   descriptionInput.value = product.description || '';
+  currentProductStatus = product.status;
   statusElement.textContent = formatStatus(product.status);
   statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
+  if (reviewCard) {
+    const title = reviewCard.querySelector('strong');
+    const description = reviewCard.querySelector('small');
+    if (title) title.textContent = product.status === 'published' ? '公開を停止' : '公開申請';
+    if (description) description.textContent = product.status === 'published' ? '編集する前に公開を停止します。' : '作品を購入者に公開します。';
+  }
   currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
   currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function publishProduct() {
-  if (!productId) return;
+  if (!productId || reviewCard?.getAttribute('aria-busy') === 'true') return;
   reviewCard?.setAttribute('aria-busy', 'true');
   try {
-    const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}/publish`, { method: 'POST' });
-    statusElement.textContent = formatStatus(product.status);
-    statusElement.className = 'seller-video-status is-published';
+    const action = currentProductStatus === 'published' ? 'unpublish' : 'publish';
+    await request(`/api/seller/products/${encodeURIComponent(productId)}/${action}`, { method: 'POST' });
     await loadProduct();
   } catch (error) {
     if (error.status === 401 || error.status === 403) {
@@ -184,6 +191,10 @@ async function publishProduct() {
 
 async function saveProduct() {
   if (!productId || isSaving) return;
+  if (currentProductStatus === 'published') {
+    alert('公開中の作品は編集できません。先に「公開を停止」を実行してください。');
+    return;
+  }
   isSaving = true;
   saveButton.setAttribute('aria-busy', 'true');
   try {
