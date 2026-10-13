@@ -274,4 +274,53 @@ test.describe('seller upload browser acceptance', () => {
     expect(productUpdated).toBe(true);
   });
 
+
+  test('seller can publish and unpublish a product from the editor page', async ({ page }) => {
+    await mockSellerSession(page);
+    const productId = '22222222-2222-4222-8222-222222222222';
+    let status = 'draft';
+    const product = () => ({
+      id: productId,
+      title: 'Publishable draft',
+      description: 'Ready for publication',
+      price_amount: 1500,
+      price_currency: 'JPY',
+      status,
+      media_asset_id: 'ready-media',
+      media_status: 'ready',
+      media_mime_type: 'video/mp4',
+      media_byte_size: 1024,
+      media_original_filename: 'ready.mp4',
+    });
+
+    await page.route(`**/api/seller/products/${productId}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { product: product() });
+        return;
+      }
+      await route.fallback();
+    });
+    await page.route(`**/api/seller/products/${productId}/publish`, async (route) => {
+      expect(route.request().method()).toBe('POST');
+      status = 'published';
+      await fulfillJson(route, { product: product() });
+    });
+    await page.route(`**/api/seller/products/${productId}/unpublish`, async (route) => {
+      expect(route.request().method()).toBe('POST');
+      status = 'draft';
+      await fulfillJson(route, { product: product() });
+    });
+
+    await page.goto(`/seller/product-edit.html?productId=${productId}`);
+    const reviewCard = page.locator('.buyer-menu-card').filter({ has: page.locator('span', { hasText: 'REVIEW' }) });
+    await expect(page.locator('#product-status')).toHaveText('下書き');
+    await expect(reviewCard).toContainText('公開申請');
+    await reviewCard.click();
+    await expect(page.locator('#product-status')).toHaveText('公開中');
+    await expect(reviewCard).toContainText('公開を停止');
+    await reviewCard.click();
+    await expect(page.locator('#product-status')).toHaveText('下書き');
+    expect(status).toBe('draft');
+  });
+
 });
