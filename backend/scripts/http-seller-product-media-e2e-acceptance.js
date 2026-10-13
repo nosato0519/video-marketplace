@@ -83,6 +83,10 @@ try {
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
   ids.product = createResponse.body.product.id;
 
+  const linkedMediaDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(linkedMediaDeleteResponse.response.status, 409, JSON.stringify(linkedMediaDeleteResponse.body));
+  assert.equal(linkedMediaDeleteResponse.body.error, 'media_asset_in_use');
+
   const patchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ description: 'Updated seller E2E product description' }) });
   assert.equal(patchResponse.response.status, 200, JSON.stringify(patchResponse.body));
   assert.equal(patchResponse.body.product.description, 'Updated seller E2E product description');
@@ -116,6 +120,16 @@ try {
   const replaceMediaResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.replacementMedia }) });
   assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
   assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
+
+  const deleteUnusedMediaResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(deleteUnusedMediaResponse.response.status, 204);
+  const assetsAfterUnusedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsAfterUnusedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), false);
+  ids.media = null;
+
+  const linkedReplacementDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.replacementMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(linkedReplacementDeleteResponse.response.status, 409, JSON.stringify(linkedReplacementDeleteResponse.body));
+  assert.equal(linkedReplacementDeleteResponse.body.error, 'media_asset_in_use');
 
   const republishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(republishResponse.response.status, 200, JSON.stringify(republishResponse.body));
