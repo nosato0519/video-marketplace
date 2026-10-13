@@ -122,6 +122,7 @@ try {
     request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Concurrent Media Product', description: 'Media deletion race acceptance', priceAmount: 2300, priceCurrency: 'JPY', mediaAssetId: ids.raceMedia }) }),
     request(baseUrl, `/api/seller/media/assets/${ids.raceMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } })
   ]);
+  if (raceCreateResponse.response.status === 201) ids.raceProduct = raceCreateResponse.body.product.id;
   assert.ok([201, 422].includes(raceCreateResponse.response.status), JSON.stringify(raceCreateResponse.body));
   assert.ok([204, 409].includes(raceDeleteResponse.response.status), JSON.stringify(raceDeleteResponse.body));
   assert.equal(
@@ -130,8 +131,7 @@ try {
     true,
     `Concurrent media create/delete must have one consistent winner; create=${raceCreateResponse.response.status}, delete=${raceDeleteResponse.response.status}`
   );
-  if (raceCreateResponse.response.status === 201) ids.raceProduct = raceCreateResponse.body.product.id;
-  else ids.raceMedia = null;
+  if (raceCreateResponse.response.status !== 201) ids.raceMedia = null;
 
   const otherAssetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: otherSellerCookie } });
   assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
