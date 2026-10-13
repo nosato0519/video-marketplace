@@ -173,6 +173,13 @@ try {
   const linkedMediaDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(linkedMediaDeleteResponse.response.status, 409, JSON.stringify(linkedMediaDeleteResponse.body));
   assert.equal(linkedMediaDeleteResponse.body.error, 'media_asset_in_use');
+  const assetAfterLinkedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetAfterLinkedDelete.response.status, 200, JSON.stringify(assetAfterLinkedDelete.body));
+  assert.equal(
+    assetAfterLinkedDelete.body.mediaAssets.some((asset) => asset.id === ids.media && asset.status === 'ready'),
+    true,
+    'A linked video must remain available when deletion is rejected'
+  );
 
   const patchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ description: 'Updated seller E2E product description' }) });
   assert.equal(patchResponse.response.status, 200, JSON.stringify(patchResponse.body));
