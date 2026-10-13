@@ -118,10 +118,13 @@ export async function renderSellerUpload(root) {
     try {
       const media = await uploadVideo(file, getVideoMime(file), (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
       const mediaAssetId = typeof media?.mediaAsset?.id === 'string' && media.mediaAsset.id.trim() ? media.mediaAsset.id : null;
-      if (!mediaAssetId) {
+      uploadedMediaAssetId = mediaAssetId;
+      if (!uploadedMediaAssetId) {
         throw new Error('Upload response did not include a media asset ID. Check My videos before uploading again.');
       }
-      uploadedMediaAssetId = mediaAssetId;
+      if (media.mediaAsset.status !== 'ready') {
+        throw new Error('The uploaded video is not ready to register. Check My videos before uploading again.');
+      }
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
       productCreated = true;
       message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
