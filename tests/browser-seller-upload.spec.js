@@ -62,3 +62,18 @@ test('seller upload rejects a file larger than the backend-provided limit before
   await expect(page.locator('#seller-upload-message')).toContainText('exceeds the 2 MB upload limit');
   expect(uploadRequested).toBe(false);
 });
+
+test('seller upload stays disabled when the backend upload limit cannot be loaded', async ({ page }) => {
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'temporarily_unavailable' }) });
+  });
+
+  await page.goto('/app/index.html');
+  await page.evaluate(async () => {
+    const { renderSellerUpload } = await import('/seller/seller-upload.js');
+    await renderSellerUpload(document.querySelector('#app'));
+  });
+
+  await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeDisabled();
+  await expect(page.locator('#seller-upload-message')).toContainText('Unable to load the upload limit');
+});
