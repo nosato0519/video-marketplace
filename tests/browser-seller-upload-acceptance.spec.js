@@ -153,6 +153,32 @@ test('disables the save action while a video upload is pending', async ({ page }
     expect(draftCreated).toBe(true);
   });
 
+  test('does not create a draft when the upload response has no media asset id', async ({ page }) => {
+    await mockSellerSession(page);
+    let draftCalls = 0;
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') draftCalls += 1;
+      await fulfillJson(route, { products: [] });
+    });
+
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto('/seller/product-editor.html');
+    await page.locator('.product-input-card input[type="text"]').first().fill('Malformed Upload Response');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'malformed-response.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+
+    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    expect(draftCalls).toBe(0);
+    await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"] b')).not.toHaveAttribute('aria-busy', 'true');
+  });
+
   test('product editor infers MIME type when browser reports a blank type', async ({ page }) => {
     await mockSellerSession(page);
     await page.route('**/api/seller/media/upload', async (route) => {
