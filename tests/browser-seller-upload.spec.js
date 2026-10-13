@@ -97,3 +97,37 @@ test('seller upload stays disabled when the backend returns an invalid upload li
   await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeDisabled();
   await expect(page.locator('#seller-upload-message')).toContainText('Unable to load the upload limit');
 });
+
+
+test('seller upload cannot be submitted without a valid backend limit even via form submission', async ({ page }) => {
+  let uploadRequested = false;
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ maxUploadBytes: 'invalid' }),
+    });
+  });
+  await page.route('**/api/seller/media/upload', async (route) => {
+    uploadRequested = true;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ mediaAsset: { id: 'asset-1', status: 'ready' } }) });
+  });
+
+  await page.goto('/app/index.html');
+  await page.evaluate(async () => {
+    const { renderSellerUpload } = await import('/seller/seller-upload.js');
+    await renderSellerUpload(document.querySelector('#app'));
+  });
+
+  await page.locator('#video-file').setInputFiles({
+    name: 'small.mp4',
+    mimeType: 'video/mp4',
+    buffer: Buffer.from([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70]),
+  });
+  await page.getByLabel('Title').fill('Test video');
+  await page.locator('#seller-upload-form').evaluate((form) => form.requestSubmit());
+
+  await expect(page.locator('#seller-upload-message')).toContainText('Unable to load the upload limit');
+  expect(uploadRequested).toBe(false);
+  await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeDisabled();
+});
