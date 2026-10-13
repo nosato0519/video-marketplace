@@ -230,7 +230,23 @@ async function uploadVideo(file) {
   });
 }
 
+const sellerSessionPromise = (async () => {
+  try {
+    const session = await request('/api/auth/me');
+    if (session.user?.role !== 'seller') {
+      window.location.assign('/pages/seller-login.html');
+      return false;
+    }
+    return true;
+  } catch {
+    window.location.assign('/pages/seller-login.html');
+    return false;
+  }
+})();
+
 async function saveProduct() {
+  if (!(await sellerSessionPromise)) return;
+
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
   const file = videoInput?.files?.[0];
