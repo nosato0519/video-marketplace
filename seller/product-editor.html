@@ -198,6 +198,7 @@ const descriptionInput = document.querySelector('.product-description-card texta
 const videoInput = document.querySelector('input[type="file"][accept="video/*"]');
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
+const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 
 function parsePrice(value) {
   const amount = Number(String(value || '').replace(/[^0-9]/g, ''));
@@ -230,25 +231,41 @@ async function uploadVideo(file) {
 }
 
 async function saveProduct() {
-  if (!titleInput?.value.trim()) {
+  const title = titleInput?.value.trim() || '';
+  const priceAmount = parsePrice(priceInput?.value);
+  const file = videoInput?.files?.[0];
+
+  if (!title) {
     titleInput?.focus();
+    alert('作品タイトルを入力してください。');
     return;
   }
-  if (!videoInput?.files?.length) {
+  if (priceAmount <= 0) {
+    priceInput?.focus();
+    alert('1円以上の販売価格を入力してください。');
+    return;
+  }
+  if (!file) {
     videoInput?.focus();
+    alert('販売する動画ファイルを選択してください。');
+    return;
+  }
+  if (!allowedVideoTypes.has(file.type.toLowerCase())) {
+    videoInput?.focus();
+    alert('対応形式は MP4・WebM・MOV・MKV です。');
     return;
   }
 
   saveAction?.setAttribute('aria-busy', 'true');
   try {
-    const upload = await uploadVideo(videoInput.files[0]);
+    const upload = await uploadVideo(file);
     await request('/api/seller/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: titleInput.value.trim(),
-        description: descriptionInput?.value || '',
-        priceAmount: parsePrice(priceInput?.value),
+        title,
+        description: descriptionInput?.value.trim() || '',
+        priceAmount,
         priceCurrency: 'JPY',
         mediaAssetId: upload.mediaAsset.id
       })
@@ -259,7 +276,8 @@ async function saveProduct() {
       window.location.href = '/pages/seller-login.html';
       return;
     }
-    alert(error.body?.error || '動画を保存できませんでした。');
+    const detail = error.body?.error?.message || error.body?.error;
+    alert(typeof detail === 'string' ? detail : '動画を保存できませんでした。');
   } finally {
     saveAction?.removeAttribute('aria-busy');
   }
