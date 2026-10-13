@@ -117,7 +117,11 @@ export async function renderSellerUpload(root) {
     let productCreated = false;
     try {
       const media = await uploadVideo(file, getVideoMime(file), (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
-      uploadedMediaAssetId = media.mediaAsset.id;
+      const mediaAssetId = typeof media?.mediaAsset?.id === 'string' && media.mediaAsset.id.trim() ? media.mediaAsset.id : null;
+      if (!mediaAssetId) {
+        throw new Error('Upload response did not include a media asset ID. Check My videos before uploading again.');
+      }
+      uploadedMediaAssetId = mediaAssetId;
       const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
       productCreated = true;
       message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
