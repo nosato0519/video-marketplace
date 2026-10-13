@@ -66,6 +66,52 @@ test.describe('seller browser acceptance', () => {
     await expect(page.locator('a[href="#/seller/profile"]')).toHaveCount(1);
   });
 
+  test('prevents duplicate video uploads when the seller submits twice', async ({ page }) => {
+    await mockSellerSession(page);
+    let releaseUpload;
+    const uploadGate = new Promise((resolve) => { releaseUpload = resolve; });
+    let uploadCalls = 0;
+    let draftCalls = 0;
+
+    await page.route('**/api/seller/media/upload', async (route) => {
+      uploadCalls += 1;
+      await uploadGate;
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ mediaAsset: { id: 'media-spa-duplicate', status: 'ready' } }),
+      });
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') {
+        draftCalls += 1;
+        await fulfillJson(route, { product: { id: 'draft-spa-duplicate', title: 'SPA Upload', status: 'draft' } });
+      } else {
+        await route.fallback();
+      }
+    });
+
+    await page.goto(appUrl('#/seller/upload'));
+    await page.getByLabel('Title').fill('SPA Upload');
+    await page.getByLabel('Price (JPY)').fill('1500');
+    await page.getByLabel('Video file').setInputFiles({
+      name: 'spa-upload.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+
+    await page.getByRole('button', { name: 'Upload and create draft' }).click();
+    await expect.poll(() => uploadCalls).toBe(1);
+    await page.locator('#seller-upload-form').evaluate((form) => form.requestSubmit());
+    await expect.poll(() => uploadCalls).toBe(1);
+    expect(draftCalls).toBe(0);
+
+    releaseUpload();
+    await expect(page.getByText(/Draft SPA Upload created successfully\./)).toBeVisible();
+    expect(uploadCalls).toBe(1);
+    expect(draftCalls).toBe(1);
+  });
+
   test('seller earnings page exposes earnings summary', async ({ page }) => {
     await mockSellerSession(page);
     await page.route('**/api/seller/earnings', async (route) => {
