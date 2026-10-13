@@ -67,10 +67,16 @@ router.get('/products/:productId', async (req, res, next) => {
 router.post('/products', async (req, res, next) => {
   try {
     const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null } = req.body || {};
-    if (mediaAssetId != null && !(await verifyMediaAssetOwnership(mediaAssetId, req.user.id))) {
+    const normalizedTitle = String(title).trim();
+    if (!normalizedTitle) return res.status(422).json({ error: 'product_title_required' });
+    if (!Number.isSafeInteger(priceAmount) || priceAmount <= 0) {
+      return res.status(422).json({ error: 'invalid_product_price' });
+    }
+    if (mediaAssetId == null) return res.status(422).json({ error: 'media_asset_required' });
+    if (!(await verifyMediaAssetOwnership(mediaAssetId, req.user.id))) {
       return res.status(422).json({ error: 'media_asset_not_owned' });
     }
-    const result = await query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, String(priceCurrency).toUpperCase(), String(title), String(description)]);
+    const result = await query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, String(priceCurrency).toUpperCase(), normalizedTitle, String(description)]);
     return res.status(201).json({ product: result.rows[0] });
   } catch (error) { return next(error); }
 });
