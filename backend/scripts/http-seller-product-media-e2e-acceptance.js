@@ -226,9 +226,12 @@ try {
   assert.equal(invalidPricePatchResponse.response.status, 422, JSON.stringify(invalidPricePatchResponse.body));
   assert.equal(invalidPricePatchResponse.body.error, 'invalid_product_price');
 
-  const missingMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
-  assert.equal(missingMediaPatchResponse.response.status, 422, JSON.stringify(missingMediaPatchResponse.body));
-  assert.equal(missingMediaPatchResponse.body.error, 'media_asset_required');
+  const detachMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
+  assert.equal(detachMediaPatchResponse.response.status, 200, JSON.stringify(detachMediaPatchResponse.body));
+  assert.equal(detachMediaPatchResponse.body.product.media_asset_id, null);
+  const reattachMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.media }) });
+  assert.equal(reattachMediaPatchResponse.response.status, 200, JSON.stringify(reattachMediaPatchResponse.body));
+  assert.equal(reattachMediaPatchResponse.body.product.media_asset_id, ids.media);
 
   const otherSellerMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.otherSellerMedia }) });
   assert.equal(otherSellerMediaPatchResponse.response.status, 422, JSON.stringify(otherSellerMediaPatchResponse.body));
