@@ -62,6 +62,37 @@ test.describe('seller upload browser acceptance', () => {
     expect(draftCreated).toBe(true);
   });
 
+  test('dashboard-linked editor avoids duplicate registration after an ambiguous create response', async ({ page }) => {
+    await mockSellerSession(page);
+    await page.route('**/api/seller/media/upload', async (route) => {
+      await fulfillJson(route, { mediaAsset: { id: 'media-editor-ambiguous', status: 'ready' } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'POST') {
+        await fulfillJson(route, { error: 'upstream_response_lost' }, 502);
+      } else {
+        await fulfillJson(route, { products: [] });
+      }
+    });
+    await page.route('**/api/seller/media/assets/media-editor-ambiguous', async (route) => {
+      expect(route.request().method()).toBe('DELETE');
+      await fulfillJson(route, { error: 'media_asset_in_use' }, 409);
+    });
+
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto('/seller/product-editor.html');
+    await page.locator('.product-input-card input[type="text"]').first().fill('Ambiguous Editor Draft');
+    await page.locator('.product-description-card textarea').fill('Recover without duplicate creation.');
+    await page.locator('.product-input-card input[inputmode="numeric"]').fill('1800');
+    await page.getByLabel('動画ファイル').setInputFiles({
+      name: 'ambiguous-editor.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await expect(page).toHaveURL(/\\/seller\\/products\\.html$/);
+  });
+
   test('seller can upload a video and create a product draft', async ({ page }) => {
     await mockSellerSession(page);
 
