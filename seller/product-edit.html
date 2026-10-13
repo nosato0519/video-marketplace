@@ -126,6 +126,14 @@ const currentVideoFilename = document.querySelector('#current-video-filename');
 const currentVideoSize = document.querySelector('#current-video-size');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 const maxUploadBytes = 5 * 1024 * 1024 * 1024;
+
+function getVideoMime(file) {
+  const declaredType = file.type.toLowerCase();
+  if (allowedVideoTypes.has(declaredType)) return declaredType;
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  const mimeByExtension = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', mkv: 'video/x-matroska' };
+  return mimeByExtension[extension] || '';
+}
 let isSaving = false;
 let currentProductStatus = null;
 const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
@@ -212,7 +220,7 @@ async function saveProduct() {
     };
     const replacementVideo = replacementVideoInput.files?.[0];
     if (replacementVideo) {
-      if (!allowedVideoTypes.has(replacementVideo.type.toLowerCase())) {
+      if (!getVideoMime(replacementVideo)) {
         alert('対応形式は MP4・WebM・MOV・MKV です。');
         replacementVideoInput.focus();
         return;
@@ -230,7 +238,7 @@ async function saveProduct() {
       const upload = await request('/api/seller/media/upload', {
         method: 'POST',
         headers: {
-          'Content-Type': replacementVideo.type,
+          'Content-Type': getVideoMime(replacementVideo),
           'X-Original-Filename': replacementVideo.name
         },
         body: replacementVideo
