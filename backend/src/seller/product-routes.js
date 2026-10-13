@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
 
 async function getSellerMediaAsset(mediaAssetId, userId) {
-  if (mediaAssetId == null) return null;
+  if (typeof mediaAssetId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mediaAssetId)) return null;
   const result = await query(
     'SELECT id, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\'',
     [mediaAssetId, userId]
