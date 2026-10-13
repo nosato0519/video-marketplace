@@ -316,15 +316,17 @@ try {
   assert.equal(replaceMediaResponse.response.status, 200, JSON.stringify(replaceMediaResponse.body));
   assert.equal(replaceMediaResponse.body.product.media_asset_id, ids.replacementMedia);
 
+  const unusedUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-unused.mp4' }, body: uploadBytes });
+  assert.equal(unusedUploadResponse.response.status, 201, JSON.stringify(unusedUploadResponse.body));
+  const unusedMediaId = unusedUploadResponse.body.mediaAsset.id;
   const localFilesBeforeUnusedDelete = await localSellerMediaFiles(ids.seller);
-  const deleteUnusedMediaResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
-  assert.equal(deleteUnusedMediaResponse.response.status, 204);
+  const deleteUnusedMediaResponse = await request(baseUrl, `/api/seller/media/assets/${unusedMediaId}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(deleteUnusedMediaResponse.response.status, 204, JSON.stringify(deleteUnusedMediaResponse.body));
   const assetsAfterUnusedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
-  assert.equal(assetsAfterUnusedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), false);
+  assert.equal(assetsAfterUnusedDelete.body.mediaAssets.some((asset) => asset.id === unusedMediaId), false);
   if (localFilesBeforeUnusedDelete !== null) {
     assert.equal((await localSellerMediaFiles(ids.seller)).length, localFilesBeforeUnusedDelete.length - 1, 'Deleting unused media must remove its stored file');
   }
-  ids.media = null;
 
   const filesBeforeLinkedDelete = await localSellerMediaFiles(ids.seller);
   const linkedReplacementDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.replacementMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
