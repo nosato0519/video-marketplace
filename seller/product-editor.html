@@ -203,7 +203,9 @@ const maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let isSaving = false;
 
 function parsePrice(value) {
-  const amount = Number(String(value || '').replace(/[^0-9]/g, ''));
+  const normalized = String(value ?? '').trim().replace(/[¥￥,\s]/g, '');
+  if (!/^\\d+$/.test(normalized)) return 0;
+  const amount = Number(normalized);
   return Number.isSafeInteger(amount) ? amount : 0;
 }
 
