@@ -36,7 +36,7 @@ test('seller upload rejects a file larger than the backend-provided limit before
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ maxUploadBytes: 1024 }),
+      body: JSON.stringify({ maxUploadBytes: 2 * 1024 * 1024 }),
     });
   });
   await page.route('**/api/seller/media/upload', async (route) => {
@@ -54,11 +54,11 @@ test('seller upload rejects a file larger than the backend-provided limit before
   await page.locator('#video-file').setInputFiles({
     name: 'oversized.mp4',
     mimeType: 'video/mp4',
-    buffer: Buffer.from('x'.repeat(1025)),
+    buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
   });
   await page.getByLabel('Title').fill('Oversized test video');
   await page.getByRole('button', { name: 'Upload and create draft' }).click();
 
-  await expect(page.locator('#seller-upload-message')).toContainText('exceeds the 1 KB upload limit');
+  await expect(page.locator('#seller-upload-message')).toContainText('exceeds the 2 MB upload limit');
   expect(uploadRequested).toBe(false);
 });
