@@ -256,7 +256,7 @@ async function saveProduct() {
       window.location.href = '/seller/products.html';
       return;
     }
-    const detail = error.body?.error?.message || error.body?.error;
+    const detail = error.body?.error?.message || error.body?.error || error.message;
     alert(typeof detail === 'string' ? detail : '動画を保存できませんでした。');
   } finally {
     isSaving = false;
