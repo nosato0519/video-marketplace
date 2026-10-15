@@ -200,6 +200,7 @@ const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) 
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 let maxUploadBytes = 5 * 1024 * 1024 * 1024;
+let maxUploadLimitLabel = '5 GB';
 let isSaving = false;
 let isStarting = false;
 
@@ -281,10 +282,10 @@ const uploadLimitPromise = request('/api/seller/media/limits').then((limits) => 
   }
   maxUploadBytes = limits.maxUploadBytes;
   const gigabytes = maxUploadBytes / (1024 ** 3);
-  const displayLimit = gigabytes >= 1
+  maxUploadLimitLabel = gigabytes >= 1
     ? `${Number(gigabytes.toFixed(2))} GB`
     : `${Number((maxUploadBytes / (1024 ** 2)).toFixed(1))} MB`;
-  if (uploadLimitLabel) uploadLimitLabel.textContent = `販売する動画ファイルをアップロード（上限 ${displayLimit}）`;
+  if (uploadLimitLabel) uploadLimitLabel.textContent = `販売する動画ファイルをアップロード（上限 ${maxUploadLimitLabel}）`;
   return true;
 }).catch((error) => {
   console.error('seller_upload_limit_load_failed', error);
@@ -335,7 +336,7 @@ async function saveProduct() {
   }
   if (file.size > maxUploadBytes) {
     videoInput?.focus();
-    alert('動画ファイルは5GB以下にしてください。');
+    alert(`動画ファイルは${maxUploadLimitLabel}以下にしてください。`);
     return;
   }
 
