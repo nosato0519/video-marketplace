@@ -72,8 +72,22 @@ router.get('/products/:productId', async (req, res, next) => {
 
 router.post('/products', async (req, res, next) => {
   try {
-    const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null } = req.body || {};
+    const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null, categorySlug = null, translations = [] } = req.body || {};
     const normalizedTitle = String(title).trim();
+    const normalizedDescription = String(description);
+    if (!Array.isArray(translations) || translations.length > 10) return res.status(422).json({ error: 'invalid_product_translations' });
+    const normalizedTranslations = new Map([['en', { title: normalizedTitle, description: normalizedDescription }]]);
+    for (const translation of translations) {
+      const locale = typeof translation?.locale === 'string' ? translation.locale.trim() : '';
+      const translatedTitle = typeof translation?.title === 'string' ? translation.title.trim() : '';
+      const translatedDescription = typeof translation?.description === 'string' ? translation.description : '';
+      if (!['en', 'ja', 'zh-CN', 'zh-TW', 'ko', 'es', 'fr', 'de', 'it', 'pt-BR'].includes(locale)) return res.status(422).json({ error: 'invalid_product_translation_locale' });
+      if (!translatedTitle && !translatedDescription) continue;
+      if (!translatedTitle) return res.status(422).json({ error: 'product_translation_title_required', locale });
+      normalizedTranslations.set(locale, { title: translatedTitle, description: translatedDescription });
+    }
+    const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
+    if (normalizedCategorySlug && !/^[a-z0-9-]{1,80}$/.test(normalizedCategorySlug)) return res.status(422).json({ error: 'invalid_product_category' });
     if (!normalizedTitle) return res.status(422).json({ error: 'product_title_required' });
     if (!Number.isSafeInteger(priceAmount) || priceAmount <= 0) {
       return res.status(422).json({ error: 'invalid_product_price' });
@@ -87,11 +101,33 @@ router.post('/products', async (req, res, next) => {
       const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
       if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
       if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
-      const result = await client.query(`INSERT INTO products (seller_id, media_asset_id, status, price_amount, price_currency, title, description) VALUES ($1, $2, 'draft', $3, $4, $5, $6) RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.user.id, mediaAssetId, priceAmount, normalizedCurrency, normalizedTitle, String(description)]);
-      return { product: result.rows[0] };
+      let categoryId = null;
+      if (normalizedCategorySlug) {
+        const category = await client.query('SELECT id FROM categories WHERE slug = $1 LIMIT 1', [normalizedCategorySlug]);
+        if (!category.rows.length) return { error: 'product_category_not_found' };
+        categoryId = category.rows[0].id;
+      }
+      const result = await client.query(
+        `INSERT INTO products (seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description)
+         VALUES ($1, $2, $3, 'draft', $4, $5, $6, $7)
+         RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`,
+        [req.user.id, mediaAssetId, categoryId, priceAmount, normalizedCurrency, normalizedTitle, normalizedDescription]
+      );
+      const product = result.rows[0];
+      for (const [locale, content] of normalizedTranslations) {
+        await client.query(
+          `INSERT INTO product_translations (product_id, locale, title, description)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (product_id, locale) DO UPDATE
+             SET title = EXCLUDED.title, description = EXCLUDED.description, updated_at = NOW()`,
+          [product.id, locale, content.title, content.description]
+        );
+      }
+      return { product };
     });
     if (creation.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (creation.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    if (creation.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
     return res.status(201).json({ product: creation.product });
   } catch (error) { return next(error); }
 });
