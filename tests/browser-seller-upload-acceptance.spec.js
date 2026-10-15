@@ -40,7 +40,7 @@ test.describe('seller upload browser acceptance', () => {
     await page.goto('/seller/product-editor.html');
     releaseSession();
     await expect(page.getByRole('heading', { name: '新しい動画を登録する' })).toBeVisible();
-    await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"]')).toBeVisible();
+    await expect(page.locator('#save-product')).toBeVisible();
   });
 
 test('disables the save action while a video upload is pending', async ({ page }) => {
@@ -73,7 +73,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
 
-    const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
+    const saveAction = page.locator('#save-product');
     try {
       await saveAction.click();
       await expect.poll(() => uploadCalls).toBe(1);
@@ -127,7 +127,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
 
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
 
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(uploaded).toBe(true);
@@ -155,9 +155,9 @@ test('disables the save action while a video upload is pending', async ({ page }
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
 
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
     expect(draftCalls).toBe(0);
-    await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"]')).not.toHaveAttribute('aria-busy', 'true');
+    await expect(page.locator('#save-product')).not.toHaveAttribute('aria-busy', 'true');
   });
 
   test('product editor infers MIME type when browser reports a blank type', async ({ page }) => {
@@ -179,7 +179,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: '',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
 
@@ -210,7 +210,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
 
@@ -377,7 +377,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
 
     await expect.poll(() => cleanupCalled).toBe(true);
     expect(alertMessage).toContain('invalid_product_data');
@@ -411,7 +411,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
-    await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
+    await page.locator('#save-product').click();
 
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(alertMessage).toContain('削除を再試行');
