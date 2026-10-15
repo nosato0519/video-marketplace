@@ -48,10 +48,16 @@ function uploadMedia(file, mimeType, onProgress) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/seller/media/upload');
     xhr.withCredentials = true;
+    xhr.timeout = 180000;
     xhr.setRequestHeader('Content-Type', mimeType);
     xhr.setRequestHeader('X-Original-Filename', file.name);
     xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      if (!event.lengthComputable) return;
+      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      onProgress(percent);
+      if (percent >= 100 && saveAction) {
+        saveAction.textContent = '送信完了。ストレージへの保存確認中…';
+      }
     });
     xhr.addEventListener('load', () => {
       let body = null;
@@ -65,7 +71,8 @@ function uploadMedia(file, mimeType, onProgress) {
       error.body = body;
       reject(error);
     });
-    xhr.addEventListener('error', () => reject(new Error('アップロード中に通信エラーが発生しました。')));
+    xhr.addEventListener('error', () => reject(new Error('動画データ送信後、サーバーとの通信でエラーが発生しました。')));
+    xhr.addEventListener('timeout', () => reject(new Error('動画の送信後、サーバー側の保存確認が180秒以内に完了しませんでした。ストレージ設定またはサーバーログの確認が必要です。')));
     xhr.addEventListener('abort', () => reject(new Error('動画アップロードが中断されました。')));
     xhr.send(file);
   });
