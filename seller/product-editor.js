@@ -22,7 +22,17 @@ function parsePrice(value) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(path, { credentials: 'same-origin', ...options });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(new Error('サーバーからの応答が30秒以内にありませんでした。通信状態を確認して再試行してください。')), 30000);
+  let response;
+  try {
+    response = await fetch(path, { credentials: 'same-origin', ...options, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw controller.signal.reason || new Error('サーバーからの応答が30秒以内にありませんでした。');
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   const text = await response.text();
   let body = null;
   try { body = text ? JSON.parse(text) : null; } catch {}
