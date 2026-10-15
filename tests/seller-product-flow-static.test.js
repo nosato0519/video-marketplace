@@ -14,6 +14,7 @@ const spaUpload = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-uploa
 const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'media', 'media-upload-route.js'), 'utf8');
 const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
+const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -32,10 +33,10 @@ assert.match(editor, /data-product-locale/);
 assert.match(editor, /data-translation-title/);
 assert.match(editor, /data-translation-description/);
 assert.match(editor, /credentials: 'same-origin'/);
-assert.match(editor, /function uploadVideo\(file, onProgress\)/);
+assert.match(editor, /function uploadMedia\(file, mimeType, onProgress\)/);
 assert.match(editor, /function getVideoMime\(file\)/);
 assert.match(editor, /mimeByExtension/);
-assert.match(editor, /xhr\.setRequestHeader\('Content-Type', getVideoMime\(file\)\)/);
+assert.match(editor, /xhr\.setRequestHeader\('Content-Type', mimeType\)/);
 assert.match(editor, /xhr\.setRequestHeader\('X-Original-Filename', file\.name\)/);
 assert.match(editor, /xhr\.send\(file\)/);
 assert.match(editor, /xhr\.upload\.addEventListener\('progress'/);
@@ -89,5 +90,15 @@ assert.match(categorySeed, /\('creative', 'クリエイティブ'\)/);
 assert.match(mediaUploadRoute, /INSERT INTO media_assets \(id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status\)/);
 assert.match(mediaUploadRoute, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, 'deleted'\)/);
 assert.match(mediaUploadRoute, /media_upload_orphan_record_failed/);
+assert.match(mediaUploadRoute, /maxImageUploadBytes: MAX_IMAGE_BYTES/);
+assert.match(mediaUploadRoute, /ALLOWED_IMAGE_MIME/);
+assert.match(editor, /data-product-image-role="thumbnail"/);
+assert.match(editor, /data-product-image-role="gallery"/);
+assert.match(editor, /images: uploadedImageAssets/);
+assert.match(editor, /maxImageUploadBytes/);
+assert.match(productRoutes, /INSERT INTO product_images/);
+assert.match(productRoutes, /product_image_asset_invalid/);
+assert.match(productImagesMigration, /CREATE TABLE IF NOT EXISTS product_images/);
+assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
 console.log('Seller product upload flow static contract checks passed.');
