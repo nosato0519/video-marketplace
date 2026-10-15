@@ -50,7 +50,25 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
     [productId, requestedLocale, language]
   );
 
-  return result.rows[0] ?? null;
+  const product = result.rows[0] ?? null;
+  if (!product) return null;
+
+  const images = await query(
+    `SELECT pi.media_asset_id AS id, pi.image_role AS role, pi.sort_order, ma.mime_type
+       FROM product_images pi
+       JOIN media_assets ma ON ma.id = pi.media_asset_id
+      WHERE pi.product_id = $1 AND ma.status = 'ready'
+      ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END, pi.sort_order ASC`,
+    [productId]
+  );
+  product.images = images.rows.map((image) => ({
+    id: image.id,
+    role: image.role,
+    sortOrder: image.sort_order,
+    mimeType: image.mime_type,
+    url: `/api/catalog/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(image.id)}`,
+  }));
+  return product;
 }
 
 export function buildProductDetail({ product, seller, viewer }) {
