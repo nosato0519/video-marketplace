@@ -9,9 +9,12 @@ import { createConfiguredMediaStorage } from './media-storage-factory.js';
 
 const router = express.Router();
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const configuredMaxBytes = Number(process.env.MEDIA_MAX_UPLOAD_BYTES);
 const MAX_BYTES = Number.isSafeInteger(configuredMaxBytes) && configuredMaxBytes > 0 ? configuredMaxBytes : DEFAULT_MAX_BYTES;
-const ALLOWED_MIME = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+const ALLOWED_VIDEO_MIME = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
+const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ALLOWED_MIME = new Set([...ALLOWED_VIDEO_MIME, ...ALLOWED_IMAGE_MIME]);
 const mediaStorage = createConfiguredMediaStorage();
 
 function safeExtension(mime) {
@@ -20,6 +23,9 @@ function safeExtension(mime) {
     'video/webm': '.webm',
     'video/quicktime': '.mov',
     'video/x-matroska': '.mkv',
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
   }[mime];
 }
 
@@ -30,11 +36,11 @@ function safeOriginalFilename(value) {
 
 router.use(requireAuth, requireRole('seller'));
 
-router.get('/limits', (req, res) => res.json({ maxUploadBytes: MAX_BYTES }));
+router.get('/limits', (req, res) => res.json({ maxUploadBytes: MAX_BYTES, maxImageUploadBytes: MAX_IMAGE_BYTES }));
 
 router.get('/assets', async (req, res, next) => {
   try {
-    const result = await query(`SELECT media_assets.id, media_assets.original_filename, media_assets.mime_type, media_assets.byte_size, media_assets.status, media_assets.created_at, EXISTS (SELECT 1 FROM products WHERE products.media_asset_id = media_assets.id) AS in_use FROM media_assets WHERE media_assets.owner_user_id = $1 ORDER BY media_assets.created_at DESC`, [req.user.id]);
+    const result = await query(`SELECT media_assets.id, media_assets.original_filename, media_assets.mime_type, media_assets.byte_size, media_assets.status, media_assets.created_at, EXISTS (SELECT 1 FROM products WHERE products.media_asset_id = media_assets.id) OR EXISTS (SELECT 1 FROM product_images WHERE product_images.media_asset_id = media_assets.id) AS in_use FROM media_assets WHERE media_assets.owner_user_id = $1 ORDER BY media_assets.created_at DESC`, [req.user.id]);
     return res.json({ mediaAssets: result.rows });
   } catch (error) { return next(error); }
 });
@@ -54,7 +60,7 @@ router.delete('/assets/:assetId', async (req, res, next) => {
 
       const asset = result.rows[0];
       if (asset.status !== 'deleted') {
-        const linked = await client.query('SELECT id FROM products WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
+        const linked = await client.query('SELECT id FROM products WHERE media_asset_id = $1 UNION ALL SELECT id FROM product_images WHERE media_asset_id = $1 LIMIT 1', [asset.id]);
         if (linked.rows.length) return { inUse: true };
 
         await client.query(
@@ -86,11 +92,12 @@ router.post('/upload', async (req, res, next) => {
   const declaredLength = rawLength == null ? null : Number(rawLength);
 
   if (!ALLOWED_MIME.has(mime)) return res.status(415).json({ error: 'unsupported_media_type' });
+  const maxBytes = ALLOWED_IMAGE_MIME.has(mime) ? MAX_IMAGE_BYTES : MAX_BYTES;
   if (declaredLength !== null && (!Number.isSafeInteger(declaredLength) || declaredLength < 0)) {
     return res.status(400).json({ error: 'invalid_content_length' });
   }
   if (declaredLength === 0) return res.status(400).json({ error: 'empty_upload_body' });
-  if (declaredLength !== null && declaredLength > MAX_BYTES) return res.status(413).json({ error: 'media_too_large' });
+  if (declaredLength !== null && declaredLength > maxBytes) return res.status(413).json({ error: 'media_too_large' });
   if (!req.readable) return res.status(400).json({ error: 'upload_body_required' });
 
   const id = crypto.randomUUID();
@@ -99,7 +106,7 @@ router.post('/upload', async (req, res, next) => {
   const limiter = async function* () {
     for await (const chunk of req) {
       bytes += chunk.length;
-      if (bytes > MAX_BYTES) throw Object.assign(new Error('media_too_large'), { statusCode: 413 });
+      if (bytes > maxBytes) throw Object.assign(new Error('media_too_large'), { statusCode: 413 });
       yield chunk;
     }
   };
