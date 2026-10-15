@@ -5,6 +5,7 @@ import { requireRole } from '../auth/authorize.js';
 import { validateProductForPublishing } from '../catalog/publish-guard.js';
 
 const router = express.Router();
+const PRODUCT_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 router.use(requireAuth, requireRole('seller'));
 
 function isUuid(value) {
@@ -72,7 +73,16 @@ router.get('/products/:productId', async (req, res, next) => {
 
 router.post('/products', async (req, res, next) => {
   try {
-    const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null, categorySlug = null, translations = [], images = [] } = req.body || {};
+    const {
+      title = '',
+      description = '',
+      priceAmount = 0,
+      priceCurrency = 'JPY',
+      mediaAssetId = null,
+      categorySlug = null,
+      translations = [],
+      images = [],
+    } = req.body || {};
     const normalizedTitle = String(title).trim();
     const normalizedDescription = String(description);
     if (!Array.isArray(translations) || translations.length > 10) return res.status(422).json({ error: 'invalid_product_translations' });
@@ -86,16 +96,25 @@ router.post('/products', async (req, res, next) => {
       if (!translatedTitle) return res.status(422).json({ error: 'product_translation_title_required', locale });
       normalizedTranslations.set(locale, { title: translatedTitle, description: translatedDescription });
     }
-    if (!Array.isArray(images) || images.length > 5) return res.status(422).json({ error: 'invalid_product_images' });
+    if (!Array.isArray(images) || images.length > 5) {
+      return res.status(422).json({ error: 'invalid_product_images' });
+    }
     const normalizedImages = images.map((image) => ({
       mediaAssetId: typeof image?.mediaAssetId === 'string' ? image.mediaAssetId.trim() : '',
       role: image?.role === 'thumbnail' ? 'thumbnail' : image?.role === 'gallery' ? 'gallery' : '',
       sortOrder: Number.isSafeInteger(image?.sortOrder) ? image.sortOrder : -1,
     }));
-    if (normalizedImages.some((image) => !isUuid(image.mediaAssetId) || !image.role || image.sortOrder < 0 || image.sortOrder > 4)
-      || new Set(normalizedImages.map((image) => image.mediaAssetId)).size !== normalizedImages.length
-      || normalizedImages.filter((image) => image.role === 'thumbnail').length > 1
-      || normalizedImages.filter((image) => image.role === 'gallery').length > 4) {
+    const hasInvalidImage = normalizedImages.some((image) => (
+      !isUuid(image.mediaAssetId)
+      || !image.role
+      || image.sortOrder < 0
+      || image.sortOrder > 4
+    ));
+    const hasDuplicateImageAsset = new Set(normalizedImages.map((image) => image.mediaAssetId)).size
+      !== normalizedImages.length;
+    const thumbnailCount = normalizedImages.filter((image) => image.role === 'thumbnail').length;
+    const galleryCount = normalizedImages.filter((image) => image.role === 'gallery').length;
+    if (hasInvalidImage || hasDuplicateImageAsset || thumbnailCount > 1 || galleryCount > 4) {
       return res.status(422).json({ error: 'invalid_product_images' });
     }
     const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
@@ -121,7 +140,7 @@ router.post('/products', async (req, res, next) => {
       }
       for (const image of normalizedImages) {
         const asset = await getSellerMediaAsset(image.mediaAssetId, req.user.id, client);
-        if (!asset || asset.status !== 'ready' || !['image/jpeg', 'image/png', 'image/webp'].includes(asset.mime_type)) {
+        if (!asset || asset.status !== 'ready' || !PRODUCT_IMAGE_MIME_TYPES.has(asset.mime_type)) {
           return { error: 'product_image_asset_invalid' };
         }
       }
