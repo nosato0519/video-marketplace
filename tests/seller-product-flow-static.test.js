@@ -109,5 +109,6 @@ assert.match(productDetailRoutes, /p\.status = 'published'/);
 assert.match(productDetailPolicy, /product\.images = images\.rows\.map/);
 assert.match(productDetailPage, /product\.images/);
 assert.match(productDetailPage, /node\.style\.backgroundImage/);
+assert.match(productDetailPage, /galleryItems\.filter\(node=>!node\.hidden\)\.indexOf\(item\)/);
 
 console.log('Seller product upload flow static contract checks passed.');
