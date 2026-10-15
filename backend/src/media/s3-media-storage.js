@@ -104,6 +104,7 @@ export function createS3MediaStorage({
       method,
       headers,
       body,
+      signal: AbortSignal.timeout(180000),
       ...(body ? { duplex: 'half' } : {}),
     });
     return response;
