@@ -6,6 +6,9 @@ async function mockSellerSession(page) {
   await page.route('**/api/auth/me', async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } }) });
   });
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await fulfillJson(route, { maxUploadBytes: 5 * 1024 * 1024 * 1024, maxImageUploadBytes: 20 * 1024 * 1024 });
+  });
 }
 
 async function fulfillJson(route, body) {
