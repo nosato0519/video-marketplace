@@ -14,7 +14,7 @@ function isUuid(value) {
 async function getSellerMediaAsset(mediaAssetId, userId, client = { query }) {
   if (!isUuid(mediaAssetId)) return null;
   const result = await client.query(
-    'SELECT id, status FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\' FOR UPDATE',
+    'SELECT id, status, mime_type FROM media_assets WHERE id = $1 AND owner_user_id = $2 AND status <> \'deleted\' FOR UPDATE',
     [mediaAssetId, userId]
   );
   return result.rows[0] || null;
@@ -72,7 +72,7 @@ router.get('/products/:productId', async (req, res, next) => {
 
 router.post('/products', async (req, res, next) => {
   try {
-    const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null, categorySlug = null, translations = [] } = req.body || {};
+    const { title = '', description = '', priceAmount = 0, priceCurrency = 'JPY', mediaAssetId = null, categorySlug = null, translations = [], images = [] } = req.body || {};
     const normalizedTitle = String(title).trim();
     const normalizedDescription = String(description);
     if (!Array.isArray(translations) || translations.length > 10) return res.status(422).json({ error: 'invalid_product_translations' });
@@ -85,6 +85,18 @@ router.post('/products', async (req, res, next) => {
       if (!translatedTitle && !translatedDescription) continue;
       if (!translatedTitle) return res.status(422).json({ error: 'product_translation_title_required', locale });
       normalizedTranslations.set(locale, { title: translatedTitle, description: translatedDescription });
+    }
+    if (!Array.isArray(images) || images.length > 5) return res.status(422).json({ error: 'invalid_product_images' });
+    const normalizedImages = images.map((image) => ({
+      mediaAssetId: typeof image?.mediaAssetId === 'string' ? image.mediaAssetId.trim() : '',
+      role: image?.role === 'thumbnail' ? 'thumbnail' : image?.role === 'gallery' ? 'gallery' : '',
+      sortOrder: Number.isSafeInteger(image?.sortOrder) ? image.sortOrder : -1,
+    }));
+    if (normalizedImages.some((image) => !isUuid(image.mediaAssetId) || !image.role || image.sortOrder < 0 || image.sortOrder > 4)
+      || new Set(normalizedImages.map((image) => image.mediaAssetId)).size !== normalizedImages.length
+      || normalizedImages.filter((image) => image.role === 'thumbnail').length > 1
+      || normalizedImages.filter((image) => image.role === 'gallery').length > 4) {
+      return res.status(422).json({ error: 'invalid_product_images' });
     }
     const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
     if (normalizedCategorySlug && !/^[a-z0-9-]{1,80}$/.test(normalizedCategorySlug)) return res.status(422).json({ error: 'invalid_product_category' });
@@ -107,6 +119,12 @@ router.post('/products', async (req, res, next) => {
         if (!category.rows.length) return { error: 'product_category_not_found' };
         categoryId = category.rows[0].id;
       }
+      for (const image of normalizedImages) {
+        const asset = await getSellerMediaAsset(image.mediaAssetId, req.user.id, client);
+        if (!asset || asset.status !== 'ready' || !['image/jpeg', 'image/png', 'image/webp'].includes(asset.mime_type)) {
+          return { error: 'product_image_asset_invalid' };
+        }
+      }
       const result = await client.query(
         `INSERT INTO products (seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description)
          VALUES ($1, $2, $3, 'draft', $4, $5, $6, $7)
@@ -114,6 +132,13 @@ router.post('/products', async (req, res, next) => {
         [req.user.id, mediaAssetId, categoryId, priceAmount, normalizedCurrency, normalizedTitle, normalizedDescription]
       );
       const product = result.rows[0];
+      for (const image of normalizedImages) {
+        await client.query(
+          `INSERT INTO product_images (product_id, media_asset_id, image_role, sort_order)
+           VALUES ($1, $2, $3, $4)`,
+          [product.id, image.mediaAssetId, image.role, image.sortOrder]
+        );
+      }
       for (const [locale, content] of normalizedTranslations) {
         await client.query(
           `INSERT INTO product_translations (product_id, locale, title, description)
@@ -128,6 +153,7 @@ router.post('/products', async (req, res, next) => {
     if (creation.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (creation.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
     if (creation.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
+    if (creation.error === 'product_image_asset_invalid') return res.status(422).json({ error: 'product_image_asset_invalid' });
     return res.status(201).json({ product: creation.product });
   } catch (error) { return next(error); }
 });
