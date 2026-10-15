@@ -64,7 +64,7 @@ test.describe('seller upload browser acceptance', () => {
     const saveAction = page.locator('.buyer-menu-card[aria-label="動画を保存する"]');
     try {
       await saveAction.click();
-      await saveAction.click({ force: true });
+      await saveAction.dispatchEvent('click');
     } finally {
       releaseSession();
     }
