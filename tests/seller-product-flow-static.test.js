@@ -15,6 +15,9 @@ const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'medi
 const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
 const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
+const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
+const productDetailPolicy = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-policy.js'), 'utf8');
+const productDetailPage = fs.readFileSync(path.join(root, 'pages', 'product-detail.html'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -45,7 +48,7 @@ assert.match(editor, /'作品情報を保存中…'/);
 assert.match(editor, /5 \* 1024 \* 1024 \* 1024/);
 assert.match(editor, /video\/mp4/);
 assert.match(editor, /file\.size === 0/);
-assert.match(editor, /uploadedMediaAssetId && !productCreated/);
+assert.match(editor, /uploadedAssetIds\.length && !productCreated/);
 assert.match(editor, /upload\.mediaAsset\.status !== 'ready'/);
 
 
