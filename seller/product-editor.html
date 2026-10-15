@@ -115,7 +115,7 @@
         <div class="buyer-menu-card">
           <span>MAIN VIDEO</span>
           <strong>動画ファイル</strong>
-          <small>販売する動画ファイルをアップロード</small>
+          <small id="video-upload-limit">アップロード上限を確認中…</small>
           <input type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" aria-label="動画ファイル">
         </div>
         <div class="buyer-menu-card">
@@ -199,7 +199,7 @@ const videoInput = document.querySelector('input[type="file"][accept="video/mp4,
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
-const maxUploadBytes = 5 * 1024 * 1024 * 1024;
+let maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let isSaving = false;
 let isStarting = false;
 
@@ -274,12 +274,35 @@ const sellerSessionPromise = (async () => {
   }
 })();
 
+const uploadLimitLabel = document.querySelector('#video-upload-limit');
+const uploadLimitPromise = request('/api/seller/media/limits').then((limits) => {
+  if (!Number.isSafeInteger(limits?.maxUploadBytes) || limits.maxUploadBytes <= 0) {
+    throw new Error('invalid_upload_limit_response');
+  }
+  maxUploadBytes = limits.maxUploadBytes;
+  const gigabytes = maxUploadBytes / (1024 ** 3);
+  const displayLimit = gigabytes >= 1
+    ? `${Number(gigabytes.toFixed(2))} GB`
+    : `${Number((maxUploadBytes / (1024 ** 2)).toFixed(1))} MB`;
+  if (uploadLimitLabel) uploadLimitLabel.textContent = `販売する動画ファイルをアップロード（上限 ${displayLimit}）`;
+  return true;
+}).catch((error) => {
+  console.error('seller_upload_limit_load_failed', error);
+  if (uploadLimitLabel) uploadLimitLabel.textContent = 'アップロード上限を取得できません。ページを再読み込みしてください。';
+  return false;
+});
+
 async function saveProduct() {
   if (isSaving || isStarting) return;
   isStarting = true;
   const sessionReady = await sellerSessionPromise;
   isStarting = false;
   if (!sessionReady || isSaving) return;
+  const uploadLimitReady = await uploadLimitPromise;
+  if (!uploadLimitReady) {
+    alert('アップロード上限を取得できません。ページを再読み込みしてください。');
+    return;
+  }
 
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
