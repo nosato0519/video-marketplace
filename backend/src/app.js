@@ -73,7 +73,6 @@ export function createApp() {
 
   registerAuthRoutes(app);
   registerCatalogRoutes(app);
-  registerProductDetailRoutes(app);
   registerOrderRoutes(app);
   registerCheckoutRoutes(app);
   registerAdminLocaleRoutes(app);
@@ -94,6 +93,7 @@ export function createApp() {
   app.use('/api/admin', adminSettingsRoutes);
   registerPaymentProviderRoutes(app, { requireAdmin: requireRole('admin') });
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
+  registerProductDetailRoutes(app, { storage: mediaStorage });
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
   const publicRoot = path.resolve(process.cwd());
