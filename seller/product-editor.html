@@ -122,7 +122,7 @@
           <span>THUMBNAIL</span>
           <strong>サムネイル画像</strong>
           <small>動画一覧・詳細ページで表示する画像</small>
-          <input type="file" accept="image/*" aria-label="サムネイル画像">
+          <input type="file" accept="image/jpeg,image/png,image/webp" data-product-image-role="thumbnail" data-product-image-order="0" aria-label="サムネイル画像">
         </div>
       </div>
     </section>
@@ -133,10 +133,10 @@
         <span>最大4枚</span>
       </div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card"><span>IMAGE 01</span><strong>紹介画像 1</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/*" aria-label="紹介画像1"></div>
-        <div class="buyer-menu-card"><span>IMAGE 02</span><strong>紹介画像 2</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/*" aria-label="紹介画像2"></div>
-        <div class="buyer-menu-card"><span>IMAGE 03</span><strong>紹介画像 3</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/*" aria-label="紹介画像3"></div>
-        <div class="buyer-menu-card"><span>IMAGE 04</span><strong>紹介画像 4</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/*" aria-label="紹介画像4"></div>
+        <div class="buyer-menu-card"><span>IMAGE 01</span><strong>紹介画像 1</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/jpeg,image/png,image/webp" data-product-image-role="gallery" data-product-image-order="0" aria-label="紹介画像1"></div>
+        <div class="buyer-menu-card"><span>IMAGE 02</span><strong>紹介画像 2</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/jpeg,image/png,image/webp" data-product-image-role="gallery" data-product-image-order="1" aria-label="紹介画像2"></div>
+        <div class="buyer-menu-card"><span>IMAGE 03</span><strong>紹介画像 3</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/jpeg,image/png,image/webp" data-product-image-role="gallery" data-product-image-order="2" aria-label="紹介画像3"></div>
+        <div class="buyer-menu-card"><span>IMAGE 04</span><strong>紹介画像 4</strong><small>作品詳細ページで表示する画像</small><input type="file" accept="image/jpeg,image/png,image/webp" data-product-image-role="gallery" data-product-image-order="3" aria-label="紹介画像4"></div>
       </div>
     </section>
 
@@ -198,10 +198,12 @@ const descriptionInput = document.querySelector('.product-description-card texta
 const categoryInput = document.querySelector('#product-category');
 const translationCards = [...document.querySelectorAll('[data-product-locale]')];
 const videoInput = document.querySelector('input[type="file"][accept="video/mp4,video/webm,video/quicktime,video/x-matroska"]');
+const imageInputs = [...document.querySelectorAll('input[type="file"][data-product-image-role]')];
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 let maxUploadBytes = 5 * 1024 * 1024 * 1024;
+let maxImageUploadBytes = 20 * 1024 * 1024;
 let maxUploadLimitLabel = '5 GB';
 let isSaving = false;
 let isStarting = false;
@@ -235,12 +237,12 @@ function getVideoMime(file) {
   return mimeByExtension[extension] || '';
 }
 
-function uploadVideo(file, onProgress) {
+function uploadMedia(file, mimeType, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/seller/media/upload');
     xhr.withCredentials = true;
-    xhr.setRequestHeader('Content-Type', getVideoMime(file));
+    xhr.setRequestHeader('Content-Type', mimeType);
     xhr.setRequestHeader('X-Original-Filename', file.name);
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
@@ -283,6 +285,8 @@ const uploadLimitPromise = request('/api/seller/media/limits').then((limits) => 
     throw new Error('invalid_upload_limit_response');
   }
   maxUploadBytes = limits.maxUploadBytes;
+  if (!Number.isSafeInteger(limits?.maxImageUploadBytes) || limits.maxImageUploadBytes <= 0) throw new Error('invalid_image_upload_limit_response');
+  maxImageUploadBytes = limits.maxImageUploadBytes;
   const gigabytes = maxUploadBytes / (1024 ** 3);
   maxUploadLimitLabel = gigabytes >= 1
     ? `${Number(gigabytes.toFixed(2))} GB`
@@ -310,6 +314,7 @@ async function saveProduct() {
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
   const file = videoInput?.files?.[0];
+  const selectedImages = imageInputs.map((input) => ({ input, file: input.files?.[0] })).filter((item) => item.file);
   const translations = translationCards.map((card) => ({
     locale: card.dataset.productLocale,
     title: card.querySelector('[data-translation-title]')?.value.trim() || '',
@@ -347,19 +352,48 @@ async function saveProduct() {
     return;
   }
 
+  for (const { input, file: imageFile } of selectedImages) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(imageFile.type.toLowerCase())) {
+      input.focus();
+      alert('画像形式は JPEG・PNG・WebP に対応しています。');
+      return;
+    }
+    if (imageFile.size === 0 || imageFile.size > maxImageUploadBytes) {
+      input.focus();
+      alert('画像ファイルは空でない、20 MB 以下の JPEG・PNG・WebP を選択してください。');
+      return;
+    }
+  }
+
   isSaving = true;
   const originalSaveLabel = saveAction?.textContent;
   if (saveAction) saveAction.textContent = 'アップロード・保存中…';
   saveAction?.setAttribute('aria-busy', 'true');
   let uploadedMediaAssetId = null;
+  const uploadedImageAssets = [];
+  const uploadedAssetIds = [];
   let productCreated = false;
   try {
-    const upload = await uploadVideo(file, (percent) => {
+    const upload = await uploadMedia(file, getVideoMime(file), (percent) => {
       if (saveAction) saveAction.textContent = `アップロード中… ${percent}%`;
     });
     uploadedMediaAssetId = typeof upload?.mediaAsset?.id === 'string' && upload.mediaAsset.id.trim() ? upload.mediaAsset.id : null;
     if (!uploadedMediaAssetId) throw new Error('動画アップロードの応答が不正です。');
     if (upload.mediaAsset.status !== 'ready') throw new Error('アップロードした動画が利用可能な状態ではありません。動画一覧を確認してください。');
+    uploadedAssetIds.push(uploadedMediaAssetId);
+    for (let index = 0; index < selectedImages.length; index += 1) {
+      const { input, file: imageFile } = selectedImages[index];
+      if (saveAction) saveAction.textContent = `画像アップロード中… ${index + 1}/${selectedImages.length}`;
+      const imageUpload = await uploadMedia(imageFile, imageFile.type.toLowerCase(), () => {});
+      const imageAssetId = typeof imageUpload?.mediaAsset?.id === 'string' ? imageUpload.mediaAsset.id.trim() : '';
+      if (!imageAssetId || imageUpload.mediaAsset.status !== 'ready') throw new Error('画像アップロードの応答が不正です。');
+      uploadedImageAssets.push({
+        mediaAssetId: imageAssetId,
+        role: input.dataset.productImageRole,
+        sortOrder: Number(input.dataset.productImageOrder || 0)
+      });
+      uploadedAssetIds.push(imageAssetId);
+    }
     if (saveAction) saveAction.textContent = '作品情報を保存中…';
     await request('/api/seller/products', {
       method: 'POST',
@@ -371,7 +405,8 @@ async function saveProduct() {
         priceCurrency: 'JPY',
         categorySlug: categoryInput?.value || null,
         translations,
-        mediaAssetId: uploadedMediaAssetId
+        mediaAssetId: uploadedMediaAssetId,
+        images: uploadedImageAssets
       })
     });
     productCreated = true;
@@ -379,16 +414,18 @@ async function saveProduct() {
   } catch (error) {
     let productMayExist = productCreated;
     let cleanupPending = false;
-    if (uploadedMediaAssetId && !productCreated) {
-      try {
-        await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
-      } catch (cleanupError) {
-        if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
-          productMayExist = true;
-        } else {
-          cleanupPending = true;
-          console.error('seller_product_create_cleanup_failed', cleanupError);
-          if (error.status >= 500 || !error.status) productMayExist = true;
+    if (uploadedAssetIds.length && !productCreated) {
+      for (const assetId of uploadedAssetIds.reverse()) {
+        try {
+          await request(`/api/seller/media/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+        } catch (cleanupError) {
+          if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+            productMayExist = true;
+          } else {
+            cleanupPending = true;
+            console.error('seller_product_create_cleanup_failed', cleanupError);
+            if (error.status >= 500 || !error.status) productMayExist = true;
+          }
         }
       }
     }
