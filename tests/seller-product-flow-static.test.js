@@ -104,4 +104,10 @@ assert.match(productRoutes, /product_image_asset_invalid/);
 assert.match(productImagesMigration, /CREATE TABLE IF NOT EXISTS product_images/);
 assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
+assert.match(productDetailRoutes, /products\\/:productId\\/images\\/:assetId/);
+assert.match(productDetailRoutes, /p\\.status = 'published'/);
+assert.match(productDetailPolicy, /product\\.images = images\\.rows\\.map/);
+assert.match(productDetailPage, /product\\.images/);
+assert.match(productDetailPage, /node\\.style\\.backgroundImage/);
+
 console.log('Seller product upload flow static contract checks passed.');
