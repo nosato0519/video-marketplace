@@ -53,12 +53,12 @@
           <span>02 / CATEGORY</span>
           <strong>カテゴリー</strong>
           <small>作品に合うジャンルを選択</small>
-          <select class="product-input" aria-label="カテゴリー">
-            <option>カテゴリーを選択</option>
-            <option>映画</option>
-            <option>学び</option>
-            <option>ドキュメンタリー</option>
-            <option>クリエイティブ</option>
+          <select class="product-input" id="product-category" aria-label="カテゴリー">
+            <option value="">カテゴリーを選択</option>
+            <option value="movie">映画</option>
+            <option value="learning">学び</option>
+            <option value="documentary">ドキュメンタリー</option>
+            <option value="creative">クリエイティブ</option>
           </select>
         </div>
         <div class="buyer-menu-card product-input-card">
@@ -82,26 +82,26 @@
         <span>任意</span>
       </div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card product-input-card">
+        <div class="buyer-menu-card product-input-card" data-product-locale="ja">
           <span>JAPANESE / JA</span>
           <strong>日本語</strong>
           <small>作品タイトル・説明を設定</small>
-          <input class="product-input" type="text" placeholder="日本語タイトル">
-          <textarea class="product-input product-description-input" rows="4" placeholder="日本語の作品説明"></textarea>
+          <input class="product-input" data-translation-title type="text" placeholder="日本語タイトル">
+          <textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="日本語の作品説明"></textarea>
         </div>
-        <div class="buyer-menu-card product-input-card">
+        <div class="buyer-menu-card product-input-card" data-product-locale="en">
           <span>ENGLISH / EN</span>
           <strong>English</strong>
           <small>作品タイトル・説明を設定</small>
-          <input class="product-input" type="text" placeholder="English title">
-          <textarea class="product-input product-description-input" rows="4" placeholder="English description"></textarea>
+          <input class="product-input" data-translation-title type="text" placeholder="English title">
+          <textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="English description"></textarea>
         </div>
-        <div class="buyer-menu-card product-input-card">
+        <div class="buyer-menu-card product-input-card" data-product-locale="zh-CN">
           <span>CHINESE / ZH</span>
           <strong>中文</strong>
           <small>作品タイトル・説明を設定</small>
-          <input class="product-input" type="text" placeholder="中文标题">
-          <textarea class="product-input product-description-input" rows="4" placeholder="中文简介"></textarea>
+          <input class="product-input" data-translation-title type="text" placeholder="中文标题">
+          <textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="中文简介"></textarea>
         </div>
       </div>
     </section>
@@ -195,6 +195,8 @@
 const titleInput = document.querySelector('.product-input-card input[type="text"]');
 const priceInput = document.querySelector('.product-input-card input[inputmode="numeric"]');
 const descriptionInput = document.querySelector('.product-description-card textarea');
+const categoryInput = document.querySelector('#product-category');
+const translationCards = [...document.querySelectorAll('[data-product-locale]')];
 const videoInput = document.querySelector('input[type="file"][accept="video/mp4,video/webm,video/quicktime,video/x-matroska"]');
 const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
 const saveAction = saveCard?.querySelector('b');
@@ -308,6 +310,11 @@ async function saveProduct() {
   const title = titleInput?.value.trim() || '';
   const priceAmount = parsePrice(priceInput?.value);
   const file = videoInput?.files?.[0];
+  const translations = translationCards.map((card) => ({
+    locale: card.dataset.productLocale,
+    title: card.querySelector('[data-translation-title]')?.value.trim() || '',
+    description: card.querySelector('[data-translation-description]')?.value.trim() || ''
+  })).filter((translation) => translation.title || translation.description);
 
   if (!title) {
     titleInput?.focus();
@@ -362,6 +369,8 @@ async function saveProduct() {
         description: descriptionInput?.value.trim() || '',
         priceAmount,
         priceCurrency: 'JPY',
+        categorySlug: categoryInput?.value || null,
+        translations,
         mediaAssetId: uploadedMediaAssetId
       })
     });
