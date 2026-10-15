@@ -24,25 +24,24 @@ function parsePrice(value) {
 async function request(path, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(new Error('サーバーからの応答が30秒以内にありませんでした。通信状態を確認して再試行してください。')), 30000);
-  let response;
   try {
-    response = await fetch(path, { credentials: 'same-origin', ...options, signal: controller.signal });
+    const response = await fetch(path, { credentials: 'same-origin', ...options, signal: controller.signal });
+    const text = await response.text();
+    let body = null;
+    try { body = text ? JSON.parse(text) : null; } catch {}
+    if (!response.ok) {
+      const error = new Error(body?.error?.message || body?.error || '保存できませんでした。');
+      error.status = response.status;
+      error.body = body;
+      throw error;
+    }
+    return body;
   } catch (error) {
     if (controller.signal.aborted) throw controller.signal.reason || new Error('サーバーからの応答が30秒以内にありませんでした。');
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
-  const text = await response.text();
-  let body = null;
-  try { body = text ? JSON.parse(text) : null; } catch {}
-  if (!response.ok) {
-    const error = new Error(body?.error?.message || body?.error || '保存できませんでした。');
-    error.status = response.status;
-    error.body = body;
-    throw error;
-  }
-  return body;
 }
 
 function getVideoMime(file) {
