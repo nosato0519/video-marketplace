@@ -109,7 +109,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       await saveAction.click();
       await expect.poll(() => uploadCalls).toBe(1);
       await expect(saveAction).toHaveAttribute('aria-busy', 'true');
-      await saveAction.click({ force: true });
+      await saveAction.dispatchEvent('click');
       expect(uploadCalls).toBe(1);
       expect(draftCalls).toBe(0);
     } finally {
@@ -188,7 +188,7 @@ test('disables the save action while a video upload is pending', async ({ page }
 
     await page.locator('.buyer-menu-card[aria-label="動画を保存する"]').click();
     expect(draftCalls).toBe(0);
-    await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"] b')).not.toHaveAttribute('aria-busy', 'true');
+    await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"]')).not.toHaveAttribute('aria-busy', 'true');
   });
 
   test('product editor infers MIME type when browser reports a blank type', async ({ page }) => {
