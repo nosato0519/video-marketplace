@@ -83,7 +83,7 @@ assert.match(spaUpload, /xhr\.upload\.addEventListener\('progress'/);
 assert.match(spaUpload, /`Uploading \$\{file\.name\}… \$\{percent\}%`/);
 assert.match(spaUpload, /media\.mediaAsset\.status !== 'ready'/);
 assert.match(mediaUploadRoute, /media_upload_cleanup_failed/);
-assert.match(productRoutes, /categorySlug = null, translations = \[\]/);
+assert.match(productRoutes, /categorySlug = null,\s*translations = \[\]/);
 assert.match(productRoutes, /product_category_not_found/);
 assert.match(productRoutes, /INSERT INTO product_translations/);
 assert.match(categorySeed, /\('movie', '映画'\)/);
