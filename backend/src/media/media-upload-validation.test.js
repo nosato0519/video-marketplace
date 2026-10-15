@@ -21,3 +21,14 @@ test('reports the minimum bytes needed for signature inspection', () => {
   assert.equal(requiredSignatureBytes('video/mp4'), 8);
   assert.equal(requiredSignatureBytes('video/webm'), 4);
 });
+
+test('recognizes JPEG, PNG and WebP image signatures', () => {
+  assert.equal(mediaSignatureMatches('image/jpeg', Buffer.from([0xff, 0xd8, 0xff, 0xe0])), true);
+  assert.equal(mediaSignatureMatches('image/png', Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), true);
+  assert.equal(mediaSignatureMatches('image/webp', Buffer.from([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])), true);
+});
+
+test('rejects image files with mismatched signatures', () => {
+  assert.equal(mediaSignatureMatches('image/png', Buffer.from('not-a-png')), false);
+  assert.equal(mediaSignatureMatches('image/jpeg', Buffer.from('not-a-jpeg')), false);
+});
