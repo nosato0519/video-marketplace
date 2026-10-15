@@ -142,40 +142,14 @@
 
     <section class="buyer-section">
       <div class="buyer-section-head">
-        <div><span class="section-kicker">PUBLISHING</span><h2>公開設定</h2></div>
+        <div><span class="section-kicker">SAVE</span><h2>作品を保存する</h2></div>
       </div>
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card">
-          <span>DRAFT</span>
-          <strong>下書きとして保存</strong>
-          <small>登録内容を保存し、あとから編集できます。</small>
-          <b>下書き保存 →</b>
-        </div>
-        <div class="buyer-menu-card">
-          <span>REVIEW</span>
-          <strong>審査に申請する</strong>
-          <small>登録内容を確認して販売審査へ進みます。</small>
-          <b>審査を申請 →</b>
-        </div>
-        <div class="buyer-menu-card">
-          <span>STATUS</span>
-          <strong>現在の状態</strong>
-          <small>下書き・審査中・公開中などの状態を確認できます。</small>
-          <b>公開状態を確認 →</b>
-        </div>
-      </div>
-    </section>
-
-    <section class="buyer-section">
-      <div class="buyer-section-head">
-        <div><span class="section-kicker">ACTIONS</span><h2>登録を完了する</h2></div>
-      </div>
-      <div class="buyer-menu-grid">
-        <div class="buyer-menu-card" role="button" tabindex="0" aria-label="動画を保存する">
           <span>SAVE</span>
-          <strong>動画を保存する</strong>
-          <small>入力した内容を保存して動画管理へ戻ります。</small>
-          <b>保存する →</b>
+          <strong>下書きを保存</strong>
+          <small>動画と作品情報を保存します。保存後、動画管理から公開操作へ進めます。</small>
+          <button class="primary" type="button" id="save-product">下書きを保存する →</button>
         </div>
         <div class="buyer-menu-card">
           <span>CANCEL</span>
@@ -199,8 +173,7 @@ const categoryInput = document.querySelector('#product-category');
 const translationCards = [...document.querySelectorAll('[data-product-locale]')];
 const videoInput = document.querySelector('input[type="file"][accept="video/mp4,video/webm,video/quicktime,video/x-matroska"]');
 const imageInputs = [...document.querySelectorAll('input[type="file"][data-product-image-role]')];
-const saveCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'SAVE');
-const saveAction = saveCard?.querySelector('b');
+const saveAction = document.querySelector('#save-product');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 let maxUploadBytes = 5 * 1024 * 1024 * 1024;
 let maxImageUploadBytes = 20 * 1024 * 1024;
@@ -452,13 +425,7 @@ async function saveProduct() {
   }
 }
 
-saveCard?.addEventListener('click', saveProduct);
-saveCard?.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    saveProduct();
-  }
-});
+saveAction?.addEventListener('click', saveProduct);
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
