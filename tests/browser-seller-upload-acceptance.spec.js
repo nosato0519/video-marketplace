@@ -10,6 +10,12 @@ async function mockSellerSession(page) {
       body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } }),
     });
   });
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await fulfillJson(route, {
+      maxUploadBytes: 5 * 1024 * 1024 * 1024,
+      maxImageUploadBytes: 20 * 1024 * 1024,
+    });
+  });
 }
 
 async function fulfillJson(route, body, status = 200) {
@@ -26,6 +32,12 @@ test.describe('seller upload browser acceptance', () => {
     await page.route('**/api/auth/me', async (route) => {
       await sessionGate;
       await fulfillJson(route, { user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } });
+    });
+    await page.route('**/api/seller/media/limits', async (route) => {
+      await fulfillJson(route, {
+        maxUploadBytes: 5 * 1024 * 1024 * 1024,
+        maxImageUploadBytes: 20 * 1024 * 1024,
+      });
     });
     await page.route('**/api/seller/media/upload', async (route) => {
       uploadCalls += 1;
