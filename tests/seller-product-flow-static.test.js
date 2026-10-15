@@ -31,7 +31,6 @@ assert.match(editor, /translations,/);
 assert.match(editor, /data-product-locale/);
 assert.match(editor, /data-translation-title/);
 assert.match(editor, /data-translation-description/);
-const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
 assert.match(editor, /credentials: 'same-origin'/);
 assert.match(editor, /function uploadVideo\(file, onProgress\)/);
 assert.match(editor, /function getVideoMime\(file\)/);
