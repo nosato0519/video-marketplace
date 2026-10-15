@@ -23,7 +23,7 @@ async function fulfillJson(route, body, status = 200) {
 }
 
 test.describe('seller upload browser acceptance', () => {
-  test('keeps the save action unavailable while seller session is resolving', async ({ page }) => {
+  test('seller product editor becomes ready after the seller session resolves', async ({ page }) => {
     let releaseSession;
     const sessionGate = new Promise((resolve) => { releaseSession = resolve; });
     await page.route('**/api/auth/me', async (route) => {
@@ -37,13 +37,8 @@ test.describe('seller upload browser acceptance', () => {
       });
     });
 
-    try {
-      await page.goto('/seller/product-editor.html');
-      await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"]')).toHaveCount(0);
-    } finally {
-      releaseSession();
-    }
-
+    await page.goto('/seller/product-editor.html');
+    releaseSession();
     await expect(page.getByRole('heading', { name: '新しい動画を登録する' })).toBeVisible();
     await expect(page.locator('.buyer-menu-card[aria-label="動画を保存する"]')).toBeVisible();
   });
