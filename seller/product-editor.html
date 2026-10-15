@@ -425,7 +425,24 @@ async function saveProduct() {
   }
 }
 
-saveAction?.addEventListener('click', saveProduct);
+saveAction?.addEventListener('click', async () => {
+  if (isSaving || isStarting) return;
+
+  saveAction.disabled = true;
+  saveAction.setAttribute('aria-busy', 'true');
+  saveAction.textContent = 'ログイン状態を確認中…';
+
+  try {
+    await saveProduct();
+  } catch (error) {
+    console.error('seller_product_save_unhandled_error', error);
+    alert('保存処理を開始できませんでした。ページを再読み込みして再試行してください。');
+  } finally {
+    saveAction.disabled = false;
+    saveAction.removeAttribute('aria-busy');
+    saveAction.textContent = '下書きを保存する →';
+  }
+});
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
