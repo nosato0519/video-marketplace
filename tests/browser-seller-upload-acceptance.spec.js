@@ -108,7 +108,7 @@ test('disables the save action while a video upload is pending', async ({ page }
     try {
       await saveAction.click();
       await expect.poll(() => uploadCalls).toBe(1);
-      await expect(saveAction.locator('b')).toHaveAttribute('aria-busy', 'true');
+      await expect(saveAction).toHaveAttribute('aria-busy', 'true');
       await saveAction.click({ force: true });
       expect(uploadCalls).toBe(1);
       expect(draftCalls).toBe(0);
