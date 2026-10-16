@@ -21,7 +21,7 @@ function listingPrice(product) {
 async function fetchPublishedListings({ category = '', limit = 6 } = {}) {
   const params = new URLSearchParams({ locale: 'ja', limit: String(limit) });
   if (category) params.set('category', category);
-  const response = await fetch('/api/catalog/products?' + params, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+  const response = await fetch('/api/catalog/products?' + params, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('catalog_load_failed');
   const payload = await response.json();
   return Array.isArray(payload.data) ? payload.data : [];
