@@ -282,15 +282,19 @@ try {
     request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/publish`, { method: 'POST', headers: { cookie: sellerCookie } })
   ]);
   assert.ok([200, 409].includes(racePatchResponse.response.status), JSON.stringify(racePatchResponse.body));
-  assert.equal(racePublishResponse.response.status, 200, JSON.stringify(racePublishResponse.body));
-  assert.equal(racePublishResponse.body.product.status, 'published');
+  assert.ok([200, 409].includes(racePublishResponse.response.status), JSON.stringify(racePublishResponse.body));
   const raceProductAfterPublish = await request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { headers: { cookie: sellerCookie } });
   assert.equal(raceProductAfterPublish.response.status, 200, JSON.stringify(raceProductAfterPublish.body));
-  assert.equal(raceProductAfterPublish.body.product.status, 'published');
-  if (racePatchResponse.response.status === 409) {
+  if (racePublishResponse.response.status === 200) {
+    assert.equal(racePublishResponse.body.product.status, 'published');
+    assert.equal(raceProductAfterPublish.body.product.status, 'published');
+    assert.equal(racePatchResponse.response.status, 409, 'Publishing first must prevent a concurrent edit');
     assert.equal(racePatchResponse.body.error, 'published_product_locked');
   } else {
+    assert.equal(racePublishResponse.body.error, 'product_status_not_publishable');
+    assert.equal(racePatchResponse.response.status, 200, 'An edit that wins the race must invalidate the previous approval');
     assert.equal(racePatchResponse.body.product.title, 'Edited Before Publish');
+    assert.equal(raceProductAfterPublish.body.product.status, 'draft');
   }
 
   await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
@@ -387,6 +391,7 @@ try {
     assert.deepEqual(await localSellerMediaFiles(ids.seller), filesBeforeLinkedDelete, 'Rejecting deletion of linked media must preserve its stored file');
   }
 
+  await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
   const republishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(republishResponse.response.status, 200, JSON.stringify(republishResponse.body));
   assert.equal(republishResponse.body.product.status, 'published');
