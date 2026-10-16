@@ -55,6 +55,7 @@
     <div class="row"><div><strong>公開中</strong><small>通常販売中。問題がある場合は停止を検討</small></div><span class="tag ok">公開</span></div>
   </div></div>
 </section>
+<dialog id="review-detail-dialog" class="review-detail-dialog" aria-labelledby="review-detail-title"><div class="review-detail-header"><h2 id="review-detail-title">申請内容の詳細</h2><button type="button" class="btn" id="review-detail-close">閉じる</button></div><div id="review-detail-body" class="review-detail-body"><p class="muted">読み込み中…</p></div></dialog>
 <footer class="footer">ADMIN ACCESS　•　CONTENT MODERATION</footer>
 </main></div>
 <script>
@@ -100,7 +101,7 @@ function render(){
   const price=Number(review.price_amount||0).toLocaleString('ja-JP')+' '+esc(review.price_currency||'JPY');
   const date=review.created_at?new Date(review.created_at).toLocaleString('ja-JP'):'—';
   const tagClass=['approved','published'].includes(state)?'ok':'warn';
-  return '<tr data-review-row="'+esc(review.id)+'"><td><strong>'+esc(review.product_title||'作品名なし')+'</strong><small>'+media+'</small><small>'+esc(review.media_mime_type||'')+'</small>'+videoPreview+'<small>ID: '+esc(review.product_id)+'</small></td><td>'+esc(review.seller_email||'—')+'</td><td>'+price+'</td><td>'+esc(date)+'</td><td><span class="tag '+tagClass+'">'+esc(statusLabels[state]||state)+'</span><small>'+esc(review.notes||'')+'</small></td><td><div class="row-actions">'+actionButtons(review)+'</div></td></tr>';
+  return '<tr data-review-row="'+esc(review.id)+'"><td><strong>'+esc(review.product_title||'作品名なし')+'</strong><small>'+media+'</small><small>'+esc(review.media_mime_type||'')+'</small>'+videoPreview+'<small>ID: '+esc(review.product_id)+'</small><button type="button" class="btn small" data-detail="'+esc(review.id)+'">詳細を見る</button></td><td>'+esc(review.seller_email||'—')+'</td><td>'+price+'</td><td>'+esc(date)+'</td><td><span class="tag '+tagClass+'">'+esc(statusLabels[state]||state)+'</span><small>'+esc(review.notes||'')+'</small></td><td><div class="row-actions">'+actionButtons(review)+'</div></td></tr>';
  }).join(''):'<tr><td colspan="6" class="muted">該当する審査申請はありません。</td></tr>';
  contentMessage.textContent=visible.length+'件';
  const counts={'pending':0,'published':0,'changes_requested':0,'blocked':0};
@@ -133,7 +134,22 @@ async function applyAction(reviewId,status){
   await load();
  }catch(error){showMessage(error.message,'error');}
 }
+const detailDialog=document.getElementById('review-detail-dialog');
+const detailBody=document.getElementById('review-detail-body');
+document.getElementById('review-detail-close').addEventListener('click',()=>detailDialog.close());
+async function showDetails(id){
+ detailDialog.showModal();detailBody.innerHTML='<p class="muted">読み込み中…</p>';
+ try{
+  const data=await api('/api/admin/content/reviews/'+encodeURIComponent(id));const item=data.review;
+  const size=Number(item.media_byte_size);const sizeLabel=Number.isFinite(size)&&size>0?(size/1048576).toFixed(1)+' MB':'サイズ不明';
+  const video=item.media_status==='ready'&&String(item.media_mime_type||'').startsWith('video/')?'<video class="review-detail-video" controls preload="metadata" src="/api/admin/content/reviews/'+encodeURIComponent(item.id)+'/video"></video>':'<p class="muted">再生できる動画がありません。</p>';
+  detailBody.innerHTML='<h3>作品情報</h3><dl class="review-detail-grid"><dt>タイトル</dt><dd>'+esc(item.product_title||'作品名なし')+'</dd><dt>説明文</dt><dd class="review-detail-description">'+esc(item.description||'未入力')+'</dd><dt>価格</dt><dd>'+Number(item.price_amount||0).toLocaleString('ja-JP')+' '+esc(item.price_currency||'JPY')+'</dd><dt>カテゴリ</dt><dd>'+esc(item.category_name||item.category_slug||'未設定')+'</dd><dt>作品ID</dt><dd>'+esc(item.product_id)+'</dd><dt>販売者</dt><dd>'+esc(item.seller_email||'—')+'</dd><dt>申請日時</dt><dd>'+esc(item.created_at?new Date(item.created_at).toLocaleString('ja-JP'):'—')+'</dd><dt>審査状態</dt><dd>'+esc(statusLabels[item.status]||item.status||'—')+'</dd><dt>審査メモ</dt><dd>'+esc(item.notes||'なし')+'</dd><dt>動画ファイル</dt><dd>'+esc(item.media_original_filename||'未登録')+' · '+esc(item.media_mime_type||'形式不明')+' · '+sizeLabel+'</dd></dl><h3>申請動画</h3>'+video;
+ }catch(error){detailBody.innerHTML='<p class="error">'+esc(error.message)+'</p>';}
+}
 table.addEventListener('click',event=>{
+ const detail=event.target.closest('button[data-detail]');
+ if(detail){void showDetails(detail.dataset.detail);return;}
+
  const button=event.target.closest('button[data-review][data-status]');
  if(button)void applyAction(button.dataset.review,button.dataset.status);
 });
