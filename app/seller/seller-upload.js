@@ -20,8 +20,9 @@ function uploadVideo(file, mimeType, onProgress) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/seller/media/upload');
     xhr.withCredentials = true;
+    xhr.timeout = 180000;
     xhr.setRequestHeader('Content-Type', mimeType);
-    xhr.setRequestHeader('X-Original-Filename', file.name);
+    xhr.setRequestHeader('X-Original-Filename', encodeURIComponent(file.name));
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
     });
@@ -38,6 +39,7 @@ function uploadVideo(file, mimeType, onProgress) {
       reject(error);
     });
     xhr.addEventListener('error', () => reject(new Error('Network error while uploading video.')));
+    xhr.addEventListener('timeout', () => reject(new Error('Upload did not finish within 180 seconds. Check the storage configuration before retrying.')));
     xhr.addEventListener('abort', () => reject(new Error('Video upload was interrupted.')));
     xhr.send(file);
   });
