@@ -50,7 +50,7 @@
         </div>
         <div class="buyer-menu-card product-input-card">
           <span>02 / CATEGORY</span><strong>カテゴリー</strong><small>作品に合うジャンル</small>
-          <select class="product-input"><option>映画</option><option>学び</option><option>ドキュメンタリー</option><option>クリエイティブ</option></select>
+          <select id="product-category" class="product-input"><option value="">カテゴリーを選択</option><option value="movie">映画</option><option value="learning">学び</option><option value="documentary">ドキュメンタリー</option><option value="creative">クリエイティブ</option></select>
         </div>
         <div class="buyer-menu-card product-input-card">
           <span>03 / PRICE</span><strong>販売価格</strong><small>購入者に表示する価格</small>
@@ -119,6 +119,7 @@ const productId = new URLSearchParams(window.location.search).get('productId');
 const titleInput = document.querySelector('#product-title');
 const priceInput = document.querySelector('#product-price');
 const descriptionInput = document.querySelector('#product-description');
+const categoryInput = document.querySelector('#product-category');
 const statusElement = document.querySelector('#product-status');
 const saveButton = document.querySelector('#save-product');
 const replacementVideoInput = document.querySelector('#replacement-video');
@@ -188,6 +189,7 @@ async function loadProduct() {
   titleInput.value = product.title || '';
   priceInput.value = product.price_amount ?? '';
   descriptionInput.value = product.description || '';
+  if (categoryInput) categoryInput.value = product.category_slug || '';
   currentProductStatus = product.status;
   statusElement.textContent = formatStatus(product.status);
   statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
@@ -244,7 +246,8 @@ async function saveProduct() {
     const body = {
       title: titleInput.value,
       description: descriptionInput.value,
-      priceAmount: Number(priceInput.value || 0)
+      priceAmount: Number(priceInput.value || 0),
+      categorySlug: categoryInput?.value || ''
     };
     const replacementVideo = replacementVideoInput.files?.[0];
     if (replacementVideo) {
