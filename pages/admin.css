@@ -117,6 +117,10 @@ a.feature:hover .feature-action span{transform:translateX(4px)}
 .review-detail-grid dt{color:var(--muted)}.review-detail-grid dd{margin:0;overflow-wrap:anywhere}
 .review-detail-description{white-space:pre-wrap;line-height:1.7}
 .review-detail-video{display:block;width:100%;max-height:420px;background:#000}
+.review-detail-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:12px 0 24px}
+.review-detail-image-card{margin:0;min-width:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2)}
+.review-detail-image-card img{display:block;width:100%;max-height:280px;aspect-ratio:16/10;object-fit:contain;background:#08090b}
+.review-detail-image-card figcaption{padding:9px 10px;font-size:11px;color:var(--muted);overflow-wrap:anywhere}
 @media(max-width:600px){.review-detail-dialog{padding:14px}.review-detail-grid{grid-template-columns:1fr;gap:4px}.review-detail-grid dd{margin-bottom:8px}}
 
 
