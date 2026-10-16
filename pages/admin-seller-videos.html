@@ -27,6 +27,7 @@
   <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
 </header>
 <p class="preview-note">販売者から送信された審査申請を実データから取得します。審査結果は作品の状態に反映されます。</p>
+<div id="message" role="status" aria-live="polite"></div>
 <section class="queue">
   <div class="queue-card"><span>審査待ち</span><strong id="pending-count">0 <em>件</em></strong></div>
   <div class="queue-card"><span>公開中</span><strong id="published-count">0 <em>件</em></strong></div>
@@ -65,7 +66,6 @@ const filter=document.getElementById('video-status');
 const contentMessage=document.getElementById('video-count');
 const message=document.getElementById('message');
 let reviews=[];
-let pendingAction=null;
 const statusLabels={pending:'審査待ち',approved:'承認済み',changes_requested:'修正依頼',rejected:'却下',blocked:'停止中',published:'公開中'};
 const actionLabels={approved:'承認',changes_requested:'修正依頼',rejected:'却下',blocked:'停止',pending:'再審査へ'};
 const transitions={pending:['approved','changes_requested','rejected','blocked'],changes_requested:['pending','rejected','blocked'],approved:['blocked'],rejected:['pending'],blocked:['pending']};
