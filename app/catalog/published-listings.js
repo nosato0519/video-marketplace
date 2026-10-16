@@ -85,3 +85,69 @@ async function renderCategoryListings(grid) {
 
 document.querySelectorAll('[data-published-listings="new-releases"]').forEach(renderNewReleases);
 document.querySelectorAll('[data-published-listings="category"]').forEach(renderCategoryListings);
+
+async function renderProductDetail() {
+  const productId = new URLSearchParams(location.search).get('productId');
+  if (!productId || !document.querySelector('.detail-page')) return;
+
+  try {
+    const response = await fetch('/api/catalog/products/' + encodeURIComponent(productId) + '?locale=ja', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    });
+    if (!response.ok) throw new Error('product_load_failed');
+    const payload = await response.json();
+    const product = payload.data;
+    if (!product) throw new Error('product_not_found');
+
+    const category = categoryDefinitions[product.category]?.name || product.category || '動画';
+    document.title = product.title + ' | VIDEO MARKETPLACE';
+    const breadcrumb = document.querySelector('.detail-breadcrumb');
+    if (breadcrumb) breadcrumb.textContent = 'HOME / VIDEO / ' + category + ' / ' + product.title;
+    const kicker = document.querySelector('.detail-kicker');
+    if (kicker) kicker.textContent = category + ' · VIDEO';
+    const title = document.querySelector('.detail-info h1');
+    if (title) title.textContent = product.title;
+    const lead = document.querySelector('.detail-lead');
+    if (lead) lead.textContent = product.description || '';
+    const seller = document.querySelector('.detail-rating span:nth-child(2)');
+    if (seller) seller.textContent = 'by ' + (product.seller || '');
+    const price = document.querySelector('.detail-price');
+    if (price) price.textContent = product.price_currency === 'JPY'
+      ? '¥' + Number(product.price_amount).toLocaleString('ja-JP')
+      : Number(product.price_amount).toLocaleString('ja-JP') + ' ' + (product.price_currency || '');
+
+    const images = Array.isArray(product.images) ? product.images : [];
+    const thumbnail = images.find((image) => image.role === 'thumbnail') || images.find((image) => image.role === 'gallery');
+    const heroImage = document.querySelector('.detail-media-image');
+    if (heroImage) {
+      heroImage.style.backgroundImage = thumbnail ? 'url("' + thumbnail.url + '")' : 'none';
+      heroImage.style.backgroundSize = 'cover';
+      heroImage.style.backgroundPosition = 'center';
+    }
+    const galleryImages = images.filter((image) => image.role === 'gallery');
+    const galleryNodes = [...document.querySelectorAll('.detail-gallery-image')];
+    galleryNodes.forEach((node, index) => {
+      const image = galleryImages[index];
+      node.hidden = !image;
+      node.style.display = image ? '' : 'none';
+      node.style.backgroundImage = image ? 'url("' + image.url + '")' : 'none';
+      node.style.backgroundSize = 'cover';
+      node.style.backgroundPosition = 'center';
+    });
+    const gallery = document.querySelector('.detail-gallery');
+    if (gallery) {
+      gallery.hidden = galleryImages.length === 0;
+      gallery.style.display = galleryImages.length ? '' : 'none';
+    }
+  } catch {
+    const main = document.querySelector('.detail-page');
+    if (main) {
+      main.innerHTML = '<section class="detail-section"><h1>作品を表示できませんでした</h1><p>作品が公開されていないか、情報を読み込めませんでした。動画一覧から選び直してください。</p><a href="/pages/video-list.html">動画一覧へ戻る</a></section>';
+    }
+  }
+}
+
+renderProductDetail();
+
