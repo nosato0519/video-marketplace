@@ -131,7 +131,7 @@ router.post('/products', async (req, res, next) => {
       !== normalizedImages.length;
     const thumbnailCount = normalizedImages.filter((image) => image.role === 'thumbnail').length;
     const galleryCount = normalizedImages.filter((image) => image.role === 'gallery').length;
-    if (hasInvalidImage || hasDuplicateImageAsset || thumbnailCount > 1 || galleryCount > 4) {
+    if (hasInvalidImage || hasDuplicateImageAsset || thumbnailCount !== 1 || galleryCount > 4) {
       return res.status(422).json({ error: 'invalid_product_images' });
     }
     const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
@@ -222,7 +222,7 @@ router.patch('/products/:productId', async (req, res, next) => {
       const duplicateImage = new Set(normalizedImages.map((image) => image.mediaAssetId)).size !== normalizedImages.length;
       const thumbnails = normalizedImages.filter((image) => image.role === 'thumbnail').length;
       const galleries = normalizedImages.filter((image) => image.role === 'gallery').length;
-      if (invalidImage || duplicateImage || thumbnails > 1 || galleries > 4) {
+      if (invalidImage || duplicateImage || thumbnails !== 1 || galleries > 4) {
         return res.status(422).json({ error: 'invalid_product_images' });
       }
     }
