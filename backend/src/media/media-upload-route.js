@@ -133,7 +133,7 @@ router.post('/upload', async (req, res, next) => {
   };
 
   try {
-    await mediaStorage.putStream({ storageKey, stream: Readable.from(limiter()) });
+    await mediaStorage.putStream({ storageKey, stream: Readable.from(limiter()), contentLength: declaredLength });
 
     if (bytes === 0) {
       throw Object.assign(new Error('empty_upload_body'), { statusCode: 400 });
