@@ -85,12 +85,6 @@ test('disables the save action while a video upload is pending', async ({ page }
       buffer: Buffer.from([255, 216, 255, 217]),
     });
 
-    await page.getByLabel('サムネイル画像').setInputFiles({
-      name: 'thumbnail.jpg',
-      mimeType: 'image/jpeg',
-      buffer: Buffer.from([255, 216, 255, 217]),
-    });
-
     const saveAction = page.locator('#save-product');
     try {
       await saveAction.click();
