@@ -23,14 +23,6 @@ function formatPrice(product) {
   }
 }
 
-function formatBytes(value) {
-  const bytes = Number(value);
-  if (!Number.isFinite(bytes) || bytes < 0) return '';
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
-
 function mediaSummary(product) {
   if (!product.media_asset_id) return { label: 'Video not attached', detail: 'Add a protected video before publishing.', ready: false };
   const status = String(product.media_status || '').toLowerCase();
@@ -53,126 +45,64 @@ function statusLabel(status) {
 function productRow(product) {
   const published = product.status === 'published';
   const media = mediaSummary(product);
+  const editAction = published
+    ? '<button class="button secondary" disabled title="Unpublish this product before editing.">Edit details</button>'
+    : `<a class="button secondary" href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}">Edit details</a>`;
+  const submitAction = ['draft', 'rejected'].includes(product.status)
+    ? `<button class="button secondary" data-action="submit" data-id="${escapeHtml(product.id)}">${product.status === 'rejected' || product.moderation_status === 'changes_requested' ? '修正して再申請' : '審査を申請'}</button>`
+    : '';
   const publishAction = published
     ? `<button class="button secondary" data-action="unpublish" data-id="${escapeHtml(product.id)}">Unpublish</button>`
-    : `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`;
-  const editDisabled = published ? ' disabled title="Unpublish this product before editing."' : '';
-  const videoAction = '<button class="button secondary" data-action="edit" data-id="' + escapeHtml(product.id) + '"' + editDisabled + '>' + (product.media_asset_id ? 'Change video' : 'Add video') + '</button>';
-  const deleteAction = published ? '' : '<button class="button secondary" data-action="delete" data-id="' + escapeHtml(product.id) + '">Delete draft</button>';
+    : product.status === 'approved'
+      ? `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`
+      : '';
+  const deleteAction = published ? '' : `<button class="button secondary" data-action="delete" data-id="${escapeHtml(product.id)}">Delete draft</button>`;
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
     <div class="seller-product-card__meta"><span>${escapeHtml(media.label)}</span><span>${escapeHtml(media.detail)}</span><span>${published ? 'Visible in marketplace' : 'Not visible to buyers'}</span></div>
-    <div class="seller-product-card__actions"><button class="button secondary" data-action="edit" data-id="${escapeHtml(product.id)}"${editDisabled}>Edit details</button>${videoAction}${publishAction}${deleteAction}</div>
+    <div class="seller-product-card__actions">${editAction}${submitAction}${publishAction}${deleteAction}</div>
   </article>`;
 }
 
-function editorMarkup(product = null) {
-  const editing = Boolean(product);
-  return `<section class="seller-editor" aria-labelledby="seller-editor-title">
-    <div class="seller-editor__heading"><div><p class="eyebrow">${editing ? 'Edit product' : 'New product'}</p><h2 id="seller-editor-title">${editing ? 'Product details' : 'Create a product'}</h2></div><button type="button" class="button secondary" data-editor-action="close">Cancel</button></div>
-    <form id="seller-product-form" class="seller-form">
-      <input type="hidden" name="id" value="${editing ? escapeHtml(product.id) : ''}">
-      <label>Title<input name="title" type="text" maxlength="255" value="${escapeHtml(product?.title || '')}" placeholder="Give your video a clear title" required></label>
-      <label>Description<textarea name="description" maxlength="5000" rows="6" placeholder="Explain what buyers will get and what makes this video useful.">${escapeHtml(product?.description || '')}</textarea></label>
-      <div class="seller-form__row"><label>Price<input name="priceAmount" type="number" min="1" step="1" value="${escapeHtml(product?.price_amount ?? 1000)}" required></label><label>Currency<select name="priceCurrency"><option value="JPY" ${product?.price_currency === 'JPY' || !product ? 'selected' : ''}>JPY — Japanese Yen</option><option value="USD" ${product?.price_currency === 'USD' ? 'selected' : ''}>USD — US Dollar</option><option value="EUR" ${product?.price_currency === 'EUR' ? 'selected' : ''}>EUR — Euro</option></select></label></div>
-      <label>Protected video<select name="mediaAssetId" aria-describedby="seller-media-hint"><option value="">Select an uploaded video</option></select></label>
-      <p id="seller-media-hint" class="seller-form__hint">${editing ? 'Select a ready uploaded video to save changes. Published products are locked.' : 'Upload a video first, then select it here to create the product.'}</p>
-      <div class="seller-form__actions"><button class="button" type="submit">${editing ? 'Save changes' : 'Create product'}</button>${!editing ? '<a class="button secondary" href="#/seller/upload">Upload a video instead</a>' : ''}</div>
-      <p id="seller-product-form-message" class="microcopy" aria-live="polite"></p>
-    </form>
-  </section>`;
-}
-
 export async function renderSellerProducts(root) {
-  root.innerHTML = `<main class="seller-shell"><header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>My videos</h1><p>Manage your catalog, prepare products and publish when everything is ready.</p></div><div class="hero-actions"><a class="button secondary" href="#/seller/upload">Upload video</a><button class="button" id="new-product">Create product</button></div></header><div id="seller-product-editor-root"></div><p id="seller-products-message" class="microcopy" aria-live="polite">Loading products…</p><section id="seller-products-list" class="seller-grid" aria-live="polite"></section></main>`;
+  root.innerHTML = `<main class="seller-shell"><header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>My videos</h1><p>Manage your catalog, prepare products and publish when everything is ready.</p></div><div class="hero-actions"><a class="button" href="/seller/product-editor.html">Create product</a></div></header><p id="seller-products-message" class="microcopy" aria-live="polite">Loading products…</p><section id="seller-products-list" class="seller-grid" aria-live="polite"></section></main>`;
 
   const message = root.querySelector('#seller-products-message');
   const list = root.querySelector('#seller-products-list');
-  const editorRoot = root.querySelector('#seller-product-editor-root');
-
-  function closeEditor() { editorRoot.innerHTML = ''; }
-
-  async function showEditor(product = null) {
-    const editing = Boolean(product);
-    editorRoot.innerHTML = editorMarkup(product);
-    const form = editorRoot.querySelector('#seller-product-form');
-    const mediaSelect = form.querySelector('select[name="mediaAssetId"]');
-    const formMessage = form.querySelector('#seller-product-form-message');
-    try {
-      const data = await request('/api/seller/media/assets');
-      const assets = Array.isArray(data.mediaAssets) ? data.mediaAssets : [];
-      const selectable = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'ready');
-      mediaSelect.innerHTML = `<option value="">Select an uploaded video</option>${selectable.map((asset) => `<option value="${escapeHtml(asset.id)}">${escapeHtml(asset.original_filename || `Video ${asset.id}`)}${formatBytes(asset.byte_size) ? ` · ${escapeHtml(formatBytes(asset.byte_size))}` : ''}</option>`).join('')}`;
-      const currentMediaId = product?.media_asset_id == null ? '' : String(product.media_asset_id);
-      if (currentMediaId && selectable.some((asset) => String(asset.id) === currentMediaId)) mediaSelect.value = currentMediaId;
-      else if (currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="" selected>Current video unavailable — keep existing</option>');
-      if (editing && currentMediaId) mediaSelect.insertAdjacentHTML('beforeend', '<option value="__remove__">Remove current video</option>');
-      mediaSelect.required = false;
-    } catch (error) {
-      mediaSelect.innerHTML = '<option value="">Unable to load videos</option>';
-      mediaSelect.required = false;
-      formMessage.textContent = editing ? 'Available videos could not be loaded. You can still save details without changing the video.' : 'Upload a video first. Available videos could not be loaded, so this product cannot be created yet.';
-    }
-
-    editorRoot.querySelector('[data-editor-action="close"]')?.addEventListener('click', closeEditor);
-    editorRoot.querySelector('input[name="title"]')?.focus();
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const data = new FormData(form);
-      const id = String(data.get('id') || '').trim();
-      const title = String(data.get('title') || '').trim();
-      const description = String(data.get('description') || '').trim();
-      const priceAmount = Number(data.get('priceAmount'));
-      const priceCurrency = String(data.get('priceCurrency') || 'JPY').toUpperCase();
-      const mediaValue = String(data.get('mediaAssetId') || '').trim();
-      if (!title || !Number.isFinite(priceAmount) || priceAmount <= 0) { formMessage.textContent = 'Enter a title and a valid price.'; return; }
-      if (!id && !mediaValue) { formMessage.textContent = 'Upload and select a video before creating a product.'; return; }
-      const submit = form.querySelector('button[type="submit"]');
-      submit.disabled = true;
-      formMessage.textContent = 'Saving…';
-      try {
-        const payload = { title, description, priceAmount, priceCurrency };
-        if (id && mediaValue === '__remove__') payload.mediaAssetId = null;
-        else if (mediaValue) payload.mediaAssetId = mediaValue;
-        await request(id ? `/api/seller/products/${encodeURIComponent(id)}` : '/api/seller/products', { method: id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
-        closeEditor();
-        await load();
-      } catch (error) {
-        formMessage.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to save product.';
-        submit.disabled = false;
-      }
-    });
-  }
 
   async function load() {
     message.textContent = 'Loading products…';
     try {
       const data = await request('/api/seller/products');
       const products = Array.isArray(data.products) ? data.products : [];
-      list.innerHTML = products.length ? products.map(productRow).join('') : '<section class="empty-state"><h2>Your catalog is empty</h2><p>Create a product or upload a video to start building your storefront.</p><div class="hero-actions"><button class="button" data-empty-action="create">Create your first product</button><a class="button secondary" href="#/seller/upload">Upload video</a></div></section>';
+      list.innerHTML = products.length
+        ? products.map(productRow).join('')
+        : '<section class="empty-state"><h2>Your catalog is empty</h2><p>Register a video with its required thumbnail to create your first product.</p><a class="button" href="/seller/product-editor.html">Create your first product</a></section>';
       message.textContent = `${products.length} ${products.length === 1 ? 'product' : 'products'}`;
     } catch (error) {
       list.innerHTML = '<section class="error-state"><h2>Products could not be loaded</h2><p>Please try again. Your drafts are not affected.</p></section>';
-      if (error.status === 401 || error.status === 403) { window.location.href = '/pages/seller-login.html'; return; }
+      if (error.status === 401 || error.status === 403) {
+        window.location.href = '/pages/seller-login.html';
+        return;
+      }
       message.textContent = 'Unable to load products.';
     }
   }
 
-  root.querySelector('#new-product').addEventListener('click', () => { void showEditor(); });
   list.addEventListener('click', async (event) => {
-    const emptyAction = event.target.closest('[data-empty-action]');
-    if (emptyAction?.dataset.emptyAction === 'create') { void showEditor(); return; }
     const button = event.target.closest('[data-action]');
-    if (!button) return;
+    if (!button || button.disabled) return;
     const id = button.dataset.id;
     const action = button.dataset.action;
+    if (action === 'delete' && !window.confirm('Delete this draft? Products with purchase history cannot be deleted.')) return;
+    button.disabled = true;
     try {
-      if (action === 'edit') { const current = await request(`/api/seller/products/${encodeURIComponent(id)}`); await showEditor(current.product); return; }
-      if (action === 'delete' && !window.confirm('Delete this draft? Products with purchase history cannot be deleted.')) return;
-      button.disabled = true;
-      if (action === 'delete') await request(`/api/seller/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
-      else await request(`/api/seller/products/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
+      if (action === 'delete') {
+        await request(`/api/seller/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      } else {
+        await request(`/api/seller/products/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
+      }
       await load();
     } catch (error) {
       message.textContent = error.body?.error?.message || error.body?.error || error.message || 'Unable to update product.';
@@ -182,6 +112,7 @@ export async function renderSellerProducts(root) {
 
   await load();
 }
+
 export function initSellerProductsPage() {
   const list = document.querySelector('#seller-product-list');
   const pagination = document.querySelector('.seller-pagination');
