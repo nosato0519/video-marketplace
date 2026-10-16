@@ -5,6 +5,7 @@ import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
 import { parseRangeHeader } from '../media/range-request.js';
+import { validateProductThumbnailAssets } from '../catalog/publish-guard.js';
 
 const router = express.Router();
 const mediaStorage = createConfiguredMediaStorage();
@@ -171,6 +172,18 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
     if (!reviewTransitions[row.status]?.has(nextStatus)) return res.status(409).json({ error: 'invalid_status_transition', from: row.status, to: nextStatus });
     const notes = req.body?.notes ? String(req.body.notes).trim().slice(0, 2000) : '';
     if (['rejected','changes_requested','blocked'].includes(nextStatus) && !notes) return res.status(400).json({ error: 'notes_required' });
+    if (nextStatus === 'approved') {
+      const thumbnails = await query(
+        `SELECT ma.status, ma.mime_type
+           FROM product_images pi
+           JOIN media_assets ma ON ma.id = pi.media_asset_id
+          WHERE pi.product_id = $1 AND pi.image_role = 'thumbnail'
+          ORDER BY pi.sort_order, pi.id`,
+        [row.product_id]
+      );
+      const thumbnailValidation = validateProductThumbnailAssets(thumbnails.rows);
+      if (!thumbnailValidation.allowed) return res.status(422).json({ error: thumbnailValidation.error });
+    }
     const result = await query(
       `UPDATE content_reviews
           SET reviewer_id = $2, status = $3,
