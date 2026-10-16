@@ -365,6 +365,11 @@ try {
   const publicImages = publicDetailResponse.body.data?.images || publicDetailResponse.body.product?.images;
   assert.ok(Array.isArray(publicImages), 'Public product detail must expose its image records');
   assert.equal(publicImages.some((image) => image.id === mainProductThumbnail && image.role === 'thumbnail'), true, 'Public product detail must expose the thumbnail role');
+  assert.equal(publicImages.some((image) => image.id === galleryImageId && image.role === 'gallery'), true, 'Public product detail must expose the selected gallery image');
+  const galleryImageResponse = await request(baseUrl, `/api/catalog/products/${ids.product}/images/${galleryImageId}`);
+  assert.equal(galleryImageResponse.response.status, 200, JSON.stringify(galleryImageResponse.body));
+  assert.equal(galleryImageResponse.response.headers.get('content-type'), 'image/png');
+  assert.deepEqual(galleryImageResponse.body, galleryThumbnailBytes, 'The public gallery image endpoint must stream the selected image bytes');
   const categoryCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&category=movie&limit=24');
   assert.equal(categoryCatalogResponse.response.status, 200, JSON.stringify(categoryCatalogResponse.body));
   assert.equal(categoryCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in its category catalog');
