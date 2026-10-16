@@ -277,6 +277,9 @@ try {
   assert.equal(editPublishRaceCreateResponse.response.status, 201, JSON.stringify(editPublishRaceCreateResponse.body));
   ids.editPublishRaceProduct = editPublishRaceCreateResponse.body.product.id;
   await submitAndApproveProduct(baseUrl, ids.editPublishRaceProduct, sellerCookie);
+  const unpublishBeforeRaceResponse = await request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(unpublishBeforeRaceResponse.response.status, 200, JSON.stringify(unpublishBeforeRaceResponse.body));
+  assert.equal(unpublishBeforeRaceResponse.body.product.status, 'approved');
   const [racePatchResponse, racePublishResponse] = await Promise.all([
     request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edited Before Publish' }) }),
     request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/publish`, { method: 'POST', headers: { cookie: sellerCookie } })
