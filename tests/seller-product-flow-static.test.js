@@ -181,6 +181,9 @@ const publicCatalog = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog
 assert.match(publicCatalog, /LEFT JOIN LATERAL \(/);
 assert.match(publicCatalog, /COALESCE\(pt\.title, fallback\.title, p\.title\)/);
 assert.match(publicCatalog, /COALESCE\(pt\.description, fallback\.description, p\.description\)/);
+assert.match(productDetailPolicy, /LEFT JOIN LATERAL \\(/);
+assert.match(productDetailPolicy, /COALESCE\\(requested\\.title, language\\.title, fallback\\.title, p\\.title\\)/);
+assert.match(productDetailPolicy, /COALESCE\\(requested\\.description, language\\.description, fallback\\.description, p\\.description\\)/);
 assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
