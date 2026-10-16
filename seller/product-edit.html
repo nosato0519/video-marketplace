@@ -227,13 +227,6 @@ function uploadImageAsset(file, onProgress) {
 
 async function loadProduct() {
   if (!productId) throw new Error('product_required');
-  const limits = await request('/api/seller/media/limits');
-  if (!Number.isSafeInteger(limits?.maxUploadBytes) || limits.maxUploadBytes <= 0
-      || !Number.isSafeInteger(limits?.maxImageUploadBytes) || limits.maxImageUploadBytes <= 0) {
-    throw new Error('invalid_upload_limits');
-  }
-  maxUploadBytes = limits.maxUploadBytes;
-  maxImageUploadBytes = limits.maxImageUploadBytes;
   const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}`);
   titleInput.value = product.title || '';
   priceInput.value = product.price_amount ?? '';
@@ -273,6 +266,18 @@ async function loadProduct() {
     if (filename) filename.textContent = image?.original_filename || (role === 'thumbnail' ? 'サムネイル未登録' : `紹介画像 ${order + 1}（未登録）`);
   });
   productLoaded = true;
+  try {
+    const limits = await request('/api/seller/media/limits');
+    if (Number.isSafeInteger(limits?.maxUploadBytes) && limits.maxUploadBytes > 0
+        && Number.isSafeInteger(limits?.maxImageUploadBytes) && limits.maxImageUploadBytes > 0) {
+      maxUploadBytes = limits.maxUploadBytes;
+      maxImageUploadBytes = limits.maxImageUploadBytes;
+    } else {
+      console.error('seller_product_edit_invalid_upload_limits', limits);
+    }
+  } catch (error) {
+    console.error('seller_product_edit_upload_limits_load_failed', error);
+  }
 }
 
 async function saveProduct() {
