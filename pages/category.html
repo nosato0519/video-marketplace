@@ -68,8 +68,7 @@
           </select>
         </div>
 
-        <div class="catalog-grid" id="category-grid">
-          <a class="catalog-card" data-category="film" href="/pages/product-detail.html"><div class="catalog-thumb catalog-t1"><span>4K</span></div><div class="catalog-info"><div class="catalog-cat">FILM</div><h3>THE LAST SIGNAL</h3><p>by North Frame</p><strong>¥2,980</strong></div></a>
+        <div class="catalog-grid" id="category-grid" data-published-listings="category"><p class="announcement-empty">公開中の動画を読み込んでいます。</p></div><div class="catalog-info"><div class="catalog-cat">FILM</div><h3>THE LAST SIGNAL</h3><p>by North Frame</p><strong>¥2,980</strong></div></a>
           <a class="catalog-card" data-category="documentary" href="/pages/product-detail.html"><div class="catalog-thumb catalog-t2"><span>4K</span></div><div class="catalog-info"><div class="catalog-cat">DOCUMENTARY</div><h3>Tokyo After Hours</h3><p>by City Archive</p><strong>¥2,280</strong></div></a>
           <a class="catalog-card" data-category="business" href="/pages/product-detail.html"><div class="catalog-thumb catalog-t3"><span>1080P</span></div><div class="catalog-info"><div class="catalog-cat">BUSINESS</div><h3>Build Your Brand</h3><p>by Studio North</p><strong>¥3,480</strong></div></a>
           <a class="catalog-card" data-category="creative" href="/pages/product-detail.html"><div class="catalog-thumb catalog-t4"><span>4K</span></div><div class="catalog-info"><div class="catalog-cat">CREATIVE</div><h3>BLUE HORIZON</h3><p>by Frame Works</p><strong>¥1,780</strong></div></a>
@@ -113,7 +112,8 @@
     document.getElementById('category-heading').textContent=category.name+'の動画';
     document.getElementById('category-description').textContent=category.description;
     document.querySelectorAll('[data-category]').forEach(el=>el.classList.toggle('is-active',el.dataset.category===key));
-    document.querySelectorAll('#category-grid .catalog-card').forEach(card=>{card.hidden=card.dataset.category!==key});
+    // Published listings are rendered from the catalog API by published-listings.js.
   </script>
+<script src="/app/catalog/published-listings.js" defer></script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
