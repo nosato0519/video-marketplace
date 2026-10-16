@@ -18,7 +18,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, thumbnail: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, otherSellerThumbnail: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, thumbnail: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 const adminToken = createSessionToken();
@@ -438,7 +438,7 @@ try {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
-  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia, ids.retryMedia, ids.raceMedia, ids.thumbnail].filter(Boolean)) {
+  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.otherSellerThumbnail, ids.replacementMedia, ids.retryMedia, ids.raceMedia, ids.thumbnail].filter(Boolean)) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
     if (media.rows[0]?.storage_key) await mediaStorage.deleteObject({ storageKey: media.rows[0].storage_key }).catch(() => {});
