@@ -100,7 +100,7 @@
       <div class="buyer-section-head"><div><span class="section-kicker">PUBLISHING</span><h2>公開状態</h2></div></div>
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card"><span>STATUS</span><strong>公開中</strong><small>現在の販売状態</small></div>
-        <div class="buyer-menu-card"><span>REVIEW</span><strong>再申請</strong><small>変更内容を審査へ申請します。</small><b>審査を申請 →</b></div>
+        <div class="buyer-menu-card" role="button" tabindex="0" aria-label="公開状態を変更"><span>PUBLICATION</span><strong>公開状態を変更</strong><small>この操作は公開・公開停止を切り替えます。審査申請ではありません。</small><b>公開状態を変更 →</b></div>
       </div>
     </section>
 
@@ -196,8 +196,8 @@ async function loadProduct() {
   if (reviewCard) {
     const title = reviewCard.querySelector('strong');
     const description = reviewCard.querySelector('small');
-    if (title) title.textContent = product.status === 'published' ? '公開を停止' : '公開申請';
-    if (description) description.textContent = product.status === 'published' ? '編集する前に公開を停止します。' : '作品を購入者に公開します。';
+    if (title) title.textContent = product.status === 'published' ? '公開を停止' : '公開する';
+    if (description) description.textContent = product.status === 'published' ? '作品を購入者から見えない状態にします。' : '作品を購入者に公開します。審査申請ではありません。';
   }
   currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
   currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
