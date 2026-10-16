@@ -188,6 +188,8 @@ assert.match(editorScript, /selectedImages\.some\(\(item\) => item\.input\.datas
 assert.match(editorScript, /サムネイル画像を選択してください。サムネイルがない作品は保存できません。/);
 assert.match(editorScript, /maxImageUploadBytes/);
 assert.match(productRoutes, /INSERT INTO product_images/);
+assert.match(productRoutes, /thumbnailCount !== 1/);
+assert.match(productRoutes, /thumbnails !== 1/);
 assert.match(productRoutes, /product_image_asset_invalid/);
 assert.match(productImagesMigration, /CREATE TABLE IF NOT EXISTS product_images/);
 assert.match(publishApprovedMigration, /p\.status = 'approved'/);
