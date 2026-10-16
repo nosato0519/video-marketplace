@@ -285,7 +285,6 @@ try {
   assert.equal(pendingDeleteAttempt.response.status, 409, JSON.stringify(pendingDeleteAttempt.body));
   assert.equal(pendingDeleteAttempt.body.error, 'product_under_review_locked');
   await pool.query('DELETE FROM content_reviews WHERE product_id = $1', [ids.pendingDeleteProduct]);
-  await pool.query("UPDATE products SET status = 'draft', moderation_status = 'draft' WHERE id = $1", [ids.pendingDeleteProduct]);
 
   await pool.query(`INSERT INTO orders (buyer_id, product_id, amount, currency, status) VALUES ($1, $2, 2200, 'JPY', 'pending')`, [ids.buyer, ids.product]);
   const productWithOrderDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
