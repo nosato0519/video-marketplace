@@ -53,7 +53,7 @@ async function submitAndApproveProduct(baseUrl, productId, sellerCookie) {
   assert.equal(product.body.product.status, 'published');
 }
 
-async function uploadThumbnail(baseUrl, cookie, filename) {
+async function uploadThumbnail(baseUrl, cookie, filename, thumbnailBytes) {
   const response = await request(baseUrl, '/api/seller/media/upload', {
     method: 'POST',
     headers: { cookie, 'content-type': 'image/png', 'content-length': String(thumbnailBytes.length), 'x-original-filename': filename },
@@ -233,7 +233,7 @@ try {
   assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
   await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
 
-  const mainProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-main-thumbnail.png');
+  const mainProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-main-thumbnail.png', thumbnailBytes);
   const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: mainProductThumbnail, role: 'thumbnail', sortOrder: 0 }], categorySlug: 'movie' }) });
   assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
   assert.equal(createResponse.body.product.status, 'draft');
@@ -246,7 +246,7 @@ try {
   assert.equal(productWithOrderDeleteResponse.body.error, 'product_has_purchase_history');
   await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]);
 
-  const deletableProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-deletable-thumbnail.png');
+  const deletableProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-deletable-thumbnail.png', thumbnailBytes);
   const deletableProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Deletable Draft', description: 'Draft deletion acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: deletableProductThumbnail, role: 'thumbnail', sortOrder: 0 }] }) });
   assert.equal(deletableProductResponse.response.status, 201, JSON.stringify(deletableProductResponse.body));
   const deletableProductId = deletableProductResponse.body.product.id;
@@ -296,7 +296,7 @@ try {
   assert.equal(otherSellerMediaPatchResponse.body.error, 'media_asset_not_owned');
 
   // Race an edit against publishing; editing must either finish before publish or be rejected after publish.
-  const editPublishRaceThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-edit-publish-thumbnail.png');
+  const editPublishRaceThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-edit-publish-thumbnail.png', thumbnailBytes);
   const editPublishRaceCreateResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edit Publish Race Product', description: 'Concurrent edit/publish acceptance', priceAmount: 2250, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: editPublishRaceThumbnail, role: 'thumbnail', sortOrder: 0 }] }) });
   assert.equal(editPublishRaceCreateResponse.response.status, 201, JSON.stringify(editPublishRaceCreateResponse.body));
   ids.editPublishRaceProduct = editPublishRaceCreateResponse.body.product.id;
