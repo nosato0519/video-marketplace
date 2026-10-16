@@ -50,7 +50,7 @@ async function submitAndApproveProduct(baseUrl, productId, sellerCookie) {
   assert.equal(approval.response.status, 200, JSON.stringify(approval.body));
   const product = await request(baseUrl, `/api/seller/products/${productId}`, { headers: { cookie: sellerCookie } });
   assert.equal(product.response.status, 200, JSON.stringify(product.body));
-  assert.equal(product.body.product.status, 'approved');
+  assert.equal(product.body.product.status, 'published');
 }
 
 async function requestChunked(baseUrl, path, { headers, body }) {
