@@ -43,7 +43,7 @@ router.get('/products', async (req, res, next) => {
       query(`SELECT
                COUNT(*)::int AS total,
                COUNT(*) FILTER (WHERE status = 'published')::int AS published,
-               COUNT(*) FILTER (WHERE status IN ('submitted','under_review','processing','approved'))::int AS review,
+               COUNT(*) FILTER (WHERE status IN ('submitted','under_review','processing','approved') OR moderation_status = 'pending')::int AS review,
                COUNT(*) FILTER (WHERE status = 'draft')::int AS draft
              FROM products
             WHERE seller_id = $1`, [req.user.id]),
@@ -357,6 +357,53 @@ router.delete('/products/:productId', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+router.post('/products/:productId/submit', async (req, res, next) => {
+  if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
+
+  try {
+    const submission = await withTransaction(async (client) => {
+      const result = await client.query(
+        'SELECT id, title, price_amount, price_currency, media_asset_id, status FROM products WHERE id = $1 AND seller_id = $2 FOR UPDATE',
+        [req.params.productId, req.user.id]
+      );
+      if (!result.rows.length) return { error: 'product_not_found' };
+      const product = result.rows[0];
+      if (!['draft', 'rejected'].includes(product.status)) return { error: 'product_status_not_submittable' };
+
+      const mediaResult = product.media_asset_id
+        ? await client.query('SELECT id, owner_user_id, status FROM media_assets WHERE id = $1 FOR UPDATE', [product.media_asset_id])
+        : { rows: [] };
+      const validation = validateProductForPublishing({
+        product: { seller_id: req.user.id, title: product.title, price_amount: product.price_amount, price_currency: product.price_currency, media_asset_id: product.media_asset_id },
+        mediaAsset: mediaResult.rows[0] || null,
+      });
+      if (!validation.allowed) return { error: 'product_not_submittable', reasons: validation.errors };
+
+      const review = await client.query(
+        "SELECT id FROM content_reviews WHERE product_id = $1 AND status IN ('pending', 'changes_requested') ORDER BY created_at DESC LIMIT 1 FOR UPDATE",
+        [product.id]
+      );
+      if (review.rows.length) {
+        await client.query("UPDATE content_reviews SET status = 'pending', reviewer_id = NULL, reason_code = 'seller_resubmission', notes = '', created_at = NOW(), resolved_at = NULL WHERE id = $1", [review.rows[0].id]);
+      } else {
+        await client.query(
+          "INSERT INTO content_reviews (product_id, status, reason_code) VALUES ($1, 'pending', 'seller_submission')",
+          [product.id]
+        );
+      }
+      const updated = await client.query(
+        "UPDATE products SET status = 'submitted', moderation_status = 'pending', updated_at = NOW() WHERE id = $1 AND seller_id = $2 RETURNING id, status",
+        [product.id, req.user.id]
+      );
+      return { product: updated.rows[0] };
+    });
+    if (submission.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
+    if (submission.error === 'product_status_not_submittable') return res.status(409).json({ error: 'product_status_not_submittable' });
+    if (submission.error === 'product_not_submittable') return res.status(422).json({ error: submission.error, reasons: submission.reasons });
+    return res.json(submission);
+  } catch (error) { return next(error); }
+});
+
 router.post('/products/:productId/publish', async (req, res, next) => {
   if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'product_not_found' });
 
@@ -405,7 +452,7 @@ router.post('/products/:productId/publish', async (req, res, next) => {
       if (!validation.allowed) return { error: 'product_not_publishable', reasons: validation.errors };
 
       const published = await client.query(
-        `UPDATE products SET status = 'published', published_at = COALESCE(published_at, NOW()), updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status IN ('draft','processing','submitted','under_review','approved') RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`,
+        `UPDATE products SET status = 'published', published_at = COALESCE(published_at, NOW()), updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status = 'approved' AND moderation_status = 'approved' RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`,
         [req.params.productId, req.user.id]
       );
       if (!published.rows.length) return { error: 'product_status_not_publishable' };
