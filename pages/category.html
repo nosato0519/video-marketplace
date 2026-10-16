@@ -91,7 +91,7 @@
     document.getElementById('category-heading').textContent=category.name+'の動画';
     document.getElementById('category-description').textContent=category.description;
     document.querySelectorAll('[data-category]').forEach(el=>el.classList.toggle('is-active',el.dataset.category===key));
-    // Published listings are rendered from the catalog API by published-listings.js.
+    document.querySelectorAll('#category-grid .catalog-card').forEach(card=>{card.hidden=card.dataset.category!==key});
   </script>
 <script src="/app/catalog/published-listings.js" defer></script>
 <script src="/shared/site-branding.js"></script></body>
