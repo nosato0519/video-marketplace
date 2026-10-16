@@ -48,9 +48,16 @@ test('disables the save action while a video upload is pending', async ({ page }
     let releaseUpload;
     const uploadGate = new Promise((resolve) => { releaseUpload = resolve; });
     let uploadCalls = 0;
+    let thumbnailCalls = 0;
     let draftCalls = 0;
 
     await page.route('**/api/seller/media/upload', async (route) => {
+      const contentType = route.request().headers()['content-type'];
+      if (contentType === 'image/jpeg') {
+        thumbnailCalls += 1;
+        await fulfillJson(route, { mediaAsset: { id: 'thumbnail-pending-save', status: 'ready' } }, 201);
+        return;
+      }
       uploadCalls += 1;
       await uploadGate;
       await fulfillJson(route, { mediaAsset: { id: 'media-pending-save', status: 'ready' } }, 201);
@@ -73,6 +80,12 @@ test('disables the save action while a video upload is pending', async ({ page }
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
 
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
+
     const saveAction = page.locator('#save-product');
     try {
       await saveAction.click();
@@ -86,6 +99,7 @@ test('disables the save action while a video upload is pending', async ({ page }
     }
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
     expect(uploadCalls).toBe(1);
+    expect(thumbnailCalls).toBe(1);
     expect(draftCalls).toBe(1);
   });
 
