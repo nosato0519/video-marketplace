@@ -199,24 +199,6 @@
     const buy = document.querySelector(".detail-buy-primary");
     const cart = document.querySelector(".detail-buy-secondary");
     if (productId) {
-      const detailImage = document.querySelector(".detail-media-image");
-      fetch(`/api/catalog/products/${encodeURIComponent(productId)}`, { credentials: "same-origin" })
-        .then((response) => {
-          if (!response.ok) throw new Error("PRODUCT_DETAIL_LOAD_FAILED");
-          return response.json();
-        })
-        .then(({ data }) => {
-          const images = Array.isArray(data?.images) ? data.images : [];
-          const thumbnail = images.find((image) => image.role === "thumbnail") || images[0];
-          const imageUrl = thumbnail?.url || data?.thumbnail_url;
-          if (detailImage && imageUrl) {
-            detailImage.style.backgroundImage = `url("${imageUrl.replace(/["\\\\]/g, "")}")`;
-            detailImage.dataset.thumbnailLoaded = "true";
-          }
-        })
-        .catch(() => {
-          if (detailImage) detailImage.dataset.thumbnailLoaded = "false";
-        });
       buy?.addEventListener("click", async (event) => {
         event.preventDefault();
         try {
