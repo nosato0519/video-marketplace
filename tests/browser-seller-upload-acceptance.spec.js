@@ -824,4 +824,48 @@ test('disables the save action while a video upload is pending', async ({ page }
 
 
 
+  test('saved product details and uploaded media appear in the edit page without implying publication', async ({ page }) => {
+    await mockSellerSession(page);
+    await page.route('**/api/seller/products/product-saved', async (route) => {
+      expect(route.request().method()).toBe('GET');
+      await fulfillJson(route, {
+        product: {
+          id: 'product-saved',
+          title: '保存済み作品タイトル',
+          description: '保存済みの作品説明です。',
+          price_amount: 2400,
+          price_currency: 'JPY',
+          category_slug: 'learning',
+          status: 'draft',
+          media_asset_id: 'media-saved',
+          media_original_filename: 'saved-video.mp4',
+          media_byte_size: 7340032,
+          translations: [
+            { locale: 'ja', title: '保存済み日本語タイトル', description: '保存済み日本語説明' },
+            { locale: 'en', title: 'Saved English Title', description: 'Saved English description' }
+          ],
+          images: [
+            { media_asset_id: 'thumbnail-1', image_role: 'thumbnail', sort_order: 0, original_filename: 'saved-thumbnail.webp', mime_type: 'image/webp', byte_size: 1024 },
+            { media_asset_id: 'gallery-1', image_role: 'gallery', sort_order: 0, original_filename: 'saved-intro.webp', mime_type: 'image/webp', byte_size: 2048 }
+          ]
+        }
+      });
+    });
+
+    await page.goto('/seller/product-edit.html?productId=product-saved');
+
+    await expect(page.locator('#product-title')).toHaveValue('保存済み作品タイトル');
+    await expect(page.locator('#product-description')).toHaveValue('保存済みの作品説明です。');
+    await expect(page.locator('#product-price')).toHaveValue('2400');
+    await expect(page.locator('#product-category')).toHaveValue('learning');
+    await expect(page.locator('[data-product-locale="ja"] [data-translation-title]')).toHaveValue('保存済み日本語タイトル');
+    await expect(page.locator('[data-product-locale="en"] [data-translation-description]')).toHaveValue('Saved English description');
+    await expect(page.locator('#current-video-filename')).toHaveText('saved-video.mp4');
+    await expect(page.locator('#current-video-size')).toHaveText('登録済み · 7.0 MB');
+    await expect(page.locator('[data-product-image="thumbnail"] [data-current-image]')).toHaveText('saved-thumbnail.webp');
+    await expect(page.locator('[data-product-image="gallery"][data-image-order="0"] [data-current-image]')).toHaveText('saved-intro.webp');
+    await expect(page.locator('#product-status')).toHaveText('下書き');
+    await expect(page.locator('#product-status')).not.toHaveText('公開中');
+  });
+
 });
