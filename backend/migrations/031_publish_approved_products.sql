@@ -22,12 +22,6 @@ UPDATE products p
       WHERE u.id = p.seller_id
         AND u.status = 'active'
    )
-   AND EXISTS (
-     SELECT 1
-       FROM product_translations pt
-      WHERE pt.product_id = p.id
-        AND BTRIM(pt.title) <> ''
-   )
    AND (
      COALESCE((
        SELECT setting_value->>'value'
