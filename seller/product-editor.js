@@ -75,7 +75,8 @@ function uploadMedia(file, mimeType, onProgress) {
         resolve(body);
         return;
       }
-      const error = new Error(body?.error?.message || body?.error || '動画をアップロードできませんでした。');
+      const errorMessage = body?.error?.message || body?.error;
+      const error = new Error(errorMessage || (xhr.status ? `動画をアップロードできませんでした（HTTP ${xhr.status}）。` : '動画をアップロードできませんでした。'));
       error.status = xhr.status;
       error.body = body;
       reject(error);
