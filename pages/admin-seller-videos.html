@@ -97,11 +97,10 @@ function render(){
   const size=Number(review.media_byte_size);
   const sizeLabel=Number.isFinite(size)&&size>0?(size/1024/1024).toFixed(1)+' MB':'サイズ不明';
   const media=review.media_original_filename?esc(review.media_original_filename)+' · '+sizeLabel:'動画ファイル情報なし';
-  const videoPreview=review.media_status==='ready'&&String(review.media_mime_type||'').startsWith('video/')?'<video class="review-video-preview" controls preload="none" src="/api/admin/content/reviews/'+encodeURIComponent(review.id)+'/video" aria-label="登録動画のプレビュー"></video>':'<small>再生できる動画が登録されていません。</small>';
   const price=Number(review.price_amount||0).toLocaleString('ja-JP')+' '+esc(review.price_currency||'JPY');
   const date=review.created_at?new Date(review.created_at).toLocaleString('ja-JP'):'—';
   const tagClass=['approved','published'].includes(state)?'ok':'warn';
-  return '<tr data-review-row="'+esc(review.id)+'"><td><strong>'+esc(review.product_title||'作品名なし')+'</strong><small>'+media+'</small><small>'+esc(review.media_mime_type||'')+'</small>'+videoPreview+'<small>ID: '+esc(review.product_id)+'</small><button type="button" class="btn small" data-detail="'+esc(review.id)+'">詳細を見る</button></td><td>'+esc(review.seller_email||'—')+'</td><td>'+price+'</td><td>'+esc(date)+'</td><td><span class="tag '+tagClass+'">'+esc(statusLabels[state]||state)+'</span><small>'+esc(review.notes||'')+'</small></td><td><div class="row-actions">'+actionButtons(review)+'</div></td></tr>';
+  return '<tr data-review-row="'+esc(review.id)+'"><td><strong>'+esc(review.product_title||'作品名なし')+'</strong><small>'+media+'</small><small>'+esc(review.media_mime_type||'')+'</small><small>ID: '+esc(review.product_id)+'</small><button type="button" class="btn primary review-detail-action" data-detail="'+esc(review.id)+'"><span aria-hidden="true">▣</span> 申請内容を確認</button></td><td>'+esc(review.seller_email||'—')+'</td><td>'+price+'</td><td>'+esc(date)+'</td><td><span class="tag '+tagClass+'">'+esc(statusLabels[state]||state)+'</span><small>'+esc(review.notes||'')+'</small></td><td><div class="row-actions">'+actionButtons(review)+'</div></td></tr>';
  }).join(''):'<tr><td colspan="6" class="muted">該当する審査申請はありません。</td></tr>';
  contentMessage.textContent=visible.length+'件';
  const counts={'pending':0,'published':0,'changes_requested':0,'blocked':0};
