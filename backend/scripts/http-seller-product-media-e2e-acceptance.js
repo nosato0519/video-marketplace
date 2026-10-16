@@ -240,6 +240,37 @@ try {
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
   ids.product = createResponse.body.product.id;
 
+  const removedThumbnail = await pool.query(
+    "DELETE FROM product_images WHERE product_id = $1 AND image_role = 'thumbnail' RETURNING media_asset_id, sort_order",
+    [ids.product]
+  );
+  assert.equal(removedThumbnail.rowCount, 1);
+  const missingThumbnailSubmit = await request(baseUrl, `/api/seller/products/${ids.product}/submit`, {
+    method: 'POST',
+    headers: { cookie: sellerCookie },
+  });
+  assert.equal(missingThumbnailSubmit.response.status, 422, JSON.stringify(missingThumbnailSubmit.body));
+  assert.equal(missingThumbnailSubmit.body.error, 'product_thumbnail_required');
+
+  const reviewWithoutThumbnail = await pool.query(
+    "INSERT INTO content_reviews (product_id, status, reason_code) VALUES ($1, 'pending', 'thumbnail_guard_acceptance') RETURNING id",
+    [ids.product]
+  );
+  const missingThumbnailApproval = await request(baseUrl, `/api/admin/content/reviews/${reviewWithoutThumbnail.rows[0].id}/status`, {
+    method: 'POST',
+    headers: { cookie: adminCookie, 'content-type': 'application/json' },
+    body: JSON.stringify({ status: 'approved' }),
+  });
+  assert.equal(missingThumbnailApproval.response.status, 422, JSON.stringify(missingThumbnailApproval.body));
+  assert.equal(missingThumbnailApproval.body.error, 'product_thumbnail_required');
+  const reviewAfterBlockedApproval = await pool.query('SELECT status FROM content_reviews WHERE id = $1', [reviewWithoutThumbnail.rows[0].id]);
+  assert.equal(reviewAfterBlockedApproval.rows[0]?.status, 'pending', 'Approval without a thumbnail must not change the review state');
+  await pool.query('DELETE FROM content_reviews WHERE id = $1', [reviewWithoutThumbnail.rows[0].id]);
+  await pool.query(
+    "INSERT INTO product_images (product_id, media_asset_id, image_role, sort_order) VALUES ($1, $2, 'thumbnail', $3)",
+    [ids.product, removedThumbnail.rows[0].media_asset_id, removedThumbnail.rows[0].sort_order]
+  );
+
   await pool.query(`INSERT INTO orders (buyer_id, product_id, amount, currency, status) VALUES ($1, $2, 2200, 'JPY', 'pending')`, [ids.buyer, ids.product]);
   const productWithOrderDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(productWithOrderDeleteResponse.response.status, 409, JSON.stringify(productWithOrderDeleteResponse.body));
