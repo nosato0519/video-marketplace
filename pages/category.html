@@ -73,26 +73,6 @@
       </section>
     </section>
   </main>
-
-  <script>
-    const categories={
-      film:{name:'映画・映像',description:'映画・映像作品から、観たい一本を見つけられます.'},
-      education:{name:'学び',description:'講座・チュートリアル・スキルを学べる動画を集めています.'},
-      documentary:{name:'ドキュメンタリー',description:'人・街・社会・自然を描いたドキュメンタリー作品.'},
-      creative:{name:'クリエイティブ',description:'映像制作・デザイン・表現に関する作品を集めています.'},
-      business:{name:'ビジネス',description:'仕事・マーケティング・ブランドづくりに役立つ動画.'},
-      lifestyle:{name:'ライフスタイル',description:'暮らし・趣味・体験を楽しめる動画を集めています.'},
-      music:{name:'音楽',description:'音楽・ライブ・サウンドに関する映像作品.'}
-    };
-    const key=new URLSearchParams(location.search).get('category')||'film';
-    const category=categories[key]||categories.film;
-    document.title=category.name+' | VIDEO MARKETPLACE';
-    document.getElementById('category-title').textContent=category.name+'から探す。';
-    document.getElementById('category-heading').textContent=category.name+'の動画';
-    document.getElementById('category-description').textContent=category.description;
-    document.querySelectorAll('[data-category]').forEach(el=>el.classList.toggle('is-active',el.dataset.category===key));
-    document.querySelectorAll('#category-grid .catalog-card').forEach(card=>{card.hidden=card.dataset.category!==key});
-  </script>
 <script src="/app/catalog/published-listings.js" defer></script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
