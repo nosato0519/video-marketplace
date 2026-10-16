@@ -40,7 +40,7 @@ export function createApp() {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        scriptSrc: ["'self'", "'sha256-ajdE6A2cenTjDNrPNLhA4wX+JDVhqYUwmdZ+XAeEvzw='", "'sha256-Bp2Uv73XpLhiWv1YH/fdnhPBpMYXQ2PlykQATyrhfxQ='", "'sha256-AoF8eGfQId4pmjQWIvmFpDTvMrulHXqTPUUiJo/xpk0='"],
+        scriptSrc: ["'self'", "'sha256-ajdE6A2cenTjDNrPNLhA4wX+JDVhqYUwmdZ+XAeEvzw='", "'sha256-Bp2Uv73XpLhiWv1YH/fdnhPBpMYXQ2PlykQATyrhfxQ='", "'sha256-aicpud283xuyQef0d2GkC8vaQs3kERAlBF0bwjn83No='"],
         imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
       },
     },
