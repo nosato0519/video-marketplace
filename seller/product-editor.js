@@ -122,52 +122,6 @@ const uploadLimitPromise = request('/api/seller/media/limits').then((limits) => 
   return false;
 });
 
-async function createVideoThumbnail(file) {
-  const video = document.createElement('video');
-  const objectUrl = URL.createObjectURL(file);
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = 'metadata';
-  try {
-    await new Promise((resolve, reject) => {
-      video.addEventListener('loadedmetadata', resolve, { once: true });
-      video.addEventListener('error', () => reject(new Error('video_thumbnail_metadata_failed')), { once: true });
-      video.src = objectUrl;
-    });
-    if (!video.videoWidth || !video.videoHeight) throw new Error('video_thumbnail_dimensions_missing');
-    const seekTime = Number.isFinite(video.duration) && video.duration > 0
-      ? Math.min(1, video.duration / 2)
-      : 0;
-    if (seekTime > 0) {
-      await new Promise((resolve, reject) => {
-        video.addEventListener('seeked', resolve, { once: true });
-        video.addEventListener('error', () => reject(new Error('video_thumbnail_seek_failed')), { once: true });
-        video.currentTime = seekTime;
-      });
-    } else if (video.readyState < 2) {
-      await new Promise((resolve, reject) => {
-        video.addEventListener('loadeddata', resolve, { once: true });
-        video.addEventListener('error', () => reject(new Error('video_thumbnail_frame_failed')), { once: true });
-      });
-    }
-    const scale = Math.min(1, 1280 / video.videoWidth);
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
-    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('video_thumbnail_canvas_unavailable');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88));
-    if (!blob || !blob.size) throw new Error('video_thumbnail_encode_failed');
-    return new File([blob], 'video-thumbnail.jpg', { type: 'image/jpeg' });
-  } finally {
-    video.pause();
-    video.removeAttribute('src');
-    video.load();
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
 async function saveProduct() {
   if (isSaving || isStarting) return;
   isStarting = true;
@@ -223,15 +177,9 @@ async function saveProduct() {
 
   if (!selectedImages.some((item) => item.input.dataset.productImageRole === 'thumbnail')) {
     const thumbnailInput = imageInputs.find((input) => input.dataset.productImageRole === 'thumbnail');
-    try {
-      if (!thumbnailInput) throw new Error('thumbnail_input_missing');
-      const thumbnailFile = await createVideoThumbnail(file);
-      selectedImages.push({ input: thumbnailInput, file: thumbnailFile });
-    } catch {
-      thumbnailInput?.focus();
-      alert('サムネイルを自動生成できませんでした。JPEG・PNG・WebPのサムネイル画像を選択してください。');
-      return;
-    }
+    thumbnailInput?.focus();
+    alert('サムネイル画像を選択してください。サムネイルがない作品は保存できません。');
+    return;
   }
 
   for (const { input, file: imageFile } of selectedImages) {
