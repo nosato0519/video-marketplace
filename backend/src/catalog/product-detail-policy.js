@@ -58,7 +58,8 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        FROM product_images pi
        JOIN media_assets ma ON ma.id = pi.media_asset_id
       WHERE pi.product_id = $1 AND ma.status = 'ready'
-      ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END, pi.sort_order ASC`,
+        AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+      ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END, pi.sort_order ASC, pi.id ASC`,
     [productId]
   );
   product.images = images.rows.map((image) => ({
