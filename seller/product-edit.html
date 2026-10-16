@@ -70,9 +70,9 @@
           <span>MAIN VIDEO</span><strong id="current-video-filename">登録済み動画</strong><small id="current-video-size">動画ファイルを変更する場合のみ選択してください。</small>
           <input id="replacement-video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" aria-label="動画ファイルを変更">
         </div>
-        <div class="buyer-menu-card">
-          <span>THUMBNAIL</span><strong>the-last-signal.jpg</strong><small>現在のサムネイルを変更</small>
-          <input type="file" accept="image/*" aria-label="サムネイルを変更">
+        <div class="buyer-menu-card" data-product-image="thumbnail" data-image-order="0">
+          <span>THUMBNAIL</span><strong data-current-image>サムネイル未登録</strong><small>画像を選択するとサムネイルを差し替えます（JPEG・PNG・WebP、20MB以下）</small>
+          <input type="file" data-image-role="thumbnail" data-image-order="0" accept="image/jpeg,image/png,image/webp" aria-label="サムネイルを変更">
         </div>
       </div>
     </section>
@@ -80,10 +80,10 @@
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">INTRO IMAGES</span><h2>紹介画像</h2></div><span>最大4枚</span></div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card"><span>IMAGE 01</span><strong>紹介画像 1</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
-        <div class="buyer-menu-card"><span>IMAGE 02</span><strong>紹介画像 2</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
-        <div class="buyer-menu-card"><span>IMAGE 03</span><strong>紹介画像 3</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
-        <div class="buyer-menu-card"><span>IMAGE 04</span><strong>紹介画像 4</strong><small>現在の画像を変更</small><input type="file" accept="image/*"></div>
+        <div class="buyer-menu-card" data-product-image="gallery" data-image-order="1"><span>IMAGE 01</span><strong data-current-image>紹介画像 1（未登録）</strong><small>画像を選択するとこの枠の画像を差し替えます（JPEG・PNG・WebP、20MB以下）</small><input type="file" data-image-role="gallery" data-image-order="1" accept="image/jpeg,image/png,image/webp" aria-label="紹介画像 1 を変更"></div>
+        <div class="buyer-menu-card" data-product-image="gallery" data-image-order="2"><span>IMAGE 02</span><strong data-current-image>紹介画像 2（未登録）</strong><small>画像を選択するとこの枠の画像を差し替えます（JPEG・PNG・WebP、20MB以下）</small><input type="file" data-image-role="gallery" data-image-order="2" accept="image/jpeg,image/png,image/webp" aria-label="紹介画像 2 を変更"></div>
+        <div class="buyer-menu-card" data-product-image="gallery" data-image-order="3"><span>IMAGE 03</span><strong data-current-image>紹介画像 3（未登録）</strong><small>画像を選択するとこの枠の画像を差し替えます（JPEG・PNG・WebP、20MB以下）</small><input type="file" data-image-role="gallery" data-image-order="3" accept="image/jpeg,image/png,image/webp" aria-label="紹介画像 3 を変更"></div>
+        <div class="buyer-menu-card" data-product-image="gallery" data-image-order="4"><span>IMAGE 04</span><strong data-current-image>紹介画像 4（未登録）</strong><small>画像を選択するとこの枠の画像を差し替えます（JPEG・PNG・WebP、20MB以下）</small><input type="file" data-image-role="gallery" data-image-order="4" accept="image/jpeg,image/png,image/webp" aria-label="紹介画像 4 を変更"></div>
       </div>
     </section>
 
@@ -137,6 +137,10 @@ function getVideoMime(file) {
 }
 let isSaving = false;
 let currentProductStatus = null;
+let currentProductImages = [];
+const imageInputs = [...document.querySelectorAll('input[data-image-role]')];
+const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maxImageUploadBytes = 20 * 1024 * 1024;
 const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'PUBLICATION');
 
 function formatStatus(status) {
@@ -183,6 +187,34 @@ function uploadReplacementVideo(file, onProgress) {
   });
 }
 
+function uploadImageAsset(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/seller/media/upload');
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Content-Type', file.type.toLowerCase());
+    xhr.setRequestHeader('X-Original-Filename', file.name);
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    });
+    xhr.addEventListener('load', () => {
+      let body = null;
+      try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch {}
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body);
+        return;
+      }
+      const error = new Error(body?.error?.message || body?.error || '画像をアップロードできませんでした。');
+      error.status = xhr.status;
+      error.body = body;
+      reject(error);
+    });
+    xhr.addEventListener('error', () => reject(new Error('画像アップロード中に通信エラーが発生しました。')));
+    xhr.addEventListener('abort', () => reject(new Error('画像アップロードが中断されました。')));
+    xhr.send(file);
+  });
+}
+
 async function loadProduct() {
   if (!productId) throw new Error('product_required');
   const { product } = await request(`/api/seller/products/${encodeURIComponent(productId)}`);
@@ -209,6 +241,14 @@ async function loadProduct() {
   }
   currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
   currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
+  currentProductImages = Array.isArray(product.images) ? product.images : [];
+  document.querySelectorAll('[data-product-image]').forEach((card) => {
+    const role = card.dataset.productImage;
+    const order = Number(card.dataset.imageOrder);
+    const image = currentProductImages.find((item) => item.image_role === role && Number(item.sort_order) === order);
+    const filename = card.querySelector('[data-current-image]');
+    if (filename) filename.textContent = image?.original_filename || (role === 'thumbnail' ? 'サムネイル未登録' : `紹介画像 ${order}（未登録）`);
+  });
 }
 
 async function publishProduct() {
@@ -249,6 +289,7 @@ async function saveProduct() {
   if (saveLabel) saveLabel.textContent = 'アップロード・保存中…';
   saveButton.setAttribute('aria-busy', 'true');
   let uploadedMediaAssetId = null;
+  const uploadedImageAssetIds = [];
   let productUpdated = false;
   try {
     const body = {
@@ -262,6 +303,20 @@ async function saveProduct() {
         description: card.querySelector('[data-translation-description]')?.value || ''
       }))
     };
+    const selectedImages = imageInputs.filter((input) => input.files?.[0]);
+    for (const input of selectedImages) {
+      const file = input.files[0];
+      if (!allowedImageTypes.has(file.type.toLowerCase())) {
+        alert('対応する画像形式は JPEG・PNG・WebP です。');
+        input.focus();
+        return;
+      }
+      if (file.size === 0 || file.size > maxImageUploadBytes) {
+        alert('画像ファイルは空でない20MB以下のものを選択してください。');
+        input.focus();
+        return;
+      }
+    }
     const replacementVideo = replacementVideoInput.files?.[0];
     if (replacementVideo) {
       if (!getVideoMime(replacementVideo)) {
@@ -288,6 +343,35 @@ async function saveProduct() {
       body.mediaAssetId = uploadedMediaAssetId;
       if (saveLabel) saveLabel.textContent = '作品情報を保存中…';
     }
+    if (selectedImages.length) {
+      const nextImages = currentProductImages
+        .filter((image) => !selectedImages.some((input) => (
+          image.image_role === input.dataset.imageRole
+          && Number(image.sort_order) === Number(input.dataset.imageOrder)
+        )))
+        .map((image) => ({
+          mediaAssetId: image.media_asset_id,
+          role: image.image_role,
+          sortOrder: Number(image.sort_order)
+        }));
+      for (const input of selectedImages) {
+        const file = input.files[0];
+        if (saveLabel) saveLabel.textContent = `画像アップロード中… ${file.name}`;
+        const upload = await uploadImageAsset(file, (percent) => {
+          if (saveLabel) saveLabel.textContent = `画像アップロード中… ${percent}%`;
+        });
+        const asset = upload?.mediaAsset;
+        if (!asset?.id || asset.status !== 'ready') throw new Error('アップロードした画像が利用可能な状態ではありません。');
+        uploadedImageAssetIds.push(asset.id);
+        nextImages.push({
+          mediaAssetId: asset.id,
+          role: input.dataset.imageRole,
+          sortOrder: Number(input.dataset.imageOrder)
+        });
+      }
+      body.images = nextImages;
+      if (saveLabel) saveLabel.textContent = '作品情報を保存中…';
+    }
     await request(`/api/seller/products/${encodeURIComponent(productId)}`, {
       method: 'PATCH',
       body: JSON.stringify(body)
@@ -297,16 +381,18 @@ async function saveProduct() {
   } catch (error) {
     let replacementMayBeLinked = productUpdated;
     let cleanupPending = false;
-    if (uploadedMediaAssetId && !productUpdated) {
-      try {
-        await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
-      } catch (cleanupError) {
-        if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
-          replacementMayBeLinked = true;
-        } else {
-          cleanupPending = true;
-          console.error('seller_product_edit_cleanup_failed', cleanupError);
-          if (error.status >= 500 || !error.status) replacementMayBeLinked = true;
+    if (!productUpdated) {
+      for (const assetId of [uploadedMediaAssetId, ...uploadedImageAssetIds].filter(Boolean)) {
+        try {
+          await request(`/api/seller/media/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+        } catch (cleanupError) {
+          if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+            replacementMayBeLinked = true;
+          } else {
+            cleanupPending = true;
+            console.error('seller_product_edit_cleanup_failed', cleanupError);
+            if (error.status >= 500 || !error.status) replacementMayBeLinked = true;
+          }
         }
       }
     }
