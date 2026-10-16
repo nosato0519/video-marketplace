@@ -248,7 +248,7 @@ async function loadProduct() {
   currentProductStatus = product.status;
   currentVideoAssetId = product.media_asset_id || null;
   statusElement.textContent = formatStatus(product.status);
-  statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
+  statusElement.className = `seller-video-status ${['published', 'approved'].includes(product.status) ? 'is-published' : ['submitted', 'under_review', 'processing'].includes(product.status) ? 'is-pending' : product.status === 'rejected' ? 'is-rejected' : 'is-draft'}`;
   currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
   currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
   currentProductImages = Array.isArray(product.images) ? product.images : [];
