@@ -36,4 +36,62 @@ test.describe('public marketplace browser smoke', () => {
     await expect(page.getByRole('heading', { name: 'Discover creators' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Become a creator' })).toHaveAttribute('href', '#/seller/register');
   });
+
+  test('browse cards display the thumbnail returned by the public catalog API', async ({ page }) => {
+    await page.route('**/api/catalog/products**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{
+            id: 'product-with-thumbnail',
+            title: 'Thumbnail test video',
+            seller: 'Test seller',
+            category: 'movie',
+            price_amount: 1200,
+            price_currency: 'JPY',
+            thumbnail_url: '/api/catalog/products/product-with-thumbnail/images/thumb-1',
+          }],
+          pagination: { page: 1, limit: 24, returned: 1, hasMore: false },
+        }),
+      });
+    });
+    await page.route('**/api/catalog/products/product-with-thumbnail/images/thumb-1', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/nZ8AAAAASUVORK5CYII=', 'base64'),
+      });
+    });
+
+    await page.goto(appUrl('#/browse'));
+    const thumbnail = page.locator('[data-product-id="product-with-thumbnail"] .product-thumbnail');
+    await expect(thumbnail).toHaveAttribute('src', '/api/catalog/products/product-with-thumbnail/images/thumb-1');
+    await expect(thumbnail).toBeVisible();
+  });
+
+  test('browse cards keep a video placeholder when the catalog has no thumbnail', async ({ page }) => {
+    await page.route('**/api/catalog/products**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{
+            id: 'product-without-thumbnail',
+            title: 'Video without thumbnail',
+            seller: 'Test seller',
+            category: 'movie',
+            price_amount: 1200,
+            price_currency: 'JPY',
+            thumbnail_url: null,
+          }],
+          pagination: { page: 1, limit: 24, returned: 1, hasMore: false },
+        }),
+      });
+    });
+
+    await page.goto(appUrl('#/browse'));
+    await expect(page.locator('[data-product-id="product-without-thumbnail"] .product-thumb')).toContainText('▶');
+    await expect(page.locator('[data-product-id="product-without-thumbnail"] .product-thumbnail')).toHaveCount(0);
+  });
 });
