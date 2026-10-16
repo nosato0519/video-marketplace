@@ -76,13 +76,51 @@ test.describe('seller browser acceptance', () => {
     let uploadCalls = 0;
     let draftCalls = 0;
 
+    let thumbnailCalls = 0;
+    await page.addInitScript(() => {
+      const createElement = document.createElement.bind(document);
+      document.createElement = function (name, ...args) {
+        const element = createElement(name, ...args);
+        if (name.toLowerCase() === 'video') {
+          Object.defineProperties(element, {
+            videoWidth: { configurable: true, value: 640 },
+            videoHeight: { configurable: true, value: 360 },
+            duration: { configurable: true, value: 2 },
+            currentTime: {
+              configurable: true,
+              set() { queueMicrotask(() => element.dispatchEvent(new Event('seeked'))); },
+            },
+          });
+          const addEventListener = element.addEventListener.bind(element);
+          element.addEventListener = function (type, listener, options) {
+            if (type === 'loadedmetadata') {
+              queueMicrotask(() => listener(new Event(type)));
+              return;
+            }
+            addEventListener(type, listener, options);
+          };
+        }
+        if (name.toLowerCase() === 'canvas') {
+          element.getContext = () => ({ drawImage() {} });
+          element.toBlob = (callback, type) => callback(new Blob(['thumbnail'], { type }));
+        }
+        return element;
+      };
+    });
     await page.route('**/api/seller/media/upload', async (route) => {
-      uploadCalls += 1;
+      const contentType = route.request().headers()['content-type'];
+      if (contentType === 'video/mp4') uploadCalls += 1;
+      if (contentType === 'image/jpeg') thumbnailCalls += 1;
       await uploadGate;
       await route.fulfill({
         status: 201,
         contentType: 'application/json',
-        body: JSON.stringify({ mediaAsset: { id: 'media-spa-duplicate', status: 'ready' } }),
+        body: JSON.stringify({
+          mediaAsset: {
+            id: contentType === 'image/jpeg' ? 'media-spa-thumbnail' : 'media-spa-duplicate',
+            status: 'ready'
+          }
+        }),
       });
     });
     await page.route('**/api/seller/products', async (route) => {
@@ -109,11 +147,13 @@ test.describe('seller browser acceptance', () => {
       await page.locator('#seller-upload-form').evaluate((form) => form.requestSubmit());
       await expect.poll(() => uploadCalls).toBe(1);
       expect(draftCalls).toBe(0);
+      expect(thumbnailCalls).toBe(0);
     } finally {
       releaseUpload();
     }
     await expect(page.getByText(/Draft SPA Upload created successfully\./)).toBeVisible();
     expect(uploadCalls).toBe(1);
+    expect(thumbnailCalls).toBe(1);
     expect(draftCalls).toBe(1);
   });
 
