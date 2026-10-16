@@ -1,5 +1,57 @@
 import { test, expect } from '@playwright/test';
 
+test('seller upload clears the thumbnail filename after successful draft creation', async ({ page }) => {
+  let uploadCount = 0;
+
+  await page.route('**/api/seller/media/limits', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ maxUploadBytes: 24 * 1024 * 1024 }),
+    });
+  });
+  await page.route('**/api/seller/media/upload', async (route) => {
+    uploadCount += 1;
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ mediaAsset: { id: `asset-${uploadCount}`, status: 'ready' } }),
+    });
+  });
+  await page.route('**/api/seller/products', async (route) => {
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ product: { id: 'product-1', title: 'Test video' } }),
+    });
+  });
+
+  await page.goto('/app/index.html');
+  await page.evaluate(async () => {
+    const { renderSellerUpload } = await import('/seller/seller-upload.js');
+    await renderSellerUpload(document.querySelector('#app'));
+  });
+
+  await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeEnabled();
+  await page.locator('#video-file').setInputFiles({
+    name: 'small.mp4',
+    mimeType: 'video/mp4',
+    buffer: Buffer.from([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70]),
+  });
+  await page.locator('#thumbnail-file').setInputFiles({
+    name: 'thumbnail.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
+  await page.getByLabel('Title').fill('Test video');
+  await page.getByRole('button', { name: 'Upload and create draft' }).click();
+
+  await expect(page.locator('#seller-upload-message')).toContainText('Draft Test video created successfully.');
+  await expect(page.locator('#selected-thumbnail')).toHaveText('No thumbnail selected yet.');
+  await expect(page.locator('#thumbnail-file')).toHaveValue('');
+  expect(uploadCount).toBe(2);
+});
+
 test('seller upload waits for the configured upload limit before enabling submission', async ({ page }) => {
   let releaseLimits;
   const limitsPending = new Promise((resolve) => {
