@@ -197,6 +197,8 @@ assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/)
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
 assert.match(productDetailRoutes, /p\.status = 'published'/);
 assert.match(productDetailPolicy, /product\.images = images\.rows\.map/);
+assert.match(productDetailPolicy, /ma\.mime_type IN \('image\/jpeg', 'image\/png', 'image\/webp'\)/);
+assert.match(productDetailPolicy, /pi\.id ASC/);
 assert.match(productDetailPage, /src="\/app\/catalog\/published-listings\.js" defer/);
 assert.match(publishedListingsScript, /product\.images/);
 assert.match(publishedListingsScript, /node\.style\.backgroundImage/);
