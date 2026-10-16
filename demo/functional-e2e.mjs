@@ -62,7 +62,9 @@ try {
   const sellerCookie = cookieOf(loginSeller);
   const sellerOnly = await request('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({title:'Unauthorized Seller Call',category:'Creative',price:10}) });
   if (![401,403].includes(sellerOnly.status)) throw new Error(`seller authorization status ${sellerOnly.status}`);
-  const product = await json('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({title:'Demo Creator Product',category:'Creative',price:25}) });
+  const missingThumbnail = await request('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({title:'Missing Thumbnail Product',category:'Creative',price:25}) });
+  if (missingThumbnail.status !== 400 || (await missingThumbnail.json()).error !== 'THUMBNAIL_REQUIRED') throw new Error('seller product without a manually selected thumbnail was accepted');
+  const product = await json('/api/demo/seller/product', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({title:'Demo Creator Product',category:'Creative',price:25,thumbnailName:'thumbnail.png',thumbnailData:'data:image/png;base64,aGVsbG8='}) });
   const uploaded = await json('/api/demo/seller/upload', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({productId:product.product.id}) });
   if (!uploaded.product.mediaReady) throw new Error('seller media lifecycle failed');
   const payout = await json('/api/demo/seller/payout', { method:'POST', headers:{'content-type':'application/json',cookie:sellerCookie}, body:JSON.stringify({amount:125}) });
