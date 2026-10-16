@@ -111,8 +111,21 @@ async function renderProductDetail() {
     if (title) title.textContent = product.title;
     const lead = document.querySelector('.detail-lead');
     if (lead) lead.textContent = product.description || '';
+    const about = [...document.querySelectorAll('.detail-section')].find((section) => section.querySelector('.detail-section-label')?.textContent.trim() === 'ABOUT THIS VIDEO');
+    const aboutDescription = about?.querySelector('p');
+    if (aboutDescription) aboutDescription.textContent = product.description || '作品説明はまだ登録されていません。';
     const seller = document.querySelector('.detail-rating span:nth-child(2)');
     if (seller) seller.textContent = 'by ' + (product.seller || '');
+    const creator = document.querySelector('.detail-creator');
+    if (creator) {
+      const creatorName = creator.querySelector('strong');
+      const creatorRole = creator.querySelector('span');
+      const creatorAvatar = creator.querySelector('.detail-avatar');
+      if (creatorName) creatorName.textContent = product.seller || '販売者';
+      if (creatorRole) creatorRole.textContent = '販売者';
+      if (creatorAvatar) creatorAvatar.textContent = Array.from(product.seller || '販')[0];
+      creator.href = '/pages/video-list.html';
+    }
     const price = document.querySelector('.detail-price');
     if (price) price.textContent = product.price_currency === 'JPY'
       ? '¥' + Number(product.price_amount).toLocaleString('ja-JP')
