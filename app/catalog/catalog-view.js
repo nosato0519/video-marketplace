@@ -54,8 +54,12 @@ export async function renderCatalog({
 
     status.textContent = `${products.length} results`;
     results.innerHTML = products.length
-      ? products.map((product) => `<button class="product-card product-card-button" data-product-id="${escapeHtml(product.id)}" type="button">
-        <div class="product-thumb" aria-hidden="true"><span>▶</span></div>
+      ? products.map((product) => {
+        const thumbnail = product.thumbnail_url
+          ? `<img class="product-thumbnail" src="${escapeHtml(product.thumbnail_url)}" alt="" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover">`
+          : '<span>▶</span>';
+        return `<button class="product-card product-card-button" data-product-id="${escapeHtml(product.id)}" type="button">
+        <div class="product-thumb" aria-hidden="true">${thumbnail}</div>
         <div class="product-body">
           <h3>${escapeHtml(product.title)}</h3>
           <div class="product-meta">${escapeHtml(product.seller)} · ${escapeHtml(product.category || '')}</div>
@@ -64,8 +68,17 @@ export async function renderCatalog({
             currency: product.price_currency || product.currency || 'USD',
           }).format(Number(product.price_amount ?? product.price ?? 0))}</div>
         </div>
-      </button>`).join('')
+      </button>`;
+      }).join('')
       : `<div class="empty-state"><h2>No videos found</h2><p>Try a different search or category.</p></div>`;
+
+    results.querySelectorAll('.product-thumbnail').forEach((image) => {
+      image.addEventListener('error', () => {
+        const fallback = document.createElement('span');
+        fallback.textContent = '▶';
+        image.replaceWith(fallback);
+      }, { once: true });
+    });
 
     results.querySelectorAll('[data-product-id]').forEach((button) => {
       button.addEventListener('click', () => {
