@@ -67,6 +67,17 @@ assert.doesNotMatch(productEdit, /PUBLISHING|PUBLICATION|公開状態を変更/)
 assert.match(adminModerationRoutes, /moderation_status = \$3/);
 
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
+
+assert.match(productEdit, /async function loadProduct\(\)/);
+assert.match(productEdit, /titleInput\.value = product\.title \|\| ''/);
+assert.match(productEdit, /priceInput\.value = product\.price_amount \?\? ''/);
+assert.match(productEdit, /descriptionInput\.value = product\.description \|\| ''/);
+assert.match(productEdit, /currentVideoAssetId = product\.media_asset_id \|\| null/);
+assert.match(productEdit, /currentVideoFilename\.textContent = product\.media_original_filename \|\| '登録済み動画なし'/);
+assert.match(productEdit, /currentVideoSize\.textContent = product\.media_byte_size == null/);
+assert.match(productEdit, /currentProductImages = Array\.isArray\(product\.images\) \? product\.images : \[\]/);
+assert.match(productEdit, /if \(!productId \|\| !productLoaded \|\| isSaving\) return/);
+assert.match(productEdit, /statusElement\.textContent = formatStatus\(product\.status\)/);
 assert.match(productEdit, /\/api\/seller\/products\//);
 assert.match(productEdit, /method: 'PATCH'/);
 assert.match(productEdit, /\/api\/seller\/media\/upload/);
