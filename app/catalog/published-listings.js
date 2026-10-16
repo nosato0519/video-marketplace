@@ -28,7 +28,7 @@ async function fetchPublishedListings({ category = '', limit = 6 } = {}) {
 }
 
 function listingCard(product, index, categoryName = '') {
-  const category = categoryName || product.category || '動画';
+  const category = categoryName || categoryDefinitions[product.category]?.name || product.category || '動画';
   return `<a href="/pages/product-detail.html?productId=${encodeURIComponent(product.id)}" class="video-card">
     <div class="thumb t${(index % 9) + 1}"><span>VIDEO</span></div>
     <div class="card-info">
