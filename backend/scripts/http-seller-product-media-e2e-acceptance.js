@@ -324,6 +324,32 @@ try {
     assert.equal(raceProductAfterPublish.body.product.status, 'draft');
   }
 
+  const galleryThumbnailBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const galleryImageId = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-gallery.png', galleryThumbnailBytes);
+  const imageEditResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', cookie: sellerCookie },
+    body: JSON.stringify({
+      images: [
+        { mediaAssetId: mainProductThumbnail, role: 'thumbnail', sortOrder: 0 },
+        { mediaAssetId: galleryImageId, role: 'gallery', sortOrder: 0 }
+      ]
+    })
+  });
+  assert.equal(imageEditResponse.response.status, 200, JSON.stringify(imageEditResponse.body));
+  const editedSellerProduct = await request(baseUrl, `/api/seller/products/${ids.product}`, { headers: { cookie: sellerCookie } });
+  assert.equal(editedSellerProduct.response.status, 200, JSON.stringify(editedSellerProduct.body));
+  assert.equal(
+    editedSellerProduct.body.product.images.some((image) => image.media_asset_id === mainProductThumbnail && image.image_role === 'thumbnail'),
+    true,
+    'Editing gallery images must retain the explicitly selected thumbnail'
+  );
+  assert.equal(
+    editedSellerProduct.body.product.images.some((image) => image.media_asset_id === galleryImageId && image.image_role === 'gallery'),
+    true,
+    'Editing gallery images must persist the selected gallery image'
+  );
+
   await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
   const publicCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&limit=24');
   assert.equal(publicCatalogResponse.response.status, 200, JSON.stringify(publicCatalogResponse.body));
