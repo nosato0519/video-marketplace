@@ -51,6 +51,11 @@ test('seller upload rejects a file larger than the backend-provided limit before
   });
 
   await expect(page.getByRole('button', { name: 'Upload and create draft' })).toBeEnabled();
+  await page.locator('#thumbnail-file').setInputFiles({
+    name: 'thumbnail.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
   await page.locator('#video-file').setInputFiles({
     name: 'oversized.mp4',
     mimeType: 'video/mp4',
