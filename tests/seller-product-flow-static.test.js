@@ -179,6 +179,7 @@ assert.match(editor, /data-product-image-role="thumbnail"/);
 assert.match(editor, /data-product-image-role="gallery"/);
 assert.match(editorScript, /images: uploadedImageAssets/);
 assert.match(editorScript, /async function createVideoThumbnail\(file\)/);
+assert.match(editorScript, /else if \(video\.readyState < 2\)/);
 assert.match(editorScript, /video\.addEventListener\('loadedmetadata'/);
 assert.match(editorScript, /canvas\.toBlob\(resolve, 'image\/jpeg', 0\.88\)/);
 assert.match(editorScript, /selectedImages\.some\(\(item\) => item\.input\.dataset\.productImageRole === 'thumbnail'\)/);
