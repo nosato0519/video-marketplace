@@ -85,6 +85,7 @@ assert.match(productEdit, /\/api\/seller\/media\/assets\/.*\/preview/);
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
 
 assert.match(productEdit, /async function loadProduct\(\)/);
+assert.ok(productEdit.indexOf('request(`/api/seller/products/') < productEdit.indexOf("request('/api/seller/media/limits')"), 'product details load before optional upload limits');
 assert.match(productEdit, /titleInput\.value = product\.title \|\| ''/);
 assert.match(productEdit, /priceInput\.value = product\.price_amount \?\? ''/);
 assert.match(productEdit, /descriptionInput\.value = product\.description \|\| ''/);
