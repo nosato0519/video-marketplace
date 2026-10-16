@@ -154,9 +154,9 @@ try {
   assert.equal(unverifiedSellerDraftResponse.response.status, 201, JSON.stringify(unverifiedSellerDraftResponse.body));
   ids.optionalVerificationProduct = unverifiedSellerDraftResponse.body.product.id;
   await submitAndApproveProduct(baseUrl, ids.optionalVerificationProduct, otherSellerCookie);
-  const unverifiedSellerPublishResponse = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}/publish`, { method: 'POST', headers: { cookie: otherSellerCookie } });
-  assert.equal(unverifiedSellerPublishResponse.response.status, 200, JSON.stringify(unverifiedSellerPublishResponse.body));
-  assert.equal(unverifiedSellerPublishResponse.body.product.status, 'published');
+  const unverifiedSellerPublishedProduct = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}`, { headers: { cookie: otherSellerCookie } });
+  assert.equal(unverifiedSellerPublishedProduct.response.status, 200, JSON.stringify(unverifiedSellerPublishedProduct.body));
+  assert.equal(unverifiedSellerPublishedProduct.body.product.status, 'published', 'Approval must publish the product when identity verification is optional');
 
   // Race product creation against deletion of the same unused media asset.
   // Exactly one operation may win: creation links the asset, or deletion removes it.
