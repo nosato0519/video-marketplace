@@ -24,9 +24,11 @@ async function getSellerMediaAsset(mediaAssetId, userId, client = { query }) {
 const PRODUCT_SELECT = `
   SELECT p.id, p.seller_id, p.media_asset_id, p.status, p.price_amount, p.price_currency,
          p.title, p.description, p.created_at, p.updated_at, p.published_at,
+         c.slug AS category_slug,
          m.status AS media_status, m.mime_type AS media_mime_type, m.byte_size AS media_byte_size,
          m.original_filename AS media_original_filename
   FROM products p
+  LEFT JOIN categories c ON c.id = p.category_id
   LEFT JOIN media_assets m ON m.id = p.media_asset_id
 `;
 
@@ -187,7 +189,12 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const product = current.rows[0];
     const body = req.body || {};
-    const { title, description, priceAmount, priceCurrency } = body;
+    const { title, description, priceAmount, priceCurrency, categorySlug } = body;
+    const hasCategorySlug = Object.prototype.hasOwnProperty.call(body, 'categorySlug');
+    const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
+    if (hasCategorySlug && normalizedCategorySlug && !/^[a-z0-9-]{1,80}$/.test(normalizedCategorySlug)) {
+      return res.status(422).json({ error: 'invalid_product_category' });
+    }
     const hasMediaAssetId = Object.prototype.hasOwnProperty.call(body, 'mediaAssetId');
     const mediaAssetId = body.mediaAssetId;
     if (product.status === 'published') return res.status(409).json({ error: 'published_product_locked' });
@@ -208,18 +215,25 @@ router.patch('/products/:productId', async (req, res, next) => {
       );
       if (!lockedProduct.rows.length) return { error: 'product_not_found' };
       if (lockedProduct.rows[0].status === 'published') return { error: 'published_product_locked' };
+      let categoryId = null;
+      if (hasCategorySlug && normalizedCategorySlug) {
+        const category = await client.query('SELECT id FROM categories WHERE slug = $1 LIMIT 1', [normalizedCategorySlug]);
+        if (!category.rows.length) return { error: 'product_category_not_found' };
+        categoryId = category.rows[0].id;
+      }
       if (hasMediaAssetId && mediaAssetId != null) {
         const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
       }
-      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $8 RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, req.user.id]);
+      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, category_id = CASE WHEN $8 THEN $9 ELSE category_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $10 RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, hasCategorySlug, categoryId, req.user.id]);
       return { product: result.rows[0] };
     });
     if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
     if (update.error === 'published_product_locked') return res.status(409).json({ error: 'published_product_locked' });
     if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    if (update.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
     return res.json({ product: update.product });
   } catch (error) { return next(error); }
 });
