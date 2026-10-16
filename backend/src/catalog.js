@@ -16,6 +16,10 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        p.streaming_enabled,
        p.download_enabled,
        p.published_at,
+       CASE WHEN thumbnail.image_id IS NOT NULL
+         THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.image_id::text
+         ELSE NULL
+       END AS thumbnail_url,
        c.slug AS category,
        sp.user_id AS seller_id,
        sp.display_name AS seller,
@@ -25,6 +29,17 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
      JOIN seller_profiles sp ON sp.user_id = p.seller_id
      JOIN users su ON su.id = p.seller_id
      LEFT JOIN categories c ON c.id = p.category_id
+     LEFT JOIN LATERAL (
+       SELECT pi.media_asset_id AS image_id
+         FROM product_images pi
+         JOIN media_assets ma ON ma.id = pi.media_asset_id
+        WHERE pi.product_id = p.id
+          AND ma.status = 'ready'
+          AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+        ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END,
+                 pi.sort_order ASC, pi.id ASC
+        LIMIT 1
+     ) thumbnail ON TRUE
      LEFT JOIN product_translations pt
        ON pt.product_id = p.id AND pt.locale = $1
      LEFT JOIN LATERAL (
