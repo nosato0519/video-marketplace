@@ -144,6 +144,11 @@ async function createVideoThumbnail(file) {
         video.addEventListener('error', () => reject(new Error('video_thumbnail_seek_failed')), { once: true });
         video.currentTime = seekTime;
       });
+    } else if (video.readyState < 2) {
+      await new Promise((resolve, reject) => {
+        video.addEventListener('loadeddata', resolve, { once: true });
+        video.addEventListener('error', () => reject(new Error('video_thumbnail_frame_failed')), { once: true });
+      });
     }
     const scale = Math.min(1, 1280 / video.videoWidth);
     const canvas = document.createElement('canvas');
