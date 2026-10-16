@@ -21,9 +21,9 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        p.published_at,
        c.slug AS category,
        sp.display_name AS seller,
-       COALESCE(requested.title, language.title, fallback.title) AS title,
-       COALESCE(requested.description, language.description, fallback.description) AS description,
-       COALESCE(requested.locale, language.locale, fallback.locale) AS content_locale
+       COALESCE(requested.title, language.title, fallback.title, p.title) AS title,
+       COALESCE(requested.description, language.description, fallback.description, p.description) AS description,
+       COALESCE(requested.locale, language.locale, fallback.locale, $2) AS content_locale
      FROM products p
      JOIN seller_profiles sp ON sp.user_id = p.seller_id
      JOIN users su ON su.id = p.seller_id
@@ -32,7 +32,7 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        ON requested.product_id = p.id AND requested.locale = $2
      LEFT JOIN product_translations language
        ON language.product_id = p.id AND language.locale = $3
-     JOIN LATERAL (
+     LEFT JOIN LATERAL (
        SELECT title, description, locale
        FROM product_translations
        WHERE product_id = p.id
