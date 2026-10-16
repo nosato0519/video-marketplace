@@ -165,7 +165,7 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
   try {
     const nextStatus = String(req.body?.status || '').trim();
     if (!Object.hasOwn(reviewTransitions, nextStatus)) return res.status(400).json({ error: 'invalid_status' });
-    const current = await query(`SELECT id, product_id, status FROM content_reviews WHERE id = $1`, [req.params.id]);
+    const current = await query(`SELECT r.id, r.product_id, r.status, p.seller_id FROM content_reviews r JOIN products p ON p.id = r.product_id WHERE r.id = $1`, [req.params.id]);
     if (!current.rowCount) return res.status(404).json({ error: 'review_not_found' });
     const row = current.rows[0];
     if (!reviewTransitions[row.status]?.has(nextStatus)) return res.status(409).json({ error: 'invalid_status_transition', from: row.status, to: nextStatus });
@@ -180,8 +180,29 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
         RETURNING id, product_id, reviewer_id, status, reason_code, notes, created_at, resolved_at`,
       [req.params.id, req.user.id, nextStatus, notes]
     );
+    let publishImmediately = false;
+    if (nextStatus === 'approved') {
+      const setting = await query(
+        `SELECT setting_value->>'value' AS method
+           FROM platform_settings
+          WHERE setting_key = 'seller_verification_method'
+          LIMIT 1`
+      );
+      const method = ['email', 'document'].includes(setting.rows[0]?.method)
+        ? setting.rows[0].method
+        : 'none';
+      if (method === 'none') {
+        publishImmediately = true;
+      } else {
+        const seller = await query(
+          'SELECT verification_status FROM seller_profiles WHERE user_id = $1 LIMIT 1',
+          [row.seller_id]
+        );
+        publishImmediately = seller.rows[0]?.verification_status === 'verified';
+      }
+    }
     const productStatus = {
-      approved: 'approved',
+      approved: publishImmediately ? 'published' : 'approved',
       rejected: 'rejected',
       changes_requested: 'draft',
       blocked: 'suspended',
@@ -192,7 +213,7 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
         `UPDATE products
             SET status = $2, moderation_status = $3,
                 content_blocked = CASE WHEN $3 = 'blocked' THEN TRUE WHEN $3 IN ('approved','rejected','changes_requested','pending') THEN FALSE ELSE content_blocked END,
-                published_at = CASE WHEN $2 <> 'published' THEN NULL ELSE published_at END,
+                published_at = CASE WHEN $2 = 'published' THEN COALESCE(published_at, NOW()) ELSE NULL END,
                 updated_at = NOW()
           WHERE id = $1`,
         [row.product_id, productStatus, nextStatus]
