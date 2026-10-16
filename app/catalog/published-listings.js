@@ -29,8 +29,11 @@ async function fetchPublishedListings({ category = '', limit = 6 } = {}) {
 
 function listingCard(product, index, categoryName = '') {
   const category = categoryName || categoryDefinitions[product.category]?.name || product.category || '動画';
+  const thumbnail = product.thumbnail_url
+    ? `<img class="published-listing-thumbnail" src="${escapeListingHtml(product.thumbnail_url)}" alt="${escapeListingHtml(product.title)}" loading="lazy">`
+    : '<span>VIDEO</span>';
   return `<a href="/pages/product-detail.html?productId=${encodeURIComponent(product.id)}" class="video-card">
-    <div class="thumb t${(index % 9) + 1}"><span>VIDEO</span></div>
+    <div class="thumb t${(index % 9) + 1}">${thumbnail}</div>
     <div class="card-info">
       <i>${escapeListingHtml(category)}</i>
       <h3>${escapeListingHtml(product.title)}</h3>
