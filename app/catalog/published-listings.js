@@ -114,6 +114,14 @@ async function renderProductDetail() {
     if (!product) throw new Error('product_not_found');
 
     const category = categoryDefinitions[product.category]?.name || product.category || '動画';
+    const mediaBadge = document.querySelector('.detail-badge');
+    if (mediaBadge) mediaBadge.hidden = true;
+    const mediaDuration = document.querySelector('.detail-duration');
+    if (mediaDuration) mediaDuration.hidden = true;
+    const rating = document.querySelector('.detail-rating span:first-child');
+    if (rating) rating.hidden = true;
+    const detailsSection = [...document.querySelectorAll('.detail-section')].find((section) => section.querySelector('.detail-section-label')?.textContent.trim() === 'DETAILS');
+    if (detailsSection) detailsSection.hidden = true;
     document.title = product.title + ' | VIDEO MARKETPLACE';
     const breadcrumb = document.querySelector('.detail-breadcrumb');
     if (breadcrumb) breadcrumb.textContent = 'HOME / VIDEO / ' + category + ' / ' + product.title;
