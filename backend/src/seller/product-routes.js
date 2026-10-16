@@ -251,6 +251,7 @@ router.patch('/products/:productId', async (req, res, next) => {
     const hasMediaAssetId = Object.prototype.hasOwnProperty.call(body, 'mediaAssetId');
     const mediaAssetId = body.mediaAssetId;
     if (product.status === 'published') return res.status(409).json({ error: 'published_product_locked' });
+    if (['submitted', 'under_review', 'processing'].includes(product.status)) return res.status(409).json({ error: 'product_under_review_locked' });
     if (title != null && !String(title).trim()) {
       return res.status(422).json({ error: 'product_title_required' });
     }
@@ -268,6 +269,7 @@ router.patch('/products/:productId', async (req, res, next) => {
       );
       if (!lockedProduct.rows.length) return { error: 'product_not_found' };
       if (lockedProduct.rows[0].status === 'published') return { error: 'published_product_locked' };
+      if (['submitted', 'under_review', 'processing'].includes(lockedProduct.rows[0].status)) return { error: 'product_under_review_locked' };
       let categoryId = null;
       if (hasCategorySlug && normalizedCategorySlug) {
         const category = await client.query('SELECT id FROM categories WHERE slug = $1 LIMIT 1', [normalizedCategorySlug]);
@@ -287,7 +289,7 @@ router.patch('/products/:productId', async (req, res, next) => {
           }
         }
       }
-      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, category_id = CASE WHEN $8 THEN $9 ELSE category_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $10 RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, hasCategorySlug, categoryId, req.user.id]);
+      const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, category_id = CASE WHEN $8 THEN $9 ELSE category_id END, status = CASE WHEN status = 'approved' THEN 'draft' ELSE status END, moderation_status = CASE WHEN status = 'approved' THEN 'changes_requested' ELSE moderation_status END, published_at = NULL, updated_at = NOW() WHERE id = $1 AND seller_id = $10 RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, hasCategorySlug, categoryId, req.user.id]);
       if (hasTranslations) {
         for (const translation of normalizedTranslations) {
           await client.query(
@@ -319,6 +321,7 @@ router.patch('/products/:productId', async (req, res, next) => {
     });
     if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
     if (update.error === 'published_product_locked') return res.status(409).json({ error: 'published_product_locked' });
+    if (update.error === 'product_under_review_locked') return res.status(409).json({ error: 'product_under_review_locked' });
     if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
     if (update.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
