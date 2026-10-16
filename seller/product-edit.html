@@ -150,15 +150,26 @@ function formatStatus(status) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = new Error(body?.error?.message || body?.error || '動画情報を取得できませんでした。');
-    error.status = response.status;
-    error.body = body;
-    throw error;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(new Error('サーバーからの応答が180秒以内にありませんでした。')), 180000);
+  try {
+    const response = await fetch(path, {
+      credentials: 'same-origin',
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      signal: controller.signal
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(body?.error?.message || body?.error || '動画情報を取得できませんでした。');
+      error.status = response.status;
+      error.body = body;
+      throw error;
+    }
+    return body;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return body;
 }
 
 function uploadReplacementVideo(file, onProgress) {
