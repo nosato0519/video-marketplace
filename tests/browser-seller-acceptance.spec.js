@@ -142,6 +142,11 @@ test.describe('seller browser acceptance', () => {
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('Thumbnail image').setInputFiles({
+      name: 'spa-thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
 
     try {
       await page.getByRole('button', { name: 'Upload and create draft' }).click();
