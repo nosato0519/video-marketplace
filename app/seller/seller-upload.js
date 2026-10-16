@@ -194,6 +194,7 @@ export async function renderSellerUpload(root) {
       message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
       form.reset();
       selectedFile.textContent = 'No file selected yet.';
+      selectedThumbnail.textContent = 'No thumbnail selected yet.';
       form.querySelector('#video-price').value = '1000';
     } catch (error) {
       let productWasCreated = productCreated;
