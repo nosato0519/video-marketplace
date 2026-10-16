@@ -24,11 +24,18 @@ export function registerProductDetailRoutes(app, { storage } = {}) {
       const result = await query(
         `SELECT ma.storage_key, ma.mime_type, ma.byte_size
            FROM products p
+           JOIN seller_profiles sp ON sp.user_id = p.seller_id
+           JOIN users su ON su.id = p.seller_id
            JOIN product_images pi ON pi.product_id = p.id
            JOIN media_assets ma ON ma.id = pi.media_asset_id
           WHERE p.id = $1 AND pi.media_asset_id = $2
-            AND p.status = 'published' AND ma.status = 'ready'
+            AND p.status = 'published' AND su.status = 'active'
+            AND ma.status = 'ready'
             AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+            AND NOT EXISTS (
+              SELECT 1 FROM content_reviews cr
+               WHERE cr.product_id = p.id AND cr.status = 'blocked'
+            )
           LIMIT 1`,
         [req.params.productId, req.params.assetId]
       );
