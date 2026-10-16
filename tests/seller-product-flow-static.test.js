@@ -2,10 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
+const app = fs.readFileSync(path.join(root, 'backend', 'src', 'app.js'), 'utf8');
 const products = fs.readFileSync(path.join(root, 'seller', 'products.html'), 'utf8');
 const productsScript = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-products.js'), 'utf8');
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
@@ -16,6 +18,16 @@ const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'medi
 const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
 const adminModerationRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'admin', 'content-moderation-routes.js'), 'utf8');
 const adminSellerVideosPage = fs.readFileSync(path.join(root, 'pages', 'admin-seller-videos.html'), 'utf8');
+function assertInlineScriptsAllowed(page, label) {
+  for (const match of page.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)) {
+    if (/\\bsrc\\s*=/.test(match[1])) continue;
+    const hash = createHash('sha256').update(match[2]).digest('base64');
+    assert.ok(app.includes(`'sha256-${hash}'`), `${label} inline script hash must be allowed by CSP`);
+  }
+}
+assertInlineScriptsAllowed(productEdit, 'seller product edit page');
+assertInlineScriptsAllowed(adminSellerVideosPage, 'operator seller videos page');
+
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
 const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
 const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
