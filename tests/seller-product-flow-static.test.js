@@ -173,3 +173,8 @@ assert.match(productDetailPage, /node\.style\.backgroundImage/);
 assert.match(productDetailPage, /galleryItems\.filter\(node=>!node\.hidden\)\.indexOf\(item\)/);
 
 console.log('Seller product upload flow static contract checks passed.');
+
+assert.match(adminModerationRoutes, /router\\.get\\('\/content\/reviews\/:id'/);
+assert.match(adminSellerVideosPage, /data-detail=/);
+assert.match(adminSellerVideosPage, /review-detail-dialog/);
+assert.match(adminSellerVideosPage, /category_name/);
