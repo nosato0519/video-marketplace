@@ -69,11 +69,22 @@ router.get('/products/:productId', async (req, res, next) => {
   try {
     const result = await query(`${PRODUCT_SELECT} WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
-    const translations = await query(
-      'SELECT locale, title, description FROM product_translations WHERE product_id = $1 ORDER BY locale',
-      [req.params.productId]
-    );
-    return res.json({ product: { ...result.rows[0], translations: translations.rows } });
+    const [translations, images] = await Promise.all([
+      query(
+        'SELECT locale, title, description FROM product_translations WHERE product_id = $1 ORDER BY locale',
+        [req.params.productId]
+      ),
+      query(
+        `SELECT pi.media_asset_id, pi.image_role, pi.sort_order,
+                ma.original_filename, ma.mime_type, ma.byte_size
+           FROM product_images pi
+           JOIN media_assets ma ON ma.id = pi.media_asset_id
+          WHERE pi.product_id = $1
+          ORDER BY pi.image_role, pi.sort_order, pi.id`,
+        [req.params.productId]
+      ),
+    ]);
+    return res.json({ product: { ...result.rows[0], translations: translations.rows, images: images.rows } });
   } catch (error) { return next(error); }
 });
 
@@ -193,8 +204,28 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const product = current.rows[0];
     const body = req.body || {};
-    const { title, description, priceAmount, priceCurrency, categorySlug, translations } = body;
+    const { title, description, priceAmount, priceCurrency, categorySlug, translations, images } = body;
     const hasTranslations = Object.prototype.hasOwnProperty.call(body, 'translations');
+    const hasImages = Object.prototype.hasOwnProperty.call(body, 'images');
+    if (hasImages && (!Array.isArray(images) || images.length > 5)) {
+      return res.status(422).json({ error: 'invalid_product_images' });
+    }
+    const normalizedImages = hasImages ? images.map((image) => ({
+      mediaAssetId: typeof image?.mediaAssetId === 'string' ? image.mediaAssetId.trim() : '',
+      role: image?.role === 'thumbnail' ? 'thumbnail' : image?.role === 'gallery' ? 'gallery' : '',
+      sortOrder: Number.isSafeInteger(image?.sortOrder) ? image.sortOrder : -1,
+    })) : [];
+    if (hasImages) {
+      const invalidImage = normalizedImages.some((image) => (
+        !isUuid(image.mediaAssetId) || !image.role || image.sortOrder < 0 || image.sortOrder > 4
+      ));
+      const duplicateImage = new Set(normalizedImages.map((image) => image.mediaAssetId)).size !== normalizedImages.length;
+      const thumbnails = normalizedImages.filter((image) => image.role === 'thumbnail').length;
+      const galleries = normalizedImages.filter((image) => image.role === 'gallery').length;
+      if (invalidImage || duplicateImage || thumbnails > 1 || galleries > 4) {
+        return res.status(422).json({ error: 'invalid_product_images' });
+      }
+    }
     if (hasTranslations && (!Array.isArray(translations) || translations.length > 10)) {
       return res.status(422).json({ error: 'invalid_product_translations' });
     }
@@ -248,6 +279,14 @@ router.patch('/products/:productId', async (req, res, next) => {
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
       }
+      if (hasImages) {
+        for (const image of normalizedImages) {
+          const asset = await getSellerMediaAsset(image.mediaAssetId, req.user.id, client);
+          if (!asset || asset.status !== 'ready' || !PRODUCT_IMAGE_MIME_TYPES.has(asset.mime_type)) {
+            return { error: 'product_image_asset_invalid' };
+          }
+        }
+      }
       const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, category_id = CASE WHEN $8 THEN $9 ELSE category_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $10 RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, hasCategorySlug, categoryId, req.user.id]);
       if (hasTranslations) {
         for (const translation of normalizedTranslations) {
@@ -266,6 +305,16 @@ router.patch('/products/:productId', async (req, res, next) => {
           await client.query('DELETE FROM product_translations WHERE product_id = $1', [req.params.productId]);
         }
       }
+      if (hasImages) {
+        await client.query('DELETE FROM product_images WHERE product_id = $1', [req.params.productId]);
+        for (const image of normalizedImages) {
+          await client.query(
+            `INSERT INTO product_images (product_id, media_asset_id, image_role, sort_order)
+             VALUES ($1, $2, $3, $4)`,
+            [req.params.productId, image.mediaAssetId, image.role, image.sortOrder]
+          );
+        }
+      }
       return { product: result.rows[0] };
     });
     if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
@@ -273,6 +322,7 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
     if (update.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
+    if (update.error === 'product_image_asset_invalid') return res.status(422).json({ error: 'product_image_asset_invalid' });
     return res.json({ product: update.product });
   } catch (error) { return next(error); }
 });
