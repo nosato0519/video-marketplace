@@ -58,6 +58,28 @@ router.get('/content/reviews', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+router.get('/content/reviews/:id', async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT r.id, r.status, r.notes, r.created_at,
+              p.id AS product_id, p.title AS product_title, p.description,
+              p.price_amount, p.price_currency, p.status AS product_status,
+              c.slug AS category_slug, c.name AS category_name, u.email AS seller_email,
+              m.original_filename AS media_original_filename,
+              m.mime_type AS media_mime_type, m.byte_size AS media_byte_size,
+              m.status AS media_status
+         FROM content_reviews r JOIN products p ON p.id = r.product_id
+         LEFT JOIN categories c ON c.id = p.category_id
+         LEFT JOIN users u ON u.id = p.seller_id
+         LEFT JOIN media_assets m ON m.id = p.media_asset_id
+        WHERE r.id = $1 LIMIT 1`,
+      [req.params.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'review_not_found' });
+    return res.json({ review: result.rows[0] });
+  } catch (error) { return next(error); }
+});
+
 router.get('/content/reviews/:id/video', async (req, res, next) => {
   try {
     const result = await query(
