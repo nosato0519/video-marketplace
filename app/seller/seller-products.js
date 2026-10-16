@@ -23,6 +23,14 @@ function formatPrice(product) {
   }
 }
 
+function formatBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return '';
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
 function mediaSummary(product) {
   if (!product.media_asset_id) return { label: 'Video not attached', detail: 'Add a protected video before publishing.', ready: false };
   const status = String(product.media_status || '').toLowerCase();
