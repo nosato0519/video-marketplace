@@ -60,6 +60,8 @@ assert.match(productsScript, /seller-video-edit/);
 assert.match(productsScript, /data-submit-product/);
 assert.match(productsScript, /\/submit/);
 assert.match(productRoutes, /products\/:productId\/submit/);
+assert.match(productRoutes, /p\.moderation_status/);
+assert.match(productsScript, /product\.moderation_status === 'changes_requested' \? '修正して再申請' : '審査を申請'/);
 assert.match(productRoutes, /status = 'approved' AND moderation_status = 'approved'/);
 assert.match(productRoutes, /product_under_review_locked/);
 assert.match(productRoutes, /moderation_status = CASE WHEN status = 'approved' THEN 'changes_requested'/);
