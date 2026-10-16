@@ -33,7 +33,7 @@ function safeOriginalFilename(value) {
   const headerValue = String(value || 'video');
   let decoded = headerValue;
   try { decoded = decodeURIComponent(headerValue); } catch {}
-  const normalized = decoded.replace(/[\\u0000-\\u001f\\u007f]/g, '_').trim();
+  const normalized = decoded.replace(/[\u0000-\u001f\u007f]/g, '_').trim();
   return (normalized || 'video').slice(0, 512);
 }
 
