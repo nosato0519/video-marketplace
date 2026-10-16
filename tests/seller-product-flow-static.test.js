@@ -172,9 +172,9 @@ assert.match(editorScript, /maxImageUploadBytes/);
 assert.match(productRoutes, /INSERT INTO product_images/);
 assert.match(productRoutes, /product_image_asset_invalid/);
 assert.match(productImagesMigration, /CREATE TABLE IF NOT EXISTS product_images/);
-assert.match(publishApprovedMigration, /p\\.status = 'approved'/);
-assert.match(publishApprovedMigration, /p\\.moderation_status = 'approved'/);
-assert.match(publishApprovedMigration, /published_at = COALESCE\\(p\\.published_at, NOW\\(\\)\\)/);
+assert.match(publishApprovedMigration, /p\.status = 'approved'/);
+assert.match(publishApprovedMigration, /p\.moderation_status = 'approved'/);
+assert.match(publishApprovedMigration, /published_at = COALESCE\(p\.published_at, NOW\(\)\)/);
 assert.match(publishApprovedMigration, /seller_verification_method/);
 assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
