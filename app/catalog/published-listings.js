@@ -27,13 +27,13 @@ async function fetchPublishedListings({ category = '', limit = 6 } = {}) {
   return Array.isArray(payload.data) ? payload.data : [];
 }
 
-function listingCard(product, index, categoryName = '') {
+function listingCard(product, categoryName = '') {
   const category = categoryName || categoryDefinitions[product.category]?.name || product.category || '動画';
   const thumbnail = product.thumbnail_url
     ? `<img class="published-listing-thumbnail" style="display:block;width:100%;height:100%;object-fit:cover" src="${escapeListingHtml(product.thumbnail_url)}" alt="${escapeListingHtml(product.title)}" loading="lazy">`
     : '<span>VIDEO</span>';
   return `<a href="/pages/product-detail.html?productId=${encodeURIComponent(product.id)}" class="video-card">
-    <div class="thumb t${(index % 9) + 1}">${thumbnail}</div>
+    <div class="thumb published-listing-thumb" style="background-color:#111;display:grid;place-items:center">${thumbnail}</div>
     <div class="card-info">
       <i>${escapeListingHtml(category)}</i>
       <h3>${escapeListingHtml(product.title)}</h3>
@@ -43,12 +43,23 @@ function listingCard(product, index, categoryName = '') {
   </a>`;
 }
 
+function watchListingThumbnailErrors(container) {
+  container.querySelectorAll('.published-listing-thumbnail').forEach((image) => {
+    image.addEventListener('error', () => {
+      const fallback = document.createElement('span');
+      fallback.textContent = 'VIDEO';
+      image.replaceWith(fallback);
+    }, { once: true });
+  });
+}
+
 async function renderNewReleases(grid) {
   try {
     const products = await fetchPublishedListings({ limit: 6 });
     grid.innerHTML = products.length
-      ? products.map((product, index) => listingCard(product, index)).join('')
+      ? products.map((product) => listingCard(product)).join('')
       : '<p class="announcement-empty">公開中の動画はまだありません。</p>';
+    watchListingThumbnailErrors(grid);
   } catch {
     grid.innerHTML = '<p class="announcement-empty">動画を読み込めませんでした。時間をおいて再度お試しください。</p>';
   }
@@ -76,8 +87,9 @@ async function renderCategoryListings(grid) {
   try {
     const products = await fetchPublishedListings({ category: slug, limit: 24 });
     grid.innerHTML = products.length
-      ? products.map((product, index) => listingCard(product, index, category.name)).join('')
+      ? products.map((product) => listingCard(product, category.name)).join('')
       : '<p class="announcement-empty">このカテゴリーには公開中の動画がまだありません。</p>';
+    watchListingThumbnailErrors(grid);
   } catch {
     grid.innerHTML = '<p class="announcement-empty">動画を読み込めませんでした。時間をおいて再度お試しください。</p>';
   }
