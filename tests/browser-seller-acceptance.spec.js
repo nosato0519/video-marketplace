@@ -125,6 +125,8 @@ test.describe('seller browser acceptance', () => {
     });
     await page.route('**/api/seller/products', async (route) => {
       if (route.request().method() === 'POST') {
+        const body = route.request().postDataJSON();
+        expect(body.images).toEqual([{ mediaAssetId: 'media-spa-thumbnail', role: 'thumbnail', sortOrder: 0 }]);
         draftCalls += 1;
         await fulfillJson(route, { product: { id: 'draft-spa-duplicate', title: 'SPA Upload', status: 'draft' } });
       } else {
