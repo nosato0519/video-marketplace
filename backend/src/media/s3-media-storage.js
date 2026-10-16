@@ -71,7 +71,7 @@ export function createS3MediaStorage({
   if (!bucket || !accessKeyId || !secretAccessKey) throw new Error('media_s3_configuration_missing');
   if (typeof fetchImpl !== 'function') throw new Error('media_s3_fetch_missing');
 
-  async function request(method, storageKey, { range, body } = {}) {
+  async function request(method, storageKey, { range, body, contentLength } = {}) {
     validateKey(storageKey);
     const url = objectUrl({ endpoint, bucket, region, storageKey });
     const now = new Date();
@@ -84,6 +84,7 @@ export function createS3MediaStorage({
       'x-amz-date': timestamp,
     };
     if (range) headers.range = `bytes=${range.start}-${range.end}`;
+    if (body && Number.isSafeInteger(contentLength) && contentLength >= 0) headers['content-length'] = String(contentLength);
 
     const canonicalHeaders = Object.keys(headers).sort().map((key) => `${key}:${headers[key].trim()}\n`).join('');
     const signedHeaders = Object.keys(headers).sort().join(';');
@@ -135,8 +136,8 @@ export function createS3MediaStorage({
       }
       return { size: Number(response.headers.get('content-length') || 0) };
     },
-    async putStream({ storageKey, stream } = {}) {
-      const response = await request('PUT', storageKey, { body: stream });
+    async putStream({ storageKey, stream, contentLength } = {}) {
+      const response = await request('PUT', storageKey, { body: stream, contentLength });
       if (!response.ok) {
         await cancelResponseBody(response);
         throw new Error(`media_storage_put_failed:${response.status}`);
