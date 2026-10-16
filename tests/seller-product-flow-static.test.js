@@ -15,6 +15,7 @@ const spaUpload = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-uploa
 const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'media', 'media-upload-route.js'), 'utf8');
 const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
 const adminModerationRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'admin', 'content-moderation-routes.js'), 'utf8');
+const adminSellerVideosPage = fs.readFileSync(path.join(root, 'pages', 'admin-seller-videos.html'), 'utf8');
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
 const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
 const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
@@ -67,6 +68,15 @@ assert.match(productRoutes, /product_under_review_locked/);
 assert.match(productRoutes, /moderation_status = CASE WHEN status = 'approved' THEN 'changes_requested'/);
 assert.doesNotMatch(productEdit, /PUBLISHING|PUBLICATION|公開状態を変更/);
 assert.match(adminModerationRoutes, /moderation_status = \$3/);
+assert.match(adminModerationRoutes, /m\.original_filename AS media_original_filename/);
+assert.match(adminModerationRoutes, /m\.byte_size AS media_byte_size/);
+assert.match(adminSellerVideosPage, /\/api\/admin\/content\/reviews/);
+assert.match(adminSellerVideosPage, /\/status/);
+assert.doesNotMatch(adminSellerVideosPage, /サンプルデータ|THE LAST SIGNAL|Build Your Brand/);
+assert.match(mediaUploadRoute, /router\.get\('\/assets\/:assetId\/preview'/);
+assert.match(mediaUploadRoute, /WHERE id = \$1 AND owner_user_id = \$2/);
+assert.match(productEdit, /id="current-video-preview"/);
+assert.match(productEdit, /\/api\/seller\/media\/assets\/.*\/preview/);
 
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
 
