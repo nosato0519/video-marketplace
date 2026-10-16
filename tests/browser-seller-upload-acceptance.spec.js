@@ -79,6 +79,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
 
     await page.getByLabel('サムネイル画像').setInputFiles({
       name: 'thumbnail.jpg',
@@ -111,6 +116,10 @@ test('disables the save action while a video upload is pending', async ({ page }
 
     await page.route('**/api/seller/media/upload', async (route) => {
       expect(route.request().method()).toBe('POST');
+      if (route.request().headers()['content-type'] === 'image/jpeg') {
+        await fulfillJson(route, { mediaAsset: { id: 'thumbnail-product-editor', status: 'ready' } }, 201);
+        return;
+      }
       expect(route.request().headers()['content-type']).toBe('video/mp4');
       expect(route.request().headers()['x-original-filename']).toBe('product-editor.mp4');
       expect(route.request().postDataBuffer()?.length || 0).toBeGreaterThan(0);
@@ -140,6 +149,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
 
     await page.locator('#save-product').click();
 
@@ -168,6 +182,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
 
     await page.locator('#save-product').click();
     expect(draftCalls).toBe(0);
@@ -177,6 +196,10 @@ test('disables the save action while a video upload is pending', async ({ page }
   test('product editor infers MIME type when browser reports a blank type', async ({ page }) => {
     await mockSellerSession(page);
     await page.route('**/api/seller/media/upload', async (route) => {
+      if (route.request().headers()['content-type'] === 'image/jpeg') {
+        await fulfillJson(route, { mediaAsset: { id: 'thumbnail-blank-mime', status: 'ready' } }, 201);
+        return;
+      }
       expect(route.request().headers()['content-type']).toBe('video/mp4');
       await fulfillJson(route, { mediaAsset: { id: 'media-blank-mime', status: 'ready' } }, 201);
     });
@@ -192,6 +215,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       name: 'blank-mime.mp4',
       mimeType: '',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
     });
     await page.locator('#save-product').click();
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
@@ -224,6 +252,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
     await page.locator('#save-product').click();
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
@@ -236,6 +269,10 @@ test('disables the save action while a video upload is pending', async ({ page }
 
     await page.route('**/api/seller/media/upload', async (route) => {
       expect(route.request().method()).toBe('POST');
+      if (route.request().headers()['content-type'] === 'image/jpeg') {
+        await fulfillJson(route, { mediaAsset: { id: 'thumbnail-media-1', status: 'ready' } }, 201);
+        return;
+      }
       expect(route.request().headers()['content-type']).toBe('video/mp4');
       expect(route.request().headers()['x-original-filename']).toBe('sample.mp4');
       expect(route.request().postDataBuffer()?.length || 0).toBeGreaterThan(0);
@@ -391,6 +428,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
     });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
     await page.locator('#save-product').click();
 
     await expect.poll(() => cleanupCalled).toBe(true);
@@ -424,6 +466,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       name: 'cleanup-pending.mp4',
       mimeType: 'video/mp4',
       buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    });
+    await page.getByLabel('サムネイル画像').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
     });
     await page.locator('#save-product').click();
 
