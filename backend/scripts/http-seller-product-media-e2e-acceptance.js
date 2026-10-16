@@ -398,6 +398,9 @@ try {
   }
 
   await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
+  const unpublishBeforeRepublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(unpublishBeforeRepublishResponse.response.status, 200, JSON.stringify(unpublishBeforeRepublishResponse.body));
+  assert.equal(unpublishBeforeRepublishResponse.body.product.status, 'approved');
   const republishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(republishResponse.response.status, 200, JSON.stringify(republishResponse.body));
   assert.equal(republishResponse.body.product.status, 'published');
