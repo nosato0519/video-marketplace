@@ -69,7 +69,11 @@ router.get('/products/:productId', async (req, res, next) => {
   try {
     const result = await query(`${PRODUCT_SELECT} WHERE p.id = $1 AND p.seller_id = $2`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'product_not_found' });
-    return res.json({ product: result.rows[0] });
+    const translations = await query(
+      'SELECT locale, title, description FROM product_translations WHERE product_id = $1 ORDER BY locale',
+      [req.params.productId]
+    );
+    return res.json({ product: { ...result.rows[0], translations: translations.rows } });
   } catch (error) { return next(error); }
 });
 
@@ -189,7 +193,25 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (!current.rows.length) return res.status(404).json({ error: 'product_not_found' });
     const product = current.rows[0];
     const body = req.body || {};
-    const { title, description, priceAmount, priceCurrency, categorySlug } = body;
+    const { title, description, priceAmount, priceCurrency, categorySlug, translations } = body;
+    const hasTranslations = Object.prototype.hasOwnProperty.call(body, 'translations');
+    if (hasTranslations && (!Array.isArray(translations) || translations.length > 10)) {
+      return res.status(422).json({ error: 'invalid_product_translations' });
+    }
+    const normalizedTranslations = [];
+    if (hasTranslations) {
+      for (const translation of translations) {
+        const locale = typeof translation?.locale === 'string' ? translation.locale.trim() : '';
+        const translatedTitle = typeof translation?.title === 'string' ? translation.title.trim() : '';
+        const translatedDescription = typeof translation?.description === 'string' ? translation.description : '';
+        if (!['en', 'ja', 'zh-CN', 'zh-TW', 'ko', 'es', 'fr', 'de', 'it', 'pt-BR'].includes(locale)) {
+          return res.status(422).json({ error: 'invalid_product_translation_locale' });
+        }
+        if (!translatedTitle && !translatedDescription) continue;
+        if (!translatedTitle) return res.status(422).json({ error: 'product_translation_title_required', locale });
+        normalizedTranslations.push({ locale, title: translatedTitle, description: translatedDescription });
+      }
+    }
     const hasCategorySlug = Object.prototype.hasOwnProperty.call(body, 'categorySlug');
     const normalizedCategorySlug = categorySlug == null ? '' : String(categorySlug).trim();
     if (hasCategorySlug && normalizedCategorySlug && !/^[a-z0-9-]{1,80}$/.test(normalizedCategorySlug)) {
@@ -227,6 +249,23 @@ router.patch('/products/:productId', async (req, res, next) => {
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
       }
       const result = await client.query(`UPDATE products SET title = COALESCE($2, title), description = COALESCE($3, description), price_amount = COALESCE($4, price_amount), price_currency = COALESCE($5, price_currency), media_asset_id = CASE WHEN $6 THEN $7 ELSE media_asset_id END, category_id = CASE WHEN $8 THEN $9 ELSE category_id END, updated_at = NOW() WHERE id = $1 AND seller_id = $10 RETURNING id, seller_id, media_asset_id, category_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, title == null ? null : String(title).trim(), description == null ? null : String(description), priceAmount == null ? null : priceAmount, normalizedCurrency, hasMediaAssetId, mediaAssetId == null ? null : mediaAssetId, hasCategorySlug, categoryId, req.user.id]);
+      if (hasTranslations) {
+        for (const translation of normalizedTranslations) {
+          await client.query(
+            `INSERT INTO product_translations (product_id, locale, title, description)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (product_id, locale) DO UPDATE
+               SET title = EXCLUDED.title, description = EXCLUDED.description, updated_at = NOW()`,
+            [req.params.productId, translation.locale, translation.title, translation.description]
+          );
+        }
+        const suppliedLocales = normalizedTranslations.map((translation) => translation.locale);
+        if (suppliedLocales.length) {
+          await client.query('DELETE FROM product_translations WHERE product_id = $1 AND NOT (locale = ANY($2::text[]))', [req.params.productId, suppliedLocales]);
+        } else {
+          await client.query('DELETE FROM product_translations WHERE product_id = $1', [req.params.productId]);
+        }
+      }
       return { product: result.rows[0] };
     });
     if (update.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
