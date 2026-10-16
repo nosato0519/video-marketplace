@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { Readable } from 'node:stream';
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -126,7 +127,7 @@ export function createS3MediaStorage({
         await cancelResponseBody(response);
         throw new Error(`media_storage_get_failed:${response.status}`);
       }
-      return { stream: response.body, size: Number(response.headers.get('content-length') || 0) };
+      return { stream: Readable.fromWeb(response.body), size: Number(response.headers.get('content-length') || 0) };
     },
     async getMetadata({ storageKey } = {}) {
       const response = await request('HEAD', storageKey);
