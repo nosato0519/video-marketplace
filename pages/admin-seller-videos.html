@@ -63,8 +63,6 @@ const body=table.tBodies[0];
 const search=document.getElementById('video-search');
 const filter=document.getElementById('video-status');
 const contentMessage=document.getElementById('video-count');
-const modal=document.getElementById('modal');
-const reason=document.getElementById('reason');
 const message=document.getElementById('message');
 let reviews=[];
 let pendingAction=null;
@@ -117,32 +115,26 @@ async function load(){
  try{const data=await api('/api/admin/content/reviews');reviews=Array.isArray(data.reviews)?data.reviews:[];render();}
  catch(error){body.innerHTML='<tr><td colspan="6" class="muted">審査データを読み込めませんでした。</td></tr>';showMessage(error.message,'error');}
 }
-function openAction(reviewId,status){
+async function applyAction(reviewId,status){
  const review=reviews.find(item=>item.id===reviewId);
  if(!review)return;
- pendingAction={reviewId,status};
- document.getElementById('modal-title').textContent=actionLabels[status]||status;
- document.getElementById('modal-copy').textContent='作品「'+(review.product_title||review.product_id)+'」の審査状態を更新します。却下・修正依頼・停止には理由が必要です。';
- reason.value='';
- modal.classList.remove('hidden');
+ let notes='';
+ if(['changes_requested','rejected','blocked'].includes(status)){
+  const entered=window.prompt('作品「'+(review.product_title||review.product_id)+'」への理由を入力してください。');
+  if(entered===null)return;
+  notes=entered.trim();
+  if(!notes){showMessage('この操作には理由の入力が必要です。','error');return;}
+ }
+ if(!window.confirm('作品「'+(review.product_title||review.product_id)+'」を「'+(actionLabels[status]||status)+'」にしますか？'))return;
+ try{
+  await api('/api/admin/content/reviews/'+encodeURIComponent(reviewId)+'/status',{method:'POST',body:JSON.stringify({status,notes})});
+  showMessage('審査状態を更新しました。');
+  await load();
+ }catch(error){showMessage(error.message,'error');}
 }
-function closeModal(){pendingAction=null;modal.classList.add('hidden');}
 table.addEventListener('click',event=>{
  const button=event.target.closest('button[data-review][data-status]');
- if(button)openAction(button.dataset.review,button.dataset.status);
-});
-document.getElementById('cancel').addEventListener('click',closeModal);
-document.getElementById('confirm').addEventListener('click',async()=>{
- if(!pendingAction)return;
- const action=pendingAction;
- const notes=reason.value.trim();
- if(['changes_requested','rejected','blocked'].includes(action.status)&&!notes){showMessage('この操作には理由の入力が必要です。','error');return;}
- const confirmButton=document.getElementById('confirm');confirmButton.disabled=true;
- try{
-  await api('/api/admin/content/reviews/'+encodeURIComponent(action.reviewId)+'/status',{method:'POST',body:JSON.stringify({status:action.status,notes})});
-  closeModal();showMessage('審査状態を更新しました。');await load();
- }catch(error){showMessage(error.message,'error');}
- finally{confirmButton.disabled=false;}
+ if(button)void applyAction(button.dataset.review,button.dataset.status);
 });
 document.getElementById('refresh').addEventListener('click',load);
 search.addEventListener('input',render);
