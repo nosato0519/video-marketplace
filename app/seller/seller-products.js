@@ -64,7 +64,7 @@ function productRow(product) {
     : product.status === 'approved'
       ? `<button class="button${media.ready ? '' : ' secondary'}" data-action="publish" data-id="${escapeHtml(product.id)}" ${media.ready ? '' : 'disabled'} title="${escapeHtml(media.detail)}">Publish</button>`
       : '';
-  const deleteAction = published ? '' : `<button class="button secondary" data-action="delete" data-id="${escapeHtml(product.id)}">Delete draft</button>`;
+  const deleteAction = product.status === 'draft' ? `<button class="button secondary" data-action="delete" data-id="${escapeHtml(product.id)}">Delete draft</button>` : '';
   return `<article class="seller-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="seller-product-card__top"><div><span class="seller-status seller-status--${escapeHtml(product.status || 'draft')}">${escapeHtml(statusLabel(product.status))}</span><h2>${escapeHtml(product.title || 'Untitled video')}</h2></div><strong class="seller-product-card__price">${escapeHtml(formatPrice(product))}</strong></div>
     <p class="seller-product-card__description">${escapeHtml(product.description || 'Add a description so buyers know what they are purchasing.')}</p>
