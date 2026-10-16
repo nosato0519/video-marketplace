@@ -76,7 +76,44 @@ router.get('/content/reviews/:id', async (req, res, next) => {
       [req.params.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'review_not_found' });
-    return res.json({ review: result.rows[0] });
+    const images = await query(
+      `SELECT pi.image_role, pi.sort_order, ma.id AS media_asset_id,
+              ma.original_filename, ma.mime_type, ma.status
+         FROM product_images pi
+         JOIN media_assets ma ON ma.id = pi.media_asset_id
+        WHERE pi.product_id = $1
+        ORDER BY CASE pi.image_role WHEN 'thumbnail' THEN 0 ELSE 1 END, pi.sort_order ASC`,
+      [result.rows[0].product_id]
+    );
+    return res.json({ review: { ...result.rows[0], images: images.rows } });
+  } catch (error) { return next(error); }
+});
+
+router.get('/content/reviews/:id/images/:assetId', async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT ma.storage_key, ma.mime_type, ma.byte_size
+         FROM content_reviews r
+         JOIN products p ON p.id = r.product_id
+         JOIN product_images pi ON pi.product_id = p.id
+         JOIN media_assets ma ON ma.id = pi.media_asset_id
+        WHERE r.id = $1 AND ma.id = $2 AND ma.status = 'ready'
+          AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+        LIMIT 1`,
+      [req.params.id, req.params.assetId]
+    );
+    const asset = result.rows[0];
+    if (!asset) return res.status(404).json({ error: 'review_image_not_found' });
+    const size = Number(asset.byte_size);
+    if (!Number.isSafeInteger(size) || size <= 0) return res.status(500).json({ error: 'media_size_invalid' });
+    const object = await mediaStorage.getStream({ storageKey: asset.storage_key });
+    if (!object?.stream) return res.status(404).json({ error: 'review_image_not_found' });
+    res.setHeader('Content-Type', asset.mime_type);
+    res.setHeader('Content-Length', String(size));
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    return object.stream.pipe(res);
   } catch (error) { return next(error); }
 });
 
