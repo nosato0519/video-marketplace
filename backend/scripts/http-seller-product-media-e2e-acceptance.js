@@ -18,7 +18,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, otherSellerThumbnail: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, thumbnail: null, extraThumbnails: [], product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, otherSellerThumbnail: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, pendingDeleteProduct: null, thumbnail: null, extraThumbnails: [], product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 const adminToken = createSessionToken();
@@ -271,6 +271,22 @@ try {
     [ids.product, removedThumbnail.rows[0].media_asset_id, removedThumbnail.rows[0].sort_order]
   );
 
+  const pendingDeleteThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-pending-delete.png', thumbnailBytes);
+  const pendingDeleteCreate = await request(baseUrl, '/api/seller/products', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: sellerCookie },
+    body: JSON.stringify({ title: 'Pending Review Cannot Be Deleted', description: 'Pending moderation deletion guard', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: pendingDeleteThumbnail, role: 'thumbnail', sortOrder: 0 }] }),
+  });
+  assert.equal(pendingDeleteCreate.response.status, 201, JSON.stringify(pendingDeleteCreate.body));
+  ids.pendingDeleteProduct = pendingDeleteCreate.body.product.id;
+  const pendingDeleteSubmit = await request(baseUrl, `/api/seller/products/${ids.pendingDeleteProduct}/submit`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(pendingDeleteSubmit.response.status, 200, JSON.stringify(pendingDeleteSubmit.body));
+  const pendingDeleteAttempt = await request(baseUrl, `/api/seller/products/${ids.pendingDeleteProduct}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(pendingDeleteAttempt.response.status, 409, JSON.stringify(pendingDeleteAttempt.body));
+  assert.equal(pendingDeleteAttempt.body.error, 'product_under_review_locked');
+  await pool.query('DELETE FROM content_reviews WHERE product_id = $1', [ids.pendingDeleteProduct]);
+  await pool.query("UPDATE products SET status = 'draft', moderation_status = 'draft' WHERE id = $1", [ids.pendingDeleteProduct]);
+
   await pool.query(`INSERT INTO orders (buyer_id, product_id, amount, currency, status) VALUES ($1, $2, 2200, 'JPY', 'pending')`, [ids.buyer, ids.product]);
   const productWithOrderDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(productWithOrderDeleteResponse.response.status, 409, JSON.stringify(productWithOrderDeleteResponse.body));
@@ -511,7 +527,7 @@ try {
   console.log('http-seller-product-media-e2e-acceptance: PASS');
 } finally {
   if (ids.product) await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]).catch(() => {});
-  for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct, ids.optionalVerificationProduct].filter(Boolean)) {
+  for (const productId of [ids.product, ids.raceProduct, ids.editPublishRaceProduct, ids.optionalVerificationProduct, ids.pendingDeleteProduct].filter(Boolean)) {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
