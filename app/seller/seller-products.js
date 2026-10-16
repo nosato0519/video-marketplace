@@ -260,11 +260,45 @@ export function initSellerProductsPage() {
     document.querySelector('#published-count').textContent = Number(counts.published || 0).toLocaleString('ja-JP');
     document.querySelector('#review-count').textContent = Number(counts.review || 0).toLocaleString('ja-JP');
     document.querySelector('#draft-count').textContent = Number(counts.draft || 0).toLocaleString('ja-JP');
-    list.innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(product.title || '無題の動画')}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${escape(labels[product.status] || product.status || '')}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${escape(labels[product.status] || product.status || '')}</span><div class="seller-video-actions"><a href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}" class="seller-video-edit">編集</a>${product.status === 'draft' ? `<button type="button" class="seller-video-edit" data-delete-product="${escape(product.id)}">下書きを削除</button>` : ''}</div></div>`).join('') : '<small>登録されている動画はありません。</small>';
+    list.innerHTML = products.length ? products.map((product) => `<div class="seller-video-row"><div class="seller-video-info"><strong>${escape(product.title || '無題の動画')}</strong><small>¥${Number(product.price_amount || 0).toLocaleString('ja-JP')}　${escape(labels[product.status] || product.status || '')}　${new Date(product.created_at).toLocaleDateString('ja-JP').replaceAll('/', '.')}</small></div><span class="seller-video-status ${classes[product.status] || 'is-draft'}">${escape(labels[product.status] || product.status || '')}</span><div class="seller-video-actions"><a href="/seller/product-edit.html?productId=${encodeURIComponent(product.id)}" class="seller-video-edit">編集</a>${['draft','rejected'].includes(product.status) ? `<button type="button" class="seller-video-edit" data-submit-product="${escape(product.id)}">${product.status === 'rejected' ? '修正して再申請' : '審査を申請'}</button>` : ''}${product.status === 'approved' ? `<button type="button" class="seller-video-edit" data-publish-product="${escape(product.id)}">公開する</button>` : ''}${product.status === 'draft' ? `<button type="button" class="seller-video-edit" data-delete-product="${escape(product.id)}">下書きを削除</button>` : ''}</div></div>`).join('') : '<small>登録されている動画はありません。</small>';
     renderPagination(body?.pagination);
   }
 
   list.addEventListener('click', async (event) => {
+    const submitButton = event.target.closest('[data-submit-product]');
+    const publishButton = event.target.closest('[data-publish-product]');
+    if (submitButton && !submitButton.disabled) {
+      submitButton.disabled = true;
+      try {
+        const response = await fetch(`/api/seller/products/${encodeURIComponent(submitButton.dataset.submitProduct)}/submit`, {
+          method: 'POST',
+          credentials: 'same-origin',
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(body?.error?.message || body?.error || '審査を申請できませんでした。');
+        await load(1);
+      } catch (error) {
+        window.alert(error.message || '審査を申請できませんでした。');
+        submitButton.disabled = false;
+      }
+      return;
+    }
+    if (publishButton && !publishButton.disabled) {
+      publishButton.disabled = true;
+      try {
+        const response = await fetch(`/api/seller/products/${encodeURIComponent(publishButton.dataset.publishProduct)}/publish`, {
+          method: 'POST',
+          credentials: 'same-origin',
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(body?.error?.message || body?.error || '公開できませんでした。');
+        await load(1);
+      } catch (error) {
+        window.alert(error.message || '公開できませんでした。');
+        publishButton.disabled = false;
+      }
+      return;
+    }
     const button = event.target.closest('[data-delete-product]');
     if (!button || button.disabled) return;
     const productId = button.dataset.deleteProduct;
