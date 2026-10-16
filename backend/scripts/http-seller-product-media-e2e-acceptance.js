@@ -18,9 +18,10 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
+const adminToken = createSessionToken();
 
 async function localSellerMediaFiles(sellerId) {
   if ((process.env.MEDIA_STORAGE_PROVIDER || 'local') !== 'local') return null;
@@ -38,6 +39,18 @@ async function request(baseUrl, path, options = {}) {
   const contentType = response.headers.get('content-type') || '';
   const body = contentType.includes('application/json') ? await response.json() : Buffer.from(await response.arrayBuffer());
   return { response, body };
+}
+
+async function submitAndApproveProduct(baseUrl, productId, sellerCookie) {
+  const submit = await request(baseUrl, `/api/seller/products/${productId}/submit`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(submit.response.status, 200, JSON.stringify(submit.body));
+  const review = await pool.query("SELECT id FROM content_reviews WHERE product_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1", [productId]);
+  assert.ok(review.rows[0]?.id, 'Submitting a product must create a pending moderation review');
+  const approval = await request(baseUrl, `/api/admin/content/reviews/${review.rows[0].id}/status`, { method: 'POST', headers: { cookie: adminCookie, 'content-type': 'application/json' }, body: JSON.stringify({ status: 'approved' }) });
+  assert.equal(approval.response.status, 200, JSON.stringify(approval.body));
+  const product = await request(baseUrl, `/api/seller/products/${productId}`, { headers: { cookie: sellerCookie } });
+  assert.equal(product.response.status, 200, JSON.stringify(product.body));
+  assert.equal(product.body.product.status, 'approved');
 }
 
 async function requestChunked(baseUrl, path, { headers, body }) {
@@ -62,6 +75,7 @@ async function requestChunked(baseUrl, path, { headers, body }) {
 
 const sellerCookie = `video_marketplace_session=${encodeURIComponent(sellerToken)}`;
 const otherSellerCookie = `video_marketplace_session=${encodeURIComponent(otherSellerToken)}`;
+const adminCookie = `video_marketplace_session=${encodeURIComponent(adminToken)}`;
 
 try {
   await new Promise((resolve, reject) => {
@@ -70,9 +84,9 @@ try {
   });
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
-  await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active'), ($5, $6, $6, 'buyer', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`]);
+  await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active'), ($5, $6, $6, 'buyer', 'active'), ($7, $8, $8, 'admin', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`, ids.admin, `admin-${ids.admin}@acceptance.test`]);
   await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'not_started')`, [ids.seller, ids.otherSeller]);
-  await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry()]);
+  await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6), ($7, $8, $9)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry(), ids.admin, hashSessionToken(adminToken), sessionExpiry()]);
 
   const configuredUploadLimit = await request(baseUrl, '/api/seller/media/limits', { headers: { cookie: sellerCookie } });
   assert.equal(configuredUploadLimit.response.status, 200, JSON.stringify(configuredUploadLimit.body));
@@ -139,6 +153,7 @@ try {
   const unverifiedSellerDraftResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: otherSellerCookie }, body: JSON.stringify({ title: 'Optional Verification Product', description: 'Publishing should not require identity verification when the setting is none.', priceAmount: 1200, priceCurrency: 'JPY', mediaAssetId: ids.otherSellerMedia }) });
   assert.equal(unverifiedSellerDraftResponse.response.status, 201, JSON.stringify(unverifiedSellerDraftResponse.body));
   ids.optionalVerificationProduct = unverifiedSellerDraftResponse.body.product.id;
+  await submitAndApproveProduct(baseUrl, ids.optionalVerificationProduct, otherSellerCookie);
   const unverifiedSellerPublishResponse = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}/publish`, { method: 'POST', headers: { cookie: otherSellerCookie } });
   assert.equal(unverifiedSellerPublishResponse.response.status, 200, JSON.stringify(unverifiedSellerPublishResponse.body));
   assert.equal(unverifiedSellerPublishResponse.body.product.status, 'published');
@@ -261,6 +276,7 @@ try {
   const editPublishRaceCreateResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edit Publish Race Product', description: 'Concurrent edit/publish acceptance', priceAmount: 2250, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
   assert.equal(editPublishRaceCreateResponse.response.status, 201, JSON.stringify(editPublishRaceCreateResponse.body));
   ids.editPublishRaceProduct = editPublishRaceCreateResponse.body.product.id;
+  await submitAndApproveProduct(baseUrl, ids.editPublishRaceProduct, sellerCookie);
   const [racePatchResponse, racePublishResponse] = await Promise.all([
     request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edited Before Publish' }) }),
     request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/publish`, { method: 'POST', headers: { cookie: sellerCookie } })
@@ -277,6 +293,7 @@ try {
     assert.equal(racePatchResponse.body.product.title, 'Edited Before Publish');
   }
 
+  await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
@@ -300,7 +317,7 @@ try {
 
   const unpublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(unpublishResponse.response.status, 200, JSON.stringify(unpublishResponse.body));
-  assert.equal(unpublishResponse.body.product.status, 'draft');
+  assert.equal(unpublishResponse.body.product.status, 'approved');
 
   await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
   const processingMediaPublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
@@ -388,7 +405,7 @@ try {
   }
   await pool.query(`DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
   await pool.query(`DELETE FROM seller_profiles WHERE user_id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller]]).catch(() => {});
-  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller, ids.buyer]]).catch(() => {});
+  await pool.query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [[ids.seller, ids.otherSeller, ids.buyer, ids.admin]]).catch(() => {});
   await new Promise((resolve) => server.close(resolve));
   await pool.end();
 }
