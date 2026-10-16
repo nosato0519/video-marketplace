@@ -41,7 +41,7 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
           WHERE cr.product_id = p.id AND cr.status = 'blocked'
        )
        AND ($2 = '' OR c.slug = $2)
-       AND ($3 = '' OR COALESCE(pt.title, fallback.title) ILIKE '%' || $3 || '%'
+       AND ($3 = '' OR COALESCE(pt.title, fallback.title, p.title) ILIKE '%' || $3 || '%'
             OR sp.display_name ILIKE '%' || $3 || '%')
      ORDER BY p.published_at DESC NULLS LAST, p.id DESC
      LIMIT $4 OFFSET $5`,
