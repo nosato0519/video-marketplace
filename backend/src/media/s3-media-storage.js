@@ -127,7 +127,8 @@ export function createS3MediaStorage({
         await cancelResponseBody(response);
         throw new Error(`media_storage_get_failed:${response.status}`);
       }
-      return { stream: Readable.fromWeb(response.body), size: Number(response.headers.get('content-length') || 0) };
+      const stream = response.body instanceof Readable ? response.body : Readable.fromWeb(response.body);
+      return { stream, size: Number(response.headers.get('content-length') || 0) };
     },
     async getMetadata({ storageKey } = {}) {
       const response = await request('HEAD', storageKey);
