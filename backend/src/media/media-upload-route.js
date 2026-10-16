@@ -30,7 +30,10 @@ function safeExtension(mime) {
 }
 
 function safeOriginalFilename(value) {
-  const normalized = String(value || 'video').replace(/[\u0000-\u001f\u007f]/g, '_').trim();
+  const headerValue = String(value || 'video');
+  let decoded = headerValue;
+  try { decoded = decodeURIComponent(headerValue); } catch {}
+  const normalized = decoded.replace(/[\\u0000-\\u001f\\u007f]/g, '_').trim();
   return (normalized || 'video').slice(0, 512);
 }
 
