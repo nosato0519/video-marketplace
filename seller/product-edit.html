@@ -137,7 +137,7 @@ function getVideoMime(file) {
 }
 let isSaving = false;
 let currentProductStatus = null;
-const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'REVIEW');
+const reviewCard = [...document.querySelectorAll('.buyer-menu-card')].find((card) => card.querySelector('span')?.textContent.trim() === 'PUBLICATION');
 
 function formatStatus(status) {
   return { published: '公開中', draft: '下書き', submitted: '申請中', under_review: '審査中', processing: '処理中', approved: '承認済み', rejected: '却下' }[status] || status || '-';
