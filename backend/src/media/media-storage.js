@@ -16,10 +16,10 @@ export function createMediaStorage({ getObjectStream, getObjectMetadata, putObje
       if (!storageKey) throw new Error('media_storage_key_missing');
       return getObjectMetadata({ storageKey });
     },
-    async putStream({ storageKey, stream } = {}) {
+    async putStream({ storageKey, stream, contentLength } = {}) {
       if (!storageKey) throw new Error('media_storage_key_missing');
       if (!stream) throw new Error('media_storage_stream_missing');
-      return putObjectStream({ storageKey, stream });
+      return putObjectStream({ storageKey, stream, contentLength });
     },
     async deleteObject({ storageKey } = {}) {
       if (!storageKey) throw new Error('media_storage_key_missing');
