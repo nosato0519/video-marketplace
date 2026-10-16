@@ -139,6 +139,7 @@ let isSaving = false;
 let currentProductStatus = null;
 let currentVideoAssetId = null;
 let currentProductImages = [];
+let productLoaded = false;
 const imageInputs = [...document.querySelectorAll('input[data-image-role]')];
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 let maxImageUploadBytes = 20 * 1024 * 1024;
@@ -262,10 +263,11 @@ async function loadProduct() {
     const filename = card.querySelector('[data-current-image]');
     if (filename) filename.textContent = image?.original_filename || (role === 'thumbnail' ? 'サムネイル未登録' : `紹介画像 ${order + 1}（未登録）`);
   });
+  productLoaded = true;
 }
 
 async function publishProduct() {
-  if (!productId || reviewCard?.getAttribute('aria-busy') === 'true') return;
+  if (!productId || !productLoaded || reviewCard?.getAttribute('aria-busy') === 'true') return;
   reviewCard?.setAttribute('aria-busy', 'true');
   try {
     const action = currentProductStatus === 'published' ? 'unpublish' : 'publish';
@@ -291,7 +293,7 @@ async function publishProduct() {
 }
 
 async function saveProduct() {
-  if (!productId || isSaving) return;
+  if (!productId || !productLoaded || isSaving) return;
   if (currentProductStatus === 'published') {
     alert('公開中の作品は編集できません。先に「公開を停止」を実行してください。');
     return;
