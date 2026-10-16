@@ -329,7 +329,338 @@ try {
   assert.equal(publicCatalogResponse.response.status, 200, JSON.stringify(publicCatalogResponse.body));
   const publicProduct = publicCatalogResponse.body.data.find((product) => product.id === ids.product);
   assert.ok(publicProduct, 'An approved and published product must appear in the public new-arrivals catalog');
-  assert.match(publicProduct.thumbnail_url || '', new RegExp(`/api/catalog/products/${ids.product}/images/${ids.thumbnail}$`), 'The public catalog must return the linked thumbnail URL');
+  assert.match(publicProduct.thumbnail_url || '', new RegExp(`/api/catalog/products/${ids.product}/images/${mainProductThumbnail}import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createServer, request as httpRequest } from 'node:http';
+process.env.MEDIA_URL_SECRET ||= 'acceptance-only-media-url-secret-0123456789abcdef';
+process.env.MEDIA_STORAGE_DIR ||= '/tmp/video-marketplace-media';
+process.env.MEDIA_MAX_UPLOAD_BYTES = '24';
+
+const { getPool } = await import('../src/db.js');
+const { createConfiguredMediaStorage } = await import('../src/media/media-storage-factory.js');
+const { createApp } = await import('../src/app.js');
+const { createSessionToken, hashSessionToken, sessionExpiry } = await import('../src/auth/session.js');
+
+const pool = getPool();
+const server = createServer(createApp());
+const mediaStorage = createConfiguredMediaStorage();
+// Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
+// `ftyp` box signature at byte offset 4; the fixture is not used for playback.
+const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, otherSellerThumbnail: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, thumbnail: null, extraThumbnails: [], product: null };
+const sellerToken = createSessionToken();
+const otherSellerToken = createSessionToken();
+const adminToken = createSessionToken();
+
+async function localSellerMediaFiles(sellerId) {
+  if ((process.env.MEDIA_STORAGE_PROVIDER || 'local') !== 'local') return null;
+  const sellerDir = path.join(process.env.MEDIA_STORAGE_DIR, sellerId);
+  try {
+    return (await fs.readdir(sellerDir)).sort();
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function request(baseUrl, path, options = {}) {
+  const response = await fetch(`${baseUrl}${path}`, options);
+  const contentType = response.headers.get('content-type') || '';
+  const body = contentType.includes('application/json') ? await response.json() : Buffer.from(await response.arrayBuffer());
+  return { response, body };
+}
+
+async function submitAndApproveProduct(baseUrl, productId, sellerCookie) {
+  const submit = await request(baseUrl, `/api/seller/products/${productId}/submit`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(submit.response.status, 200, JSON.stringify(submit.body));
+  const review = await pool.query("SELECT id FROM content_reviews WHERE product_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1", [productId]);
+  assert.ok(review.rows[0]?.id, 'Submitting a product must create a pending moderation review');
+  const approval = await request(baseUrl, `/api/admin/content/reviews/${review.rows[0].id}/status`, { method: 'POST', headers: { cookie: adminCookie, 'content-type': 'application/json' }, body: JSON.stringify({ status: 'approved' }) });
+  assert.equal(approval.response.status, 200, JSON.stringify(approval.body));
+  const product = await request(baseUrl, `/api/seller/products/${productId}`, { headers: { cookie: sellerCookie } });
+  assert.equal(product.response.status, 200, JSON.stringify(product.body));
+  assert.equal(product.body.product.status, 'published');
+}
+
+async function uploadThumbnail(baseUrl, cookie, filename, thumbnailBytes) {
+  const response = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'image/png', 'content-length': String(thumbnailBytes.length), 'x-original-filename': filename },
+    body: thumbnailBytes
+  });
+  assert.equal(response.response.status, 201, JSON.stringify(response.body));
+  assert.equal(response.body.mediaAsset.mime_type, 'image/png');
+  ids.extraThumbnails.push(response.body.mediaAsset.id);
+  return response.body.mediaAsset.id;
+}
+
+async function requestChunked(baseUrl, path, { headers, body }) {
+  const url = new URL(path, baseUrl);
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(url, { method: 'POST', headers: { ...headers, 'transfer-encoding': 'chunked' } }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => {
+        const rawBody = Buffer.concat(chunks);
+        let parsedBody = rawBody;
+        if ((response.headers['content-type'] || '').includes('application/json')) {
+          try { parsedBody = JSON.parse(rawBody.toString('utf8')); } catch {}
+        }
+        resolve({ response: { status: response.statusCode }, body: parsedBody });
+      });
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
+const sellerCookie = `video_marketplace_session=${encodeURIComponent(sellerToken)}`;
+const otherSellerCookie = `video_marketplace_session=${encodeURIComponent(otherSellerToken)}`;
+const adminCookie = `video_marketplace_session=${encodeURIComponent(adminToken)}`;
+
+try {
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
+  await pool.query(`INSERT INTO users (id, email, email_normalized, role, status) VALUES ($1, $2, $2, 'seller', 'active'), ($3, $4, $4, 'seller', 'active'), ($5, $6, $6, 'buyer', 'active'), ($7, $8, $8, 'admin', 'active')`, [ids.seller, `seller-${ids.seller}@acceptance.test`, ids.otherSeller, `other-seller-${ids.otherSeller}@acceptance.test`, ids.buyer, `buyer-${ids.buyer}@acceptance.test`, ids.admin, `admin-${ids.admin}@acceptance.test`]);
+  await pool.query(`INSERT INTO seller_profiles (user_id, display_name, verification_status) VALUES ($1, 'Seller E2E', 'verified'), ($2, 'Other Seller E2E', 'not_started')`, [ids.seller, ids.otherSeller]);
+  await pool.query(`INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, $3), ($4, $5, $6), ($7, $8, $9)`, [ids.seller, hashSessionToken(sellerToken), sessionExpiry(), ids.otherSeller, hashSessionToken(otherSellerToken), sessionExpiry(), ids.admin, hashSessionToken(adminToken), sessionExpiry()]);
+
+  const configuredUploadLimit = await request(baseUrl, '/api/seller/media/limits', { headers: { cookie: sellerCookie } });
+  assert.equal(configuredUploadLimit.response.status, 200, JSON.stringify(configuredUploadLimit.body));
+  assert.equal(configuredUploadLimit.body.maxUploadBytes, 24, 'Seller upload limit endpoint must expose the configured backend limit');
+  const unauthenticatedUploadLimit = await request(baseUrl, '/api/seller/media/limits');
+  assert.equal(unauthenticatedUploadLimit.response.status, 401, 'Upload limit endpoint must require seller authentication');
+
+  const assetsBeforeInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  const filesBeforeInvalidUpload = await localSellerMediaFiles(ids.seller);
+  assert.equal(assetsBeforeInvalidUpload.response.status, 200, JSON.stringify(assetsBeforeInvalidUpload.body));
+  const emptyUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '0', 'x-original-filename': 'empty.mp4' },
+    body: Buffer.alloc(0)
+  });
+  assert.equal(emptyUploadResponse.response.status, 400, JSON.stringify(emptyUploadResponse.body));
+  assert.equal(emptyUploadResponse.body.error, 'empty_upload_body');
+  const invalidUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '8', 'x-original-filename': 'invalid.mp4' },
+    body: Buffer.from('notvideo')
+  });
+  assert.equal(invalidUploadResponse.response.status, 415, JSON.stringify(invalidUploadResponse.body));
+  const oversizedUploadResponse = await request(baseUrl, '/api/seller/media/upload', {
+    method: 'POST',
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': '25', 'x-original-filename': 'oversized.mp4' },
+    body: Buffer.alloc(25)
+  });
+  assert.equal(oversizedUploadResponse.response.status, 413, JSON.stringify(oversizedUploadResponse.body));
+  assert.equal(oversizedUploadResponse.body.error, 'media_too_large');
+
+  // Exercise the streaming byte limiter separately from the Content-Length pre-check.
+  const chunkedOversizedUploadResponse = await requestChunked(baseUrl, '/api/seller/media/upload', {
+    headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'x-original-filename': 'chunked-oversized.mp4' },
+    body: Buffer.alloc(25)
+  });
+  assert.equal(chunkedOversizedUploadResponse.response.status, 413, JSON.stringify(chunkedOversizedUploadResponse.body));
+  assert.equal(chunkedOversizedUploadResponse.body.error, 'media_too_large');
+
+  const assetsAfterInvalidUpload = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsAfterInvalidUpload.response.status, 200, JSON.stringify(assetsAfterInvalidUpload.body));
+  assert.deepEqual(
+    assetsAfterInvalidUpload.body.mediaAssets.map((asset) => asset.id).sort(),
+    assetsBeforeInvalidUpload.body.mediaAssets.map((asset) => asset.id).sort(),
+    'Invalid video uploads must not create media asset records'
+  );
+  if (filesBeforeInvalidUpload !== null) {
+    assert.deepEqual(await localSellerMediaFiles(ids.seller), filesBeforeInvalidUpload, 'Rejected uploads must not leave partial local media files');
+  }
+
+  const uploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e.mp4' }, body: uploadBytes });
+  assert.equal(uploadResponse.response.status, 201, JSON.stringify(uploadResponse.body));
+  assert.equal(uploadResponse.body.mediaAsset.mime_type, 'video/mp4');
+  assert.equal(Number(uploadResponse.body.mediaAsset.byte_size), uploadBytes.length);
+  ids.media = uploadResponse.body.mediaAsset.id;
+
+  const thumbnailBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const thumbnailUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'image/png', 'content-length': String(thumbnailBytes.length), 'x-original-filename': 'seller-e2e-thumbnail.png' }, body: thumbnailBytes });
+  assert.equal(thumbnailUploadResponse.response.status, 201, JSON.stringify(thumbnailUploadResponse.body));
+  assert.equal(thumbnailUploadResponse.body.mediaAsset.mime_type, 'image/png');
+  ids.thumbnail = thumbnailUploadResponse.body.mediaAsset.id;
+
+  const assetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetsResponse.response.status, 200, JSON.stringify(assetsResponse.body));
+  assert.equal(assetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), true);
+  const otherSellerUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: otherSellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'other-seller-e2e.mp4' }, body: uploadBytes });
+  assert.equal(otherSellerUploadResponse.response.status, 201, JSON.stringify(otherSellerUploadResponse.body));
+  ids.otherSellerMedia = otherSellerUploadResponse.body.mediaAsset.id;
+  const otherSellerThumbnailUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: otherSellerCookie, 'content-type': 'image/png', 'content-length': String(thumbnailBytes.length), 'x-original-filename': 'other-seller-e2e-thumbnail.png' }, body: thumbnailBytes });
+  assert.equal(otherSellerThumbnailUploadResponse.response.status, 201, JSON.stringify(otherSellerThumbnailUploadResponse.body));
+  ids.otherSellerThumbnail = otherSellerThumbnailUploadResponse.body.mediaAsset.id;
+
+  const unverifiedSellerDraftResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: otherSellerCookie }, body: JSON.stringify({ title: 'Optional Verification Product', description: 'Publishing should not require identity verification when the setting is none.', priceAmount: 1200, priceCurrency: 'JPY', mediaAssetId: ids.otherSellerMedia, images: [{ mediaAssetId: ids.otherSellerThumbnail, role: 'thumbnail', sortOrder: 0 }] }) });
+  assert.equal(unverifiedSellerDraftResponse.response.status, 201, JSON.stringify(unverifiedSellerDraftResponse.body));
+  ids.optionalVerificationProduct = unverifiedSellerDraftResponse.body.product.id;
+  await submitAndApproveProduct(baseUrl, ids.optionalVerificationProduct, otherSellerCookie);
+  const unverifiedSellerPublishedProduct = await request(baseUrl, `/api/seller/products/${unverifiedSellerDraftResponse.body.product.id}`, { headers: { cookie: otherSellerCookie } });
+  assert.equal(unverifiedSellerPublishedProduct.response.status, 200, JSON.stringify(unverifiedSellerPublishedProduct.body));
+  assert.equal(unverifiedSellerPublishedProduct.body.product.status, 'published', 'Approval must publish the product when identity verification is optional');
+
+  // Race product creation against deletion of the same unused media asset.
+  // Exactly one operation may win: creation links the asset, or deletion removes it.
+  const raceUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'video/mp4', 'content-length': String(uploadBytes.length), 'x-original-filename': 'seller-e2e-race.mp4' }, body: uploadBytes });
+  assert.equal(raceUploadResponse.response.status, 201, JSON.stringify(raceUploadResponse.body));
+  ids.raceMedia = raceUploadResponse.body.mediaAsset.id;
+  const [raceCreateResponse, raceDeleteResponse] = await Promise.all([
+    request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Concurrent Media Product', description: 'Media deletion race acceptance', priceAmount: 2300, priceCurrency: 'JPY', mediaAssetId: ids.raceMedia, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }] }) }),
+    request(baseUrl, `/api/seller/media/assets/${ids.raceMedia}`, { method: 'DELETE', headers: { cookie: sellerCookie } })
+  ]);
+  if (raceCreateResponse.response.status === 201) ids.raceProduct = raceCreateResponse.body.product.id;
+  assert.ok([201, 422].includes(raceCreateResponse.response.status), JSON.stringify(raceCreateResponse.body));
+  assert.ok([204, 409].includes(raceDeleteResponse.response.status), JSON.stringify(raceDeleteResponse.body));
+  assert.equal(
+    (raceCreateResponse.response.status === 201 && raceDeleteResponse.response.status === 409)
+      || (raceCreateResponse.response.status === 422 && raceDeleteResponse.response.status === 204),
+    true,
+    `Concurrent media create/delete must have one consistent winner; create=${raceCreateResponse.response.status}, delete=${raceDeleteResponse.response.status}`
+  );
+  if (raceCreateResponse.response.status !== 201) ids.raceMedia = null;
+
+  const otherAssetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: otherSellerCookie } });
+  assert.equal(otherAssetsResponse.response.status, 200, JSON.stringify(otherAssetsResponse.body));
+  assert.equal(otherAssetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), false);
+
+  const malformedMediaDeleteResponse = await request(baseUrl, '/api/seller/media/assets/not-a-uuid', { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(malformedMediaDeleteResponse.response.status, 404, JSON.stringify(malformedMediaDeleteResponse.body));
+  assert.equal(malformedMediaDeleteResponse.body.error, 'media_asset_not_found');
+
+  const otherSellerDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: otherSellerCookie } });
+  assert.equal(otherSellerDeleteResponse.response.status, 404, JSON.stringify(otherSellerDeleteResponse.body));
+  const assetAfterUnauthorizedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetAfterUnauthorizedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), true);
+
+  const malformedMediaResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Malformed Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: 'not-a-uuid', images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
+  assert.equal(malformedMediaResponse.response.status, 422, JSON.stringify(malformedMediaResponse.body));
+  assert.equal(malformedMediaResponse.body.error, 'media_asset_not_owned');
+
+  const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY', images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
+  assert.equal(missingMediaProductResponse.response.status, 422, JSON.stringify(missingMediaProductResponse.body));
+  assert.equal(missingMediaProductResponse.body.error, 'media_asset_required');
+
+  const invalidPriceProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Price Product', priceAmount: 0, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
+  assert.equal(invalidPriceProductResponse.response.status, 422, JSON.stringify(invalidPriceProductResponse.body));
+  assert.equal(invalidPriceProductResponse.body.error, 'invalid_product_price');
+  const invalidCurrencyProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Currency Product', priceAmount: 2200, priceCurrency: 'JP', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
+  assert.equal(invalidCurrencyProductResponse.response.status, 422, JSON.stringify(invalidCurrencyProductResponse.body));
+  assert.equal(invalidCurrencyProductResponse.body.error, 'invalid_product_currency');
+
+  await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
+  const processingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Processing Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
+  assert.equal(processingMediaProductResponse.response.status, 422, JSON.stringify(processingMediaProductResponse.body));
+  assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
+  await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
+
+  const mainProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-main-thumbnail.png', thumbnailBytes);
+  const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: mainProductThumbnail, role: 'thumbnail', sortOrder: 0 }], categorySlug: 'movie' }) });
+  assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
+  assert.equal(createResponse.body.product.status, 'draft');
+  assert.equal(createResponse.body.product.media_asset_id, ids.media);
+  ids.product = createResponse.body.product.id;
+
+  await pool.query(`INSERT INTO orders (buyer_id, product_id, amount, currency, status) VALUES ($1, $2, 2200, 'JPY', 'pending')`, [ids.buyer, ids.product]);
+  const productWithOrderDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(productWithOrderDeleteResponse.response.status, 409, JSON.stringify(productWithOrderDeleteResponse.body));
+  assert.equal(productWithOrderDeleteResponse.body.error, 'product_has_purchase_history');
+  await pool.query(`DELETE FROM orders WHERE product_id = $1`, [ids.product]);
+
+  const deletableProductThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-deletable-thumbnail.png', thumbnailBytes);
+  const deletableProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Deletable Draft', description: 'Draft deletion acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: deletableProductThumbnail, role: 'thumbnail', sortOrder: 0 }] }) });
+  assert.equal(deletableProductResponse.response.status, 201, JSON.stringify(deletableProductResponse.body));
+  const deletableProductId = deletableProductResponse.body.product.id;
+  const otherSellerProductDeleteResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { method: 'DELETE', headers: { cookie: otherSellerCookie } });
+  assert.equal(otherSellerProductDeleteResponse.response.status, 404, JSON.stringify(otherSellerProductDeleteResponse.body));
+  const draftDeleteResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(draftDeleteResponse.response.status, 204, JSON.stringify(draftDeleteResponse.body));
+  const deletedDraftDetailResponse = await request(baseUrl, '/api/seller/products/' + deletableProductId, { headers: { cookie: sellerCookie } });
+  assert.equal(deletedDraftDetailResponse.response.status, 404, JSON.stringify(deletedDraftDetailResponse.body));
+
+  const linkedMediaDeleteResponse = await request(baseUrl, `/api/seller/media/assets/${ids.media}`, { method: 'DELETE', headers: { cookie: sellerCookie } });
+  assert.equal(linkedMediaDeleteResponse.response.status, 409, JSON.stringify(linkedMediaDeleteResponse.body));
+  assert.equal(linkedMediaDeleteResponse.body.error, 'media_asset_in_use');
+  const assetAfterLinkedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
+  assert.equal(assetAfterLinkedDelete.response.status, 200, JSON.stringify(assetAfterLinkedDelete.body));
+  assert.equal(assetAfterLinkedDelete.body.mediaAssets.find((asset) => asset.id === ids.media)?.in_use, true, 'A linked video must be marked as in use');
+  assert.equal(
+    assetAfterLinkedDelete.body.mediaAssets.some((asset) => asset.id === ids.media && asset.status === 'ready'),
+    true,
+    'A linked video must remain available when deletion is rejected'
+  );
+
+  const patchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ description: 'Updated seller E2E product description' }) });
+  assert.equal(patchResponse.response.status, 200, JSON.stringify(patchResponse.body));
+  assert.equal(patchResponse.body.product.description, 'Updated seller E2E product description');
+
+  const emptyTitlePatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: '   ' }) });
+  assert.equal(emptyTitlePatchResponse.response.status, 422, JSON.stringify(emptyTitlePatchResponse.body));
+  assert.equal(emptyTitlePatchResponse.body.error, 'product_title_required');
+
+  const invalidPricePatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ priceAmount: 0 }) });
+  assert.equal(invalidPricePatchResponse.response.status, 422, JSON.stringify(invalidPricePatchResponse.body));
+  assert.equal(invalidPricePatchResponse.body.error, 'invalid_product_price');
+  const invalidCurrencyPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ priceCurrency: 'JPY!' }) });
+  assert.equal(invalidCurrencyPatchResponse.response.status, 422, JSON.stringify(invalidCurrencyPatchResponse.body));
+  assert.equal(invalidCurrencyPatchResponse.body.error, 'invalid_product_currency');
+
+  const detachMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: null }) });
+  assert.equal(detachMediaPatchResponse.response.status, 200, JSON.stringify(detachMediaPatchResponse.body));
+  assert.equal(detachMediaPatchResponse.body.product.media_asset_id, null);
+  const reattachMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.media }) });
+  assert.equal(reattachMediaPatchResponse.response.status, 200, JSON.stringify(reattachMediaPatchResponse.body));
+  assert.equal(reattachMediaPatchResponse.body.product.media_asset_id, ids.media);
+
+  const otherSellerMediaPatchResponse = await request(baseUrl, `/api/seller/products/${ids.product}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ mediaAssetId: ids.otherSellerMedia }) });
+  assert.equal(otherSellerMediaPatchResponse.response.status, 422, JSON.stringify(otherSellerMediaPatchResponse.body));
+  assert.equal(otherSellerMediaPatchResponse.body.error, 'media_asset_not_owned');
+
+  // Race an edit against publishing; editing must either finish before publish or be rejected after publish.
+  const editPublishRaceThumbnail = await uploadThumbnail(baseUrl, sellerCookie, 'seller-e2e-edit-publish-thumbnail.png', thumbnailBytes);
+  const editPublishRaceCreateResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edit Publish Race Product', description: 'Concurrent edit/publish acceptance', priceAmount: 2250, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: editPublishRaceThumbnail, role: 'thumbnail', sortOrder: 0 }] }) });
+  assert.equal(editPublishRaceCreateResponse.response.status, 201, JSON.stringify(editPublishRaceCreateResponse.body));
+  ids.editPublishRaceProduct = editPublishRaceCreateResponse.body.product.id;
+  await submitAndApproveProduct(baseUrl, ids.editPublishRaceProduct, sellerCookie);
+  const unpublishBeforeRaceResponse = await request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
+  assert.equal(unpublishBeforeRaceResponse.response.status, 200, JSON.stringify(unpublishBeforeRaceResponse.body));
+  assert.equal(unpublishBeforeRaceResponse.body.product.status, 'approved');
+  const [racePatchResponse, racePublishResponse] = await Promise.all([
+    request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { method: 'PATCH', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Edited Before Publish' }) }),
+    request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}/publish`, { method: 'POST', headers: { cookie: sellerCookie } })
+  ]);
+  assert.ok([200, 409].includes(racePatchResponse.response.status), JSON.stringify(racePatchResponse.body));
+  assert.ok([200, 409].includes(racePublishResponse.response.status), JSON.stringify(racePublishResponse.body));
+  const raceProductAfterPublish = await request(baseUrl, `/api/seller/products/${ids.editPublishRaceProduct}`, { headers: { cookie: sellerCookie } });
+  assert.equal(raceProductAfterPublish.response.status, 200, JSON.stringify(raceProductAfterPublish.body));
+  if (racePublishResponse.response.status === 200) {
+    assert.equal(racePublishResponse.body.product.status, 'published');
+    assert.equal(raceProductAfterPublish.body.product.status, 'published');
+    assert.equal(racePatchResponse.response.status, 409, 'Publishing first must prevent a concurrent edit');
+    assert.equal(racePatchResponse.body.error, 'published_product_locked');
+  } else {
+    assert.equal(racePublishResponse.body.error, 'product_status_not_publishable');
+    assert.equal(racePatchResponse.response.status, 200, 'An edit that wins the race must invalidate the previous approval');
+    assert.equal(racePatchResponse.body.product.title, 'Edited Before Publish');
+    assert.equal(raceProductAfterPublish.body.product.status, 'draft');
+  }
+
+  await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
+  const publicCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&limit=24');
+  assert.equal(publicCatalogResponse.response.status, 200, JSON.stringify(publicCatalogResponse.body));
+  const publicProduct = publicCatalogResponse.body.data.find((product) => product.id === ids.product);
+  assert.ok(publicProduct, 'An approved and published product must appear in the public new-arrivals catalog');
+  assert.match(publicProduct.thumbnail_url || '', ), 'The public catalog must return the linked thumbnail URL');
   const thumbnailResponse = await request(baseUrl, publicProduct.thumbnail_url);
   assert.equal(thumbnailResponse.response.status, 200, JSON.stringify(thumbnailResponse.body));
   assert.equal(thumbnailResponse.response.headers.get('content-type'), 'image/png');
@@ -338,7 +669,7 @@ try {
   assert.equal(publicDetailResponse.response.status, 200, JSON.stringify(publicDetailResponse.body));
   const publicImages = publicDetailResponse.body.data?.images || publicDetailResponse.body.product?.images;
   assert.ok(Array.isArray(publicImages), 'Public product detail must expose its image records');
-  assert.equal(publicImages.some((image) => image.id === ids.thumbnail && image.role === 'thumbnail'), true, 'Public product detail must expose the thumbnail role');
+  assert.equal(publicImages.some((image) => image.id === mainProductThumbnail && image.role === 'thumbnail'), true, 'Public product detail must expose the thumbnail role');
   const categoryCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&category=movie&limit=24');
   assert.equal(categoryCatalogResponse.response.status, 200, JSON.stringify(categoryCatalogResponse.body));
   assert.equal(categoryCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in its category catalog');
