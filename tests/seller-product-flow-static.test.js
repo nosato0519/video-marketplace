@@ -14,6 +14,7 @@ const productEdit = fs.readFileSync(path.join(root, 'seller', 'product-edit.html
 const spaUpload = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-upload.js'), 'utf8');
 const mediaUploadRoute = fs.readFileSync(path.join(root, 'backend', 'src', 'media', 'media-upload-route.js'), 'utf8');
 const productRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'seller', 'product-routes.js'), 'utf8');
+const adminModerationRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'admin', 'content-moderation-routes.js'), 'utf8');
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
 const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
 const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
@@ -56,6 +57,12 @@ assert.match(editorScript, /upload\.mediaAsset\.status !== 'ready'/);
 
 assert.match(productsScript, /product-edit\.html\?productId=/);
 assert.match(productsScript, /seller-video-edit/);
+assert.match(productsScript, /data-submit-product/);
+assert.match(productsScript, /\/submit/);
+assert.match(productRoutes, /products\/:productId\/submit/);
+assert.match(productRoutes, /status = 'approved' AND moderation_status = 'approved'/);
+assert.doesNotMatch(productEdit, /PUBLISHING|PUBLICATION|公開状態を変更/);
+assert.match(adminModerationRoutes, /moderation_status = \$3/);
 
 assert.match(productEdit, /new URLSearchParams\(window\.location\.search\)\.get\('productId'\)/);
 assert.match(productEdit, /\/api\/seller\/products\//);
