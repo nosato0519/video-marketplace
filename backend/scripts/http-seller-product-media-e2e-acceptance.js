@@ -212,7 +212,7 @@ try {
   assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
   await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
 
-  const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, categorySlug: 'movie' }) });
   assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
   assert.equal(createResponse.body.product.status, 'draft');
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
@@ -301,6 +301,12 @@ try {
   }
 
   await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
+  const publicCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&limit=24');
+  assert.equal(publicCatalogResponse.response.status, 200, JSON.stringify(publicCatalogResponse.body));
+  assert.equal(publicCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in the public new-arrivals catalog');
+  const categoryCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&category=movie&limit=24');
+  assert.equal(categoryCatalogResponse.response.status, 200, JSON.stringify(categoryCatalogResponse.body));
+  assert.equal(categoryCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in its category catalog');
   const unpublishBeforePublishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/unpublish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(unpublishBeforePublishResponse.response.status, 200, JSON.stringify(unpublishBeforePublishResponse.body));
   assert.equal(unpublishBeforePublishResponse.body.product.status, 'approved');
