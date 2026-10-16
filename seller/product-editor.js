@@ -59,7 +59,7 @@ function uploadMedia(file, mimeType, onProgress) {
     xhr.withCredentials = true;
     xhr.timeout = 180000;
     xhr.setRequestHeader('Content-Type', mimeType);
-    xhr.setRequestHeader('X-Original-Filename', file.name);
+    xhr.setRequestHeader('X-Original-Filename', encodeURIComponent(file.name));
     xhr.upload.addEventListener('progress', (event) => {
       if (!event.lengthComputable) return;
       const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
