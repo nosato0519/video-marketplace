@@ -30,6 +30,7 @@ assertInlineScriptsAllowed(adminSellerVideosPage, 'operator seller videos page')
 
 const categorySeed = fs.readFileSync(path.join(root, 'backend', 'migrations', '029_seed_product_categories.sql'), 'utf8');
 const productImagesMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '030_product_images.sql'), 'utf8');
+const publishApprovedMigration = fs.readFileSync(path.join(root, 'backend', 'migrations', '031_publish_approved_products.sql'), 'utf8');
 const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
 const productDetailPolicy = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-policy.js'), 'utf8');
 const productDetailPage = fs.readFileSync(path.join(root, 'pages', 'product-detail.html'), 'utf8');
@@ -171,6 +172,10 @@ assert.match(editorScript, /maxImageUploadBytes/);
 assert.match(productRoutes, /INSERT INTO product_images/);
 assert.match(productRoutes, /product_image_asset_invalid/);
 assert.match(productImagesMigration, /CREATE TABLE IF NOT EXISTS product_images/);
+assert.match(publishApprovedMigration, /p\\.status = 'approved'/);
+assert.match(publishApprovedMigration, /p\\.moderation_status = 'approved'/);
+assert.match(publishApprovedMigration, /published_at = COALESCE\\(p\\.published_at, NOW\\(\\)\\)/);
+assert.match(publishApprovedMigration, /seller_verification_method/);
 assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
