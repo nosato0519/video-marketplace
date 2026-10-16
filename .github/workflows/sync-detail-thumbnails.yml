@@ -1,0 +1,33 @@
+name: Sync product detail thumbnails
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    if: ${{ !contains(github.event.head_commit.message, '[detail thumbnails synced]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync thumbnail backgrounds
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('demo/pages/product-detail.html')
+          s = p.read_text()
+          old = "const id=new URLSearchParams(location.search).get('product')||'1';const p=products[id]||products[1];document.title=`${p.title} | VIDEO MARKETPLACE`;"
+          new = "const id=new URLSearchParams(location.search).get('product')||'1';const p=products[id]||products[1];document.title=`${p.title} | VIDEO MARKETPLACE`;const thumbnailUrls={1:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80',2:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',3:'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80',4:'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1200&q=80',5:'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80',6:'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80'};const visual=document.querySelector('.visual');if(visual){visual.style.backgroundImage=`linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),url('${thumbnailUrls[id]||thumbnailUrls[1]}')`;visual.style.backgroundPosition='center';visual.style.backgroundSize='cover';}"
+          if old not in s:
+              raise SystemExit('target detail initialization not found')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+      - name: Commit synced detail page
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add demo/pages/product-detail.html
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: sync detail thumbnails [detail thumbnails synced]"
+          git push
