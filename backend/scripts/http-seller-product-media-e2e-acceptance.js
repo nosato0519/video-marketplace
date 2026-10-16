@@ -18,7 +18,7 @@ const mediaStorage = createConfiguredMediaStorage();
 // Minimal MP4-shaped fixture: the upload validator only needs a valid ISO BMFF
 // `ftyp` box signature at byte offset 4; the fixture is not used for playback.
 const uploadBytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32]);
-const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, product: null };
+const ids = { seller: crypto.randomUUID(), otherSeller: crypto.randomUUID(), buyer: crypto.randomUUID(), admin: crypto.randomUUID(), media: null, otherSellerMedia: null, replacementMedia: null, retryMedia: null, raceMedia: null, raceProduct: null, editPublishRaceProduct: null, optionalVerificationProduct: null, thumbnail: null, product: null };
 const sellerToken = createSessionToken();
 const otherSellerToken = createSessionToken();
 const adminToken = createSessionToken();
@@ -143,6 +143,12 @@ try {
   assert.equal(Number(uploadResponse.body.mediaAsset.byte_size), uploadBytes.length);
   ids.media = uploadResponse.body.mediaAsset.id;
 
+  const thumbnailBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const thumbnailUploadResponse = await request(baseUrl, '/api/seller/media/upload', { method: 'POST', headers: { cookie: sellerCookie, 'content-type': 'image/png', 'content-length': String(thumbnailBytes.length), 'x-original-filename': 'seller-e2e-thumbnail.png' }, body: thumbnailBytes });
+  assert.equal(thumbnailUploadResponse.response.status, 201, JSON.stringify(thumbnailUploadResponse.body));
+  assert.equal(thumbnailUploadResponse.body.mediaAsset.mime_type, 'image/png');
+  ids.thumbnail = thumbnailUploadResponse.body.mediaAsset.id;
+
   const assetsResponse = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetsResponse.response.status, 200, JSON.stringify(assetsResponse.body));
   assert.equal(assetsResponse.body.mediaAssets.some((asset) => asset.id === ids.media), true);
@@ -212,7 +218,7 @@ try {
   assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
   await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
 
-  const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, categorySlug: 'movie' }) });
+  const createResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Seller E2E Product', description: 'Seller product/media end-to-end acceptance', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], categorySlug: 'movie' }) });
   assert.equal(createResponse.response.status, 201, JSON.stringify(createResponse.body));
   assert.equal(createResponse.body.product.status, 'draft');
   assert.equal(createResponse.body.product.media_asset_id, ids.media);
@@ -303,7 +309,18 @@ try {
   await submitAndApproveProduct(baseUrl, ids.product, sellerCookie);
   const publicCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&limit=24');
   assert.equal(publicCatalogResponse.response.status, 200, JSON.stringify(publicCatalogResponse.body));
-  assert.equal(publicCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in the public new-arrivals catalog');
+  const publicProduct = publicCatalogResponse.body.data.find((product) => product.id === ids.product);
+  assert.ok(publicProduct, 'An approved and published product must appear in the public new-arrivals catalog');
+  assert.match(publicProduct.thumbnail_url || '', new RegExp(`/api/catalog/products/${ids.product}/images/${ids.thumbnail}$`), 'The public catalog must return the linked thumbnail URL');
+  const thumbnailResponse = await request(baseUrl, publicProduct.thumbnail_url);
+  assert.equal(thumbnailResponse.response.status, 200, JSON.stringify(thumbnailResponse.body));
+  assert.equal(thumbnailResponse.response.headers.get('content-type'), 'image/png');
+  assert.deepEqual(thumbnailResponse.body, thumbnailBytes, 'The public thumbnail endpoint must stream the linked image bytes');
+  const publicDetailResponse = await request(baseUrl, `/api/catalog/products/${ids.product}?locale=ja`);
+  assert.equal(publicDetailResponse.response.status, 200, JSON.stringify(publicDetailResponse.body));
+  const publicImages = publicDetailResponse.body.data?.images || publicDetailResponse.body.product?.images;
+  assert.ok(Array.isArray(publicImages), 'Public product detail must expose its image records');
+  assert.equal(publicImages.some((image) => image.id === ids.thumbnail && image.role === 'thumbnail'), true, 'Public product detail must expose the thumbnail role');
   const categoryCatalogResponse = await request(baseUrl, '/api/catalog/products?locale=ja&category=movie&limit=24');
   assert.equal(categoryCatalogResponse.response.status, 200, JSON.stringify(categoryCatalogResponse.body));
   assert.equal(categoryCatalogResponse.body.data.some((product) => product.id === ids.product), true, 'An approved and published product must appear in its category catalog');
@@ -418,7 +435,7 @@ try {
     await pool.query(`UPDATE products SET media_asset_id = NULL WHERE id = $1`, [productId]).catch(() => {});
     await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => {});
   }
-  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia, ids.retryMedia, ids.raceMedia].filter(Boolean)) {
+  for (const mediaId of [ids.media, ids.otherSellerMedia, ids.replacementMedia, ids.retryMedia, ids.raceMedia, ids.thumbnail].filter(Boolean)) {
     const media = await pool.query(`SELECT storage_key FROM media_assets WHERE id = $1`, [mediaId]).catch(() => ({ rows: [] }));
     await pool.query(`DELETE FROM media_assets WHERE id = $1`, [mediaId]).catch(() => {});
     if (media.rows[0]?.storage_key) await mediaStorage.deleteObject({ storageKey: media.rows[0].storage_key }).catch(() => {});
