@@ -22,7 +22,7 @@ async function getSellerMediaAsset(mediaAssetId, userId, client = { query }) {
 }
 
 const PRODUCT_SELECT = `
-  SELECT p.id, p.seller_id, p.media_asset_id, p.status, p.price_amount, p.price_currency,
+  SELECT p.id, p.seller_id, p.media_asset_id, p.status, p.moderation_status, p.price_amount, p.price_currency,
          p.title, p.description, p.created_at, p.updated_at, p.published_at,
          c.slug AS category_slug,
          m.status AS media_status, m.mime_type AS media_mime_type, m.byte_size AS media_byte_size,
