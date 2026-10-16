@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'backend', 'src', 'app.js'), 'utf8');
+const catalog = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog.js'), 'utf8');
 const products = fs.readFileSync(path.join(root, 'seller', 'products.html'), 'utf8');
 const productsScript = fs.readFileSync(path.join(root, 'app', 'seller', 'seller-products.js'), 'utf8');
 const editor = fs.readFileSync(path.join(root, 'seller', 'product-editor.html'), 'utf8');
@@ -25,6 +26,7 @@ function assertInlineScriptsAllowed(page, label) {
     assert.ok(app.includes(`'sha256-${hash}'`), `${label} inline script hash must be allowed by CSP: ${hash}`);
   }
 }
+assert.ok(catalog.includes("COALESCE(pt.title, fallback.title, p.title) ILIKE"), 'public catalog search must include base product titles when translations are absent');
 assertInlineScriptsAllowed(productEdit, 'seller product edit page');
 assertInlineScriptsAllowed(adminSellerVideosPage, 'operator seller videos page');
 
