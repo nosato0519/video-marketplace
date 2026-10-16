@@ -22,7 +22,7 @@ function assertInlineScriptsAllowed(page, label) {
   for (const match of page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
     if (/\\bsrc\\s*=/.test(match[1])) continue;
     const hash = createHash('sha256').update(match[2]).digest('base64');
-    assert.ok(app.includes(`'sha256-${hash}'`), `${label} inline script hash must be allowed by CSP`);
+    assert.ok(app.includes(`'sha256-${hash}'`), `${label} inline script hash must be allowed by CSP: ${hash}`);
   }
 }
 assertInlineScriptsAllowed(productEdit, 'seller product edit page');
