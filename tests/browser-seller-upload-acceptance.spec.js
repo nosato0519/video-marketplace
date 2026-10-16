@@ -129,6 +129,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       expect(body.priceAmount).toBe(1800);
       expect(body.priceCurrency).toBe('JPY');
       expect(body.mediaAssetId).toBe('media-product-editor');
+      expect(body.images).toEqual([{ mediaAssetId: 'thumbnail-product-editor', role: 'thumbnail', sortOrder: 0 }]);
       draftCreated = true;
       await fulfillJson(route, { product: { id: 'product-editor-draft', title: body.title, status: 'draft' } }, 201);
     });
@@ -282,6 +283,7 @@ test('disables the save action while a video upload is pending', async ({ page }
       expect(body.priceAmount).toBe(1500);
       expect(body.priceCurrency).toBe('JPY');
       expect(body.mediaAssetId).toBe('media-1');
+      expect(body.images).toEqual([{ mediaAssetId: 'thumbnail-media-1', role: 'thumbnail', sortOrder: 0 }]);
       draftCreated = true;
       await fulfillJson(route, { product: { id: 'product-1', title: 'Sample Video', status: 'draft' } });
     });
