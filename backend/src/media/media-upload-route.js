@@ -5,6 +5,7 @@ import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
 import { mediaSignatureMatches, requiredSignatureBytes } from './media-upload-validation.js';
+import { parseRangeHeader } from './range-request.js';
 import { createConfiguredMediaStorage } from './media-storage-factory.js';
 
 const router = express.Router();
@@ -66,6 +67,56 @@ router.get('/assets', async (req, res, next) => {
       [req.user.id]
     );
     return res.json({ mediaAssets: result.rows });
+  } catch (error) { return next(error); }
+});
+
+router.get('/assets/:assetId/preview', async (req, res, next) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.assetId)) {
+    return res.status(404).json({ error: 'media_asset_not_found' });
+  }
+
+  try {
+    const result = await query(
+      `SELECT storage_key, mime_type, byte_size, status
+         FROM media_assets
+        WHERE id = $1 AND owner_user_id = $2`,
+      [req.params.assetId, req.user.id]
+    );
+    const asset = result.rows[0];
+    if (!asset || asset.status !== 'ready' || !ALLOWED_VIDEO_MIME.has(asset.mime_type)) {
+      return res.status(404).json({ error: 'media_asset_not_found' });
+    }
+
+    const size = Number(asset.byte_size);
+    if (!Number.isSafeInteger(size) || size <= 0) {
+      return res.status(500).json({ error: 'media_size_invalid' });
+    }
+    let range = null;
+    if (req.headers.range) {
+      range = parseRangeHeader(req.headers.range, size);
+      if (!range) {
+        res.setHeader('Content-Range', `bytes */${size}`);
+        return res.status(416).end();
+      }
+    }
+    const object = await mediaStorage.getStream({
+      storageKey: asset.storage_key,
+      range: range ? { start: range.start, end: range.end } : undefined,
+    });
+    if (!object?.stream) return res.status(404).json({ error: 'media_asset_not_found' });
+
+    res.setHeader('Content-Type', asset.mime_type);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (range) {
+      res.status(206);
+      res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${size}`);
+      res.setHeader('Content-Length', String(range.length));
+    } else {
+      res.setHeader('Content-Length', String(size));
+    }
+    return object.stream.pipe(res);
   } catch (error) { return next(error); }
 });
 
