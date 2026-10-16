@@ -45,6 +45,50 @@ function uploadVideo(file, mimeType, onProgress) {
   });
 }
 
+async function createVideoThumbnail(file) {
+  const video = document.createElement('video');
+  const objectUrl = URL.createObjectURL(file);
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  try {
+    await new Promise((resolve, reject) => {
+      video.addEventListener('loadedmetadata', resolve, { once: true });
+      video.addEventListener('error', () => reject(new Error('video_thumbnail_metadata_failed')), { once: true });
+      video.src = objectUrl;
+    });
+    if (!video.videoWidth || !video.videoHeight) throw new Error('video_thumbnail_dimensions_missing');
+    if (Number.isFinite(video.duration) && video.duration > 0) {
+      await new Promise((resolve, reject) => {
+        video.addEventListener('seeked', resolve, { once: true });
+        video.addEventListener('error', () => reject(new Error('video_thumbnail_seek_failed')), { once: true });
+        video.currentTime = Math.min(1, video.duration / 2);
+      });
+    } else {
+      await new Promise((resolve, reject) => {
+        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return resolve();
+        video.addEventListener('loadeddata', resolve, { once: true });
+        video.addEventListener('error', () => reject(new Error('video_thumbnail_frame_failed')), { once: true });
+      });
+    }
+    const scale = Math.min(1, 1280 / video.videoWidth);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('video_thumbnail_canvas_unavailable');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88));
+    if (!blob || !blob.size) throw new Error('video_thumbnail_encode_failed');
+    return new File([blob], 'video-thumbnail.jpg', { type: 'image/jpeg' });
+  } finally {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export async function renderSellerUpload(root) {
   root.innerHTML = `<main class="seller-shell">
     <header class="seller-header"><div><p class="eyebrow">Creator workspace</p><h1>Upload video</h1><p>Add your protected video, then turn it into a product draft ready for review and publishing.</p></div><a class="button secondary" href="#/seller/products">My videos</a></header>
@@ -139,19 +183,41 @@ export async function renderSellerUpload(root) {
     isUploading = true;
     submit.disabled = true;
     message.textContent = `Uploading ${file.name}… This can take a while for large videos.`;
-    let uploadedMediaAssetId = null;
+    const uploadedAssetIds = [];
     let productCreated = false;
     try {
       const media = await uploadVideo(file, getVideoMime(file), (percent) => { message.textContent = `Uploading ${file.name}… ${percent}%`; });
       const mediaAssetId = typeof media?.mediaAsset?.id === 'string' && media.mediaAsset.id.trim() ? media.mediaAsset.id : null;
-      uploadedMediaAssetId = mediaAssetId;
+      uploadedAssetIds.push(mediaAssetId);
       if (!uploadedMediaAssetId) {
         throw new Error('Upload response did not include a media asset ID. Check My videos before uploading again.');
       }
       if (media.mediaAsset.status !== 'ready') {
         throw new Error('The uploaded video is not ready to register. Check My videos before uploading again.');
       }
-      const product = await request('/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title, description, priceAmount: price, priceCurrency: 'JPY', mediaAssetId: uploadedMediaAssetId }) });
+      message.textContent = 'Generating the video thumbnail…';
+      const thumbnailFile = await createVideoThumbnail(file);
+      const thumbnailMime = thumbnailFile.type.toLowerCase();
+      const thumbnailUpload = await uploadVideo(thumbnailFile, thumbnailMime, () => {});
+      const thumbnailAssetId = typeof thumbnailUpload?.mediaAsset?.id === 'string' && thumbnailUpload.mediaAsset.id.trim()
+        ? thumbnailUpload.mediaAsset.id.trim()
+        : null;
+      if (!thumbnailAssetId || thumbnailUpload.mediaAsset.status !== 'ready') {
+        throw new Error('Thumbnail upload did not return a ready media asset.');
+      }
+      uploadedAssetIds.push(thumbnailAssetId);
+      const product = await request('/api/seller/products', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          priceAmount: price,
+          priceCurrency: 'JPY',
+          mediaAssetId: mediaAssetId,
+          images: [{ mediaAssetId: thumbnailAssetId, role: 'thumbnail', sortOrder: 0 }]
+        })
+      });
       productCreated = true;
       message.innerHTML = `<span>Draft ${escapeHtml(product.product.title)} created successfully.</span> <a href="#/seller/products">Open My videos</a>`;
       form.reset();
@@ -159,14 +225,16 @@ export async function renderSellerUpload(root) {
       form.querySelector('#video-price').value = '1000';
     } catch (error) {
       let productWasCreated = productCreated;
-      if (uploadedMediaAssetId && !productCreated) {
-        try {
-          await request(`/api/seller/media/assets/${encodeURIComponent(uploadedMediaAssetId)}`, { method: 'DELETE' });
-        } catch (cleanupError) {
-          if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
-            productWasCreated = true;
-          } else {
-            console.error('seller_upload_cleanup_failed', cleanupError);
+      if (!productCreated) {
+        for (const assetId of uploadedAssetIds.reverse()) {
+          try {
+            await request(`/api/seller/media/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+          } catch (cleanupError) {
+            if (cleanupError.status === 409 && cleanupError.body?.error === 'media_asset_in_use') {
+              productWasCreated = true;
+            } else {
+              console.error('seller_upload_cleanup_failed', cleanupError);
+            }
           }
         }
       }
