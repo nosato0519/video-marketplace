@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateProductForPublishing } from './publish-guard.js';
+import { validateProductForPublishing, validateProductThumbnailAssets } from './publish-guard.js';
 
 const validProduct = () => ({
   seller_id: 'seller-1',
@@ -65,4 +65,21 @@ test('rejects publishing without a video', () => {
   });
   assert.equal(result.allowed, false);
   assert.deepEqual(result.errors, ['video_required']);
+});
+
+test('requires exactly one ready thumbnail with an allowed image type', () => {
+  assert.deepEqual(validateProductThumbnailAssets([]), { allowed: false, error: 'product_thumbnail_required' });
+  assert.deepEqual(validateProductThumbnailAssets([
+    { status: 'ready', mime_type: 'image/png' },
+    { status: 'ready', mime_type: 'image/jpeg' },
+  ]), { allowed: false, error: 'product_thumbnail_invalid' });
+  assert.deepEqual(validateProductThumbnailAssets([
+    { status: 'processing', mime_type: 'image/png' },
+  ]), { allowed: false, error: 'product_thumbnail_not_ready' });
+  assert.deepEqual(validateProductThumbnailAssets([
+    { status: 'ready', mime_type: 'application/pdf' },
+  ]), { allowed: false, error: 'product_thumbnail_not_ready' });
+  assert.deepEqual(validateProductThumbnailAssets([
+    { status: 'ready', mime_type: 'image/png' },
+  ]), { allowed: true, error: null });
 });
