@@ -208,6 +208,10 @@ assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/)
 
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
 assert.match(productDetailRoutes, /p\.status = 'published'/);
+assert.match(productDetailRoutes, /JOIN users su ON su\.id = p\.seller_id/);
+assert.match(productDetailRoutes, /su\.status = 'active'/);
+assert.match(productDetailRoutes, /NOT EXISTS \([\s\S]*FROM content_reviews cr[\s\S]*cr\.status = 'blocked'/);
+
 assert.match(productDetailPolicy, /product\.images = images\.rows\.map/);
 assert.match(productDetailPolicy, /ma\.mime_type IN \('image\/jpeg', 'image\/png', 'image\/webp'\)/);
 assert.match(productDetailPolicy, /pi\.id ASC/);
