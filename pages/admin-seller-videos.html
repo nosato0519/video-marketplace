@@ -26,29 +26,21 @@
   <div><div class="eyebrow">SELLER MANAGEMENT / CONTENT</div><h1 class="title">出品動画管理</h1><p class="lead">販売者が登録した動画の公開状態、審査状況、対応履歴を確認します。</p></div>
   <div class="top-actions"><a class="btn" href="/pages/admin-sellers.html">販売者管理へ戻る</a></div>
 </header>
-<p class="preview-note">画面確認用のサンプルデータです。審査・公開状態の操作は画面内だけに反映され、商品公開や配信停止など実データへの変更は行いません。</p>
+<p class="preview-note">販売者から送信された審査申請を実データから取得します。審査結果は作品の状態に反映されます。</p>
 <section class="queue">
-  <div class="queue-card"><span>審査待ち</span><strong id="pending-count">2 <em>件</em></strong></div>
-  <div class="queue-card"><span>公開中</span><strong id="published-count">3 <em>件</em></strong></div>
-  <div class="queue-card"><span>修正依頼</span><strong id="changes-count">1 <em>件</em></strong></div>
-  <div class="queue-card"><span>停止中</span><strong id="blocked-count">1 <em>件</em></strong></div>
+  <div class="queue-card"><span>審査待ち</span><strong id="pending-count">0 <em>件</em></strong></div>
+  <div class="queue-card"><span>公開中</span><strong id="published-count">0 <em>件</em></strong></div>
+  <div class="queue-card"><span>修正依頼</span><strong id="changes-count">0 <em>件</em></strong></div>
+  <div class="queue-card"><span>停止中</span><strong id="blocked-count">0 <em>件</em></strong></div>
 </section>
 <section class="section">
   <div class="section-head"><div><h2>出品動画一覧</h2><p>動画名・販売者名・公開状態で絞り込み</p></div><a class="btn" href="/pages/admin-seller-detail.html">販売者一覧を見る</a></div>
   <div class="admin-filterbar">
     <label>動画・販売者を検索<input id="video-search" type="search" placeholder="動画名・販売者名"></label>
-    <label>公開・審査状態<select id="video-status"><option value="">すべて</option><option>審査待ち</option><option>公開中</option><option>修正依頼</option><option>却下</option><option>停止中</option></select></label>
-    <span id="video-count" class="muted">7件</span>
+    <label>公開・審査状態<select id="video-status"><option value="pending" selected>審査待ち</option><option value="">すべて</option><option value="approved">承認済み</option><option value="changes_requested">修正依頼</option><option value="rejected">却下</option><option value="blocked">停止中</option><option value="published">公開中</option></select></label>
+    <span id="video-count" class="muted">0件</span>
   </div>
-  <div class="panel admin-table-scroll"><table class="table" id="video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>申請・更新日</th><th>状態</th><th>審査操作</th></tr></thead><tbody>
-    <tr data-status="公開中"><td><strong>THE LAST SIGNAL</strong><small>Documentary / 4K</small></td><td>Aki Studio</td><td>¥2,980</td><td>2026.09.28</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
-    <tr data-status="公開中"><td><strong>Tokyo After Hours</strong><small>Short Film / 4K</small></td><td>KEN FILMS</td><td>¥1,980</td><td>2026.09.26</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
-    <tr data-status="審査待ち"><td><strong>Build Your Brand</strong><small>Brand Film / 1080p</small></td><td>FRAME LAB</td><td>¥2,480</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="changes">修正依頼</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="公開中"><td><strong>BLUE HORIZON</strong><small>Documentary / 4K</small></td><td>NORTH COAST</td><td>¥1,680</td><td>2026.09.22</td><td><span class="tag ok">公開中</span></td><td><button class="btn small" data-action="block">停止</button></td></tr>
-    <tr data-status="修正依頼"><td><strong>Quiet Morning</strong><small>Ambient / 4K</small></td><td>Aki Studio</td><td>¥1,280</td><td>2026.10.01</td><td><span class="tag warn">修正依頼</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="審査待ち"><td><strong>City Texture</strong><small>Stock Footage / 4K</small></td><td>KEN FILMS</td><td>¥980</td><td>2026.10.02</td><td><span class="tag warn">審査待ち</span></td><td><button class="btn small" data-action="approve">承認</button> <button class="btn small" data-action="changes">修正依頼</button> <button class="btn small" data-action="reject">却下</button></td></tr>
-    <tr data-status="停止中"><td><strong>Build Your Brand — Cut 1</strong><small>Brand Film / 1080p</small></td><td>FRAME LAB</td><td>¥1,980</td><td>2026.09.18</td><td><span class="tag warn">停止中</span></td><td><button class="btn small" data-action="restore">再審査へ</button></td></tr>
-  </tbody></table></div>
+  <div class="panel admin-table-scroll"><table class="table" id="video-table"><thead><tr><th>動画</th><th>販売者</th><th>価格</th><th>申請・更新日</th><th>状態</th><th>審査操作</th></tr></thead><tbody><tr><td colspan="6" class="muted">審査申請を読み込み中…</td></tr></tbody></table></div>
 </section>
 <section class="section two">
   <div class="panel"><div class="panel-head"><strong>審査時の確認項目</strong><span>REVIEW CHECKLIST</span></div><div class="rows">
@@ -66,75 +58,99 @@
 </main></div>
 <script>
 (function(){
-var table=document.getElementById('video-table'),rows=Array.from(table.tBodies[0].rows),search=document.getElementById('video-search'),status=document.getElementById('video-status');
-function renderActions(row){
- var value=row.querySelector('.tag').textContent.trim(),cell=row.cells[5];cell.innerHTML='';
- function add(label,action){var button=document.createElement('button');button.type='button';button.className='btn small';button.textContent=label;button.dataset.action=action;cell.appendChild(button);}
- if(value==='審査待ち'){add('承認','approve');add('修正依頼','changes');add('却下','reject');}
- else if(value==='公開中'){add('停止','block');}
- else if(value==='修正依頼'){add('再審査待ち','restore');add('却下','reject');add('停止','block');}
- else if(value==='却下'){add('再審査待ち','restore');}
- else if(value==='停止中'){add('再審査待ち','restore');}
- else{cell.textContent='—';}
+const table=document.getElementById('video-table');
+const body=table.tBodies[0];
+const search=document.getElementById('video-search');
+const filter=document.getElementById('video-status');
+const contentMessage=document.getElementById('video-count');
+const modal=document.getElementById('modal');
+const reason=document.getElementById('reason');
+const message=document.getElementById('message');
+let reviews=[];
+let pendingAction=null;
+const statusLabels={pending:'審査待ち',approved:'承認済み',changes_requested:'修正依頼',rejected:'却下',blocked:'停止中',published:'公開中'};
+const actionLabels={approved:'承認',changes_requested:'修正依頼',rejected:'却下',blocked:'停止',pending:'再審査へ'};
+const transitions={pending:['approved','changes_requested','rejected','blocked'],changes_requested:['pending','rejected','blocked'],approved:['blocked'],rejected:['pending'],blocked:['pending']};
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+async function api(url,options={}){
+ const response=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+ const data=await response.json().catch(()=>({}));
+ if(response.status===401||response.status===403)throw new Error('運営者ログインまたは操作権限を確認してください。');
+ if(!response.ok)throw new Error(data.error?.message||data.error||'データを取得・更新できませんでした。');
+ return data;
 }
-function refresh(){
- var q=search.value.trim().toLowerCase(),visible=0,counts={'審査待ち':0,'公開中':0,'修正依頼':0,'却下':0,'停止中':0};
- rows.forEach(function(row){var current=row.querySelector('.tag').textContent.trim();counts[current]=(counts[current]||0)+1;var match=row.innerText.toLowerCase().includes(q)&&(!status.value||current===status.value);row.hidden=!match;if(match)visible++;});
- document.getElementById('video-count').textContent=visible+'件';
- document.getElementById('pending-count').innerHTML=(counts['審査待ち']||0)+' <em>件</em>';
- document.getElementById('published-count').innerHTML=(counts['公開中']||0)+' <em>件</em>';
- document.getElementById('changes-count').innerHTML=(counts['修正依頼']||0)+' <em>件</em>';
- document.getElementById('blocked-count').innerHTML=(counts['停止中']||0)+' <em>件</em>';
+function stateOf(review){return review.product_status==='published'?'published':review.status}
+function showMessage(text,type='success'){message.innerHTML=text?'<p class="'+type+'">'+esc(text)+'</p>':''}
+function actionButtons(review){
+ return (transitions[review.status]||[]).map(status=>'<button type="button" class="btn small '+(status==='rejected'||status==='blocked'?'danger':'')+'" data-review="'+esc(review.id)+'" data-status="'+status+'">'+actionLabels[status]+'</button>').join(' ');
 }
-rows.forEach(renderActions);
-table.addEventListener('click',function(event){
- var button=event.target.closest('button[data-action]');if(!button)return;
- var row=button.closest('tr'),tag=row.querySelector('.tag'),action=button.dataset.action,target=tag.textContent.trim();
- if(action==='approve')target='公開中';
- if(action==='changes')target='修正依頼';
- if(action==='reject')target='却下';
- if(action==='block')target='停止中';
- if(action==='restore')target='審査待ち';
- tag.textContent=target;tag.className='tag '+(target==='公開中'?'ok':'warn');row.dataset.status=target;
- renderActions(row);refresh();
+function render(){
+ const q=search.value.trim().toLocaleLowerCase('ja-JP');
+ const selected=filter.value;
+ const visible=reviews.filter(review=>{
+  const state=stateOf(review);
+  const searchText=[review.product_title,review.seller_email,review.media_original_filename,review.product_id].join(' ').toLocaleLowerCase('ja-JP');
+  const statusMatches=!selected||(selected==='published'?state==='published':review.status===selected);
+  return statusMatches&&searchText.includes(q);
+ });
+ body.innerHTML=visible.length?visible.map(review=>{
+  const state=stateOf(review);
+  const size=Number(review.media_byte_size);
+  const sizeLabel=Number.isFinite(size)&&size>0?(size/1024/1024).toFixed(1)+' MB':'サイズ不明';
+  const media=review.media_original_filename?esc(review.media_original_filename)+' · '+sizeLabel:'動画ファイル情報なし';
+  const price=Number(review.price_amount||0).toLocaleString('ja-JP')+' '+esc(review.price_currency||'JPY');
+  const date=review.created_at?new Date(review.created_at).toLocaleString('ja-JP'):'—';
+  const tagClass=['approved','published'].includes(state)?'ok':'warn';
+  return '<tr data-review-row="'+esc(review.id)+'"><td><strong>'+esc(review.product_title||'作品名なし')+'</strong><small>'+media+'</small><small>'+esc(review.media_mime_type||'')+'</small><small>ID: '+esc(review.product_id)+'</small></td><td>'+esc(review.seller_email||'—')+'</td><td>'+price+'</td><td>'+esc(date)+'</td><td><span class="tag '+tagClass+'">'+esc(statusLabels[state]||state)+'</span><small>'+esc(review.notes||'')+'</small></td><td><div class="row-actions">'+actionButtons(review)+'</div></td></tr>';
+ }).join(''):'<tr><td colspan="6" class="muted">該当する審査申請はありません。</td></tr>';
+ contentMessage.textContent=visible.length+'件';
+ const counts={'pending':0,'published':0,'changes_requested':0,'blocked':0};
+ reviews.forEach(review=>{const state=stateOf(review);if(state in counts)counts[state]++;});
+ document.getElementById('pending-count').innerHTML=counts.pending+' <em>件</em>';
+ document.getElementById('published-count').innerHTML=counts.published+' <em>件</em>';
+ document.getElementById('changes-count').innerHTML=counts.changes_requested+' <em>件</em>';
+ document.getElementById('blocked-count').innerHTML=counts.blocked+' <em>件</em>';
+}
+async function load(){
+ showMessage('');
+ body.innerHTML='<tr><td colspan="6" class="muted">審査申請を読み込み中…</td></tr>';
+ try{const data=await api('/api/admin/content/reviews');reviews=Array.isArray(data.reviews)?data.reviews:[];render();}
+ catch(error){body.innerHTML='<tr><td colspan="6" class="muted">審査データを読み込めませんでした。</td></tr>';showMessage(error.message,'error');}
+}
+function openAction(reviewId,status){
+ const review=reviews.find(item=>item.id===reviewId);
+ if(!review)return;
+ pendingAction={reviewId,status};
+ document.getElementById('modal-title').textContent=actionLabels[status]||status;
+ document.getElementById('modal-copy').textContent='作品「'+(review.product_title||review.product_id)+'」の審査状態を更新します。却下・修正依頼・停止には理由が必要です。';
+ reason.value='';
+ modal.classList.remove('hidden');
+}
+function closeModal(){pendingAction=null;modal.classList.add('hidden');}
+table.addEventListener('click',event=>{
+ const button=event.target.closest('button[data-review][data-status]');
+ if(button)openAction(button.dataset.review,button.dataset.status);
 });
-search.addEventListener('input',refresh);status.addEventListener('change',refresh);refresh();
+document.getElementById('cancel').addEventListener('click',closeModal);
+document.getElementById('confirm').addEventListener('click',async()=>{
+ if(!pendingAction)return;
+ const action=pendingAction;
+ const notes=reason.value.trim();
+ if(['changes_requested','rejected','blocked'].includes(action.status)&&!notes){showMessage('この操作には理由の入力が必要です。','error');return;}
+ const confirmButton=document.getElementById('confirm');confirmButton.disabled=true;
+ try{
+  await api('/api/admin/content/reviews/'+encodeURIComponent(action.reviewId)+'/status',{method:'POST',body:JSON.stringify({status:action.status,notes})});
+  closeModal();showMessage('審査状態を更新しました。');await load();
+ }catch(error){showMessage(error.message,'error');}
+ finally{confirmButton.disabled=false;}
+});
+document.getElementById('refresh').addEventListener('click',load);
+search.addEventListener('input',render);
+filter.addEventListener('change',render);
+load();
 })();
 </script>
 
-<script>
-(function(){
-var tableIds=["video-table"];
-function setup(tableId){
- var table=document.getElementById(tableId);if(!table||!table.tBodies.length)return;
- var section=table.closest('section')||table.parentElement;
- var rows=Array.from(table.tBodies[0].rows),pageSize=20,currentPage=1,filteredRows=[];
- var nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ切り替え');
- var summary=document.createElement('span');summary.className='pagination-summary';
- var controls=document.createElement('div');controls.className='pagination-controls';
- nav.append(summary,controls);var panel=table.closest('.panel');(panel||table).insertAdjacentElement('afterend',nav);
- function capture(){rows=Array.from(table.tBodies[0].rows);filteredRows=rows.filter(function(row){return !row.hidden;});var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.min(currentPage,pages);render();}
- function render(){
-  var pages=Math.max(1,Math.ceil(filteredRows.length/pageSize));currentPage=Math.max(1,Math.min(currentPage,pages));
-  rows.forEach(function(row){row.hidden=true;});
-  filteredRows.slice((currentPage-1)*pageSize,currentPage*pageSize).forEach(function(row){row.hidden=false;});
-  summary.textContent=filteredRows.length+'件中 '+(filteredRows.length?((currentPage-1)*pageSize+1):0)+'–'+Math.min(currentPage*pageSize,filteredRows.length)+'件を表示';
-  controls.replaceChildren();
-  function add(label,page,disabled,active,aria){var b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=!!disabled;if(aria)b.setAttribute('aria-label',aria);if(active)b.setAttribute('aria-current','page');b.addEventListener('click',function(){currentPage=page;render();});controls.appendChild(b);}
-  add('前へ',currentPage-1,currentPage===1,false,'前のページ');
-  var shown=new Set();[1,currentPage-2,currentPage-1,currentPage,currentPage+1,currentPage+2,pages].forEach(function(p){if(p>=1&&p<=pages)shown.add(p);});
-  var sorted=Array.from(shown).sort(function(a,b){return a-b;}),previous=0;
-  sorted.forEach(function(p){if(previous&&p-previous>1){var dots=document.createElement('span');dots.className='pagination-ellipsis';dots.textContent='…';controls.appendChild(dots);}add(String(p),p,false,p===currentPage,'ページ '+p);previous=p;});
-  add('次へ',currentPage+1,currentPage===pages,false,'次のページ');
- }
- function refreshFromFilter(){currentPage=1;capture();}
- section.querySelectorAll('input,select').forEach(function(el){el.addEventListener('input',refreshFromFilter);el.addEventListener('change',refreshFromFilter);});
- section.addEventListener('click',function(event){if(event.target.closest('button[data-action]'))refreshFromFilter();});
- var save=document.getElementById('save-status');if(save)save.addEventListener('click',refreshFromFilter);
- capture();
-}
-tableIds.forEach(setup);
-})();
-</script>
+
 <script src="/shared/site-branding.js"></script></body>
 </html>
