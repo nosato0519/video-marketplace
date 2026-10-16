@@ -537,6 +537,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       mimeType: 'application/pdf',
       buffer: Buffer.from('not a video'),
     });
+    await page.getByLabel('Thumbnail image').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
+    });
     await page.getByLabel('Title').fill('Unsupported file');
     await page.getByLabel('Price (JPY)').fill('1000');
     await page.getByRole('button', { name: 'Upload and create draft' }).click();
@@ -559,6 +564,11 @@ test('disables the save action while a video upload is pending', async ({ page }
       name: 'sample.mp4',
       mimeType: 'video/mp4',
       buffer: Buffer.from('fake-mp4-test-payload'),
+    });
+    await page.getByLabel('Thumbnail image').setInputFiles({
+      name: 'thumbnail.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([255, 216, 255, 217]),
     });
     await page.getByLabel('Title').fill('Upload failure');
     await page.getByLabel('Price (JPY)').fill('1000');
