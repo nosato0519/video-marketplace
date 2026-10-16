@@ -72,6 +72,8 @@ assert.match(productEdit, /function getVideoMime\(file\)/);
 assert.match(productEdit, /function uploadReplacementVideo\(file, onProgress\)/);
 assert.match(productEdit, /xhr\.setRequestHeader\('Content-Type', getVideoMime\(file\)\)/);
 assert.match(productEdit, /xhr\.setRequestHeader\('X-Original-Filename', encodeURIComponent\(file\.name\)\)/);
+assert.equal((productEdit.match(/xhr\.setRequestHeader\('X-Original-Filename', encodeURIComponent\(file\.name\)\)/g) || []).length, 2);
+assert.match(productEdit, /if \(!productId \|\| !productLoaded \|\| isSaving\) return/);
 assert.match(productEdit, /xhr\.timeout = 180000/);
 assert.match(productEdit, /request\('\/api\/seller\/media\/limits'\)/);
 assert.match(productEdit, /seller_product_edit_replaced_video_cleanup_failed/);
