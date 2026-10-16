@@ -158,7 +158,9 @@ assert.match(spaUpload, /const mediaAssetId = typeof media\?\.mediaAsset\?\.id =
 assert.match(spaUpload, /if \(!mediaAssetId\)/);
 assert.match(spaUpload, /uploadedAssetIds\.push\(mediaAssetId\)/);
 assert.doesNotMatch(spaUpload, /uploadedMediaAssetId/);
-assert.match(spaUpload, /async function createVideoThumbnail\(file\)/);
+assert.doesNotMatch(spaUpload, /createVideoThumbnail/);
+assert.match(spaUpload, /id="thumbnail-file"[^>]*required/);
+assert.match(spaUpload, /Choose a non-empty JPEG, PNG, or WebP thumbnail no larger than 20 MB/);
 assert.match(spaUpload, /images: \[\{ mediaAssetId: thumbnailAssetId, role: 'thumbnail', sortOrder: 0 \}\]/);
 assert.match(spaUpload, /uploadedAssetIds\.push\(thumbnailAssetId\)/);
 assert.match(mediaUploadRoute, /media_upload_cleanup_failed/);
@@ -175,15 +177,15 @@ assert.match(mediaUploadRoute, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, 'deleted'
 assert.match(mediaUploadRoute, /media_upload_orphan_record_failed/);
 assert.match(mediaUploadRoute, /maxImageUploadBytes: MAX_IMAGE_BYTES/);
 assert.match(mediaUploadRoute, /ALLOWED_IMAGE_MIME/);
-assert.match(editor, /data-product-image-role="thumbnail"/);
+assert.match(editor, /data-product-image-role="thumbnail"[^>]*required/);
 assert.match(editor, /data-product-image-role="gallery"/);
 assert.match(editorScript, /images: uploadedImageAssets/);
-assert.match(editorScript, /async function createVideoThumbnail\(file\)/);
-assert.match(editorScript, /else if \(video\.readyState < 2\)/);
-assert.match(editorScript, /video\.addEventListener\('loadedmetadata'/);
-assert.match(editorScript, /canvas\.toBlob\(resolve, 'image\/jpeg', 0\.88\)/);
+assert.doesNotMatch(editorScript, /createVideoThumbnail/);
+
+
+
 assert.match(editorScript, /selectedImages\.some\(\(item\) => item\.input\.dataset\.productImageRole === 'thumbnail'\)/);
-assert.match(editorScript, /selectedImages\.push\(\{ input: thumbnailInput, file: thumbnailFile \}\)/);
+assert.match(editorScript, /サムネイル画像を選択してください。サムネイルがない作品は保存できません。/);
 assert.match(editorScript, /maxImageUploadBytes/);
 assert.match(productRoutes, /INSERT INTO product_images/);
 assert.match(productRoutes, /product_image_asset_invalid/);
