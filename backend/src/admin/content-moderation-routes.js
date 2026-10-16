@@ -3,8 +3,11 @@ import crypto from 'node:crypto';
 import { query } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
+import { createConfiguredMediaStorage } from '../media/media-storage-factory.js';
+import { parseRangeHeader } from '../media/range-request.js';
 
 const router = express.Router();
+const mediaStorage = createConfiguredMediaStorage();
 router.use(requireAuth, requireRole('admin'));
 
 const reviewTransitions = {
@@ -53,6 +56,50 @@ router.get('/content/reviews', async (req, res, next) => {
     );
     res.json({ reviews: result.rows });
   } catch (error) { next(error); }
+});
+
+router.get('/content/reviews/:id/video', async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT m.storage_key, m.mime_type, m.byte_size, m.status
+         FROM content_reviews r
+         JOIN products p ON p.id = r.product_id
+         JOIN media_assets m ON m.id = p.media_asset_id
+        WHERE r.id = $1`,
+      [req.params.id]
+    );
+    const asset = result.rows[0];
+    if (!asset || asset.status !== 'ready' || !String(asset.mime_type || '').startsWith('video/')) {
+      return res.status(404).json({ error: 'review_video_not_found' });
+    }
+    const size = Number(asset.byte_size);
+    if (!Number.isSafeInteger(size) || size <= 0) return res.status(500).json({ error: 'media_size_invalid' });
+    let range = null;
+    if (req.headers.range) {
+      range = parseRangeHeader(req.headers.range, size);
+      if (!range) {
+        res.setHeader('Content-Range', `bytes */${size}`);
+        return res.status(416).end();
+      }
+    }
+    const object = await mediaStorage.getStream({
+      storageKey: asset.storage_key,
+      range: range ? { start: range.start, end: range.end } : undefined,
+    });
+    if (!object?.stream) return res.status(404).json({ error: 'review_video_not_found' });
+    res.setHeader('Content-Type', asset.mime_type);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (range) {
+      res.status(206);
+      res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${size}`);
+      res.setHeader('Content-Length', String(range.length));
+    } else {
+      res.setHeader('Content-Length', String(size));
+    }
+    return object.stream.pipe(res);
+  } catch (error) { return next(error); }
 });
 
 router.post('/content/reviews/:id/status', async (req, res, next) => {
