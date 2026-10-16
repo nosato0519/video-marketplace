@@ -3,6 +3,36 @@ import { test, expect } from '@playwright/test';
 const appUrl = (hash) => `/app/index.html${hash}`;
 
 async function mockSellerSession(page) {
+  await page.addInitScript(() => {
+    const createElement = document.createElement.bind(document);
+    document.createElement = function (name, ...args) {
+      const element = createElement(name, ...args);
+      if (name.toLowerCase() === 'video') {
+        Object.defineProperties(element, {
+          videoWidth: { configurable: true, value: 640 },
+          videoHeight: { configurable: true, value: 360 },
+          duration: { configurable: true, value: 2 },
+          currentTime: {
+            configurable: true,
+            set() { queueMicrotask(() => element.dispatchEvent(new Event('seeked'))); },
+          },
+        });
+        const addEventListener = element.addEventListener.bind(element);
+        element.addEventListener = function (type, listener, options) {
+          if (type === 'loadedmetadata') {
+            queueMicrotask(() => listener(new Event(type)));
+            return;
+          }
+          addEventListener(type, listener, options);
+        };
+      }
+      if (name.toLowerCase() === 'canvas') {
+        element.getContext = () => ({ drawImage() {} });
+        element.toBlob = (callback, type) => callback(new Blob(['thumbnail'], { type }));
+      }
+      return element;
+    };
+  });
   await page.route('**/api/auth/me', async (route) => {
     await route.fulfill({
       status: 200,
