@@ -75,6 +75,8 @@ assert.match(adminModerationRoutes, /Content-Disposition', 'inline'/);
 assert.match(adminSellerVideosPage, /\/api\/admin\/content\/reviews\/.*\/video/);
 assert.match(adminSellerVideosPage, /review-video-preview/);
 assert.match(adminSellerVideosPage, /\/api\/admin\/content\/reviews/);
+assert.match(adminSellerVideosPage, /id="refresh"/);
+assert.match(adminSellerVideosPage, /getElementById\('refresh'\)\.addEventListener/);
 assert.match(adminSellerVideosPage, /\/status/);
 assert.doesNotMatch(adminSellerVideosPage, /サンプルデータ|THE LAST SIGNAL|Build Your Brand/);
 assert.match(mediaUploadRoute, /router\.get\('\/assets\/:assetId\/preview'/);
