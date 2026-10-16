@@ -207,6 +207,9 @@ assert.match(publishedListingsScript, /watchListingThumbnailErrors/);
 assert.match(publishedListingsScript, /image\.addEventListener\('error'/);
 assert.doesNotMatch(publishedListingsScript, /class="thumb t\$\{/);
 assert.match(publishedListingsScript, /ABOUT THIS VIDEO/);
+assert.match(publishedListingsScript, /const mediaBadge = document\.querySelector\('\.detail-badge'\)/);
+assert.match(publishedListingsScript, /const mediaDuration = document\.querySelector\('\.detail-duration'\)/);
+assert.match(publishedListingsScript, /const detailsSection = \[\.\.\.document\.querySelectorAll\('\.detail-section'\)\]/);
 assert.match(publishedListingsScript, /detail-creator/);
 assert.match(productDetailPage, /galleryItems\.filter\(node=>!node\.hidden\)\.indexOf\(item\)/);
 
