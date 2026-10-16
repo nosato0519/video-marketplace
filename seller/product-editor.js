@@ -82,7 +82,7 @@ function uploadMedia(file, mimeType, onProgress) {
       reject(error);
     });
     xhr.addEventListener('error', () => reject(new Error('動画データ送信後、サーバーとの通信でエラーが発生しました。')));
-    xhr.addEventListener('timeout', () => reject(new Error('動画の送信後、サーバー側の保存確認が180秒以内に完了しませんでした。ストレージ設定またはサーバーログの確認が必要です。')));
+    xhr.addEventListener('timeout', () => reject(new Error('ファイル送信後、サーバー側の保存確認が180秒以内に完了しませんでした。ストレージ設定またはサーバー側の確認が必要です。')));
     xhr.addEventListener('abort', () => reject(new Error('動画アップロードが中断されました。')));
     xhr.send(file);
   });
