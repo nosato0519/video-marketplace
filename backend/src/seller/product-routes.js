@@ -2,7 +2,7 @@ import express from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
-import { validateProductForPublishing } from '../catalog/publish-guard.js';
+import { validateProductForPublishing, validateProductThumbnailAssets } from '../catalog/publish-guard.js';
 
 const router = express.Router();
 const PRODUCT_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -19,6 +19,19 @@ async function getSellerMediaAsset(mediaAssetId, userId, client = { query }) {
     [mediaAssetId, userId]
   );
   return result.rows[0] || null;
+}
+
+async function getProductThumbnailValidation(client, productId) {
+  const result = await client.query(
+    `SELECT ma.status, ma.mime_type
+       FROM product_images pi
+       JOIN media_assets ma ON ma.id = pi.media_asset_id
+      WHERE pi.product_id = $1 AND pi.image_role = 'thumbnail'
+      ORDER BY pi.sort_order, pi.id
+      FOR UPDATE OF ma`,
+    [productId]
+  );
+  return validateProductThumbnailAssets(result.rows);
 }
 
 const PRODUCT_SELECT = `
@@ -373,6 +386,9 @@ router.post('/products/:productId/submit', async (req, res, next) => {
       const product = result.rows[0];
       if (!['draft', 'rejected'].includes(product.status)) return { error: 'product_status_not_submittable' };
 
+      const thumbnailValidation = await getProductThumbnailValidation(client, product.id);
+      if (!thumbnailValidation.allowed) return { error: thumbnailValidation.error };
+
       const mediaResult = product.media_asset_id
         ? await client.query('SELECT id, owner_user_id, status FROM media_assets WHERE id = $1 FOR UPDATE', [product.media_asset_id])
         : { rows: [] };
@@ -402,6 +418,7 @@ router.post('/products/:productId/submit', async (req, res, next) => {
     });
     if (submission.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
     if (submission.error === 'product_status_not_submittable') return res.status(409).json({ error: 'product_status_not_submittable' });
+    if (['product_thumbnail_required', 'product_thumbnail_invalid', 'product_thumbnail_not_ready'].includes(submission.error)) return res.status(422).json({ error: submission.error });
     if (submission.error === 'product_not_submittable') return res.status(422).json({ error: submission.error, reasons: submission.reasons });
     return res.json(submission);
   } catch (error) { return next(error); }
@@ -439,6 +456,8 @@ router.post('/products/:productId/publish', async (req, res, next) => {
       if (!productResult.rows.length) return { error: 'product_not_found' };
 
       const row = productResult.rows[0];
+      const thumbnailValidation = await getProductThumbnailValidation(client, row.id);
+      if (!thumbnailValidation.allowed) return { error: 'product_not_publishable', reasons: [thumbnailValidation.error] };
       let mediaAsset = null;
       if (row.media_asset_id) {
         const mediaResult = await client.query(
