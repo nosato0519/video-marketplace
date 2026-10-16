@@ -21,7 +21,7 @@ const mimeTypes = {
 };
 
 function resolveStaticPath(requestPath) {
-  if (requestPath === '/') return path.join(root, 'app', 'index.html');
+  if (requestPath === '/') return path.join(root, 'index.html');
 
   // The application is deployed with app/ as its static root. Resolve
   // root-relative frontend assets there first so repository-level files such
