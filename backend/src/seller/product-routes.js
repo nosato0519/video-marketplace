@@ -469,7 +469,7 @@ router.post('/products/:productId/unpublish', async (req, res, next) => {
   if (!isUuid(req.params.productId)) return res.status(404).json({ error: 'published_product_not_found' });
 
   try {
-    const result = await query(`UPDATE products SET status = 'draft', published_at = NULL, updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status = 'published' RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, req.user.id]);
+    const result = await query(`UPDATE products SET status = 'approved', published_at = NULL, updated_at = NOW() WHERE id = $1 AND seller_id = $2 AND status = 'published' AND moderation_status = 'approved' RETURNING id, seller_id, media_asset_id, status, price_amount, price_currency, title, description, created_at, updated_at, published_at`, [req.params.productId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: 'published_product_not_found' });
     return res.json({ product: result.rows[0] });
   } catch (error) { return next(error); }
