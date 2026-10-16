@@ -61,6 +61,8 @@ assert.match(productsScript, /data-submit-product/);
 assert.match(productsScript, /\/submit/);
 assert.match(productRoutes, /products\/:productId\/submit/);
 assert.match(productRoutes, /status = 'approved' AND moderation_status = 'approved'/);
+assert.match(productRoutes, /product_under_review_locked/);
+assert.match(productRoutes, /moderation_status = CASE WHEN status = 'approved' THEN 'changes_requested'/);
 assert.doesNotMatch(productEdit, /PUBLISHING|PUBLICATION|公開状態を変更/);
 assert.match(adminModerationRoutes, /moderation_status = \$3/);
 
