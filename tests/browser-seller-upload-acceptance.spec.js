@@ -554,11 +554,8 @@ test('disables the save action while a video upload is pending', async ({ page }
     expect(replacementUploaded).toBe(true);
     expect(productUpdated).toBe(true);
     const unusedMediaList = page.locator('#seller-unused-media-list');
-    await expect(unusedMediaList.getByText('existing.mp4')).toBeVisible();
-    await expect(unusedMediaList.getByText('replacement.mp4')).toHaveCount(0);
-    page.on('dialog', (dialog) => dialog.accept());
-    await unusedMediaList.locator('[data-delete-media="old-media"]').click();
     await expect(unusedMediaList.getByText('existing.mp4')).toHaveCount(0);
+    await expect(unusedMediaList.getByText('replacement.mp4')).toHaveCount(0);
     expect(oldMediaDeleted).toBe(true);
   });
 
