@@ -651,52 +651,37 @@ test('disables the save action while a video upload is pending', async ({ page }
     expect(alertMessage).toContain('差し替えが完了している可能性');
   });
 
-  test('seller can publish and unpublish a product from the editor page', async ({ page }) => {
+  test('product editor keeps publication and review actions in the video list', async ({ page }) => {
     await mockSellerSession(page);
     const productId = '22222222-2222-4222-8222-222222222222';
-    let status = 'draft';
-    const product = () => ({
-      id: productId,
-      title: 'Publishable draft',
-      description: 'Ready for publication',
-      price_amount: 1500,
-      price_currency: 'JPY',
-      status,
-      media_asset_id: 'ready-media',
-      media_status: 'ready',
-      media_mime_type: 'video/mp4',
-      media_byte_size: 1024,
-      media_original_filename: 'ready.mp4',
-    });
-
     await page.route(`**/api/seller/products/${productId}`, async (route) => {
       if (route.request().method() === 'GET') {
-        await fulfillJson(route, { product: product() });
+        await fulfillJson(route, { product: {
+          id: productId,
+          title: 'Draft product',
+          description: 'Draft description',
+          price_amount: 1500,
+          price_currency: 'JPY',
+          status: 'draft',
+          media_asset_id: 'ready-media',
+          media_status: 'ready',
+          media_mime_type: 'video/mp4',
+          media_byte_size: 1024,
+          media_original_filename: 'ready.mp4',
+        } });
         return;
       }
       await route.fallback();
     });
-    await page.route(`**/api/seller/products/${productId}/publish`, async (route) => {
-      expect(route.request().method()).toBe('POST');
-      status = 'published';
-      await fulfillJson(route, { product: product() });
-    });
-    await page.route(`**/api/seller/products/${productId}/unpublish`, async (route) => {
-      expect(route.request().method()).toBe('POST');
-      status = 'draft';
-      await fulfillJson(route, { product: product() });
-    });
 
     await page.goto(`/seller/product-edit.html?productId=${productId}`);
-    const reviewCard = page.locator('.buyer-menu-card').filter({ has: page.locator('span', { hasText: 'REVIEW' }) });
     await expect(page.locator('#product-status')).toHaveText('下書き');
-    await expect(reviewCard).toContainText('公開申請');
-    await reviewCard.click();
-    await expect(page.locator('#product-status')).toHaveText('公開中');
-    await expect(reviewCard).toContainText('公開を停止');
-    await reviewCard.click();
-    await expect(page.locator('#product-status')).toHaveText('下書き');
-    expect(status).toBe('draft');
+    await expect(page.locator('#product-title')).toHaveValue('Draft product');
+    await expect(page.locator('#product-description')).toHaveValue('Draft description');
+    await expect(page.locator('#current-video-filename')).toHaveText('ready.mp4');
+    await expect(page.locator('.buyer-menu-card').filter({ has: page.locator('span', { hasText: 'REVIEW' }) })).toHaveCount(0);
+    await expect(page.getByText('公開状態', { exact: true })).toHaveCount(0);
+    await expect(page.locator('#save-product')).toContainText('変更を保存する');
   });
 
   test('seller can delete a draft from the production-linked video list', async ({ page }) => {
