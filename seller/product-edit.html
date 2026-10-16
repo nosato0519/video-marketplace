@@ -90,9 +90,9 @@
     <section class="buyer-section">
       <div class="buyer-section-head"><div><span class="section-kicker">TRANSLATIONS</span><h2>多言語設定</h2></div></div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card product-input-card"><span>JAPANESE / JA</span><strong>日本語</strong><small>タイトル・説明</small><input class="product-input" type="text" value="THE LAST SIGNAL"><textarea class="product-input product-description-input" rows="4">作品の世界観とストーリーを紹介する作品説明です。</textarea></div>
-        <div class="buyer-menu-card product-input-card"><span>ENGLISH / EN</span><strong>English</strong><small>Title / Description</small><input class="product-input" type="text" value="THE LAST SIGNAL"><textarea class="product-input product-description-input" rows="4">A cinematic story presented for an international audience.</textarea></div>
-        <div class="buyer-menu-card product-input-card"><span>CHINESE / ZH</span><strong>中文</strong><small>标题・简介</small><input class="product-input" type="text" placeholder="中文标题"><textarea class="product-input product-description-input" rows="4" placeholder="中文简介"></textarea></div>
+        <div class="buyer-menu-card product-input-card" data-product-locale="ja"><span>JAPANESE / JA</span><strong>日本語</strong><small>タイトル・説明</small><input class="product-input" data-translation-title type="text" placeholder="日本語タイトル"><textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="日本語の作品説明"></textarea></div>
+        <div class="buyer-menu-card product-input-card" data-product-locale="en"><span>ENGLISH / EN</span><strong>English</strong><small>Title / Description</small><input class="product-input" data-translation-title type="text" placeholder="English title"><textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="English description"></textarea></div>
+        <div class="buyer-menu-card product-input-card" data-product-locale="zh-CN"><span>CHINESE / ZH</span><strong>中文</strong><small>标题・简介</small><input class="product-input" data-translation-title type="text" placeholder="中文标题"><textarea class="product-input product-description-input" data-translation-description rows="4" placeholder="中文简介"></textarea></div>
       </div>
     </section>
 
@@ -190,6 +190,14 @@ async function loadProduct() {
   priceInput.value = product.price_amount ?? '';
   descriptionInput.value = product.description || '';
   if (categoryInput) categoryInput.value = product.category_slug || '';
+  const savedTranslations = new Map((product.translations || []).map((translation) => [translation.locale, translation]));
+  document.querySelectorAll('[data-product-locale]').forEach((card) => {
+    const translation = savedTranslations.get(card.dataset.productLocale);
+    const translatedTitle = card.querySelector('[data-translation-title]');
+    const translatedDescription = card.querySelector('[data-translation-description]');
+    if (translatedTitle) translatedTitle.value = translation?.title || '';
+    if (translatedDescription) translatedDescription.value = translation?.description || '';
+  });
   currentProductStatus = product.status;
   statusElement.textContent = formatStatus(product.status);
   statusElement.className = `seller-video-status ${product.status === 'published' ? 'is-published' : 'is-draft'}`;
@@ -247,7 +255,12 @@ async function saveProduct() {
       title: titleInput.value,
       description: descriptionInput.value,
       priceAmount: Number(priceInput.value || 0),
-      categorySlug: categoryInput?.value || ''
+      categorySlug: categoryInput?.value || '',
+      translations: [...document.querySelectorAll('[data-product-locale]')].map((card) => ({
+        locale: card.dataset.productLocale,
+        title: card.querySelector('[data-translation-title]')?.value.trim() || '',
+        description: card.querySelector('[data-translation-description]')?.value || ''
+      }))
     };
     const replacementVideo = replacementVideoInput.files?.[0];
     if (replacementVideo) {
