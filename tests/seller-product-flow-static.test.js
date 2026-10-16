@@ -36,6 +36,7 @@ const publishApprovedMigration = fs.readFileSync(path.join(root, 'backend', 'mig
 const productDetailRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-routes.js'), 'utf8');
 const productDetailPolicy = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog', 'product-detail-policy.js'), 'utf8');
 const productDetailPage = fs.readFileSync(path.join(root, 'pages', 'product-detail.html'), 'utf8');
+const publishedListingsScript = fs.readFileSync(path.join(root, 'app', 'catalog', 'published-listings.js'), 'utf8');
 
 assert.match(products, /href="\/seller\/product-editor\.html"/);
 assert.match(products, /id="seller-product-list"/);
@@ -191,8 +192,11 @@ assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/)
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
 assert.match(productDetailRoutes, /p\.status = 'published'/);
 assert.match(productDetailPolicy, /product\.images = images\.rows\.map/);
-assert.match(productDetailPage, /product\.images/);
-assert.match(productDetailPage, /node\.style\.backgroundImage/);
+assert.match(productDetailPage, /src="\/app\/catalog\/published-listings\.js" defer/);
+assert.match(publishedListingsScript, /product\.images/);
+assert.match(publishedListingsScript, /node\.style\.backgroundImage/);
+assert.match(publishedListingsScript, /ABOUT THIS VIDEO/);
+assert.match(publishedListingsScript, /detail-creator/);
 assert.match(productDetailPage, /galleryItems\.filter\(node=>!node\.hidden\)\.indexOf\(item\)/);
 
 console.log('Seller product upload flow static contract checks passed.');
