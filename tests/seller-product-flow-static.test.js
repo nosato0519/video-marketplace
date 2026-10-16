@@ -73,6 +73,10 @@ assert.match(editorScript, /upload\.mediaAsset\.status !== 'ready'/);
 
 
 assert.match(productsScript, /product-edit\.html\?productId=/);
+assert.doesNotMatch(productsScript, /function editorMarkup|seller-product-form/, 'Seller product management must use the dedicated create/edit pages instead of a duplicate form that omits the required thumbnail');
+assert.match(productsScript, /href="\/seller\/product-editor\.html"/, 'New product actions must route to the upload flow that requires an explicit thumbnail');
+assert.match(productsScript, /data-action="submit"/, 'Draft and rejected products must expose the moderation submission action');
+assert.match(productsScript, /product\.status === 'approved'/, 'Publishing must only be offered after operator approval');
 assert.match(productsScript, /seller-video-edit/);
 assert.match(productsScript, /data-submit-product/);
 assert.match(productsScript, /\/submit/);
