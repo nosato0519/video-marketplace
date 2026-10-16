@@ -290,6 +290,7 @@ async function saveProduct() {
   saveButton.setAttribute('aria-busy', 'true');
   let uploadedMediaAssetId = null;
   const uploadedImageAssetIds = [];
+  let replacedImageAssetIds = [];
   let productUpdated = false;
   try {
     const body = {
@@ -344,6 +345,13 @@ async function saveProduct() {
       if (saveLabel) saveLabel.textContent = '作品情報を保存中…';
     }
     if (selectedImages.length) {
+      replacedImageAssetIds = currentProductImages
+        .filter((image) => selectedImages.some((input) => (
+          image.image_role === input.dataset.imageRole
+          && Number(image.sort_order) === Number(input.dataset.imageOrder)
+        )))
+        .map((image) => image.media_asset_id)
+        .filter(Boolean);
       const nextImages = currentProductImages
         .filter((image) => !selectedImages.some((input) => (
           image.image_role === input.dataset.imageRole
@@ -377,6 +385,13 @@ async function saveProduct() {
       body: JSON.stringify(body)
     });
     productUpdated = true;
+    for (const assetId of replacedImageAssetIds) {
+      try {
+        await request(`/api/seller/media/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+      } catch (cleanupError) {
+        console.error('seller_product_edit_replaced_image_cleanup_failed', cleanupError);
+      }
+    }
     window.location.href = '/seller/products.html';
   } catch (error) {
     let replacementMayBeLinked = productUpdated;
