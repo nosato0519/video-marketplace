@@ -94,4 +94,59 @@ test.describe('public marketplace browser smoke', () => {
     await expect(page.locator('[data-product-id="product-without-thumbnail"] .product-thumb')).toContainText('▶');
     await expect(page.locator('[data-product-id="product-without-thumbnail"] .product-thumbnail')).toHaveCount(0);
   });
+
+  test('published thumbnails render in new releases, category, video list, and product detail', async ({ page }) => {
+    const thumbnailUrl = '/api/catalog/products/product-thumb/images/thumb-1';
+    const product = {
+      id: 'product-thumb',
+      title: 'Thumbnail test video',
+      seller: 'Test seller',
+      category: 'movie',
+      description: 'A product used to verify thumbnail rendering.',
+      price_amount: 1200,
+      price_currency: 'JPY',
+      thumbnail_url: thumbnailUrl,
+    };
+
+    await page.route('**/api/catalog/products**', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === '/api/catalog/products/product-thumb') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              ...product,
+              images: [{ id: 'thumb-1', role: 'thumbnail', sortOrder: 0, mimeType: 'image/jpeg', url: thumbnailUrl }],
+            },
+          }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [product], pagination: { page: 1, limit: 24, returned: 1, hasMore: false } }),
+      });
+    });
+    await page.route('**/api/catalog/products/product-thumb/images/thumb-1', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/nZ8AAAAASUVORK5CYII=', 'base64'),
+      });
+    });
+
+    await page.goto('/');
+    await expect(page.locator('[data-published-listings="new-releases"] .published-listing-thumbnail')).toHaveAttribute('src', thumbnailUrl);
+
+    await page.goto('/pages/category.html?category=movie');
+    await expect(page.locator('[data-published-listings="category"] .published-listing-thumbnail')).toHaveAttribute('src', thumbnailUrl);
+
+    await page.goto('/pages/video-list.html');
+    await expect(page.locator('#catalog-grid .catalog-thumbnail')).toHaveAttribute('src', thumbnailUrl);
+
+    await page.goto('/pages/product-detail.html?productId=product-thumb');
+    await expect(page.locator('.detail-media-image')).toHaveCSS('background-image', /product-thumb\/images\/thumb-1/);
+  });
 });
