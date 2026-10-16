@@ -68,6 +68,7 @@
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card">
           <span>MAIN VIDEO</span><strong id="current-video-filename">登録済み動画</strong><small id="current-video-size">動画ファイルを変更する場合のみ選択してください。</small>
+          <video id="current-video-preview" controls preload="metadata" hidden aria-label="保存済み動画のプレビュー"></video>
           <input id="replacement-video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" aria-label="動画ファイルを変更">
         </div>
         <div class="buyer-menu-card" data-product-image="thumbnail" data-image-order="0">
@@ -117,6 +118,7 @@ const saveButton = document.querySelector('#save-product');
 const replacementVideoInput = document.querySelector('#replacement-video');
 const currentVideoFilename = document.querySelector('#current-video-filename');
 const currentVideoSize = document.querySelector('#current-video-size');
+const currentVideoPreview = document.querySelector('#current-video-preview');
 const allowedVideoTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 let maxUploadBytes = 5 * 1024 * 1024 * 1024;
 
@@ -251,6 +253,17 @@ async function loadProduct() {
   statusElement.className = `seller-video-status ${['published', 'approved'].includes(product.status) ? 'is-published' : ['submitted', 'under_review', 'processing'].includes(product.status) ? 'is-pending' : product.status === 'rejected' ? 'is-rejected' : 'is-draft'}`;
   currentVideoFilename.textContent = product.media_original_filename || '登録済み動画なし';
   currentVideoSize.textContent = product.media_byte_size == null ? '動画ファイルが登録されていません。' : `登録済み · ${(Number(product.media_byte_size) / (1024 * 1024)).toFixed(1)} MB`;
+  if (currentVideoPreview) {
+    if (currentVideoAssetId && product.media_status === 'ready') {
+      currentVideoPreview.src = `/api/seller/media/assets/${encodeURIComponent(currentVideoAssetId)}/preview`;
+      currentVideoPreview.hidden = false;
+      currentVideoPreview.load();
+    } else {
+      currentVideoPreview.removeAttribute('src');
+      currentVideoPreview.hidden = true;
+      currentVideoPreview.load();
+    }
+  }
   currentProductImages = Array.isArray(product.images) ? product.images : [];
   document.querySelectorAll('[data-product-image]').forEach((card) => {
     const role = card.dataset.productImage;
