@@ -354,6 +354,7 @@ router.delete('/products/:productId', async (req, res, next) => {
       );
       if (!product.rows.length) return { error: 'product_not_found' };
       if (product.rows[0].status === 'published') return { error: 'published_product_locked' };
+      if (['submitted', 'under_review', 'processing'].includes(product.rows[0].status)) return { error: 'product_under_review_locked' };
 
       const references = await client.query(
         `SELECT EXISTS (SELECT 1 FROM orders WHERE product_id = $1)
@@ -368,6 +369,7 @@ router.delete('/products/:productId', async (req, res, next) => {
 
     if (deletion.error === 'product_not_found') return res.status(404).json({ error: 'product_not_found' });
     if (deletion.error === 'published_product_locked') return res.status(409).json({ error: 'published_product_locked' });
+    if (deletion.error === 'product_under_review_locked') return res.status(409).json({ error: 'product_under_review_locked' });
     if (deletion.error === 'product_has_purchase_history') return res.status(409).json({ error: 'product_has_purchase_history' });
     return res.status(204).end();
   } catch (error) { return next(error); }
