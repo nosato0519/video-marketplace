@@ -118,3 +118,9 @@ a.feature:hover .feature-action span{transform:translateX(4px)}
 .review-detail-description{white-space:pre-wrap;line-height:1.7}
 .review-detail-video{display:block;width:100%;max-height:420px;background:#000}
 @media(max-width:600px){.review-detail-dialog{padding:14px}.review-detail-grid{grid-template-columns:1fr;gap:4px}.review-detail-grid dd{margin-bottom:8px}}
+
+
+/* Operator review detail action */
+.review-detail-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:10px;padding:10px 14px;min-height:38px;border:1px solid #d6b56a;background:linear-gradient(135deg,#3a2f17,#211c11);color:#f6dfaa;font-size:12px;font-weight:700;letter-spacing:.02em;cursor:pointer;box-shadow:0 3px 10px #0004}
+.review-detail-action:hover{background:linear-gradient(135deg,#514222,#2a2416);border-color:#ead49b;transform:translateY(-1px)}
+.review-detail-action:focus-visible{outline:2px solid #ead49b;outline-offset:3px}
