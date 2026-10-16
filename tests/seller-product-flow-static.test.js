@@ -177,6 +177,10 @@ assert.match(publishApprovedMigration, /p\.moderation_status = 'approved'/);
 assert.match(publishApprovedMigration, /published_at = COALESCE\(p\.published_at, NOW\(\)\)/);
 assert.match(publishApprovedMigration, /seller_verification_method/);
 assert.doesNotMatch(publishApprovedMigration, /product_translations/);
+const publicCatalog = fs.readFileSync(path.join(root, 'backend', 'src', 'catalog.js'), 'utf8');
+assert.match(publicCatalog, /LEFT JOIN LATERAL \(/);
+assert.match(publicCatalog, /COALESCE\(pt\.title, fallback\.title, p\.title\)/);
+assert.match(publicCatalog, /COALESCE\(pt\.description, fallback\.description, p\.description\)/);
 assert.match(productImagesMigration, /image_role IN \('thumbnail', 'gallery'\)/);
 
 assert.match(productDetailRoutes, /products\/:productId\/images\/:assetId/);
