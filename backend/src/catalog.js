@@ -19,15 +19,15 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        c.slug AS category,
        sp.user_id AS seller_id,
        sp.display_name AS seller,
-       COALESCE(pt.title, fallback.title) AS title,
-       COALESCE(pt.description, fallback.description) AS description
+       COALESCE(pt.title, fallback.title, p.title) AS title,
+       COALESCE(pt.description, fallback.description, p.description) AS description
      FROM products p
      JOIN seller_profiles sp ON sp.user_id = p.seller_id
      JOIN users su ON su.id = p.seller_id
      LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN product_translations pt
        ON pt.product_id = p.id AND pt.locale = $1
-     JOIN LATERAL (
+     LEFT JOIN LATERAL (
        SELECT title, description
        FROM product_translations
        WHERE product_id = p.id
