@@ -200,23 +200,23 @@ try {
   const assetAfterUnauthorizedDelete = await request(baseUrl, '/api/seller/media/assets', { headers: { cookie: sellerCookie } });
   assert.equal(assetAfterUnauthorizedDelete.body.mediaAssets.some((asset) => asset.id === ids.media), true);
 
-  const malformedMediaResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Malformed Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: 'not-a-uuid' }) });
+  const malformedMediaResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Malformed Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: 'not-a-uuid', images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
   assert.equal(malformedMediaResponse.response.status, 422, JSON.stringify(malformedMediaResponse.body));
   assert.equal(malformedMediaResponse.body.error, 'media_asset_not_owned');
 
-  const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY' }) });
+  const missingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Missing Media Product', priceAmount: 2200, priceCurrency: 'JPY', images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
   assert.equal(missingMediaProductResponse.response.status, 422, JSON.stringify(missingMediaProductResponse.body));
   assert.equal(missingMediaProductResponse.body.error, 'media_asset_required');
 
-  const invalidPriceProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Price Product', priceAmount: 0, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  const invalidPriceProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Price Product', priceAmount: 0, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
   assert.equal(invalidPriceProductResponse.response.status, 422, JSON.stringify(invalidPriceProductResponse.body));
   assert.equal(invalidPriceProductResponse.body.error, 'invalid_product_price');
-  const invalidCurrencyProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Currency Product', priceAmount: 2200, priceCurrency: 'JP', mediaAssetId: ids.media }) });
+  const invalidCurrencyProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Invalid Currency Product', priceAmount: 2200, priceCurrency: 'JP', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
   assert.equal(invalidCurrencyProductResponse.response.status, 422, JSON.stringify(invalidCurrencyProductResponse.body));
   assert.equal(invalidCurrencyProductResponse.body.error, 'invalid_product_currency');
 
   await pool.query(`UPDATE media_assets SET status = 'processing' WHERE id = $1`, [ids.media]);
-  const processingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Processing Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media }) });
+  const processingMediaProductResponse = await request(baseUrl, '/api/seller/products', { method: 'POST', headers: { 'content-type': 'application/json', cookie: sellerCookie }, body: JSON.stringify({ title: 'Processing Media Product', priceAmount: 2200, priceCurrency: 'JPY', mediaAssetId: ids.media, images: [{ mediaAssetId: ids.thumbnail, role: 'thumbnail', sortOrder: 0 }], }) });
   assert.equal(processingMediaProductResponse.response.status, 422, JSON.stringify(processingMediaProductResponse.body));
   assert.equal(processingMediaProductResponse.body.error, 'media_asset_not_ready');
   await pool.query(`UPDATE media_assets SET status = 'ready' WHERE id = $1`, [ids.media]);
