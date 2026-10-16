@@ -69,6 +69,24 @@ router.post('/content/reviews/:id/status', async (req, res, next) => {
         RETURNING id, product_id, reviewer_id, status, reason_code, notes, created_at, resolved_at`,
       [req.params.id, req.user.id, nextStatus, notes]
     );
+    const productStatus = {
+      approved: 'approved',
+      rejected: 'rejected',
+      changes_requested: 'draft',
+      blocked: 'suspended',
+      pending: 'submitted'
+    }[nextStatus];
+    if (productStatus) {
+      await query(
+        `UPDATE products
+            SET status = $2, moderation_status = $3,
+                content_blocked = CASE WHEN $3 = 'blocked' THEN TRUE WHEN $3 IN ('approved','rejected','changes_requested','pending') THEN FALSE ELSE content_blocked END,
+                published_at = CASE WHEN $2 <> 'published' THEN NULL ELSE published_at END,
+                updated_at = NOW()
+          WHERE id = $1`,
+        [row.product_id, productStatus, nextStatus]
+      );
+    }
     await audit(req.user.id, `content.review.${row.status}_to_${nextStatus}`, req.params.id, { product_id: row.product_id, from_status: row.status, to_status: nextStatus, notes });
     res.json({ review: result.rows[0] });
   } catch (error) { next(error); }
