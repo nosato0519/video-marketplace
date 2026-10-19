@@ -202,6 +202,7 @@ export async function renderSellerApplication(root) {
           <h2>Login required</h2>
           <p>Please log in before applying to become a seller.</p>
           <a class="button" href="#/login?return=/seller/register">Log in</a>
+          <p class="microcopy">New here? <a href="#/register?return=/seller/register">Create an account</a>. You can use the same account to buy videos and apply to sell.</p>
         </section>
       `
       : `
