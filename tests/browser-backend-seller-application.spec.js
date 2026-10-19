@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import crypto from 'node:crypto';
 import { query } from '../backend/src/db.js';
 
 const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
@@ -22,7 +23,7 @@ async function login(page, email, password) {
 
 test.describe('real backend seller application acceptance', () => {
   test('new account registration from seller application returns to the application form', async ({ page }) => {
-    const email = `seller-applicant-${Date.now()}@example.test`;
+    const email = `seller-applicant-${crypto.randomUUID()}@example.test`;
     const password = 'TestPassword!123';
     const health = await page.request.get(`${backendUrl}/api/health`);
     expect(health.ok()).toBeTruthy();
@@ -52,7 +53,7 @@ test.describe('real backend seller application acceptance', () => {
   });
 
   test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
-    const email = `buyer-${Date.now()}@example.test`;
+    const email = `buyer-${crypto.randomUUID()}@example.test`;
     const password = 'TestPassword!123';
     const health = await page.request.get(`${backendUrl}/api/health`);
     expect(health.ok()).toBeTruthy();
@@ -74,7 +75,7 @@ test.describe('real backend seller application acceptance', () => {
   });
 
   test('admin reviews the submitted seller application through the real backend', async ({ page }) => {
-    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const suffix = crypto.randomUUID();
     const sellerEmail = `seller-${suffix}@example.test`;
     const adminEmail = `admin-${suffix}@example.test`;
     const password = 'TestPassword!123';
