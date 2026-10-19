@@ -34,6 +34,10 @@ test.describe('seller browser acceptance', () => {
       });
     });
     await page.route('**/api/seller/**', async (route) => {
+      if (route.request().url().endsWith('/api/seller/application') && route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ application: null }) });
+        return;
+      }
       sellerApiCalls += 1;
       await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'forbidden' }) });
     });
