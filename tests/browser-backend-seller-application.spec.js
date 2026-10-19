@@ -118,5 +118,12 @@ test.describe('real backend seller application acceptance', () => {
     expect(applications.ok()).toBeTruthy();
     const approvedBody = await applications.json();
     expect(approvedBody.applications.some((application) => application.email === sellerEmail && application.status === 'approved')).toBe(true);
+
+    await login(page, sellerEmail, password);
+    const approvedSellerMe = await page.request.get(`${backendUrl}/api/auth/me`);
+    expect(approvedSellerMe.ok()).toBeTruthy();
+    const approvedSellerBody = await approvedSellerMe.json();
+    expect(approvedSellerBody.user.email).toBe(sellerEmail);
+    expect(approvedSellerBody.user.role).toBe('seller');
   });
 });
