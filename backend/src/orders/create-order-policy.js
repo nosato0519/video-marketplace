@@ -6,7 +6,9 @@ import { findReusablePendingOrder } from './pending-order-reuse.js';
 export function validatePendingOrder({ user, product, existingActiveEntitlement = false }) {
   if (!user) throw new Error('authentication_required');
   if (!product || product.status !== 'published') throw new Error('not_found');
-  if (product.seller_id === user.id) throw new Error('seller_cannot_purchase_own_product');
+  if (product.seller_id === user.id) {
+    throw Object.assign(new Error('seller_cannot_purchase_own_product'), { statusCode: 409 });
+  }
   if (existingActiveEntitlement) throw new Error('already_purchased');
 
   const amount = Number(product.price_amount);
