@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 
 const appUrl = (hash) => `/app/index.html${hash}`;
 
-async function mockBuyerSession(page) {
+async function mockBuyerSession(page, role = 'buyer') {
   await page.route('**/api/auth/me', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ user: { id: 'buyer-1', email: 'buyer@example.test', role: 'buyer' } }),
+      body: JSON.stringify({ user: { id: `${role}-1`, email: `${role}@example.test`, role } }),
     });
   });
 }
@@ -99,6 +99,44 @@ test.describe('buyer purchase browser acceptance', () => {
     expect(purchaseIntentSeen).toBe(true);
     expect(orderCreated).toBe(true);
     expect(checkoutStarted).toBe(true);
+  });
+
+  test('seller account can use buyer purchase checkout', async ({ page }) => {
+    await mockBuyerSession(page, 'seller');
+    await page.route('**/api/catalog/products/seller-buyable?locale=en', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: {
+          id: 'seller-buyable',
+          title: 'Available Video',
+          description: 'A video available for purchase.',
+          price: 1500,
+          currency: 'JPY',
+          seller: { id: 'other-seller', display_name: 'Other Seller' },
+        } }),
+      });
+    });
+    await page.route('**/api/catalog/products/seller-buyable/purchase-intent', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { price: 1500, currency: 'JPY' } }) });
+    });
+    await page.route('**/api/orders', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ order: { id: 'seller-order-1', status: 'pending', product_id: 'seller-buyable' } }) });
+    });
+    await page.route('**/api/orders/seller-order-1/checkout', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ session: { status: 'ready', url: '/mock-checkout/seller-session' } }) });
+    });
+    await page.route('**/mock-checkout/seller-session', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html><body><h1>Seller Checkout</h1></body></html>' });
+    });
+
+    await page.goto(appUrl('#/product/seller-buyable'));
+    await expect(page.getByRole('heading', { name: 'Available Video' })).toBeVisible();
+    await page.getByRole('button', { name: 'Purchase' }).click();
+    await expect(page).toHaveURL(/\/mock-checkout\/seller-session$/);
+    await expect(page.getByRole('heading', { name: 'Seller Checkout' })).toBeVisible();
   });
 
   test('buyer library exposes protected watch and download actions', async ({ page }) => {
