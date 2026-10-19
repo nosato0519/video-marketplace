@@ -8,6 +8,7 @@ on:
       - 'pages/favorites.html'
       - 'pages/library.html'
       - 'pages/purchase-history.html'
+      - 'pages/order-detail.html'
       - 'pages/cart.html'
       - 'tests/buyer-account-static.test.js'
       - 'pages/buyer-register.html'
