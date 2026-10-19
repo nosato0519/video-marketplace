@@ -52,6 +52,34 @@ test.describe('real backend seller application acceptance', () => {
 
   });
 
+  test('an existing buyer can apply from the seller registration page with the same account', async ({ page }) => {
+    const email = `existing-buyer-${crypto.randomUUID()}@example.test`;
+    const password = 'TestPassword!123';
+    await registerAndLogin(page, email, password);
+    await page.evaluate(async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    });
+
+    await page.goto('http://127.0.0.1:4173/pages/seller-register.html');
+    await page.getByLabel('クリエイター名').fill('Existing Buyer Creator');
+    await page.getByLabel('メールアドレス').fill(email);
+    await page.getByLabel('パスワード', { exact: true }).fill(password);
+    await page.getByLabel('パスワード（確認）').fill(password);
+    await page.getByLabel(/利用規約・プライバシーポリシーに同意する/).check();
+    await page.getByRole('button', { name: '販売者アカウントを作成' }).click();
+
+    await expect(page.locator('#seller-register-message')).toContainText('販売者登録申請を受け付けました');
+    const application = await page.evaluate(async () => {
+      const response = await fetch('/api/seller/application', { credentials: 'same-origin' });
+      return { status: response.status, body: await response.json() };
+    });
+    expect(application.status).toBe(200);
+    expect(application.body.application.display_name).toBe('Existing Buyer Creator');
+    const me = await page.evaluate(async () => (await fetch('/api/auth/me', { credentials: 'same-origin' })).json());
+    expect(me.user.email).toBe(email);
+    expect(me.user.role).toBe('buyer');
+  });
+
   test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
     const email = `buyer-${crypto.randomUUID()}@example.test`;
     const password = 'TestPassword!123';
