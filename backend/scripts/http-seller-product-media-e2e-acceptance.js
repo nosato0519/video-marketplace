@@ -425,6 +425,13 @@ try {
   const publishResponse = await request(baseUrl, `/api/seller/products/${ids.product}/publish`, { method: 'POST', headers: { cookie: sellerCookie } });
   assert.equal(publishResponse.response.status, 200, JSON.stringify(publishResponse.body));
   assert.equal(publishResponse.body.product.status, 'published');
+  const selfPurchaseResponse = await request(baseUrl, '/api/orders', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: sellerCookie },
+    body: JSON.stringify({ productId: ids.product }),
+  });
+  assert.equal(selfPurchaseResponse.response.status, 409, 'A seller must not be able to purchase their own published product');
+  assert.equal(selfPurchaseResponse.body.error, 'seller_cannot_purchase_own_product');
   const publishedProductDeleteResponse = await request(baseUrl, '/api/seller/products/' + ids.product, { method: 'DELETE', headers: { cookie: sellerCookie } });
   assert.equal(publishedProductDeleteResponse.response.status, 409, JSON.stringify(publishedProductDeleteResponse.body));
   assert.equal(publishedProductDeleteResponse.body.error, 'published_product_locked');
