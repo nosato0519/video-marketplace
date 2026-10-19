@@ -162,6 +162,17 @@ test.describe('public marketplace browser smoke', () => {
     const galleryModal = page.locator('#detailGalleryModal');
     await expect(heroImage).toHaveCSS('background-image', /product-thumb\/images\/thumb-1/);
     await expect(galleryItems).toHaveCount(4);
+    console.log('Gallery visibility diagnostics:', JSON.stringify(await galleryItems.nth(0).evaluate((node) => {
+      const styles = (element) => {
+        const computed = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return { tag: element.tagName, className: element.className, hidden: element.hidden, display: computed.display, visibility: computed.visibility, opacity: computed.opacity, width: rect.width, height: rect.height };
+      };
+      const ancestors = [];
+      let current = node;
+      while (current && ancestors.length < 6) { ancestors.push(styles(current)); current = current.parentElement; }
+      return ancestors;
+    })));
     await galleryItems.nth(0).click();
     await expect(galleryModal).toHaveClass(/open/);
     await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl);
