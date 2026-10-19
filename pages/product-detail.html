@@ -190,8 +190,7 @@
   </main>
   <div class="detail-gallery-modal" id="detailGalleryModal" aria-hidden="true"><button class="detail-gallery-close" type="button" aria-label="閉じる">×</button><button class="detail-gallery-prev" type="button" aria-label="前の画像">‹</button><img id="detailGalleryImage" src="" alt="作品紹介画像"><button class="detail-gallery-next" type="button" aria-label="次の画像">›</button><div class="detail-gallery-count" id="detailGalleryCount"></div></div>
   <script>
-    const heroGalleryImage = document.querySelector('.detail-media-image');
-    const galleryItems = [heroGalleryImage, ...document.querySelectorAll('.detail-gallery-image')];
+    const galleryItems = [...document.querySelectorAll('.detail-gallery-image')];
     const galleryModal = document.getElementById('detailGalleryModal');
     const galleryImage = document.getElementById('detailGalleryImage');
     const galleryCount = document.getElementById('detailGalleryCount');
@@ -225,7 +224,10 @@
     }
 
     galleryItems.forEach((item) => {
-      if (!item) return;
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', '紹介画像を拡大表示');
+      item.style.cursor = 'zoom-in';
       item.addEventListener('click', () => {
         const availableItems = getAvailableGalleryItems();
         const index = availableItems.indexOf(item);
@@ -244,6 +246,15 @@
 
     galleryModal.addEventListener('click', (event) => {
       if (event.target === galleryModal) closeButton.click();
+    });
+
+    galleryItems.forEach((item) => {
+      item.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          item.click();
+        }
+      });
     });
 
     document.addEventListener('keydown', (event) => {
