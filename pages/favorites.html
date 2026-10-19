@@ -50,6 +50,127 @@
       <p id="favorite-message" class="microcopy" aria-live="polite"></p>    </section>
 
 
+    <script type="module">
+      const storageKey = 'video-marketplace-favorites';
+      const params = new URLSearchParams(window.location.search);
+      const requestedId = params.get('productId');
+      const grid = document.getElementById('favorite-items');
+      const message = document.getElementById('favorite-message');
+
+      function readIds() {
+        try {
+          const value = JSON.parse(localStorage.getItem(storageKey) || '[]');
+          return Array.isArray(value) ? [...new Set(value.filter((id) => typeof id === 'string' && id))] : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveIds(ids) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(ids));
+          return true;
+        } catch {
+          message.textContent = 'お気に入りを保存できません。ブラウザーの保存設定をご確認ください。';
+          return false;
+        }
+      }
+
+      function make(tag, className, text) {
+        const item = document.createElement(tag);
+        if (className) item.className = className;
+        if (text !== undefined) item.textContent = text;
+        return item;
+      }
+
+      function price(product) {
+        const amount = Number(product.price_amount);
+        if (!Number.isFinite(amount)) return '—';
+        return product.price_currency === 'JPY'
+          ? '¥' + amount.toLocaleString('ja-JP')
+          : amount.toLocaleString('ja-JP') + ' ' + (product.price_currency || '');
+      }
+
+      async function getProducts() {
+        const all = [];
+        let page = 1;
+        let hasMore = true;
+        while (hasMore && page <= 20) {
+          const response = await fetch('/api/catalog/products?locale=ja&limit=50&page=' + page, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) throw new Error('作品情報を取得できませんでした。');
+          const result = await response.json();
+          all.push(...(result.data || []));
+          hasMore = Boolean(result.pagination?.hasMore);
+          page += 1;
+        }
+        return all;
+      }
+
+      async function render() {
+        const ids = readIds();
+        if (requestedId && !ids.includes(requestedId)) {
+          ids.push(requestedId);
+          saveIds(ids);
+          message.textContent = 'お気に入りに追加しました。';
+          history.replaceState({}, '', '/pages/favorites.html');
+        }
+        grid.replaceChildren();
+        if (!ids.length) {
+          grid.append(make('p', 'announcement-empty', 'お気に入りはまだありません。作品詳細からお気に入りを追加できます。'));
+          return;
+        }
+
+        const products = await getProducts();
+        const byId = new Map(products.map((product) => [String(product.id), product]));
+        const missing = ids.filter((id) => !byId.has(id));
+        if (missing.length) saveIds(ids.filter((id) => byId.has(id)));
+
+        const favorites = ids.filter((id) => byId.has(id)).map((id) => byId.get(id));
+        if (!favorites.length) {
+          grid.append(make('p', 'announcement-empty', '公開中のお気に入り作品はありません。'));
+          return;
+        }
+
+        for (const product of favorites) {
+          const card = make('article', 'library-card');
+          const thumb = make('div', 'library-thumb');
+          if (product.thumbnail_url) {
+            thumb.style.backgroundImage = 'url("' + product.thumbnail_url + '")';
+            thumb.style.backgroundSize = 'cover';
+            thumb.style.backgroundPosition = 'center';
+          }
+          const body = make('div', 'library-card-body');
+          body.append(make('h2', '', product.title || '動画'));
+          const meta = make('div', 'library-card-meta');
+          meta.append(make('span', '', product.category || '動画'));
+          meta.append(make('span', '', price(product)));
+          body.append(meta);
+          const actions = make('div', 'library-card-actions');
+          const view = make('a', 'library-watch', '作品を見る');
+          view.href = '/pages/product-detail.html?productId=' + encodeURIComponent(product.id);
+          const remove = make('button', 'library-link', 'お気に入りから削除');
+          remove.type = 'button';
+          remove.addEventListener('click', () => {
+            saveIds(readIds().filter((id) => id !== String(product.id)));
+            render().catch(showError);
+          });
+          actions.append(view, remove);
+          body.append(actions);
+          card.append(thumb, body);
+          grid.append(card);
+        }
+      }
+
+      function showError() {
+        grid.replaceChildren(make('p', 'announcement-empty', 'お気に入りを読み込めませんでした。時間をおいて再度お試しください。'));
+      }
+
+      render().catch(showError);
+    </script>
     <nav class="catalog-pagination buyer-pagination" data-pagination data-per-page="16" data-item-selector=".library-card"></nav>
     <script>
       (() => {
