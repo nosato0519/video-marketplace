@@ -35,5 +35,18 @@ export async function settleSuccessfulPayment({ paymentId, orderId, providerPaym
   );
 
   const entitlement = await grantPurchasedVideoAccess({ orderId });
+
+  await query(
+    `INSERT INTO seller_earnings
+      (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
+     SELECT p.seller_id, o.id, o.product_id, o.amount, 0, o.amount, o.currency, 'available'
+       FROM orders o
+       JOIN products p ON p.id = o.product_id
+      WHERE o.id = $1
+        AND o.status = 'paid'
+     ON CONFLICT (order_id, product_id) DO NOTHING`,
+    [orderId]
+  );
+
   return { paymentId, orderId, entitlementId: entitlement.id, status: 'settled' };
 }
