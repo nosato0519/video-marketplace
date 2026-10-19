@@ -85,6 +85,14 @@ export async function refundPayment({
         );
       }
       await client.query(
+        `UPDATE seller_earnings
+            SET status = 'refunded', refunded_at = COALESCE(refunded_at, NOW())
+          WHERE order_id = $1
+            AND product_id = $2
+            AND status IN ('pending', 'available', 'paid')`,
+        [current.id, current.product_id]
+      );
+      await client.query(
         `UPDATE payment_events
             SET status = 'processed', processed_at = NOW()
           WHERE id = $1`,
