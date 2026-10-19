@@ -231,7 +231,8 @@ assert.match(publishedListingsScript, /const mediaBadge = document\.querySelecto
 assert.match(publishedListingsScript, /const mediaDuration = document\.querySelector\('\.detail-duration'\)/);
 assert.match(publishedListingsScript, /const detailsSection = \[\.\.\.document\.querySelectorAll\('\.detail-section'\)\]/);
 assert.match(publishedListingsScript, /detail-creator/);
-assert.match(productDetailPage, /galleryItems\.filter\(node=>!node\.hidden\)\.indexOf\(item\)/);
+assert.match(productDetailPage, /function getAvailableGalleryItems\(\)/);
+assert.match(productDetailPage, /item\.dataset\.galleryImageUrl/);
 
 console.log('Seller product upload flow static contract checks passed.');
 
