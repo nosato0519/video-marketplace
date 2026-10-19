@@ -72,6 +72,10 @@ test.describe('real backend seller application acceptance', () => {
     const meBody = await me.json();
     expect(meBody.user.email).toBe(email);
     expect(meBody.user.role).toBe('buyer');
+
+    await page.goto(`${appUrl}#/seller/upload`);
+    await expect(page.getByRole('heading', { name: 'Seller account required' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /upload/i })).toHaveCount(0);
   });
 
   test('admin reviews the submitted seller application through the real backend', async ({ page }) => {
