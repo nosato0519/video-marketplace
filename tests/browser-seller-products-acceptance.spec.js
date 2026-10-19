@@ -55,7 +55,7 @@ test.describe('seller products browser acceptance', () => {
       await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft', media_asset_id: 'media-ready' } });
     });
     await page.goto(appUrl('#/seller/products'));
-    await page.getByRole('button', { name: 'Create product' }).click();
+    await page.getByRole('link', { name: 'Create product' }).click();
     const mediaSelect = page.getByLabel('Protected video');
     await expect(mediaSelect).toBeVisible();
     await mediaSelect.selectOption('media-ready');
