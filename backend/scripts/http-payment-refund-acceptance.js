@@ -135,7 +135,7 @@ try {
   });
   result = await postWebhook(baseUrl, reconciliationRefund, sign(reconciliationRefund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
-  assert.equal(result.body.duplicate, true);
+  assert.equal(result.body.result?.duplicate, true);
   state = await pool.query(`SELECT status, revoked_at FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'revoked');
   assert.notEqual(state.rows[0].revoked_at, null);
