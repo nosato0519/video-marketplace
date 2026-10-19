@@ -46,10 +46,10 @@
       </nav>
 
     <nav class="library-tabs" aria-label="ライブラリ">
-      <a class="library-tab active" href="#">すべて</a>
-      <a class="library-tab" href="#">視聴中</a>
-      <a class="library-tab" href="#">未視聴</a>
-      <a class="library-tab" href="#">ダウンロード</a>
+      <a class="library-tab" data-library-filter="all" href="/pages/library.html">すべて</a>
+      <a class="library-tab" data-library-filter="available" href="/pages/library.html?filter=available">視聴可能</a>
+      <a class="library-tab" data-library-filter="unavailable" href="/pages/library.html?filter=unavailable">視聴準備中</a>
+      <a class="library-tab" data-library-filter="downloadable" href="/pages/library.html?filter=downloadable">ダウンロード可</a>
     </nav>
 
     <section class="library-grid" aria-label="購入済み動画">
@@ -65,10 +65,21 @@
         if (!root || !list) return;
 
         window.renderLibraryPagination = () => {
-          const items = Array.from(list.querySelectorAll('.library-card'));
+          const allItems = Array.from(list.querySelectorAll('.library-card'));
+          const params = new URLSearchParams(window.location.search);
+          const filter = params.get('filter') || 'all';
+          const matches = (item) => {
+            if (filter === 'available') return item.dataset.streamingEnabled === 'true';
+            if (filter === 'unavailable') return item.dataset.streamingEnabled !== 'true';
+            if (filter === 'downloadable') return item.dataset.downloadEnabled === 'true';
+            return true;
+          };
+          allItems.forEach((item) => {
+            item.hidden = !matches(item);
+          });
+          const items = allItems.filter(matches);
           const perPage = 16;
           const totalPages = Math.max(1, Math.ceil(items.length / perPage));
-          const params = new URLSearchParams(window.location.search);
           let page = Number(params.get('page')) || 1;
           page = Math.min(Math.max(page, 1), totalPages);
 
@@ -78,6 +89,19 @@
 
           root.innerHTML = '';
           root.hidden = totalPages <= 1;
+          document.querySelectorAll('[data-library-filter]').forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.libraryFilter === filter);
+            tab.setAttribute('aria-current', tab.dataset.libraryFilter === filter ? 'page' : 'false');
+          });
+          const empty = list.querySelector('.empty-state');
+          if (!items.length && !empty) {
+            const notice = document.createElement('p');
+            notice.className = 'empty-state';
+            notice.textContent = 'この条件に合う購入作品はありません。';
+            list.append(notice);
+          } else if (items.length && empty && empty.dataset.filterEmpty === 'true') {
+            empty.remove();
+          }
           if (totalPages <= 1) return;
 
           const makeLink = (label, target, active = false) => {
@@ -110,7 +134,7 @@
           const watchHref = item.streaming_enabled ? `/pages/watch.html?productId=${encodeURIComponent(item.product_id)}` : "#";
           const downloadHref = item.download_enabled ? `/api/media/${encodeURIComponent(item.product_id)}/download` : "#";
           const downloadHidden = item.download_enabled ? "" : ' aria-hidden="true" style="visibility:hidden"';
-          return `<article class="library-card">
+          return `<article class="library-card" data-streaming-enabled="${item.streaming_enabled ? "true" : "false"}" data-download-enabled="${item.download_enabled ? "true" : "false"}">
             <div class="library-thumb catalog-t1"></div>
             <div class="library-card-body">
               <h2>${String(item.title || "購入作品").replace(/[&<>"']/g, "")}</h2>
@@ -119,7 +143,7 @@
               <div class="library-card-actions"><a class="library-watch" href="${watchHref}">${item.streaming_enabled ? "視聴する →" : "視聴準備中"}</a><a class="library-link" href="${downloadHref}"${downloadHidden}>ダウンロード</a></div>
             </div>
           </article>`;
-        }).join("") : '<div class="empty-state"><h2>ライブラリは空です</h2><p>購入した動画がここに表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
+        }).join("") : '<div class="empty-state" data-library-empty="true"><h2>ライブラリは空です</h2><p>購入した動画がここに表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
         if (typeof window.renderLibraryPagination === "function") window.renderLibraryPagination();
       } catch (error) {
         if (error.status === 401) {
