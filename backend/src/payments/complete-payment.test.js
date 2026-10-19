@@ -78,6 +78,17 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
     assert.equal(result.duplicate, true);
     assert.equal(result.alreadyPaid, true);
 
+    const entitlements = await pool.query(
+      `SELECT user_id, product_id, status, revoked_at
+         FROM entitlements WHERE order_id = $1`,
+      [orderId]
+    );
+    assert.equal(entitlements.rowCount, 1);
+    assert.equal(entitlements.rows[0].user_id, buyerId);
+    assert.equal(entitlements.rows[0].product_id, productId);
+    assert.equal(entitlements.rows[0].status, 'active');
+    assert.equal(entitlements.rows[0].revoked_at, null);
+
     const earnings = await pool.query(
       `SELECT seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status
          FROM seller_earnings WHERE order_id = $1`,
