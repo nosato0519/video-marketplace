@@ -32,6 +32,7 @@ const ids = {
 const providerPaymentId = `pay_${crypto.randomUUID()}`;
 const successEventId = `evt_${crypto.randomUUID()}`;
 const refundEventId = `evt_${crypto.randomUUID()}`;
+const reconciliationEventId = `evt_${crypto.randomUUID()}`;
 
 try {
   await new Promise((resolve, reject) => {
@@ -120,7 +121,6 @@ try {
     `UPDATE entitlements SET status = 'active', revoked_at = NULL WHERE order_id = $1`,
     [ids.order]
   );
-  const reconciliationEventId = `evt_${crypto.randomUUID()}`;
   const reconciliationRefund = JSON.stringify({
     eventId: reconciliationEventId, provider: 'mock', eventType: 'payment_refunded',
     paymentId: providerPaymentId, orderId: ids.order
@@ -151,7 +151,7 @@ try {
 
   console.log('HTTP payment refund acceptance: PASS');
 } finally {
-  await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2, $3)`, [successEventId, refundEventId, typeof reconciliationEventId === 'undefined' ? null : reconciliationEventId]).catch(() => {});
+  await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2, $3)`, [successEventId, refundEventId, reconciliationEventId]).catch(() => {});
   await pool.query(`DELETE FROM payout_earnings_allocations WHERE payout_id = $1`, [ids.payout]).catch(() => {});
   await pool.query(`DELETE FROM payouts WHERE id = $1`, [ids.payout]).catch(() => {});
   await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [ids.order]).catch(() => {});
