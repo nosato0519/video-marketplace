@@ -44,7 +44,7 @@ test.describe('seller application browser acceptance', () => {
     await page.getByLabel('Password').fill('BuyerPassword123!');
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page).toHaveURL(/#\\/seller\\/register$/);
+    await expect(page).toHaveURL(/#\/seller\/register$/);
     await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
   });
 
