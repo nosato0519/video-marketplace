@@ -24,6 +24,29 @@ test.describe('seller browser acceptance', () => {
     await expect(page).toHaveURL(/#\/login\?return=\/seller\/profile$/);
   });
 
+  test('buyer account cannot open seller tools but can apply for seller access', async ({ page }) => {
+    let sellerApiCalls = 0;
+    await page.route('**/api/auth/me', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: { id: 'buyer-1', email: 'buyer@example.test', role: 'buyer' } }),
+      });
+    });
+    await page.route('**/api/seller/**', async (route) => {
+      sellerApiCalls += 1;
+      await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'forbidden' }) });
+    });
+
+    await page.goto(appUrl('#/seller/upload'));
+    await expect(page.getByRole('heading', { name: 'Seller account required' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Apply to become a seller' })).toHaveAttribute('href', '#/seller/register');
+    expect(sellerApiCalls).toBe(0);
+
+    await page.goto(appUrl('#/seller/register'));
+    await expect(page.getByRole('heading', { name: 'Seller application' })).toBeVisible();
+  });
+
   test('seller can save profile and submit verification', async ({ page }) => {
     await mockSellerSession(page);
     let profileSaved = false;
