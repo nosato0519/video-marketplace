@@ -62,7 +62,7 @@ export const adminSetupRateLimit = createRateLimiter({
 
 export const authRegisterRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: Number.parseInt(process.env.AUTH_REGISTER_RATE_LIMIT_MAX || '5', 10),
   scope: 'auth-register',
 });
 
