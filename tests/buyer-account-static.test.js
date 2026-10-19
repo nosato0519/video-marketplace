@@ -79,7 +79,7 @@ for (const [pageName, pageSource] of [
   ['buyer login', buyerLogin],
   ['buyer dashboard', buyerDashboard],
 ]) {
-  const scripts = [...pageSource.matchAll(/<script type="module">([\\s\\S]*?)<\\/script>/g)];
+  const scripts = [...pageSource.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)];
   assert.ok(scripts.length > 0, `${pageName} module script exists`);
   for (const [, script] of scripts) {
     const hash = crypto.createHash('sha256').update(script).digest('base64');
