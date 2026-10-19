@@ -53,6 +53,13 @@ try {
   cookie = sessionCookie(result.response);
   assert.ok(cookie);
 
+  result = await request(baseUrl, '/api/auth/register', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  assert.equal(result.response.status, 409, JSON.stringify(result.body));
+  assert.equal(result.body.error.code, 'EMAIL_ALREADY_REGISTERED');
+
   result = await request(baseUrl, '/api/auth/me', { headers: { cookie } });
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.user.id, userId);
