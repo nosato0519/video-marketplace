@@ -12,6 +12,8 @@ function escapeHtml(value) {
 
 function form(title, mode) {
   const isRegister = mode === 'register';
+  const requestedReturn = new URLSearchParams(location.hash.split('?')[1] || '').get('return');
+  const returnQuery = requestedReturn === '/seller/register' ? '?return=/seller/register' : '';
 
   return `
     <main class="auth-page">
@@ -43,7 +45,7 @@ function form(title, mode) {
           <p id="auth-message" class="microcopy" aria-live="polite"></p>
         </form>
         <p class="microcopy">
-          <a href="#/${isRegister ? 'login' : 'register'}">${isRegister ? 'Already have an account? Log in' : 'Create an account'}</a>
+          <a href="#/${isRegister ? 'login' : 'register'}${returnQuery}">${isRegister ? 'Already have an account? Log in' : 'Create an account'}</a>
         </p>
       </section>
     </main>
