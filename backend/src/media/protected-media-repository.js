@@ -23,6 +23,8 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
        JOIN media_assets m ON m.id = p.media_asset_id
       WHERE e.user_id = $1
         AND e.product_id = $2
+        AND e.status = 'active'
+        AND e.revoked_at IS NULL
         AND ($3::uuid IS NULL OR m.id = $3::uuid)
       LIMIT 1`,
     [userId, productId, assetId || null]
