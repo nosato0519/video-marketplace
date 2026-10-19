@@ -38,7 +38,7 @@ assert.match(libraryPage, /libraryApi\.list\(\)/);
 assert.match(libraryPage, /data-library-filter="available"/);
 assert.match(libraryPage, /data-library-filter="downloadable"/);
 assert.match(libraryPage, /data-streaming-enabled/);
-assert.match(libraryPage, /data-filter-empty/);
+assert.match(libraryPage, /filterEmpty/);
 assert.match(purchaseHistory, /libraryApi\.orders\(\)/);
 assert.doesNotMatch(libraryPage, /THE LAST SIGNAL/);
 assert.doesNotMatch(purchaseHistory, /THE LAST SIGNAL/);
