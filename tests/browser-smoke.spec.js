@@ -98,6 +98,9 @@ test.describe('public marketplace browser smoke', () => {
   test('published thumbnails render in new releases, category, video list, and product detail', async ({ page }) => {
     const thumbnailUrl = '/api/catalog/products/product-thumb/images/thumb-1';
     const galleryUrl = '/api/catalog/products/product-thumb/images/gallery-1';
+    const galleryUrl2 = '/api/catalog/products/product-thumb/images/gallery-2';
+    const galleryUrl3 = '/api/catalog/products/product-thumb/images/gallery-3';
+    const galleryUrl4 = '/api/catalog/products/product-thumb/images/gallery-4';
     const product = {
       id: 'product-thumb',
       title: 'Thumbnail test video',
@@ -121,6 +124,9 @@ test.describe('public marketplace browser smoke', () => {
               images: [
                 { id: 'thumb-1', role: 'thumbnail', sortOrder: 0, mimeType: 'image/jpeg', url: thumbnailUrl },
                 { id: 'gallery-1', role: 'gallery', sortOrder: 1, mimeType: 'image/jpeg', url: galleryUrl },
+                { id: 'gallery-2', role: 'gallery', sortOrder: 2, mimeType: 'image/jpeg', url: galleryUrl2 },
+                { id: 'gallery-3', role: 'gallery', sortOrder: 3, mimeType: 'image/jpeg', url: galleryUrl3 },
+                { id: 'gallery-4', role: 'gallery', sortOrder: 4, mimeType: 'image/jpeg', url: galleryUrl4 },
               ],
             },
           }),
@@ -152,14 +158,24 @@ test.describe('public marketplace browser smoke', () => {
 
     await page.goto('/pages/product-detail.html?productId=product-thumb');
     const heroImage = page.locator('.detail-media-image');
+    const galleryItems = page.locator('.detail-gallery-image');
     const galleryModal = page.locator('#detailGalleryModal');
     await expect(heroImage).toHaveCSS('background-image', /product-thumb\/images\/thumb-1/);
-    await heroImage.click();
+    await expect(galleryItems).toHaveCount(4);
+    await galleryItems.nth(0).click();
     await expect(galleryModal).toHaveClass(/open/);
-    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', thumbnailUrl);
-    await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 2');
-    await page.locator('.detail-gallery-next').click();
     await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl);
-    await expect(page.locator('#detailGalleryCount')).toHaveText('2 / 2');
+    await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 4');
+    await page.locator('.detail-gallery-next').click();
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl2);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('2 / 4');
+    await page.locator('.detail-gallery-prev').click();
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 4');
+    await page.locator('.detail-gallery-next').click();
+    await page.locator('.detail-gallery-next').click();
+    await page.locator('.detail-gallery-next').click();
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl4);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('4 / 4');
   });
 });
