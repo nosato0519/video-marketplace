@@ -112,29 +112,28 @@ test.describe('seller products browser acceptance', () => {
     expect(requestedPages).toEqual([1, 2]);
   });
 
-  test('saving details keeps the existing video when the media list cannot load', async ({ page }) => {
+  test('saving details keeps the existing video when upload limits cannot load', async ({ page }) => {
     await mockSellerSession(page);
     const patchBodies = [];
     await page.route('**/api/seller/products', async (route) => {
       await fulfillJson(route, { products: [{ id: 'product-existing', title: 'Existing Product', description: 'Keep attached video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-existing' }] });
     });
-    await page.route('**/api/seller/media/assets', async (route) => {
-      await fulfillJson(route, { error: 'media_list_unavailable' }, 503);
-    });
     await page.route('**/api/seller/products/product-existing', async (route) => {
       if (route.request().method() === 'GET') {
-        await fulfillJson(route, { product: { id: 'product-existing', title: 'Existing Product', description: 'Keep attached video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-existing' } });
+        await fulfillJson(route, { product: { id: 'product-existing', title: 'Existing Product', description: 'Keep attached video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-existing', media_status: 'ready' } });
         return;
       }
       expect(route.request().method()).toBe('PATCH');
       patchBodies.push(route.request().postDataJSON());
       await fulfillJson(route, { product: { id: 'product-existing', title: 'Updated Product', status: 'draft' } });
     });
-    await page.goto(appUrl('#/seller/products'));
-    await page.locator('[data-product-id="product-existing"]').getByRole('link', { name: 'Edit details' }).click();
-    await expect(page.getByText('Available videos could not be loaded. You can still save details without changing the video.')).toBeVisible();
-    await page.getByLabel('Title').fill('Updated Product');
-    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.route('**/api/seller/media/limits', async (route) => {
+      await fulfillJson(route, { error: 'media_limits_unavailable' }, 503);
+    });
+    await page.goto('/seller/product-edit.html?productId=product-existing');
+    await expect(page.getByLabel('作品タイトル')).toHaveValue('Existing Product');
+    await page.locator('#product-title').fill('Updated Product');
+    await page.locator('#save-product').click();
     await expect.poll(() => patchBodies.length).toBe(1);
     expect(patchBodies[0].title).toBe('Updated Product');
     expect(Object.prototype.hasOwnProperty.call(patchBodies[0], 'mediaAssetId')).toBe(false);
