@@ -38,7 +38,7 @@
 
     <section class="buyer-summary">
       <div><span>購入作品</span><strong id="buyer-video-count">—</strong><small>VIDEOS</small></div>
-      <div><span>視聴中</span><strong id="buyer-watching-count">—</strong><small>WATCHING</small></div>
+      <div><span>視聴可能</span><strong id="buyer-watching-count">—</strong><small>AVAILABLE</small></div>
       <div><span>お気に入り</span><strong id="buyer-favorite-count">—</strong><small>FAVORITES</small></div>
       <div><span>購入履歴</span><strong id="buyer-order-count">—</strong><small>ORDERS</small></div>
     </section>
@@ -96,7 +96,7 @@
       favorites = Array.isArray(saved) ? saved : [];
     } catch {}
     document.getElementById("buyer-video-count").textContent = String(items.length);
-    document.getElementById("buyer-watching-count").textContent = "—";
+    document.getElementById("buyer-watching-count").textContent = String(items.filter((item) => item.streaming_enabled).length);
     document.getElementById("buyer-favorite-count").textContent = String(favorites.length);
     document.getElementById("buyer-order-count").textContent = String(orders.length);
     const recent = document.getElementById("buyer-recent-items");
