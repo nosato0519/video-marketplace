@@ -166,6 +166,9 @@ async function renderProductDetail() {
       const image = galleryImages[index];
       node.hidden = !image;
       node.style.display = image ? 'block' : 'none';
+      node.style.width = '100%';
+      node.style.minHeight = image ? '70px' : '0';
+      node.style.aspectRatio = '16 / 9';
       node.dataset.galleryImageUrl = image?.url || '';
       node.style.backgroundImage = image ? 'url("' + image.url + '")' : 'none';
       node.style.backgroundSize = 'cover';
