@@ -144,7 +144,7 @@
               <h2>${String(item.title || "購入作品").replace(/[&<>"']/g, "")}</h2>
               <div class="library-card-meta"><span>購入日 ${date}</span><span>${String(quality).replace(/[&<>"']/g, "")}</span></div>
               <div class="library-progress"><span class="library-progress-value is-progress-0"></span></div>
-              <div class="library-card-actions"><a class="library-watch" href="${watchHref}">${item.streaming_enabled ? "視聴する →" : "視聴準備中"}</a><a class="library-link" href="${downloadHref}"${downloadHidden}>ダウンロード</a></div>
+              <div class="library-card-actions"><a class="library-watch" href="${watchHref}">${streamingAvailable ? "視聴する →" : "視聴準備中"}</a><a class="library-link" href="${downloadHref}"${downloadHidden}>ダウンロード</a></div>
             </div>
           </article>`;
         }).join("") : '<div class="empty-state" data-library-empty="true"><h2>ライブラリは空です</h2><p>購入した動画がここに表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
