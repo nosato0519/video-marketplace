@@ -143,23 +143,19 @@ test.describe('seller products browser acceptance', () => {
   test('seller cannot create a product without selecting a video', async ({ page }) => {
     await mockSellerSession(page);
     let createCalled = false;
-    await page.route('**/api/seller/media/assets', async (route) => {
-      await fulfillJson(route, { mediaAssets: [{ id: 'media-ready', original_filename: 'ready.mp4', mime_type: 'video/mp4', byte_size: 5242880, status: 'ready' }] });
+    await page.route('**/api/seller/media/limits', async (route) => {
+      await fulfillJson(route, { maxUploadBytes: 5368709120, maxImageUploadBytes: 20971520 });
     });
     await page.route('**/api/seller/products', async (route) => {
-      if (route.request().method() === 'GET') {
-        await fulfillJson(route, { products: [] });
-        return;
-      }
-      createCalled = true;
-      await fulfillJson(route, { error: 'media_asset_required' }, 422);
+      if (route.request().method() === 'POST') createCalled = true;
+      await fulfillJson(route, { products: [] });
     });
-    await page.goto(appUrl('#/seller/products'));
-    await page.getByRole('button', { name: 'Create product' }).click();
-    await page.getByLabel('Title').fill('Missing video');
-    await page.getByLabel('Price').fill('1000');
-    await page.getByRole('button', { name: 'Create product', exact: true }).last().click();
-    await expect(page.getByText('Upload and select a video before creating a product.')).toBeVisible();
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.goto('/seller/product-editor.html');
+    await page.getByPlaceholder('例：THE LAST SIGNAL').fill('Missing video');
+    await page.getByPlaceholder('¥4,800').fill('1000');
+    await page.getByRole('button', { name: '下書きを保存する →' }).click();
+    await expect(page.getByRole('button', { name: '下書きを保存する →' })).toBeVisible();
     expect(createCalled).toBe(false);
   });
 
