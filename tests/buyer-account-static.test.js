@@ -57,6 +57,12 @@ assert.match(libraryPage, /libraryApi\.list\(\)/);
 assert.match(purchaseHistory, /libraryApi\.orders\(\)/);
 assert.doesNotMatch(libraryPage, /THE LAST SIGNAL/);
 assert.doesNotMatch(purchaseHistory, /THE LAST SIGNAL/);
+const watchPage = fs.readFileSync(path.join(root, 'pages/watch.html'), 'utf8');
+assert.match(watchPage, /libraryApi\.list\(\)/);
+assert.match(watchPage, /mediaStreamUrl\(productId\)/);
+assert.match(watchPage, /mediaDownloadUrl\(productId\)/);
+assert.match(watchPage, /購入済み作品を読み込めませんでした/);
+
 const cart = fs.readFileSync(path.join(root, 'pages/cart.html'), 'utf8');
 assert.match(cart, /video-marketplace-cart/);
 assert.match(cart, /\/api\/catalog\/products\//);
