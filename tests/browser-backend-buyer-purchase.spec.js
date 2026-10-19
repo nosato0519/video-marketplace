@@ -159,4 +159,117 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await pool.end();
     }
   });
+
+  test('seller account purchases another seller product through the real backend', async ({ page }) => {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const ids = {
+      sellerBuyer: crypto.randomUUID(),
+      productOwner: crypto.randomUUID(),
+      media: crypto.randomUUID(),
+      product: crypto.randomUUID(),
+      order: null,
+    };
+    const email = `seller-buyer-${ids.sellerBuyer}@example.com`;
+    const ownerEmail = `product-owner-${ids.productOwner}@example.com`;
+    const mediaFilename = `${ids.media}.mp4`;
+    const mediaPath = path.join(mediaDir, mediaFilename);
+    const fixture = Buffer.from('browser-backend-seller-buyer-fixture');
+
+    try {
+      fs.mkdirSync(mediaDir, { recursive: true });
+      fs.writeFileSync(mediaPath, fixture);
+
+      await pool.query('BEGIN');
+      await pool.query(
+        `INSERT INTO users (id, email, email_normalized, password_hash, role, status)
+         VALUES ($1, $2, $3, $4, 'seller', 'active')`,
+        [ids.productOwner, ownerEmail, ownerEmail.toLowerCase(), 'test-password-hash'],
+      );
+      await pool.query(
+        `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, verification_status)
+         VALUES ($1, 'Product Owner', 'Product Owner Legal', 'JP', 'verified')`,
+        [ids.productOwner],
+      );
+      await pool.query(
+        `INSERT INTO media_assets (id, owner_user_id, storage_key, original_filename, mime_type, byte_size, status)
+         VALUES ($1, $2, $3, $4, 'video/mp4', $5, 'ready')`,
+        [ids.media, ids.productOwner, mediaFilename, mediaFilename, fixture.length],
+      );
+      await pool.query(
+        `INSERT INTO products (id, seller_id, media_asset_id, price_amount, price_currency, status)
+         VALUES ($1, $2, $3, 1500, 'JPY', 'published')`,
+        [ids.product, ids.productOwner, ids.media],
+      );
+      await pool.query(
+        `INSERT INTO product_translations (product_id, locale, title, description)
+         VALUES ($1, 'en', 'Seller Buyer E2E Product', 'A product owned by another seller')`,
+        [ids.product],
+      );
+      await pool.query('COMMIT');
+
+      await page.goto(`${appUrl}#/register`);
+      await page.getByLabel('Email').fill(email);
+      await page.getByLabel('Password').fill('TestPassword!123');
+      await page.getByRole('button', { name: /Register|Create account/i }).click();
+      await expect(page).toHaveURL(/#\/browse/);
+
+      const registeredUser = await pool.query(
+        'SELECT id FROM users WHERE email_normalized = $1 LIMIT 1',
+        [email.toLowerCase()],
+      );
+      expect(registeredUser.rows).toHaveLength(1);
+      ids.sellerBuyer = registeredUser.rows[0].id;
+
+      // Promote only the test fixture to seller role while retaining its valid registered session.
+      await pool.query(
+        `UPDATE users SET role = 'seller' WHERE id = $1`,
+        [ids.sellerBuyer],
+      );
+      await pool.query(
+        `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, verification_status)
+         VALUES ($1, 'Seller Buyer', 'Seller Buyer Legal', 'JP', 'verified')`,
+        [ids.sellerBuyer],
+      );
+
+      await page.reload();
+      await page.goto(`${appUrl}#/browse`);
+      await expect(page.getByText('Seller Buyer E2E Product', { exact: true })).toBeVisible();
+      await page.getByText('Seller Buyer E2E Product', { exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
+
+      const orderResponsePromise = page.waitForResponse(
+        (response) => response.url().endsWith('/api/orders') && response.request().method() === 'POST',
+      );
+      await page.getByRole('button', { name: 'Purchase' }).click();
+      const orderResponse = await orderResponsePromise;
+      expect(orderResponse.status()).toBe(201);
+      const body = await orderResponse.json();
+      expect(body.order.product_id).toBe(ids.product);
+      expect(body.order.status).toBe('pending');
+      ids.order = body.order.id;
+
+      const storedOrder = await pool.query(
+        'SELECT buyer_id, product_id FROM orders WHERE id = $1 LIMIT 1',
+        [ids.order],
+      );
+      expect(storedOrder.rows).toHaveLength(1);
+      expect(storedOrder.rows[0].buyer_id).toBe(ids.sellerBuyer);
+      expect(storedOrder.rows[0].product_id).toBe(ids.product);
+    } finally {
+      if (ids.order) {
+        await pool.query('DELETE FROM entitlements WHERE order_id = $1', [ids.order]).catch(() => {});
+        await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [ids.order]).catch(() => {});
+        await pool.query('DELETE FROM orders WHERE id = $1', [ids.order]).catch(() => {});
+      }
+      await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [ids.sellerBuyer]).catch(() => {});
+      await pool.query('DELETE FROM products WHERE id = $1', [ids.product]).catch(() => {});
+      await pool.query('DELETE FROM media_assets WHERE id = $1', [ids.media]).catch(() => {});
+      await pool.query('DELETE FROM seller_profiles WHERE user_id = $1', [ids.productOwner]).catch(() => {});
+      await pool.query('DELETE FROM seller_profiles WHERE user_id = $1', [ids.sellerBuyer]).catch(() => {});
+      await pool.query('DELETE FROM users WHERE id = $1', [ids.productOwner]).catch(() => {});
+      await pool.query('DELETE FROM users WHERE id = $1', [ids.sellerBuyer]).catch(() => {});
+      fs.rmSync(mediaPath, { force: true });
+      await pool.end();
+    }
+  });
 });
