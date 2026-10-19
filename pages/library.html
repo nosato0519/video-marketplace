@@ -97,6 +97,7 @@
           if (!items.length && !empty) {
             const notice = document.createElement('p');
             notice.className = 'empty-state';
+            notice.dataset.filterEmpty = 'true';
             notice.textContent = 'この条件に合う購入作品はありません。';
             list.append(notice);
           } else if (items.length && empty && empty.dataset.filterEmpty === 'true') {
