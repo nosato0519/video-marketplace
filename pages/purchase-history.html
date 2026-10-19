@@ -95,7 +95,8 @@
         const orders = result.items || [];
         list.innerHTML = orders.length ? orders.map((order) => {
           const amount = new Intl.NumberFormat("ja-JP", { style: "currency", currency: order.currency || "JPY" }).format(Number(order.amount || 0));
-          const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString("ja-JP") : "—";
+          const orderDate = order.paidAt || order.createdAt;
+          const date = orderDate ? new Date(orderDate).toLocaleDateString("ja-JP") : "—";
           return `<article class="buyer-history-card">
             <div class="library-thumb catalog-t1"></div>
             <div class="buyer-history-info">
