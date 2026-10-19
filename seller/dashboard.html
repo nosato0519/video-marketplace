@@ -149,7 +149,7 @@ async function loadDashboard() {
     request('/api/seller/products'),
     request('/api/seller/earnings')
   ]);
-  const publishedCount = (products.products || []).filter((product) => product.status === 'published').length;
+  const publishedCount = Number(products.counts?.published || 0);
   document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
   document.querySelector('#sale-count').textContent = Number(earnings.summary?.sale_count || 0).toLocaleString('ja-JP');
   document.querySelector('#earned-amount').textContent = formatYen(earnings.summary?.earned_amount);
