@@ -132,6 +132,25 @@ try {
   assert.equal(state.rows[0].status, 'revoked');
   assert.notEqual(state.rows[0].revoked_at, null);
 
+  // Simulate a stale earning record on an already-refunded order. Replaying
+  // a distinct refund event must reconcile its status without losing paid_at.
+  await pool.query(
+    `UPDATE seller_earnings
+        SET status = 'available', refunded_at = NULL
+      WHERE order_id = $1 AND product_id = $2`,
+    [ids.order, ids.product]
+  );
+  result = await postWebhook(baseUrl, reconciliationRefund, sign(reconciliationRefund));
+  assert.equal(result.response.status, 200, JSON.stringify(result.body));
+  state = await pool.query(
+    `SELECT status, paid_at, refunded_at
+       FROM seller_earnings WHERE order_id = $1 AND product_id = $2`,
+    [ids.order, ids.product]
+  );
+  assert.equal(state.rows[0].status, 'refunded');
+  assert.notEqual(state.rows[0].paid_at, null);
+  assert.notEqual(state.rows[0].refunded_at, null);
+
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.duplicate, true);
