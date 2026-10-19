@@ -20,6 +20,11 @@ on:
       - '.github/workflows/buyer-static-regression.yml'
   pull_request:
     paths:
+      - 'pages/account-settings.html'
+      - 'pages/buyer-login.html'
+      - 'pages/checkout.html'
+      - 'pages/product-detail.html'
+      - 'app/checkout/checkout-api.js'
       - 'account.html'
       - 'orders.html'
       - 'library.html'
