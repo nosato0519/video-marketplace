@@ -3,6 +3,9 @@ name: Buyer Static Regression
 on:
   push:
     paths:
+      - 'pages/favorites.html'
+      - 'pages/library.html'
+      - 'pages/purchase-history.html'
       - 'pages/cart.html'
       - 'account.html'
       - 'orders.html'
@@ -21,6 +24,9 @@ on:
       - '.github/workflows/buyer-static-regression.yml'
   pull_request:
     paths:
+      - 'pages/favorites.html'
+      - 'pages/library.html'
+      - 'pages/purchase-history.html'
       - 'pages/cart.html'
       - 'pages/account-settings.html'
       - 'pages/buyer-login.html'
