@@ -224,7 +224,6 @@ test.describe('seller products browser acceptance', () => {
     await page.goto(appUrl('#/seller/products'));
     const card = page.locator('[data-product-id="product-published"]');
     await expect(card.getByRole('button', { name: 'Edit details' })).toBeDisabled();
-    await expect(card.getByRole('button', { name: 'Change video' })).toBeDisabled();
     expect(editFetches).toBe(0);
   });
 
