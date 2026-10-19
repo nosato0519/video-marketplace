@@ -97,6 +97,7 @@ test.describe('public marketplace browser smoke', () => {
 
   test('published thumbnails render in new releases, category, video list, and product detail', async ({ page }) => {
     const thumbnailUrl = '/api/catalog/products/product-thumb/images/thumb-1';
+    const galleryUrl = '/api/catalog/products/product-thumb/images/gallery-1';
     const product = {
       id: 'product-thumb',
       title: 'Thumbnail test video',
@@ -117,7 +118,10 @@ test.describe('public marketplace browser smoke', () => {
           body: JSON.stringify({
             data: {
               ...product,
-              images: [{ id: 'thumb-1', role: 'thumbnail', sortOrder: 0, mimeType: 'image/jpeg', url: thumbnailUrl }],
+              images: [
+                { id: 'thumb-1', role: 'thumbnail', sortOrder: 0, mimeType: 'image/jpeg', url: thumbnailUrl },
+                { id: 'gallery-1', role: 'gallery', sortOrder: 1, mimeType: 'image/jpeg', url: galleryUrl },
+              ],
             },
           }),
         });
@@ -129,7 +133,7 @@ test.describe('public marketplace browser smoke', () => {
         body: JSON.stringify({ data: [product], pagination: { page: 1, limit: 24, returned: 1, hasMore: false } }),
       });
     });
-    await page.route('**/api/catalog/products/product-thumb/images/thumb-1', async (route) => {
+    await page.route('**/api/catalog/products/product-thumb/images/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'image/png',
@@ -147,6 +151,15 @@ test.describe('public marketplace browser smoke', () => {
     await expect(page.locator('#catalog-grid .catalog-thumbnail')).toHaveAttribute('src', thumbnailUrl);
 
     await page.goto('/pages/product-detail.html?productId=product-thumb');
-    await expect(page.locator('.detail-media-image')).toHaveCSS('background-image', /product-thumb\/images\/thumb-1/);
+    const heroImage = page.locator('.detail-media-image');
+    const galleryModal = page.locator('#detailGalleryModal');
+    await expect(heroImage).toHaveCSS('background-image', /product-thumb\/images\/thumb-1/);
+    await heroImage.click();
+    await expect(galleryModal).toHaveClass(/open/);
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', thumbnailUrl);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 2');
+    await page.locator('.detail-gallery-next').click();
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('2 / 2');
   });
 });
