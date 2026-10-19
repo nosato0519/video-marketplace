@@ -59,6 +59,12 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
+        `INSERT INTO entitlements (user_id, product_id, order_id)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (order_id) DO NOTHING`,
+        [current.buyer_id, current.product_id, current.id]
+      );
+      await client.query(
         `INSERT INTO seller_earnings
           (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
          VALUES ($1, $2, $3, $4, 0, $4, $5, 'available')
