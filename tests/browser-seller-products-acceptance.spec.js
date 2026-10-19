@@ -19,8 +19,8 @@ test.describe('seller products browser acceptance', () => {
     await page.route('**/api/seller/products', async (route) => {
       expect(route.request().method()).toBe('GET');
       await fulfillJson(route, { products: [
-        { id: 'product-processing', title: 'Processing Video', description: 'Waiting for validation.', price_amount: 1500, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-processing', media_status: 'processing', media_original_filename: 'processing.mp4', media_byte_size: 1048576 },
-        { id: 'product-ready', title: 'Ready Video', description: 'Ready to publish.', price_amount: 2500, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 },
+        { id: 'product-processing', title: 'Processing Video', description: 'Waiting for validation.', price_amount: 1500, price_currency: 'JPY', status: 'approved', media_asset_id: 'media-processing', media_status: 'processing', media_original_filename: 'processing.mp4', media_byte_size: 1048576 },
+        { id: 'product-ready', title: 'Ready Video', description: 'Ready to publish.', price_amount: 2500, price_currency: 'JPY', status: 'approved', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 },
       ] });
     });
     await page.route('**/api/seller/products/product-ready/publish', async (route) => { expect(route.request().method()).toBe('POST'); publishCalled = true; await fulfillJson(route, { product: { id: 'product-ready', status: 'published' } }); });
