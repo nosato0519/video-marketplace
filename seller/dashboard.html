@@ -126,24 +126,6 @@ function formatYen(amount) {
   return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
 }
 
-function getPeriodSales(earnings) {
-  const now = new Date();
-  const today = now.toISOString().slice(0, 10);
-  const month = today.slice(0, 7);
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
-  const periods = { today: [], month: [], lastMonth: [] };
-
-  for (const earning of earnings) {
-    const date = String(earning.created_at || '');
-    if (date.slice(0, 10) === today) periods.today.push(earning);
-    if (date.slice(0, 7) === month) periods.month.push(earning);
-    if (date.slice(0, 7) === lastMonth) periods.lastMonth.push(earning);
-  }
-
-  return periods;
-}
-
 async function loadDashboard() {
   const [products, earnings] = await Promise.all([
     request('/api/seller/products'),
@@ -154,14 +136,13 @@ async function loadDashboard() {
   document.querySelector('#sale-count').textContent = Number(earnings.summary?.sale_count || 0).toLocaleString('ja-JP');
   document.querySelector('#earned-amount').textContent = formatYen(earnings.summary?.earned_amount);
 
-  const periods = getPeriodSales(earnings.earnings || []);
-  const total = (items) => items.reduce((sum, item) => sum + Number(item.gross_amount || 0), 0);
-  document.querySelector('#dashboard-sales-today').textContent = formatYen(total(periods.today));
-  document.querySelector('#dashboard-sales-month').textContent = formatYen(total(periods.month));
-  document.querySelector('#dashboard-sales-last-month').textContent = formatYen(total(periods.lastMonth));
-  document.querySelector('#dashboard-sales-today-count').textContent = `今日の売上　${periods.today.length.toLocaleString('ja-JP')}件`;
-  document.querySelector('#dashboard-sales-month-count').textContent = `今月の売上　${periods.month.length.toLocaleString('ja-JP')}件`;
-  document.querySelector('#dashboard-sales-last-month-count').textContent = `先月の売上　${periods.lastMonth.length.toLocaleString('ja-JP')}件`;
+  const summary = earnings.summary || {};
+  document.querySelector('#dashboard-sales-today').textContent = formatYen(summary.today_gross_amount);
+  document.querySelector('#dashboard-sales-month').textContent = formatYen(summary.month_gross_amount);
+  document.querySelector('#dashboard-sales-last-month').textContent = formatYen(summary.last_month_gross_amount);
+  document.querySelector('#dashboard-sales-today-count').textContent = `今日の売上　${Number(summary.today_sale_count || 0).toLocaleString('ja-JP')}件`;
+  document.querySelector('#dashboard-sales-month-count').textContent = `今月の売上　${Number(summary.month_sale_count || 0).toLocaleString('ja-JP')}件`;
+  document.querySelector('#dashboard-sales-last-month-count').textContent = `先月の売上　${Number(summary.last_month_sale_count || 0).toLocaleString('ja-JP')}件`;
 }
 
 async function applyVerificationCardVisibility() {
