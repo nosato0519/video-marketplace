@@ -131,7 +131,7 @@ test.describe('seller products browser acceptance', () => {
       await fulfillJson(route, { product: { id: 'product-existing', title: 'Updated Product', status: 'draft' } });
     });
     await page.goto(appUrl('#/seller/products'));
-    await page.locator('[data-product-id="product-existing"]').getByRole('button', { name: 'Edit details' }).click();
+    await page.locator('[data-product-id="product-existing"]').getByRole('link', { name: 'Edit details' }).click();
     await expect(page.getByText('Available videos could not be loaded. You can still save details without changing the video.')).toBeVisible();
     await page.getByLabel('Title').fill('Updated Product');
     await page.getByRole('button', { name: 'Save changes' }).click();
