@@ -20,7 +20,7 @@ export async function loadSessionUser(req, _res, next) {
     if (!token) return next();
 
     const result = await query(
-      `SELECT u.id, u.email, u.role, u.status
+      `SELECT u.id, u.email, u.display_name, u.role, u.status
          FROM user_sessions s
          JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = $1
