@@ -12,7 +12,7 @@ export function createEntitlementFromVerifiedPayment({ order, product }) {
 }
 
 export function canAccessPurchasedMedia({ entitlement, product, asset }) {
-  if (!entitlement || entitlement.status !== 'active') return false;
+  if (!entitlement || entitlement.status !== 'active' || entitlement.revoked_at) return false;
   if (!product || product.id !== entitlement.product_id || product.status !== 'published') return false;
   if (product.content_blocked || product.moderation_status === 'blocked') return false;
   if (!asset || asset.id !== product.media_asset_id || asset.status !== 'ready') return false;
