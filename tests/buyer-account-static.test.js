@@ -40,6 +40,7 @@ assert.match(libraryPage, /data-library-filter="available"/);
 assert.match(libraryPage, /data-library-filter="downloadable"/);
 assert.match(libraryPage, /data-streaming-enabled/);
 assert.match(libraryPage, /item\.streaming_enabled && item\.media_status === "ready"/);
+assert.match(libraryPage, /streamingAvailable \? "視聴する →" : "視聴準備中"/);
 assert.match(libraryPage, /query\.set\('page', String\(target\)\)/);
 assert.match(libraryPage, /filterEmpty/);
 assert.match(purchaseHistory, /libraryApi\.orders\(\)/);
