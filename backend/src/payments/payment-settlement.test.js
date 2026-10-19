@@ -27,7 +27,6 @@ test('records seller earnings once for a successful webhook settlement', { skip:
   let buyerId;
   let productId;
   let orderId;
-  let paymentId;
 
   try {
     const seller = await pool.query(
@@ -62,11 +61,11 @@ test('records seller earnings once for a successful webhook settlement', { skip:
     const payment = await pool.query(
       `INSERT INTO payments
         (order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key)
-       VALUES ($1, $2, 'test', NULL, 1500, 'JPY', 'pending', $3)
+       VALUES ($1, $2, 'test', $3, 1500, 'JPY', 'pending', $4)
        RETURNING id`,
-      [orderId, buyerId, `test:settlement:${suffix}`]
+      [orderId, buyerId, `${providerPaymentId}-initial`, `test:settlement:${suffix}`]
     );
-    paymentId = payment.rows[0].id;
+    const paymentId = payment.rows[0].id;
 
     const result = await settleSuccessfulPayment({ paymentId, orderId, providerPaymentId });
     assert.equal(result.status, 'settled');
@@ -78,8 +77,8 @@ test('records seller earnings once for a successful webhook settlement', { skip:
     );
     assert.equal(earnings.rowCount, 1);
     assert.equal(earnings.rows[0].seller_id, sellerId);
-    assert.equal(earnings.rows[0].gross_amount, '1500.00');
-    assert.equal(earnings.rows[0].net_amount, '1500.00');
+    assert.equal(Number(earnings.rows[0].gross_amount), 1500);
+    assert.equal(Number(earnings.rows[0].net_amount), 1500);
     assert.equal(earnings.rows[0].currency.trim(), 'JPY');
     assert.equal(earnings.rows[0].status, 'available');
 
