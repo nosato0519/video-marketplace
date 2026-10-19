@@ -191,6 +191,7 @@
   <div class="detail-gallery-modal" id="detailGalleryModal" aria-hidden="true"><button class="detail-gallery-close" type="button" aria-label="閉じる">×</button><button class="detail-gallery-prev" type="button" aria-label="前の画像">‹</button><img id="detailGalleryImage" src="" alt="作品紹介画像"><button class="detail-gallery-next" type="button" aria-label="次の画像">›</button><div class="detail-gallery-count" id="detailGalleryCount"></div></div>
   <script>
     const galleryItems = [...document.querySelectorAll('.detail-gallery-image')];
+    galleryItems.forEach((item) => { item.style.minHeight = '70px'; });
     const galleryModal = document.getElementById('detailGalleryModal');
     const galleryImage = document.getElementById('detailGalleryImage');
     const galleryCount = document.getElementById('detailGalleryCount');
