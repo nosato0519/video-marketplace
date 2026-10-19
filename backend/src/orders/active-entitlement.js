@@ -9,6 +9,7 @@ export async function hasActiveEntitlement(userId, productId) {
       WHERE user_id = $1
         AND product_id = $2
         AND status = 'active'
+        AND revoked_at IS NULL
       LIMIT 1`,
     [userId, productId]
   );
