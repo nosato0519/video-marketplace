@@ -199,11 +199,17 @@
     const closeButton = document.querySelector('.detail-gallery-close');
     let galleryIndex = 0;
 
+    function getGalleryImageUrl(item) {
+      if (item?.dataset.galleryImageUrl) return item.dataset.galleryImageUrl;
+      const backgroundImage = getComputedStyle(item).backgroundImage;
+      return backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1] || '';
+    }
+
     function getAvailableGalleryItems() {
       return galleryItems.filter((item) => (
         item &&
         !item.hidden &&
-        item.dataset.galleryImageUrl
+        getGalleryImageUrl(item)
       ));
     }
 
@@ -212,7 +218,7 @@
       if (availableItems.length === 0) return;
 
       galleryIndex = (index + availableItems.length) % availableItems.length;
-      const imageUrl = availableItems[galleryIndex].dataset.galleryImageUrl;
+      const imageUrl = getGalleryImageUrl(availableItems[galleryIndex]);
       if (!imageUrl) return;
 
       galleryImage.src = imageUrl;
