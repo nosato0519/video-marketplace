@@ -178,4 +178,19 @@ test.describe('public marketplace browser smoke', () => {
     await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', galleryUrl4);
     await expect(page.locator('#detailGalleryCount')).toHaveText('4 / 4');
   });
+
+  test('product detail fallback gallery opens and navigates without a product id', async ({ page }) => {
+    await page.goto('/pages/product-detail.html');
+    const galleryItems = page.locator('.detail-gallery-image');
+    const galleryModal = page.locator('#detailGalleryModal');
+
+    await expect(galleryItems).toHaveCount(4);
+    await galleryItems.nth(0).click();
+    await expect(galleryModal).toBeVisible();
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', /images\\.unsplash\\.com/);
+    await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 4');
+
+    await page.locator('.detail-gallery-next').click();
+    await expect(page.locator('#detailGalleryCount')).toHaveText('2 / 4');
+  });
 });
