@@ -256,11 +256,19 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(storedOrder.rows[0].buyer_id).toBe(ids.sellerBuyer);
       expect(storedOrder.rows[0].product_id).toBe(ids.product);
     } finally {
-      if (ids.order) {
-        await pool.query('DELETE FROM entitlements WHERE order_id = $1', [ids.order]).catch(() => {});
-        await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [ids.order]).catch(() => {});
-        await pool.query('DELETE FROM orders WHERE id = $1', [ids.order]).catch(() => {});
-      }
+      await pool.query('ROLLBACK').catch(() => {});
+      await pool.query(
+        'DELETE FROM entitlements WHERE order_id IN (SELECT id FROM orders WHERE buyer_id = $1 AND product_id = $2)',
+        [ids.sellerBuyer, ids.product],
+      ).catch(() => {});
+      await pool.query(
+        'DELETE FROM seller_earnings WHERE order_id IN (SELECT id FROM orders WHERE buyer_id = $1 AND product_id = $2)',
+        [ids.sellerBuyer, ids.product],
+      ).catch(() => {});
+      await pool.query(
+        'DELETE FROM orders WHERE buyer_id = $1 AND product_id = $2',
+        [ids.sellerBuyer, ids.product],
+      ).catch(() => {});
       await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [ids.sellerBuyer]).catch(() => {});
       await pool.query('DELETE FROM products WHERE id = $1', [ids.product]).catch(() => {});
       await pool.query('DELETE FROM media_assets WHERE id = $1', [ids.media]).catch(() => {});
