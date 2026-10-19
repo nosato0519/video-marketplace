@@ -260,6 +260,68 @@ export function registerAuthRoutes(app) {
     }
   });
 
+  app.patch('/api/auth/profile', requireAuth, async (req, res, next) => {
+    try {
+      if (req.user.role !== 'buyer') {
+        return res.status(403).json({ error: { code: 'ROLE_NOT_ALLOWED', message: 'Buyer account required' } });
+      }
+
+      const displayName = typeof req.body?.displayName === 'string' ? req.body.displayName.trim() : '';
+      const email = normalizeEmail(req.body?.email);
+      const currentPassword = req.body?.currentPassword;
+      const newPassword = req.body?.newPassword;
+      const emailChanged = email !== normalizeEmail(req.user.email);
+      const passwordChanged = typeof newPassword === 'string' && newPassword.length > 0;
+
+      if (!displayName || displayName.length > 100 || !validEmail(email)) {
+        return res.status(400).json({ error: { code: 'INVALID_PROFILE', message: 'お名前（100文字以内）と有効なメールアドレスを入力してください。' } });
+      }
+      if (passwordChanged && !validPassword(newPassword)) {
+        return res.status(400).json({ error: { code: 'INVALID_PASSWORD_FORMAT', message: '新しいパスワードは12〜256文字で入力してください。' } });
+      }
+      if ((emailChanged || passwordChanged) && typeof currentPassword !== 'string') {
+        return res.status(400).json({ error: { code: 'CURRENT_PASSWORD_REQUIRED', message: 'メールアドレスまたはパスワードの変更には現在のパスワードが必要です。' } });
+      }
+
+      let passwordHash = null;
+      if (emailChanged || passwordChanged) {
+        const current = await query('SELECT password_hash FROM users WHERE id = $1 AND role = \'buyer\' LIMIT 1', [req.user.id]);
+        if (!current.rows[0]?.password_hash || !verifyPassword(currentPassword, current.rows[0].password_hash)) {
+          return res.status(401).json({ error: { code: 'CURRENT_PASSWORD_INVALID', message: '現在のパスワードが正しくありません。' } });
+        }
+        if (passwordChanged) passwordHash = hashPassword(newPassword);
+      }
+
+      const result = await query(
+        `UPDATE users
+            SET email = $1,
+                email_normalized = $1,
+                display_name = $2,
+                password_hash = COALESCE($3, password_hash),
+                updated_at = NOW()
+          WHERE id = $4 AND role = 'buyer'
+          RETURNING id, email, display_name, role, status`,
+        [email, displayName, passwordHash, req.user.id]
+      );
+
+      if (passwordChanged) {
+        const token = readSessionToken(req);
+        if (token) {
+          await query(
+            'UPDATE user_sessions SET revoked_at = NOW() WHERE user_id = $1 AND token_hash <> $2 AND revoked_at IS NULL',
+            [req.user.id, hashSessionToken(token)]
+          );
+        }
+      }
+      return res.json({ user: result.rows[0] });
+    } catch (error) {
+      if (error.code === '23505') {
+        return res.status(409).json({ error: { code: 'EMAIL_ALREADY_REGISTERED', message: 'このメールアドレスは既に登録されています。' } });
+      }
+      return next(error);
+    }
+  });
+
   app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: req.user }));
 
   app.post('/api/auth/logout', async (req, res, next) => {
