@@ -7,6 +7,16 @@ on:
       - 'orders.html'
       - 'library.html'
       - 'tests/buyer-account-static.test.js'
+      - 'pages/buyer-register.html'
+      - 'app/auth/auth-api.js'
+      - 'backend/src/auth-routes.js'
+      - 'backend/src/auth/load-session-user.js'
+      - 'backend/migrations/032_user_display_name.sql'
+      - 'pages/buyer-register.html'
+      - 'app/auth/auth-api.js'
+      - 'backend/src/auth-routes.js'
+      - 'backend/src/auth/load-session-user.js'
+      - 'backend/migrations/032_user_display_name.sql'
       - '.github/workflows/buyer-static-regression.yml'
   pull_request:
     paths:
