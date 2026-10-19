@@ -108,21 +108,11 @@ async function loadSales() {
     throw error;
   }
 
-  const earnings = Array.isArray(body?.earnings) ? body.earnings : [];
-  const now = new Date();
-  const today = now.toISOString().slice(0, 10);
-  const month = today.slice(0, 7);
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
-
-  const totalFor = (prefix) => earnings
-    .filter((earning) => String(earning.created_at || '').slice(0, 10).startsWith(prefix))
-    .reduce((sum, earning) => sum + Number(earning.gross_amount || 0), 0);
-
-  document.querySelector('#sales-today').textContent = formatYen(totalFor(today));
-  document.querySelector('#sales-month').textContent = formatYen(totalFor(month));
-  document.querySelector('#sales-last-month').textContent = formatYen(totalFor(lastMonth));
-  document.querySelector('#sales-count').textContent = Number(body?.summary?.sale_count || 0).toLocaleString('ja-JP');
+  const summary = body?.summary || {};
+  document.querySelector('#sales-today').textContent = formatYen(summary.today_gross_amount);
+  document.querySelector('#sales-month').textContent = formatYen(summary.month_gross_amount);
+  document.querySelector('#sales-last-month').textContent = formatYen(summary.last_month_gross_amount);
+  document.querySelector('#sales-count').textContent = Number(summary.sale_count || 0).toLocaleString('ja-JP');
 }
 
 loadSales().catch((error) => {
