@@ -75,6 +75,26 @@ test('download route never reaches storage when entitlement is not allowed', asy
   assert.equal(storageCalled, false);
 });
 
+test('download route rejects revoked_at and blocked moderation before storage access', async () => {
+  for (const context of [
+    { ...activeContext(), entitlement: { ...activeContext().entitlement, revoked_at: '2026-10-19T00:00:00.000Z' } },
+    { ...activeContext(), product: { ...activeContext().product, moderation_status: 'blocked' } },
+  ]) {
+    const app = express();
+    app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
+    let storageCalled = false;
+    registerMediaDownloadRoutes(app, {
+      getContext: async () => context,
+      storage: { getStream: async () => { storageCalled = true; return { stream: Readable.from(['secret']) }; } },
+    });
+    const server = await listen(app);
+    const response = await request(server, '/api/media/product_1/download');
+    server.close();
+    assert.equal(response.status, 404);
+    assert.equal(storageCalled, false);
+  }
+});
+
 test('download route supports a purchaser byte range for resumable downloads', async () => {
   const app = express();
   app.use((req, _res, next) => { req.user = { id: 'user_1' }; next(); });
