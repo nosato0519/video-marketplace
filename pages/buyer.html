@@ -86,7 +86,7 @@
 
   try {
     const { user } = await authApi.me();
-    if (user?.role !== "buyer") throw new Error("ROLE_NOT_ALLOWED");
+    if (!["buyer", "seller"].includes(user?.role)) throw new Error("ROLE_NOT_ALLOWED");
     const [libraryResult, orderResult] = await Promise.all([libraryApi.list(), libraryApi.orders()]);
     const items = libraryResult.items || [];
     const orders = orderResult.items || [];
