@@ -79,6 +79,9 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       expect(buyerResult.rows).toHaveLength(1);
       ids.buyer = buyerResult.rows[0].id;
 
+      const sellerProductsResponse = await page.request.get(`${backendUrl}/api/seller/products`);
+      expect(sellerProductsResponse.status()).toBe(403);
+
       await page.goto(`${appUrl}#/browse`);
       await expect(page.getByText('Browser E2E Product', { exact: true })).toBeVisible();
       await page.getByText('Browser E2E Product', { exact: true }).click();
