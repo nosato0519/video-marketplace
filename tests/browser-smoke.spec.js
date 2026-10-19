@@ -187,7 +187,7 @@ test.describe('public marketplace browser smoke', () => {
     await expect(galleryItems).toHaveCount(4);
     await galleryItems.nth(0).click();
     await expect(galleryModal).toBeVisible();
-    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', /images\\.unsplash\\.com/);
+    await expect(page.locator('#detailGalleryImage')).toHaveAttribute('src', /images\.unsplash\.com/);
     await expect(page.locator('#detailGalleryCount')).toHaveText('1 / 4');
 
     await page.locator('.detail-gallery-next').click();
