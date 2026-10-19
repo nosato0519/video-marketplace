@@ -54,6 +54,16 @@ test('blocked product denies protected media access even with active entitlement
   assert.equal(result.status, 404);
 });
 
+test('moderation status blocked denies protected media access', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    product: { ...context.product, moderation_status: 'blocked' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
+
 test('unpublished product denies protected media access', () => {
   const context = activeContext();
   const result = authorizeProtectedMedia({
