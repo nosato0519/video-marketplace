@@ -114,6 +114,24 @@ try {
   assert.equal(state.rowCount, 1);
   assert.equal(Number(state.rows[0].amount), 1500);
 
+  // Simulate inconsistent legacy state: an entitlement remains active after
+  // the order was refunded. A distinct refund event must reconcile it.
+  await pool.query(
+    `UPDATE entitlements SET status = 'active', revoked_at = NULL WHERE order_id = $1`,
+    [ids.order]
+  );
+  const reconciliationEventId = `evt_${crypto.randomUUID()}`;
+  const reconciliationRefund = JSON.stringify({
+    eventId: reconciliationEventId, provider: 'mock', eventType: 'payment_refunded',
+    paymentId: providerPaymentId, orderId: ids.order
+  });
+  result = await postWebhook(baseUrl, reconciliationRefund, sign(reconciliationRefund));
+  assert.equal(result.response.status, 200, JSON.stringify(result.body));
+  assert.equal(result.body.duplicate, true);
+  state = await pool.query(`SELECT status, revoked_at FROM entitlements WHERE order_id = $1`, [ids.order]);
+  assert.equal(state.rows[0].status, 'revoked');
+  assert.notEqual(state.rows[0].revoked_at, null);
+
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.duplicate, true);
@@ -133,7 +151,7 @@ try {
 
   console.log('HTTP payment refund acceptance: PASS');
 } finally {
-  await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2)`, [successEventId, refundEventId]).catch(() => {});
+  await pool.query(`DELETE FROM payment_events WHERE provider = 'mock' AND event_id IN ($1, $2, $3)`, [successEventId, refundEventId, typeof reconciliationEventId === 'undefined' ? null : reconciliationEventId]).catch(() => {});
   await pool.query(`DELETE FROM payout_earnings_allocations WHERE payout_id = $1`, [ids.payout]).catch(() => {});
   await pool.query(`DELETE FROM payouts WHERE id = $1`, [ids.payout]).catch(() => {});
   await pool.query(`DELETE FROM seller_earnings WHERE order_id = $1`, [ids.order]).catch(() => {});
