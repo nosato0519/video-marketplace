@@ -68,6 +68,14 @@ export async function refundPayment({
     }
 
     if (current.status === ORDER_STATES.REFUNDED) {
+      await client.query(
+        `UPDATE entitlements
+            SET status = 'revoked', revoked_at = COALESCE(revoked_at, NOW())
+          WHERE order_id = $1
+            AND (status = 'active' OR revoked_at IS NULL)`,
+        [current.id]
+      );
+
       if (currentPayment.status !== 'refunded') {
         await client.query(
           `UPDATE payments
