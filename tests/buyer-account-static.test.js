@@ -55,6 +55,7 @@ const buyerDashboard = fs.readFileSync(path.join(root, 'pages/buyer.html'), 'utf
 assert.match(buyerDashboard, /libraryApi\.list\(\)/);
 assert.match(buyerDashboard, /libraryApi\.orders\(\)/);
 assert.match(buyerDashboard, /buyer-video-count/);
+assert.match(buyerDashboard, /!\["buyer", "seller"\]\.includes\(user\?\.role\)/);
 assert.match(buyerDashboard, /item\.streaming_enabled && item\.media_status === "ready"/);
 assert.doesNotMatch(buyerDashboard, /THE LAST SIGNAL/);
 const watchPage = fs.readFileSync(path.join(root, 'pages/watch.html'), 'utf8');
