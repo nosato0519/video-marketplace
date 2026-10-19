@@ -107,7 +107,9 @@
 
           const makeLink = (label, target, active = false) => {
             const a = document.createElement('a');
-            a.href = target === 1 ? window.location.pathname : window.location.pathname + '?page=' + target;
+            const query = new URLSearchParams(window.location.search);
+            if (target === 1) query.delete('page'); else query.set('page', String(target));
+            a.href = window.location.pathname + (query.toString() ? '?' + query.toString() : '');
             a.textContent = label;
             if (active) a.className = 'active';
             return a;
@@ -132,11 +134,12 @@
         list.innerHTML = items.length ? items.map((item) => {
           const date = item.purchased_at ? new Date(item.purchased_at).toLocaleDateString("ja-JP") : "—";
           const quality = item.media_mime_type || "VIDEO";
-          const watchHref = item.streaming_enabled ? `/pages/watch.html?productId=${encodeURIComponent(item.product_id)}` : "#";
-          const downloadHref = item.download_enabled ? `/api/media/${encodeURIComponent(item.product_id)}/download` : "#";
-          const downloadHidden = item.download_enabled ? "" : ' aria-hidden="true" style="visibility:hidden"';
-          return `<article class="library-card" data-streaming-enabled="${item.streaming_enabled ? "true" : "false"}" data-download-enabled="${item.download_enabled ? "true" : "false"}">
-            <div class="library-thumb catalog-t1"></div>
+          const streamingAvailable = item.streaming_enabled && item.media_status === "ready";
+          const downloadAvailable = item.download_enabled && item.media_status === "ready";
+          const watchHref = streamingAvailable ? `/pages/watch.html?productId=${encodeURIComponent(item.product_id)}` : "#";
+          const downloadHref = downloadAvailable ? `/api/media/${encodeURIComponent(item.product_id)}/download` : "#";
+          const downloadHidden = downloadAvailable ? "" : ' aria-hidden="true" style="visibility:hidden"';
+          return `<article class="library-card" data-streaming-enabled="${streamingAvailable ? "true" : "false"}" data-download-enabled="${downloadAvailable ? "true" : "false"}">
             <div class="library-card-body">
               <h2>${String(item.title || "購入作品").replace(/[&<>"']/g, "")}</h2>
               <div class="library-card-meta"><span>購入日 ${date}</span><span>${String(quality).replace(/[&<>"']/g, "")}</span></div>
