@@ -81,6 +81,16 @@ test.describe('real backend buyer purchase browser acceptance', () => {
 
       const sellerProductsResponse = await page.request.get(`${backendUrl}/api/seller/products`);
       expect(sellerProductsResponse.status()).toBe(403);
+      const sellerOnlyRoutes = [
+        '/api/seller/media/limits',
+        '/api/seller/profile',
+        '/api/seller/earnings',
+        '/api/seller/payouts',
+      ];
+      for (const route of sellerOnlyRoutes) {
+        const response = await page.request.get(`${backendUrl}${route}`);
+        expect(response.status(), `buyer must be denied access to ${route}`).toBe(403);
+      }
 
       await page.goto(`${appUrl}#/browse`);
       await expect(page.getByText('Browser E2E Product', { exact: true })).toBeVisible();
