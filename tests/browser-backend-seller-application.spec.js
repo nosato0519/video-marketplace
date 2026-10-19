@@ -21,6 +21,41 @@ async function login(page, email, password) {
 }
 
 test.describe('real backend seller application acceptance', () => {
+  test('new account registration from seller application returns to the application form', async ({ page }) => {
+    const email = `seller-applicant-${Date.now()}@example.test`;
+    const password = 'TestPassword!123';
+    const health = await page.request.get(`${backendUrl}/api/health`);
+    expect(health.ok()).toBeTruthy();
+
+    await page.goto(`${appUrl}#/seller/register`);
+    await expect(page.getByRole('heading', { name: 'Login required' })).toBeVisible();
+    await page.getByRole('link', { name: 'Create an account' }).click();
+    await expect(page).toHaveURL(/#\/register\?return=\/seller\/register$/);
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password').fill(password);
+    await page.getByRole('button', { name: 'Create account' }).click();
+
+    await expect(page).toHaveURL(/#\/seller\/register$/);
+    await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
+    await page.getByLabel('Display name').fill('Shared Account Creator');
+    await page.getByLabel('Legal name').fill('Shared Account Creator Legal');
+    await page.getByLabel('Country code').fill('JP');
+    await page.getByRole('button', { name: 'Submit application' }).click();
+    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
+
+    const me = await page.request.get(`${backendUrl}/api/auth/me`);
+    expect(me.ok()).toBeTruthy();
+    const meBody = await me.json();
+    expect(meBody.user.email).toBe(email);
+    expect(meBody.user.role).toBe('buyer');
+
+    const duplicateRegistration = await page.request.post(`${backendUrl}/api/auth/register`, {
+      data: { email, password },
+    });
+    expect(duplicateRegistration.status()).toBe(409);
+    expect((await duplicateRegistration.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
+  });
+
   test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
     const email = `buyer-${Date.now()}@example.test`;
     const password = 'TestPassword!123';
