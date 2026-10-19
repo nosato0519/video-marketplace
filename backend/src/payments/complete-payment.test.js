@@ -125,6 +125,12 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
       [orderId]
     );
     assert.equal(afterRetry.rows[0].count, 1);
+
+    const entitlementsAfterRetry = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM entitlements WHERE order_id = $1`,
+      [orderId]
+    );
+    assert.equal(entitlementsAfterRetry.rows[0].count, 1);
   } finally {
     if (orderId) {
       await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [orderId]).catch(() => {});
