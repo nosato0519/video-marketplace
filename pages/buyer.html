@@ -96,7 +96,7 @@
       favorites = Array.isArray(saved) ? saved : [];
     } catch {}
     document.getElementById("buyer-video-count").textContent = String(items.length);
-    document.getElementById("buyer-watching-count").textContent = String(items.filter((item) => item.streaming_enabled).length);
+    document.getElementById("buyer-watching-count").textContent = String(items.filter((item) => item.streaming_enabled && item.media_status === "ready").length);
     document.getElementById("buyer-favorite-count").textContent = String(favorites.length);
     document.getElementById("buyer-order-count").textContent = String(orders.length);
     const recent = document.getElementById("buyer-recent-items");
@@ -117,10 +117,17 @@
         title.textContent = item.title || "購入作品";
         const date = document.createElement("span");
         date.textContent = item.purchased_at ? "購入日 " + new Date(item.purchased_at).toLocaleDateString("ja-JP") : "購入済み";
-        const watch = document.createElement("a");
-        watch.href = "/pages/watch.html?productId=" + encodeURIComponent(item.product_id);
-        watch.textContent = "視聴する →";
-        body.append(title, date, watch);
+        body.append(title, date);
+        if (item.streaming_enabled && item.media_status === "ready") {
+          const watch = document.createElement("a");
+          watch.href = "/pages/watch.html?productId=" + encodeURIComponent(item.product_id);
+          watch.textContent = "視聴する →";
+          body.append(watch);
+        } else {
+          const availability = document.createElement("span");
+          availability.textContent = "視聴準備中";
+          body.append(availability);
+        }
         card.append(thumb, body);
         recent.append(card);
       });
