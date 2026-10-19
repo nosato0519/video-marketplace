@@ -34,6 +34,7 @@ assert.match(favorites, /お気に入りから削除/);
 assert.match(favorites, /requestedId/);
 const libraryPage = fs.readFileSync(path.join(root, 'pages/library.html'), 'utf8');
 const purchaseHistory = fs.readFileSync(path.join(root, 'pages/purchase-history.html'), 'utf8');
+const orderDetail = fs.readFileSync(path.join(root, 'pages/order-detail.html'), 'utf8');
 assert.match(libraryPage, /libraryApi\.list\(\)/);
 assert.match(libraryPage, /data-library-filter="available"/);
 assert.match(libraryPage, /data-library-filter="downloadable"/);
@@ -42,6 +43,10 @@ assert.match(libraryPage, /item\.streaming_enabled && item\.media_status === "re
 assert.match(libraryPage, /query\.set\('page', String\(target\)\)/);
 assert.match(libraryPage, /filterEmpty/);
 assert.match(purchaseHistory, /libraryApi\.orders\(\)/);
+assert.match(purchaseHistory, /order\.paidAt \|\| order\.createdAt/);
+assert.match(orderDetail, /order\.paidAt \|\| order\.createdAt/);
+assert.match(orderDetail, /order\.status === "paid"/);
+assert.match(orderDetail, /if \(!canAccessLibrary\) content\.querySelectorAll/);
 assert.doesNotMatch(libraryPage, /THE LAST SIGNAL/);
 assert.doesNotMatch(purchaseHistory, /THE LAST SIGNAL/);
 const buyerDashboard = fs.readFileSync(path.join(root, 'pages/buyer.html'), 'utf8');
