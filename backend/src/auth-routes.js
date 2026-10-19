@@ -108,14 +108,15 @@ export function registerAuthRoutes(app) {
     try {
       const email = normalizeEmail(req.body?.email);
       const password = req.body?.password;
-      if (!validEmail(email) || !validPassword(password)) {
-        return res.status(400).json({ error: { code: 'INVALID_CREDENTIALS_FORMAT', message: 'A valid email and a password of 12-256 characters are required' } });
+      const displayName = typeof req.body?.displayName === 'string' ? req.body.displayName.trim() : '';
+      if (!validEmail(email) || !validPassword(password) || displayName.length > 100) {
+        return res.status(400).json({ error: { code: 'INVALID_CREDENTIALS_FORMAT', message: 'A valid email, a name up to 100 characters, and a password of 12-256 characters are required' } });
       }
       const result = await query(
-        `INSERT INTO users (email, email_normalized, password_hash, role, status)
-         VALUES ($1, $2, $3, 'buyer', 'active')
-         RETURNING id, email, role, status`,
-        [email, email, hashPassword(password)]
+        `INSERT INTO users (email, email_normalized, password_hash, display_name, role, status)
+         VALUES ($1, $2, $3, $4, 'buyer', 'active')
+         RETURNING id, email, display_name, role, status`,
+        [email, email, hashPassword(password), displayName || email.split('@')[0]]
       );
       const user = result.rows[0];
       await createSession(res, user.id);
