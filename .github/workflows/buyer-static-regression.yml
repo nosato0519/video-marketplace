@@ -8,6 +8,7 @@ on:
       - 'library.html'
       - 'tests/buyer-account-static.test.js'
       - 'pages/buyer-register.html'
+      - 'pages/account-settings.html'
       - 'app/auth/auth-api.js'
       - 'backend/src/auth-routes.js'
       - 'backend/src/auth/load-session-user.js'
