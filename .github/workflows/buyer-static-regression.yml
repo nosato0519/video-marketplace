@@ -29,6 +29,7 @@ on:
       - 'pages/favorites.html'
       - 'pages/library.html'
       - 'pages/purchase-history.html'
+      - 'pages/order-detail.html'
       - 'pages/cart.html'
       - 'pages/account-settings.html'
       - 'pages/buyer-login.html'
