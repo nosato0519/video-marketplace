@@ -50,6 +50,11 @@ function form(title, mode) {
   `;
 }
 
+function authReturnPath() {
+  const requested = new URLSearchParams(location.hash.split('?')[1] || '').get('return');
+  return requested === '/seller/register' ? '#/seller/register' : '#/browse';
+}
+
 export function renderAuth(root, mode) {
   root.innerHTML = form(mode === 'register' ? 'Create your account' : 'Log in', mode);
   const formElement = root.querySelector('#auth-form');
@@ -65,7 +70,7 @@ export function renderAuth(root, mode) {
         ? await authApi.register(data.get('email'), data.get('password'))
         : await authApi.login(data.get('email'), data.get('password'));
       message.textContent = `Signed in as ${escapeHtml(result.user.email)}.`;
-      location.hash = '#/browse';
+      location.hash = authReturnPath();
     } catch (error) {
       message.textContent = error.status === 401 ? 'Email or password is incorrect.' : (error.body?.error?.message || 'Unable to complete authentication.');
       submit.disabled = false;
