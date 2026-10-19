@@ -28,6 +28,16 @@ test('revoking an active entitlement immediately removes media access', () => {
   assert.equal(result.error, 'not_found');
 });
 
+test('entitlement with revoked_at cannot access protected media', () => {
+  const context = activeContext();
+  const result = authorizeProtectedMedia({
+    ...context,
+    entitlement: { ...context.entitlement, revoked_at: '2026-10-19T00:00:00.000Z' },
+  });
+  assert.equal(result.allowed, false);
+  assert.equal(result.status, 404);
+});
+
 test('different buyer cannot use another buyer entitlement', () => {
   const result = authorizeProtectedMedia({ ...activeContext(), user: { id: 'buyer-2' } });
   assert.equal(result.allowed, false);
