@@ -275,8 +275,10 @@
     const productId = new URLSearchParams(window.location.search).get("productId");
     const buy = document.querySelector(".detail-buy-primary");
     const cart = document.querySelector(".detail-buy-secondary");
+    const favorite = document.querySelector(".detail-favorite");
 
     if (productId) {
+      if (favorite) favorite.href = "/pages/favorites.html?productId=" + encodeURIComponent(productId);
       const checkoutUrl = "/pages/checkout.html?productId=" + encodeURIComponent(productId);
       if (buy) buy.href = checkoutUrl;
       buy?.addEventListener("click", (event) => {
