@@ -51,6 +51,8 @@ const watchPage = fs.readFileSync(path.join(root, 'pages/watch.html'), 'utf8');
 assert.match(watchPage, /libraryApi\.list\(\)/);
 assert.match(watchPage, /mediaStreamUrl\(productId\)/);
 assert.match(watchPage, /mediaDownloadUrl\(productId\)/);
+assert.match(watchPage, /item\.streaming_enabled && item\.media_status === "ready"/);
+assert.match(watchPage, /item\.download_enabled && item\.media_status === "ready"/);
 assert.match(watchPage, /購入済み作品を読み込めませんでした/);
 
 const cart = fs.readFileSync(path.join(root, 'pages/cart.html'), 'utf8');
