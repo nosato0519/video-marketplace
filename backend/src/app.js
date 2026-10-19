@@ -40,7 +40,7 @@ export function createApp() {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        scriptSrc: ["'self'", "'sha256-ajdE6A2cenTjDNrPNLhA4wX+JDVhqYUwmdZ+XAeEvzw='", "'sha256-Bp2Uv73XpLhiWv1YH/fdnhPBpMYXQ2PlykQATyrhfxQ='", "'sha256-KWouYTIvoQePUeMyRJXzOxXU9a80We4XWy2vqlstTtQ='", "'sha256-2C6d878HgVf73Q1bmHgLWVQM8PBLJI0BL+gRmpt1jrY='", "'sha256-pilhapzUq9F7PxaZ1/PjZ2t1wssNS0pXRGr/AfXO64Y='", "'sha256-uTYfMpMSlXglrJLMtOLEZtu9k4uz6Yo3AP1fTHRybSQ='"],
+        scriptSrc: ["'self'", "'sha256-ajdE6A2cenTjDNrPNLhA4wX+JDVhqYUwmdZ+XAeEvzw='", "'sha256-Bp2Uv73XpLhiWv1YH/fdnhPBpMYXQ2PlykQATyrhfxQ='", "'sha256-KWouYTIvoQePUeMyRJXzOxXU9a80We4XWy2vqlstTtQ='", "'sha256-2C6d878HgVf73Q1bmHgLWVQM8PBLJI0BL+gRmpt1jrY='", "'sha256-pilhapzUq9F7PxaZ1/PjZ2t1wssNS0pXRGr/AfXO64Y='", "'sha256-uTYfMpMSlXglrJLMtOLEZtu9k4uz6Yo3AP1fTHRybSQ='", "'sha256-5ub+UBIbMNCT656KdPUs8h7gS75EKKx/v7asHeVkyJ4='", "'sha256-yVskD44e2ifkJYMm3JWum3e4ITvUWzdf37PNXqpPrf4='", "'sha256-Yl2uN9XlBBqeHY+A4kO/eGmi087dw24BbnlsoFM6uaQ='"],
         imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
       },
     },
