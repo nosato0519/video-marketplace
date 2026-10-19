@@ -121,6 +121,14 @@ try {
     `UPDATE entitlements SET status = 'active', revoked_at = NULL WHERE order_id = $1`,
     [ids.order]
   );
+  // Simulate stale entitlement and earning records on an already-refunded
+  // order. One distinct refund event must reconcile both records.
+  await pool.query(
+    `UPDATE seller_earnings
+        SET status = 'available', refunded_at = NULL
+      WHERE order_id = $1 AND product_id = $2`,
+    [ids.order, ids.product]
+  );
   const reconciliationRefund = JSON.stringify({
     eventId: reconciliationEventId, provider: 'mock', eventType: 'payment_refunded',
     paymentId: providerPaymentId, orderId: ids.order
@@ -131,17 +139,6 @@ try {
   state = await pool.query(`SELECT status, revoked_at FROM entitlements WHERE order_id = $1`, [ids.order]);
   assert.equal(state.rows[0].status, 'revoked');
   assert.notEqual(state.rows[0].revoked_at, null);
-
-  // Simulate a stale earning record on an already-refunded order. Replaying
-  // a distinct refund event must reconcile its status without losing paid_at.
-  await pool.query(
-    `UPDATE seller_earnings
-        SET status = 'available', refunded_at = NULL
-      WHERE order_id = $1 AND product_id = $2`,
-    [ids.order, ids.product]
-  );
-  result = await postWebhook(baseUrl, reconciliationRefund, sign(reconciliationRefund));
-  assert.equal(result.response.status, 200, JSON.stringify(result.body));
   state = await pool.query(
     `SELECT status, paid_at, refunded_at
        FROM seller_earnings WHERE order_id = $1 AND product_id = $2`,
