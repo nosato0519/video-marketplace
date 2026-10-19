@@ -52,45 +52,28 @@
           <span class="section-kicker">ORDER</span>
           <h2>注文内容</h2>
         </div>
-        <span>2作品</span>
+        <span id="checkout-item-count">1作品</span>
       </div>
 
-      <div class="buyer-history-list">
-        <article class="buyer-history-card">
-          <div class="library-thumb catalog-t1"></div>
-          <div class="buyer-history-info">
-            <strong>THE LAST SIGNAL</strong>
-            <span>4K / 18:42</span>
-            <small>¥2,980</small>
-          </div>
-          <a class="cart-view-link" href="/pages/product-detail.html">作品を見る →</a>
-        </article>
-        <article class="buyer-history-card">
-          <div class="library-thumb catalog-t2"></div>
-          <div class="buyer-history-info">
-            <strong>Tokyo After Hours</strong>
-            <span>4K / 12:16</span>
-            <small>¥1,980</small>
-          </div>
-          <a class="cart-view-link" href="/pages/product-detail.html">作品を見る →</a>
-        </article>
+      <div class="buyer-history-list" id="checkout-order-items">
+        <p class="announcement-empty">購入する作品を読み込んでいます…</p>
       </div>
 
       <div class="buyer-summary buyer-summary-spaced">
         <div>
           <span>商品数</span>
-          <strong>2</strong>
+          <strong id="checkout-summary-count">1</strong>
           <small>作品</small>
         </div>
         <div>
           <span>小計</span>
-          <strong>¥4,960</strong>
+          <strong id="checkout-subtotal">—</strong>
           <small>税込</small>
         </div>
         <div>
           <span>決済</span>
           <strong>未購入</strong>
-          <small>システム接続前</small>
+          <small>決済画面でお支払い</small>
         </div>
         <div>
           <span>購入後</span>
@@ -129,13 +112,14 @@
       <div class="checkout-confirmation">
         <div class="checkout-total">
           <span>お支払い合計</span>
-          <strong>¥4,960</strong>
+          <strong id="checkout-total">—</strong>
         </div>
-        <p>購入後はマイライブラリからいつでも視聴できます。</p>
+        <p>決済事業者の安全な画面でお支払いを完了してください。購入後はマイライブラリから視聴できます。</p>
+        <p id="checkout-message" class="microcopy" aria-live="polite"></p>
       </div>
       <div class="buyer-action-row">
-        <a class="buyer-account" href="/pages/cart.html">カートに戻る</a>
-        <a class="primary" href="/pages/purchase-complete.html">購入を確定する</a>
+        <a class="buyer-account" href="/pages/video-list.html">動画一覧へ戻る</a>
+        <button class="primary" id="checkout-submit" type="button" disabled>購入手続きへ進む</button>
       </div>
     </section>
   </main>
@@ -144,5 +128,106 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
+<script type="module">
+import { checkoutApi } from '/app/checkout/checkout-api.js';
+
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('productId');
+const items = document.getElementById('checkout-order-items');
+const count = document.getElementById('checkout-item-count');
+const summaryCount = document.getElementById('checkout-summary-count');
+const subtotal = document.getElementById('checkout-subtotal');
+const total = document.getElementById('checkout-total');
+const message = document.getElementById('checkout-message');
+const submit = document.getElementById('checkout-submit');
+let product;
+
+function formatPrice(amount, currency) {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return '—';
+  return currency === 'JPY'
+    ? '¥' + value.toLocaleString('ja-JP')
+    : value.toLocaleString('ja-JP') + ' ' + (currency || '');
+}
+
+function showError(text) {
+  items.textContent = text;
+  message.textContent = text;
+  submit.disabled = true;
+}
+
+if (!productId) {
+  showError('購入する作品が指定されていません。動画一覧から作品を選んでください。');
+} else {
+  try {
+    const response = await fetch('/api/catalog/products/' + encodeURIComponent(productId) + '?locale=ja', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    });
+    if (response.status === 401) {
+      window.location.assign('/pages/buyer-login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search));
+    } else if (!response.ok) {
+      throw new Error('作品情報を取得できませんでした。');
+    } else {
+      const payload = await response.json();
+      product = payload.data;
+      if (!product) throw new Error('作品が見つかりません。');
+      const article = document.createElement('article');
+      article.className = 'buyer-history-card';
+      const thumbnail = document.createElement('div');
+      thumbnail.className = 'library-thumb';
+      if (product.thumbnail_url || product.images?.find((image) => image.role === 'thumbnail')?.url) {
+        thumbnail.style.backgroundImage = 'url("' + (product.thumbnail_url || product.images.find((image) => image.role === 'thumbnail').url) + '")';
+        thumbnail.style.backgroundSize = 'cover';
+        thumbnail.style.backgroundPosition = 'center';
+      }
+      const info = document.createElement('div');
+      info.className = 'buyer-history-info';
+      const title = document.createElement('strong');
+      title.textContent = product.title || '動画';
+      const description = document.createElement('span');
+      description.textContent = product.seller ? '販売者：' + product.seller : '動画作品';
+      const price = document.createElement('small');
+      price.textContent = formatPrice(product.price_amount, product.price_currency);
+      info.append(title, description, price);
+      const detail = document.createElement('a');
+      detail.className = 'cart-view-link';
+      detail.href = '/pages/product-detail.html?productId=' + encodeURIComponent(productId);
+      detail.textContent = '作品を見る →';
+      article.append(thumbnail, info, detail);
+      items.replaceChildren(article);
+      const formattedPrice = formatPrice(product.price_amount, product.price_currency);
+      count.textContent = '1作品';
+      summaryCount.textContent = '1';
+      subtotal.textContent = formattedPrice;
+      total.textContent = formattedPrice;
+      submit.disabled = false;
+    }
+  } catch (error) {
+    showError(error.message || '作品情報を読み込めませんでした。');
+  }
+}
+
+submit.addEventListener('click', async () => {
+  if (!productId || !product || submit.disabled) return;
+  submit.disabled = true;
+  message.textContent = '購入手続きを開始しています…';
+  try {
+    const intent = await checkoutApi.purchaseIntent(productId, 'ja');
+    const order = await checkoutApi.createOrder(intent.data.productId);
+    const result = await checkoutApi.checkout(order.order.id);
+    if (!result.session?.url) throw new Error('決済画面のURLを取得できませんでした。');
+    window.location.assign(result.session.url);
+  } catch (error) {
+    if (error.status === 401) {
+      window.location.assign('/pages/buyer-login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+    message.textContent = error.body?.error?.message || error.message || '購入手続きを開始できませんでした。';
+    submit.disabled = false;
+  }
+});
+</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
