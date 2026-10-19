@@ -165,7 +165,7 @@ async function renderProductDetail() {
     galleryNodes.forEach((node, index) => {
       const image = galleryImages[index];
       node.hidden = !image;
-      node.style.display = image ? '' : 'none';
+      node.style.display = image ? 'block' : 'none';
       node.dataset.galleryImageUrl = image?.url || '';
       node.style.backgroundImage = image ? 'url("' + image.url + '")' : 'none';
       node.style.backgroundSize = 'cover';
@@ -174,7 +174,7 @@ async function renderProductDetail() {
     const gallery = document.querySelector('.detail-gallery');
     if (gallery) {
       gallery.hidden = galleryImages.length === 0;
-      gallery.style.display = galleryImages.length ? '' : 'none';
+      gallery.style.display = galleryImages.length ? 'grid' : 'none';
     }
   } catch {
     const main = document.querySelector('.detail-page');
