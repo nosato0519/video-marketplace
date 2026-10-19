@@ -26,6 +26,28 @@ test.describe('seller application browser acceptance', () => {
     await expect(page.locator('main').getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '#/register?return=/seller/register');
   });
 
+  test('new shared account returns to seller application after registration', async ({ page }) => {
+    const email = 'new-creator@example.test';
+    await page.route('**/api/auth/register', async (route) => {
+      expect(route.request().postDataJSON().email).toBe(email);
+      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ user: { id: 'buyer-2', email, role: 'buyer' } }) });
+    });
+    await page.route('**/api/auth/me', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: { id: 'buyer-2', email, role: 'buyer' } }) });
+    });
+    await page.route('**/api/seller/application', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ application: null }) });
+    });
+
+    await page.goto(appUrl('#/register?return=/seller/register'));
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password').fill('BuyerPassword123!');
+    await page.getByRole('button', { name: 'Create account' }).click();
+
+    await expect(page).toHaveURL(/#\\/seller\\/register$/);
+    await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
+  });
+
   test('buyer can submit a seller application and see pending status', async ({ page }) => {
     let application = null;
     await mockBuyerSession(page);
