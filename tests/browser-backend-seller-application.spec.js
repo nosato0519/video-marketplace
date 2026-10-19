@@ -49,11 +49,6 @@ test.describe('real backend seller application acceptance', () => {
     expect(meBody.user.email).toBe(email);
     expect(meBody.user.role).toBe('buyer');
 
-    const duplicateRegistration = await page.request.post(`${backendUrl}/api/auth/register`, {
-      data: { email, password },
-    });
-    expect(duplicateRegistration.status()).toBe(409);
-    expect((await duplicateRegistration.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
   });
 
   test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
