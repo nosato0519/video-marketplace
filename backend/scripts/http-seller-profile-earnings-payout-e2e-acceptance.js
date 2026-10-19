@@ -35,10 +35,20 @@ try {
   const orderId = order.rows[0].id;
   await query(`INSERT INTO seller_earnings (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status) VALUES ($1, $2, $3, 5000, 0, 5000, 'JPY', 'available')`, [sellerId, orderId, productId]);
 
+  const products = await request(baseUrl, '/api/seller/products', { headers: { cookie } });
+  assert.equal(products.response.status, 200, JSON.stringify(products.body));
+  assert.equal(Number(products.body.counts?.published), 1, JSON.stringify(products.body.counts));
+
   const earnings = await request(baseUrl, '/api/seller/earnings', { headers: { cookie } });
   assert.equal(earnings.response.status, 200, JSON.stringify(earnings.body));
   assert.equal(Array.isArray(earnings.body.earnings), true);
   assert.equal(earnings.body.earnings.some((item) => Number(item.net_amount) === 5000 && item.status === 'available'), true);
+  assert.equal(Number(earnings.body.summary?.sale_count), 1, JSON.stringify(earnings.body.summary));
+  assert.equal(Number(earnings.body.summary?.earned_amount), 5000, JSON.stringify(earnings.body.summary));
+  assert.equal(Number(earnings.body.summary?.today_sale_count), 1, JSON.stringify(earnings.body.summary));
+  assert.equal(Number(earnings.body.summary?.today_gross_amount), 5000, JSON.stringify(earnings.body.summary));
+  assert.equal(Number(earnings.body.summary?.month_sale_count), 1, JSON.stringify(earnings.body.summary));
+  assert.equal(Number(earnings.body.summary?.month_gross_amount), 5000, JSON.stringify(earnings.body.summary));
 
   const belowMinimum = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 999, currency: 'JPY' }) });
   assert.equal(belowMinimum.response.status, 400, JSON.stringify(belowMinimum.body));
