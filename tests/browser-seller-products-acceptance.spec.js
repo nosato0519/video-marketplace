@@ -131,7 +131,7 @@ test.describe('seller products browser acceptance', () => {
       await fulfillJson(route, { error: 'media_limits_unavailable' }, 503);
     });
     await page.goto('/seller/product-edit.html?productId=product-existing');
-    await expect(page.getByLabel('作品タイトル')).toHaveValue('Existing Product');
+    await expect(page.locator('#product-title')).toHaveValue('Existing Product');
     await page.locator('#product-title').fill('Updated Product');
     await page.locator('#save-product').click();
     await expect.poll(() => patchBodies.length).toBe(1);
