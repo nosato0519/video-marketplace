@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
@@ -71,6 +72,20 @@ assert.match(cart, /cart-clear/);
 assert.match(cart, /この作品を購入/);
 assert.match(cart, /\/pages\/checkout\.html\?productId=/);
 const buyerLogin = fs.readFileSync(path.join(root, 'pages/buyer-login.html'), 'utf8');
+const appSource = fs.readFileSync(path.join(root, 'backend/src/app.js'), 'utf8');
+const allowedInlineScriptHashes = [...appSource.matchAll(/'sha256-([^']+)'/g)].map((match) => match[1]);
+for (const [pageName, pageSource] of [
+  ['buyer registration', buyerRegister],
+  ['buyer login', buyerLogin],
+  ['buyer dashboard', buyerDashboard],
+]) {
+  const scripts = [...pageSource.matchAll(/<script type="module">([\\s\\S]*?)<\\/script>/g)];
+  assert.ok(scripts.length > 0, `${pageName} module script exists`);
+  for (const [, script] of scripts) {
+    const hash = crypto.createHash('sha256').update(script).digest('base64');
+    assert.ok(allowedInlineScriptHashes.includes(hash), `${pageName} module script is allowed by CSP`);
+  }
+}
 assert.match(buyerLogin, /startsWith\('\/pages\/checkout\.html\?productId='/);
 assert.match(buyerLogin, /redirectTo\s*\}/);
 const accountSettings = fs.readFileSync(path.join(root, 'pages/account-settings.html'), 'utf8');
