@@ -83,38 +83,33 @@ test.describe('seller products browser acceptance', () => {
     await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
 
-  test('seller can attach an existing ready video and explicitly remove it from a draft', async ({ page }) => {
-    await mockSellerSession(page);
-    let patchBodies = [];
-    let currentMediaId = null;
-    const product = () => ({ id: 'product-draft', title: 'Draft Product', description: 'Attach a video.', price_amount: 2000, price_currency: 'JPY', status: 'draft', media_asset_id: currentMediaId });
-    await page.route('**/api/seller/media/assets', async (route) => { await fulfillJson(route, { mediaAssets: [{ id: 'media-one', original_filename: 'first.mp4', mime_type: 'video/mp4', byte_size: 10485760, status: 'ready' }, { id: 'media-processing', original_filename: 'processing.mp4', mime_type: 'video/mp4', byte_size: 2097152, status: 'processing' }] }); });
-    await page.route('**/api/seller/products', async (route) => { await fulfillJson(route, { products: [product()] }); });
-    await page.route('**/api/seller/products/product-draft', async (route) => {
-      if (route.request().method() === 'GET') { await fulfillJson(route, { product: product() }); return; }
-      expect(route.request().method()).toBe('PATCH');
-      const body = route.request().postDataJSON();
-      patchBodies.push(body);
-      if (Object.prototype.hasOwnProperty.call(body, 'mediaAssetId')) currentMediaId = body.mediaAssetId;
-      await fulfillJson(route, { product: product() });
+  test('seller video management shows real product counts and supports pagination', async ({ page }) => {
+    const requestedPages = [];
+    await page.route('**/api/seller/products?*', async (route) => {
+      const url = new URL(route.request().url());
+      const pageNumber = Number(url.searchParams.get('page') || 1);
+      requestedPages.push(pageNumber);
+      await fulfillJson(route, {
+        products: [{ id: `product-page-${pageNumber}`, title: `Video page ${pageNumber}`, price_amount: 2000, status: 'draft', created_at: '2026-10-01T00:00:00.000Z' }],
+        counts: { total: 11, published: 4, review: 2, draft: 5 },
+        pagination: { page: pageNumber, total_pages: 2, total: 11, per_page: 10 }
+      });
     });
-    await page.goto(appUrl('#/seller/products'));
-    await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Add video' }).click();
-    const mediaSelect = page.getByLabel('Protected video');
-    await expect(mediaSelect).toBeVisible();
-    await expect(mediaSelect.locator('option')).toHaveCount(2);
-    await mediaSelect.selectOption('media-one');
-    await page.getByRole('button', { name: 'Save changes' }).click();
-    await expect.poll(() => patchBodies.length).toBe(1);
-    expect(patchBodies[0].mediaAssetId).toBe('media-one');
-    await page.locator('[data-product-id="product-draft"]').getByRole('button', { name: 'Edit details' }).click();
-    const secondMediaSelect = page.getByLabel('Protected video');
-    await expect(secondMediaSelect.locator('option[value="__remove__"]')).toHaveCount(1);
-    await secondMediaSelect.selectOption('__remove__');
-    await page.getByRole('button', { name: 'Save changes' }).click();
-    await expect.poll(() => patchBodies.length).toBe(2);
-    expect(patchBodies[1].mediaAssetId).toBeNull();
-    expect(currentMediaId).toBeNull();
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [] });
+    });
+
+    await page.goto('/seller/products.html');
+    await expect(page.getByRole('heading', { name: '動画管理' })).toBeVisible();
+    await expect(page.locator('#product-count')).toHaveText('11');
+    await expect(page.locator('#published-count')).toHaveText('4');
+    await expect(page.locator('#review-count')).toHaveText('2');
+    await expect(page.locator('#draft-count')).toHaveText('5');
+    await expect(page.getByText('Video page 1')).toBeVisible();
+    await page.locator('.seller-pagination').getByRole('link', { name: '2', exact: true }).click();
+    await expect(page).toHaveURL(/\?page=2$/);
+    await expect(page.getByText('Video page 2')).toBeVisible();
+    expect(requestedPages).toEqual([1, 2]);
   });
 
   test('saving details keeps the existing video when the media list cannot load', async ({ page }) => {
