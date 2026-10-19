@@ -113,9 +113,11 @@
       async function render() {
         const ids = readIds();
         if (requestedId && !ids.includes(requestedId)) {
-          ids.push(requestedId);
-          saveIds(ids);
-          message.textContent = 'お気に入りに追加しました。';
+          const updatedIds = [...ids, requestedId];
+          if (saveIds(updatedIds)) {
+            ids.push(requestedId);
+            message.textContent = 'お気に入りに追加しました。';
+          }
           history.replaceState({}, '', '/pages/favorites.html');
         }
         grid.replaceChildren();
@@ -139,9 +141,12 @@
           const card = make('article', 'library-card');
           const thumb = make('div', 'library-thumb');
           if (product.thumbnail_url) {
-            thumb.style.backgroundImage = 'url("' + product.thumbnail_url + '")';
-            thumb.style.backgroundSize = 'cover';
-            thumb.style.backgroundPosition = 'center';
+            const image = make('img');
+            image.src = product.thumbnail_url;
+            image.alt = product.title || '動画のサムネイル';
+            image.loading = 'lazy';
+            image.style.cssText = 'width:100%;height:100%;object-fit:cover';
+            thumb.append(image);
           }
           const body = make('div', 'library-card-body');
           body.append(make('h2', '', product.title || '動画'));
