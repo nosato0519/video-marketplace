@@ -155,6 +155,7 @@ async function renderProductDetail() {
     const thumbnail = images.find((image) => image.role === 'thumbnail') || images.find((image) => image.role === 'gallery');
     const heroImage = document.querySelector('.detail-media-image');
     if (heroImage) {
+      heroImage.dataset.galleryImageUrl = thumbnail?.url || '';
       heroImage.style.backgroundImage = thumbnail ? 'url("' + thumbnail.url + '")' : 'none';
       heroImage.style.backgroundSize = 'cover';
       heroImage.style.backgroundPosition = 'center';
@@ -165,6 +166,7 @@ async function renderProductDetail() {
       const image = galleryImages[index];
       node.hidden = !image;
       node.style.display = image ? '' : 'none';
+      node.dataset.galleryImageUrl = image?.url || '';
       node.style.backgroundImage = image ? 'url("' + image.url + '")' : 'none';
       node.style.backgroundSize = 'cover';
       node.style.backgroundPosition = 'center';
