@@ -40,6 +40,7 @@ test.describe('seller application browser acceptance', () => {
     });
 
     await page.goto(appUrl('#/register?return=/seller/register'));
+    await expect(page.getByRole('link', { name: 'Already have an account? Log in' })).toHaveAttribute('href', '#/login?return=/seller/register');
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill('BuyerPassword123!');
     await page.getByRole('button', { name: 'Create account' }).click();
