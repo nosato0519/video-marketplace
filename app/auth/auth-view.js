@@ -80,7 +80,6 @@ export function renderAuth(root, mode) {
   });
 }
 
-
 function bindSellerRegistration() {
   const formElement = document.getElementById('seller-register-form');
   if (!formElement) return;
@@ -104,7 +103,18 @@ function bindSellerRegistration() {
     submit.disabled = true;
 
     try {
-      await authApi.register(email, password);
+      try {
+        await authApi.register(email, password);
+      } catch (error) {
+        if (error.body?.error?.code !== 'EMAIL_ALREADY_REGISTERED') throw error;
+
+        const result = await authApi.login(email, password);
+        if (result.user?.role !== 'buyer') {
+          await authApi.logout();
+          throw new Error('購入者アカウントでログインしてから販売者申請を行ってください。');
+        }
+      }
+
       await authApi.sellerApplication(creatorName, creatorName, 'JP');
       message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者としてログインできます。';
       formElement.reset();
@@ -119,7 +129,6 @@ function bindSellerRegistration() {
 if (document.getElementById('seller-register-form')) {
   bindSellerRegistration();
 }
-
 
 function bindSellerLogin() {
   const formElement = document.getElementById('role-login-form');
