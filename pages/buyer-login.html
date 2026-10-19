@@ -42,6 +42,11 @@
   </footer>
 <script type="module">
 import { loginForRole } from '/app/auth/auth-api.js';
+const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
+const redirectTo = requestedNext.startsWith('/pages/checkout.html?productId=')
+  ? requestedNext
+  : '/pages/buyer.html';
+
 document.querySelector('#role-login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -54,7 +59,7 @@ document.querySelector('#role-login-form').addEventListener('submit', async (eve
       email: form.email.value,
       password: form.password.value,
       role: 'buyer',
-      redirectTo: '/pages/buyer.html'
+      redirectTo
     });
   } catch (error) {
     message.textContent = error.code === 'ROLE_NOT_ALLOWED'
