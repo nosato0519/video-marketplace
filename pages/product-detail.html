@@ -272,27 +272,29 @@
   </script>
 <script src="/app/catalog/published-listings.js" defer></script>
 <script src="/shared/site-branding.js"></script><script type="module">
-    import { checkoutApi } from "/app/checkout/checkout-api.js";
     const productId = new URLSearchParams(window.location.search).get("productId");
     const buy = document.querySelector(".detail-buy-primary");
     const cart = document.querySelector(".detail-buy-secondary");
+
     if (productId) {
-      buy?.addEventListener("click", async (event) => {
+      const checkoutUrl = "/pages/checkout.html?productId=" + encodeURIComponent(productId);
+      if (buy) buy.href = checkoutUrl;
+      buy?.addEventListener("click", (event) => {
         event.preventDefault();
-        try {
-          const intent = await checkoutApi.purchaseIntent(productId);
-          const order = await checkoutApi.createOrder(intent.data.productId);
-          const result = await checkoutApi.checkout(order.order.id);
-          if (result.session?.url) window.location.assign(result.session.url);
-          else throw new Error("CHECKOUT_URL_MISSING");
-        } catch (error) {
-          if (error.status === 401) window.location.assign("/pages/buyer-login.html");
-          else window.alert("購入手続きを開始できませんでした。");
-        }
+        window.location.assign(checkoutUrl);
       });
       cart?.addEventListener("click", (event) => {
         event.preventDefault();
-        window.location.assign("/pages/cart.html");
+        window.location.assign("/pages/cart.html?productId=" + encodeURIComponent(productId));
+      });
+    } else {
+      buy?.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.alert("購入する作品を読み込めませんでした。動画一覧から選び直してください。");
+      });
+      cart?.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.alert("カートに追加する作品を読み込めませんでした。動画一覧から選び直してください。");
       });
     }
   </script>\n</body>
