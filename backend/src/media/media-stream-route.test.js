@@ -87,6 +87,25 @@ test('media stream route never reaches storage after entitlement is revoked', as
   assert.equal(storageCalled, false);
 });
 
+test('media stream route rejects revoked_at and blocked moderation before storage access', async () => {
+  for (const context of [
+    { ...activeContext(), entitlement: { ...activeContext().entitlement, revoked_at: '2026-10-19T00:00:00.000Z' } },
+    { ...activeContext(), product: { ...activeContext().product, moderation_status: 'blocked' } },
+  ]) {
+    const app = express();
+    let storageCalled = false;
+    registerForUser(app, {
+      getContext: async () => context,
+      storage: { getStream: async () => { storageCalled = true; return { stream: Readable.from(['secret']) }; } },
+    });
+    const server = await listen(app);
+    const response = await request(server, '/api/media/product_1/stream');
+    server.close();
+    assert.equal(response.status, 404);
+    assert.equal(storageCalled, false);
+  }
+});
+
 test('media stream route supports byte ranges for video seeking', async () => {
   const app = express();
   let requestedRange;
