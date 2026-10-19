@@ -101,7 +101,7 @@
           if (details) details.textContent = item.description || "購入した動画を視聴できます。";
           if (meta) {
             meta.replaceChildren();
-            [item.media_mime_type || "VIDEO", item.streaming_enabled ? "視聴可能" : "視聴準備中", item.seller_name || ""]
+            [item.media_mime_type || "VIDEO", item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中", item.seller_name || ""]
               .filter(Boolean)
               .forEach((value) => {
                 const span = document.createElement("span");
@@ -111,7 +111,7 @@
           }
           if (screen) {
             screen.replaceChildren();
-            if (item.streaming_enabled) {
+            if (item.streaming_enabled && item.media_status === "ready") {
               const video = document.createElement("video");
               video.controls = true;
               video.preload = "metadata";
@@ -132,7 +132,7 @@
             }
           }
           if (download) {
-            if (item.download_enabled) {
+            if (item.download_enabled && item.media_status === "ready") {
               download.href = mediaDownloadUrl(productId);
             } else {
               download.hidden = true;
