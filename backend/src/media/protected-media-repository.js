@@ -7,6 +7,7 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
        e.user_id,
        e.product_id,
        e.status AS entitlement_status,
+       e.revoked_at AS entitlement_revoked_at,
        p.status AS product_status,
        m.id AS asset_id,
        m.storage_key,
@@ -36,6 +37,7 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
       user_id: row.user_id,
       product_id: row.product_id,
       status: row.entitlement_status,
+      revoked_at: row.entitlement_revoked_at,
     },
     product: {
       id: row.product_id,
