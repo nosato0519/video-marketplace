@@ -39,32 +39,48 @@ test.describe('seller products browser acceptance', () => {
     await expect.poll(() => publishCalled).toBe(true);
   });
 
-  test('seller can create a draft product with a selected ready video', async ({ page }) => {
+  test('seller can create a draft product with an uploaded video and required thumbnail', async ({ page }) => {
     await mockSellerSession(page);
-    let products = [];
-    await page.route('**/api/seller/media/assets', async (route) => { expect(route.request().method()).toBe('GET'); await fulfillJson(route, { mediaAssets: [{ id: 'media-ready', original_filename: 'ready.mp4', mime_type: 'video/mp4', byte_size: 5242880, status: 'ready' }] }); });
-    await page.route('**/api/seller/products', async (route) => {
-      if (route.request().method() === 'GET') { await fulfillJson(route, { products }); return; }
-      expect(route.request().method()).toBe('POST');
-      const body = route.request().postDataJSON();
-      expect(body.title).toBe('Draft Product');
-      expect(body.priceAmount).toBe(1000);
-      expect(body.priceCurrency).toBe('JPY');
-      expect(body.mediaAssetId).toBe('media-ready');
-      products = [{ id: 'product-draft', title: 'Draft Product', description: '', price_amount: 1000, price_currency: 'JPY', status: 'draft', media_asset_id: 'media-ready', media_status: 'ready', media_original_filename: 'ready.mp4', media_byte_size: 5242880 }];
-      await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft', media_asset_id: 'media-ready' } });
+    let createBody = null;
+    let uploadIndex = 0;
+    await page.route('**/api/seller/media/limits', async (route) => {
+      await fulfillJson(route, { maxUploadBytes: 5368709120, maxImageUploadBytes: 20971520 });
     });
-    await page.goto(appUrl('#/seller/products'));
-    await page.getByRole('link', { name: 'Create product' }).click();
-    const mediaSelect = page.getByLabel('Protected video');
-    await expect(mediaSelect).toBeVisible();
-    await mediaSelect.selectOption('media-ready');
-    await page.getByLabel('Title').fill('Draft Product');
-    await page.getByLabel('Price').fill('1000');
-    await page.getByRole('button', { name: 'Create product', exact: true }).last().click();
-    await expect(page.getByText('1 product')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Draft Product' })).toBeVisible();
-    await expect(page.getByText('ready.mp4 · 5.0 MB')).toBeVisible();
+    await page.route('**/api/seller/media/upload', async (route) => {
+      uploadIndex += 1;
+      const filename = decodeURIComponent(route.request().headers()['x-original-filename'] || '');
+      const isVideo = filename === 'ready.mp4';
+      await fulfillJson(route, { mediaAsset: {
+        id: isVideo ? 'media-ready' : 'thumbnail-ready',
+        original_filename: filename,
+        mime_type: isVideo ? 'video/mp4' : 'image/png',
+        byte_size: isVideo ? 5242880 : 1024,
+        status: 'ready'
+      } }, 201);
+    });
+    await page.route('**/api/seller/products', async (route) => {
+      if (route.request().method() === 'GET') {
+        await fulfillJson(route, { products: [] });
+        return;
+      }
+      expect(route.request().method()).toBe('POST');
+      createBody = route.request().postDataJSON();
+      await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft', media_asset_id: 'media-ready' } }, 201);
+    });
+    await page.goto('/seller/product-editor.html');
+    await page.getByRole('textbox', { name: '例：THE LAST SIGNAL' }).fill('Draft Product');
+    await page.getByRole('textbox', { name: '¥4,800' }).fill('1000');
+    await page.getByLabel('動画ファイル').setInputFiles({ name: 'ready.mp4', mimeType: 'video/mp4', buffer: Buffer.from('video') });
+    await page.getByLabel('サムネイル画像').setInputFiles({ name: 'thumbnail.png', mimeType: 'image/png', buffer: Buffer.from('image') });
+    await page.getByRole('button', { name: '下書きを保存する →' }).click();
+    await expect.poll(() => createBody).not.toBeNull();
+    expect(createBody.title).toBe('Draft Product');
+    expect(createBody.priceAmount).toBe(1000);
+    expect(createBody.priceCurrency).toBe('JPY');
+    expect(createBody.mediaAssetId).toBe('media-ready');
+    expect(createBody.images).toEqual([{ mediaAssetId: 'thumbnail-ready', role: 'thumbnail', sortOrder: 0 }]);
+    expect(uploadIndex).toBe(2);
+    await expect(page).toHaveURL(/\/seller\/products\.html$/);
   });
 
   test('seller can attach an existing ready video and explicitly remove it from a draft', async ({ page }) => {
