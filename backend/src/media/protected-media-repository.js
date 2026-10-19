@@ -14,10 +14,10 @@ export async function getProtectedMediaContext({ userId, productId, assetId }) {
        m.mime_type,
        m.byte_size,
        m.status AS asset_status,
-       EXISTS (
+       (COALESCE(p.content_blocked, false) OR COALESCE(p.moderation_status, '') = 'blocked' OR EXISTS (
          SELECT 1 FROM content_reviews cr
           WHERE cr.product_id = p.id AND cr.status = 'blocked'
-       ) AS content_blocked
+       )) AS content_blocked
        FROM entitlements e
        JOIN products p ON p.id = e.product_id
        JOIN media_assets m ON m.id = p.media_asset_id
