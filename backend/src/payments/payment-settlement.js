@@ -1,5 +1,4 @@
 import { withTransaction } from '../db.js';
-import { grantPurchasedVideoAccess } from '../orders/grant-entitlement.js';
 
 export async function settleSuccessfulPayment({ paymentId, orderId, providerPaymentId } = {}) {
   if (!paymentId || !orderId) throw new Error('payment_settlement_identifiers_required');
@@ -55,7 +54,17 @@ export async function settleSuccessfulPayment({ paymentId, orderId, providerPaym
       if (updatedOrder.rowCount === 0) throw new Error('payment_order_not_settleable');
     }
 
-    const entitlement = await grantPurchasedVideoAccess({ orderId });
+    const entitlement = await client.query(
+      `INSERT INTO entitlements (user_id, product_id, order_id, status, created_at)
+       SELECT o.buyer_id, o.product_id, o.id, 'active', NOW()
+         FROM orders o
+        WHERE o.id = $1 AND o.status = 'paid'
+       ON CONFLICT (order_id) DO UPDATE
+         SET status = 'active', revoked_at = NULL
+       RETURNING id`,
+      [orderId]
+    );
+    if (entitlement.rowCount === 0) throw new Error('paid_order_required');
 
     await client.query(
       `INSERT INTO seller_earnings
@@ -69,6 +78,6 @@ export async function settleSuccessfulPayment({ paymentId, orderId, providerPaym
       [orderId]
     );
 
-    return { paymentId, orderId, entitlementId: entitlement.id, status: 'settled' };
+    return { paymentId, orderId, entitlementId: entitlement.rows[0].id, status: 'settled' };
   });
 }
