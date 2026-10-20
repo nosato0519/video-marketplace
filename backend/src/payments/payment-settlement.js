@@ -59,8 +59,11 @@ export async function settleSuccessfulPayment({ paymentId, orderId, providerPaym
        SELECT o.buyer_id, o.product_id, o.id, 'active', NOW()
          FROM orders o
         WHERE o.id = $1 AND o.status = 'paid'
-       ON CONFLICT (order_id) DO UPDATE
-         SET status = 'active', revoked_at = NULL
+       ON CONFLICT (user_id, product_id) WHERE status = 'active'
+       DO UPDATE SET
+         order_id = EXCLUDED.order_id,
+         status = 'active',
+         revoked_at = NULL
        RETURNING id`,
       [orderId]
     );
