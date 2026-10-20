@@ -58,7 +58,7 @@ document.querySelector('#role-login-form').addEventListener('submit', async (eve
     await loginForRole({
       email: form.email.value,
       password: form.password.value,
-      role: 'buyer',
+      role: ['buyer', 'seller'],
       redirectTo
     });
   } catch (error) {
