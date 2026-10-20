@@ -13,7 +13,13 @@ function checkoutError(error) {
     return { status: 409, body: { error: { code: 'ORDER_NOT_PENDING', message: 'Order is not available for checkout' } } };
   }
   if (error.message === 'payment_provider_required') {
-    return { status: 400, body: { error: { code: 'PAYMENT_PROVIDER_REQUIRED', message: 'Payment provider is required' } } };
+    return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_REQUIRED', message: 'Payment provider is not configured for this site' } } };
+  }
+  if (error.message.startsWith('payment_provider_not_configured:')) {
+    return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED', message: 'The payment provider credentials are not configured on the server' } } };
+  }
+  if (error.message === 'stripe_redirect_urls_not_configured') {
+    return { status: 503, body: { error: { code: 'PAYMENT_REDIRECT_URLS_NOT_CONFIGURED', message: 'The payment success and cancel URLs are not configured' } } };
   }
   if (error.message === 'payment_provider_not_configured_for_owner') {
     return { status: 409, body: { error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED', message: 'The selected payment provider is not configured for this seller' } } };
