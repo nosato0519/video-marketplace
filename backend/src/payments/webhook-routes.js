@@ -44,7 +44,9 @@ export function registerPaymentWebhookRoutes(
           orderId: payload.orderId,
         });
 
-        if (recorded.duplicate) return res.status(200).json({ received: true, duplicate: true });
+        if (recorded.duplicate && recorded.event?.status === 'processed') {
+          return res.status(200).json({ received: true, duplicate: true });
+        }
 
         if (payload.eventType === 'payment_failed') {
           const result = await failPayment({
