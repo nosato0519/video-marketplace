@@ -2,6 +2,7 @@ import { getPaymentProviderCatalog, getPaymentProviderConfig } from './payment-p
 
 export function listPaymentProviderOptions({ region = 'global', currency = null } = {}) {
   return getPaymentProviderCatalog()
+    .filter((provider) => provider.status === 'available')
     .filter((provider) => provider.regions.includes(region))
     .filter((provider) => {
       if (!currency || provider.currencies === 'multi') return true;
