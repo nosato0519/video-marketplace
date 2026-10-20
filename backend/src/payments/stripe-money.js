@@ -13,7 +13,12 @@ export function stripeCurrencyMinorUnitFactor(currency) {
 export function toStripeMinorUnits(amount, currency) {
   const value = Number(amount);
   if (!Number.isFinite(value) || value <= 0) throw new Error('checkout_amount_invalid');
-  return Math.round(value * stripeCurrencyMinorUnitFactor(currency));
+  const scaled = value * stripeCurrencyMinorUnitFactor(currency);
+  const rounded = Math.round(scaled);
+  if (!Number.isSafeInteger(rounded) || Math.abs(scaled - rounded) > 1e-7) {
+    throw new Error('checkout_amount_precision_invalid');
+  }
+  return rounded;
 }
 
 export function fromStripeMinorUnits(amount, currency) {
