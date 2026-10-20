@@ -27,12 +27,23 @@ function summaryValue(label, value, note) {
 }
 
 try {
-  const [ordersResult, libraryResult] = await Promise.all([libraryApi.orders(), libraryApi.list()]);
-  const orders = ordersResult.items || [];
-  const requestedId = new URLSearchParams(window.location.search).get("orderId");
-  const order = requestedId
-    ? orders.find((item) => String(item.orderId) === requestedId)
-    : orders[0];
+  const params = new URLSearchParams(window.location.search);
+  const requestedId = params.get("orderId");
+  const waitForWebhook = Boolean(params.get("session_id"));
+  let ordersResult;
+  let libraryResult;
+  let order;
+
+  for (let attempt = 0; attempt < (waitForWebhook ? 10 : 1); attempt += 1) {
+    [ordersResult, libraryResult] = await Promise.all([libraryApi.orders(), libraryApi.list()]);
+    const orders = ordersResult.items || [];
+    order = requestedId
+      ? orders.find((item) => String(item.orderId) === requestedId)
+      : orders[0];
+
+    if (!waitForWebhook || (order && order.status !== "pending") || attempt === 9) break;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
 
   if (!order) throw new Error("注文情報が見つかりません。購入履歴から注文をご確認ください。");
 
