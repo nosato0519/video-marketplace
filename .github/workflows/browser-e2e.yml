@@ -37,6 +37,7 @@ jobs:
       MEDIA_STORAGE_DIR: ${{ github.workspace }}/backend/media-data
       MEDIA_URL_SECRET: ci-media-url-secret-0123456789-abcdefghijklmnopqrstuvwxyz
       NODE_ENV: test
+      AUTH_REGISTER_RATE_LIMIT_MAX: 200
       PORT: 3000
     steps:
       - name: Checkout
