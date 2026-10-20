@@ -53,3 +53,37 @@ test('admin can approve a pending seller registration', async ({ page }) => {
   await row.locator('select[data-action]').selectOption('approve');
   await row.getByRole('button', { name: 'Apply' }).click();
 });
+
+test('seller login rejects buyer accounts and opens the seller dashboard for sellers', async ({ page }) => {
+  await page.route('**/api/auth/login', async (route) => {
+    const { email } = route.request().postDataJSON();
+    const role = email === 'seller@example.test' ? 'seller' : 'buyer';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: { id: role + '-1', email, role, status: 'active' } }),
+    });
+  });
+  await page.route('**/api/auth/logout', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) });
+  });
+  await page.route('**/api/auth/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller', status: 'active' } }),
+    });
+  });
+
+  await page.goto('/pages/seller-login.html');
+  await page.getByLabel('メールアドレス').fill('buyer@example.test');
+  await page.getByLabel('パスワード').fill('BuyerPassword123!');
+  await page.getByRole('button', { name: 'ログイン' }).click();
+  await expect(page.locator('#login-message')).toContainText('販売者アカウントではありません。');
+  await expect(page).toHaveURL(/pages\/seller-login\.html$/);
+
+  await page.getByLabel('メールアドレス').fill('seller@example.test');
+  await page.getByLabel('パスワード').fill('SellerPassword123!');
+  await page.getByRole('button', { name: 'ログイン' }).click();
+  await expect(page).toHaveURL(/\/seller\/dashboard\.html$/);
+});
