@@ -40,6 +40,7 @@ test('rejects an unknown provider', () => {
 
 test('requires Stripe credentials before exposing Stripe checkout', () => {
   const previous = process.env.STRIPE_SECRET_KEY;
+  const previousWebhook = process.env.STRIPE_WEBHOOK_SECRET;
   delete process.env.STRIPE_SECRET_KEY;
   try {
     assert.throws(
@@ -49,14 +50,36 @@ test('requires Stripe credentials before exposing Stripe checkout', () => {
   } finally {
     if (previous === undefined) delete process.env.STRIPE_SECRET_KEY;
     else process.env.STRIPE_SECRET_KEY = previous;
+    if (previousWebhook === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+    else process.env.STRIPE_WEBHOOK_SECRET = previousWebhook;
+  }
+});
+
+test('does not enable Stripe checkout without a webhook signing secret', () => {
+  const previous = process.env.STRIPE_SECRET_KEY;
+  const previousWebhook = process.env.STRIPE_WEBHOOK_SECRET;
+  process.env.STRIPE_SECRET_KEY = 'test-stripe-key';
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+  try {
+    assert.throws(
+      () => createPaymentProvider({ provider: 'stripe' }),
+      /payment_provider_not_configured:stripe/
+    );
+  } finally {
+    if (previous === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previous;
+    if (previousWebhook === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+    else process.env.STRIPE_WEBHOOK_SECRET = previousWebhook;
   }
 });
 
 test('Stripe checkout validates its payment metadata and currency before the API call', async () => {
   const previous = process.env.STRIPE_SECRET_KEY;
+  const previousWebhook = process.env.STRIPE_WEBHOOK_SECRET;
   const previousSuccess = process.env.STRIPE_SUCCESS_URL;
   const previousCancel = process.env.STRIPE_CANCEL_URL;
   process.env.STRIPE_SECRET_KEY = 'test-stripe-key';
+  process.env.STRIPE_WEBHOOK_SECRET = 'test-webhook-secret';
   process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
   process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
   try {
@@ -74,6 +97,8 @@ test('Stripe checkout validates its payment metadata and currency before the API
   } finally {
     if (previous === undefined) delete process.env.STRIPE_SECRET_KEY;
     else process.env.STRIPE_SECRET_KEY = previous;
+    if (previousWebhook === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+    else process.env.STRIPE_WEBHOOK_SECRET = previousWebhook;
     if (previousSuccess === undefined) delete process.env.STRIPE_SUCCESS_URL;
     else process.env.STRIPE_SUCCESS_URL = previousSuccess;
     if (previousCancel === undefined) delete process.env.STRIPE_CANCEL_URL;
