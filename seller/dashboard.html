@@ -161,31 +161,16 @@ async function applyVerificationCardVisibility() {
       card.style.display = '';
     }
   } catch (error) {
-    if (error.status === 401) {
+    if (error.status === 401 || error.status === 403) {
       window.location.href = '/pages/seller-login.html';
     }
   }
 }
 
-async function initializeSellerDashboard() {
-  try {
-    const { user } = await request('/api/auth/me', { cache: 'no-store' });
-    if (user?.role !== 'seller' || user?.status !== 'active') {
-      window.location.replace('/pages/seller-login.html');
-      return;
-    }
-    loadDashboard().catch((error) => {
-      if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html';
-    });
-    applyVerificationCardVisibility();
-  } catch (error) {
-    if (error.status === 401 || error.status === 403) {
-      window.location.replace('/pages/seller-login.html');
-    }
-  }
-}
-
-initializeSellerDashboard();
+loadDashboard().catch((error) => {
+  if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html';
+});
+applyVerificationCardVisibility();
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
