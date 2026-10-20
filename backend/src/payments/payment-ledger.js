@@ -25,8 +25,7 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
   if (!provider) throw new Error('payment_provider_required');
   if (!idempotencyKey) throw new Error('payment_idempotency_key_required');
 
-  const retryKey = `order:${order.id}:retry:${randomUUID()}`;
-  const retry = await query(
+  const retryWithNewProviderSession = await query(
     `UPDATE payments
         SET status = 'pending',
             idempotency_key = $1,
@@ -34,10 +33,26 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
       WHERE order_id = $2
         AND provider = $3
         AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
       RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [retryKey, order.id, provider]
+    [`order:${order.id}:retry:${randomUUID()}`, order.id, provider]
   );
-  if (retry.rowCount > 0) return retry.rows[0];
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
 
   return createPendingPayment({ order, provider, idempotencyKey });
 }
