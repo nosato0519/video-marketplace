@@ -111,8 +111,14 @@
       <div class="auth-card">
         <div class="auth-kicker">ACCOUNT</div>
         <h1>退会</h1>
-        <p class="auth-lead">アカウントを退会する場合はこちらから手続きできます。</p>
-        <button class="auth-submit" type="button">アカウントを退会する</button>
+        <p class="auth-lead">退会するとログインできなくなり、プロフィール情報は匿名化されます。購入履歴・取引記録は保持され、カートとお気に入りは削除されます。この操作は取り消せません。</p>
+        <form id="delete-account-form">
+          <label for="delete-account-password">現在のパスワード</label>
+          <input id="delete-account-password" name="password" type="password" autocomplete="current-password" required>
+          <label><input id="delete-account-confirm" type="checkbox" required> 注意事項を確認し、退会することに同意します。</label>
+          <button class="auth-submit" type="submit">退会を確定する</button>
+          <p id="delete-account-message" class="microcopy" aria-live="polite"></p>
+        </form>
       </div>
     </section>
   </main>
