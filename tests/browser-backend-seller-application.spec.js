@@ -140,6 +140,7 @@ test.describe('role-specific registration acceptance', () => {
     await page.getByRole('button', { name: 'ログイン' }).click();
     await expect(page).toHaveURL(/\/pages\/buyer\.html$/);
     await expect(page.getByRole('heading', { name: '購入者マイページ' })).toBeVisible();
+    await expect(page.locator('#buyer-video-count')).not.toHaveText('—');
 
     const sellerOrderHistory = await page.request.get(backendUrl + '/api/orders');
     expect(sellerOrderHistory.ok()).toBeTruthy();
