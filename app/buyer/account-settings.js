@@ -61,3 +61,31 @@ form.addEventListener("submit", async (event) => {
     submit.disabled = false;
   }
 });
+
+const deleteForm = document.querySelector("#delete-account-form");
+const deleteMessage = document.querySelector("#delete-account-message");
+
+deleteForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!deleteForm.elements.password.value || !document.querySelector("#delete-account-confirm")?.checked) return;
+
+  const submit = deleteForm.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  deleteMessage.textContent = "退会処理を実行しています…";
+  try {
+    await fetch("/api/auth/delete-account", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: deleteForm.elements.password.value }),
+    }).then(async (response) => {
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.error?.message || "退会処理に失敗しました。");
+      return body;
+    });
+    window.location.assign("/pages/buyer-login.html?account=closed");
+  } catch (error) {
+    deleteMessage.textContent = error.message || "退会処理に失敗しました。";
+    submit.disabled = false;
+  }
+});
