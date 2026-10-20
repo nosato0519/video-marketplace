@@ -251,7 +251,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await page.getByLabel('Email').fill(adminEmail);
       await page.getByLabel('Password').fill('TestPassword!123');
       await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
-      await expect(page).toHaveURL(/#\\/browse/);
+      await expect(page).toHaveURL(/#\/browse/);
       await page.goto(`${appUrl}#/admin/seller-applications`);
       await expect(page.getByRole('heading', { name: /Seller applications/i })).toBeVisible();
       const applicationRow = page.locator('tbody tr').filter({ hasText: email }).first();
@@ -267,7 +267,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await page.getByLabel('Email').fill(email);
       await page.getByLabel('Password').fill('TestPassword!123');
       await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
-      await expect(page).toHaveURL(/#\\/browse/);
+      await expect(page).toHaveURL(/#\/browse/);
       const approvedSeller = await pool.query(
         'SELECT role, status FROM users WHERE id = $1 LIMIT 1',
         [ids.sellerBuyer],
