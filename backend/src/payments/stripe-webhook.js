@@ -38,6 +38,9 @@ export function createStripeWebhookHandler({
 
       const eventType = STRIPE_EVENTS.get(event.type);
       if (!eventType) return res.status(200).json({ received: true, ignored: true });
+      if (event.type === 'checkout.session.completed' && event.data?.object?.payment_status !== 'paid') {
+        return res.status(200).json({ received: true, ignored: true, reason: 'payment_not_paid' });
+      }
 
       const payload = await normalizeStripeEvent(event, eventType, verifier);
       if (eventType === 'payment_refunded' && !payload.fullRefund) {
@@ -85,7 +88,10 @@ export function createStripeWebhookHandler({
 async function normalizeStripeEvent(event, eventType, stripe) {
   const object = event?.data?.object || {};
   const metadata = object.metadata || {};
-  const paymentId = metadata.paymentId || object.payment_intent || object.id;
+  const paymentIntentId = typeof object.payment_intent === 'string'
+    ? object.payment_intent
+    : object.payment_intent?.id;
+  const paymentId = paymentIntentId || object.id;
   let orderId = metadata.orderId || object.client_reference_id;
 
   if (eventType === 'payment_refunded' && object.payment_intent) {
