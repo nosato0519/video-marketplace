@@ -57,7 +57,11 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
 
     const result = await withTransaction(async (client) => {
       const current = await client.query(
-        `SELECT id, user_id, status FROM seller_applications WHERE id = $1 FOR UPDATE`,
+        `SELECT a.id, a.user_id, a.status, u.role AS account_role, u.status AS account_status
+           FROM seller_applications a
+           JOIN users u ON u.id = a.user_id
+          WHERE a.id = $1
+          FOR UPDATE OF a, u`,
         [req.params.id]
       );
       if (!current.rowCount) {
@@ -68,6 +72,11 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
       const application = current.rows[0];
       if (!transitions[application.status]?.has(target)) {
         const error = new Error('invalid_seller_application_transition');
+        error.statusCode = 409;
+        throw error;
+      }
+      if (target === 'approved' && (application.account_role !== 'seller' || application.account_status !== 'suspended')) {
+        const error = new Error('seller_registration_account_not_pending');
         error.statusCode = 409;
         throw error;
       }
@@ -82,10 +91,17 @@ router.post('/seller-applications/:id/review', async (req, res, next) => {
       );
 
       if (target === 'approved') {
-        await client.query(
-          `UPDATE users SET role = 'seller', updated_at = NOW() WHERE id = $1 AND role = 'buyer'`,
+        const activated = await client.query(
+          `UPDATE users SET status = 'active', updated_at = NOW()
+            WHERE id = $1 AND role = 'seller' AND status = 'suspended'
+            RETURNING id`,
           [application.user_id]
         );
+        if (!activated.rowCount) {
+          const error = new Error('seller_registration_account_not_pending');
+          error.statusCode = 409;
+          throw error;
+        }
         await client.query(
           `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code)
            VALUES ($1, $2, $3, $4)
