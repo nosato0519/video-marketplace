@@ -7,9 +7,11 @@ import { resolveOwnerPaymentProvider } from './payment-owner-routing.js';
 
 test('keeps payment routing isolated by owner', async () => {
   const previousKey = process.env.STRIPE_SECRET_KEY;
+  const previousWebhook = process.env.STRIPE_WEBHOOK_SECRET;
   const previousSuccess = process.env.STRIPE_SUCCESS_URL;
   const previousCancel = process.env.STRIPE_CANCEL_URL;
   process.env.STRIPE_SECRET_KEY = 'test-owner-routing-key';
+  process.env.STRIPE_WEBHOOK_SECRET = 'test-owner-routing-webhook-secret';
   process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
   process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
   const ownerA = crypto.randomUUID();
@@ -30,6 +32,7 @@ test('keeps payment routing isolated by owner', async () => {
     clearPaymentProviderSettings({ ownerId: ownerB, providerId: 'stripe' });
     await query('DELETE FROM users WHERE id IN ($1, $2)', [ownerA, ownerB]).catch(() => {});
     if (previousKey === undefined) delete process.env.STRIPE_SECRET_KEY; else process.env.STRIPE_SECRET_KEY = previousKey;
+    if (previousWebhook === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = previousWebhook;
     if (previousSuccess === undefined) delete process.env.STRIPE_SUCCESS_URL; else process.env.STRIPE_SUCCESS_URL = previousSuccess;
     if (previousCancel === undefined) delete process.env.STRIPE_CANCEL_URL; else process.env.STRIPE_CANCEL_URL = previousCancel;
   }
