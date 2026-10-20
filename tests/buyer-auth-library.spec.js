@@ -10,7 +10,7 @@ test('buyer can register, sign in, and reach the protected library', async ({ pa
 
   await page.route('**/api/auth/register', async (route) => {
     expect(route.request().method()).toBe('POST');
-    expect(route.request().postDataJSON()).toEqual({ email: buyerEmail, password: buyerPassword });
+    expect(route.request().postDataJSON()).toEqual({ email: buyerEmail, password: buyerPassword, displayName: '' });
     await json(route, { user: { id: 'buyer-1', email: buyerEmail, role: 'buyer' } }, 201);
   });
   await page.route('**/api/auth/me', async (route) => {
