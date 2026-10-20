@@ -233,3 +233,41 @@ test('routes a full refund event to the refund settlement handler', async () => 
   assert.equal(calls[1][1].providerPaymentId, 'pi_test_1');
   assert.equal(calls[1][1].orderId, 'order_123');
 });
+
+
+test('does not run refund settlement again for an already processed Stripe event', async () => {
+  let refundCalls = 0;
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => ({
+      duplicate: true,
+      event: { status: 'processed' },
+    }),
+    refundPayment: async () => { refundCalls += 1; throw new Error('processed_refund_must_not_run_twice'); },
+  });
+  const event = makeEvent({
+    id: 'evt_stripe_refund_processed',
+    type: 'charge.refunded',
+    data: { object: {
+      id: 'ch_test_full',
+      object: 'charge',
+      amount: 1000,
+      currency: 'jpy',
+      refunded: true,
+      payment_intent: 'pi_test_1',
+      metadata: { orderId: 'order_123' },
+    } },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { received: true, duplicate: true });
+  });
+  assert.equal(refundCalls, 0);
+});
