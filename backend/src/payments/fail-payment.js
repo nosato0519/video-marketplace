@@ -65,6 +65,22 @@ export async function failPayment({
       throw new Error('provider_payment_id_mismatch');
     }
 
+    if (
+      current.status === ORDER_STATES.PAID ||
+      current.status === ORDER_STATES.REFUNDED ||
+      currentPayment.status === 'succeeded' ||
+      currentPayment.status === 'refunded'
+    ) {
+      await client.query(
+        `UPDATE payment_events
+            SET status = 'processed', processed_at = NOW()
+          WHERE id = $1`,
+        [recordedEvent.id]
+      );
+      await client.query('COMMIT');
+      return { duplicate: false, ignored: true, reason: 'payment_already_settled' };
+    }
+
     if (current.status === ORDER_STATES.CANCELLED && currentPayment.status === 'failed') {
       await client.query(
         `UPDATE payment_events
