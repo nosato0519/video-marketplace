@@ -6,17 +6,11 @@ import {
   validatePaymentProviderConfig,
 } from './payment-provider-config.js';
 
-test('exposes buyer-configurable global and Japan payment providers', () => {
+test('exposes only implemented payment providers for configuration', () => {
   const providers = getConfigurablePaymentProviders();
-  assert.deepEqual(providers.map((provider) => provider.id), [
-    'stripe',
-    'paypal',
-    'adyen',
-    'paddle',
-    'paypay',
-  ]);
+  assert.deepEqual(providers.map((provider) => provider.id), ['stripe']);
   assert.ok(providers.find((provider) => provider.id === 'stripe').regions.includes('global'));
-  assert.ok(providers.find((provider) => provider.id === 'paypay').regions.includes('japan'));
+  assert.equal(providers.find((provider) => provider.id === 'stripe').status, 'available');
 });
 
 test('maps providers to buyer-owned secret configuration names', () => {
@@ -26,6 +20,13 @@ test('maps providers to buyer-owned secret configuration names', () => {
   assert.equal(getPaymentProviderSecretEnv('paddle'), 'PADDLE_API_KEY');
   assert.equal(getPaymentProviderSecretEnv('paypay'), 'PAYPAY_API_KEY');
   assert.equal(getPaymentProviderSecretEnv('unknown'), null);
+});
+
+test('rejects credentials for providers without an implemented adapter', () => {
+  assert.throws(
+    () => validatePaymentProviderConfig({ providerId: 'paypal', credentials: { secret: 'not-used' } }),
+    /payment_provider_adapter_not_ready:paypal/
+  );
 });
 
 test('validates buyer-provided provider credentials without persisting them', () => {
