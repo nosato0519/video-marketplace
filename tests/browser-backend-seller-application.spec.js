@@ -99,6 +99,10 @@ test.describe('role-specific registration acceptance', () => {
     await row.locator('select[data-action]').selectOption('approve');
     await row.getByRole('button', { name: 'Apply' }).click();
 
+    await expect.poll(async () => {
+      const result = await query('SELECT status FROM users WHERE email_normalized = $1 LIMIT 1', [sellerEmail]);
+      return result.rows[0]?.status;
+    }).toBe('active');
     const approved = await query('SELECT role, status FROM users WHERE email_normalized = $1 LIMIT 1', [sellerEmail]);
     expect(approved.rows[0]).toMatchObject({ role: 'seller', status: 'active' });
     const buyerAfter = await query('SELECT role, status FROM users WHERE email_normalized = $1 LIMIT 1', [buyerEmail]);
