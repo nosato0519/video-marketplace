@@ -116,10 +116,20 @@ test('Stripe currency conversion matches checkout and webhook units', () => {
   assert.equal(stripeCurrencyMinorUnitFactor('KWD'), 1000);
   assert.equal(toStripeMinorUnits('1.234', 'KWD'), 1234);
   assert.equal(fromStripeMinorUnits(1234, 'KWD'), 1.234);
+  assert.equal(stripeCurrencyMinorUnitFactor('ISK'), 100);
+  assert.equal(toStripeMinorUnits(5, 'ISK'), 500);
+  assert.equal(fromStripeMinorUnits(500, 'ISK'), 5);
+  assert.equal(stripeCurrencyMinorUnitFactor('UGX'), 100);
+  assert.equal(toStripeMinorUnits(5, 'UGX'), 500);
+  assert.equal(fromStripeMinorUnits(500, 'UGX'), 5);
 });
 
 test('rejects checkout amounts that exceed currency precision instead of rounding', () => {
   assert.throws(() => toStripeMinorUnits('12.345', 'USD'), /checkout_amount_precision_invalid/);
   assert.throws(() => toStripeMinorUnits('1500.5', 'JPY'), /checkout_amount_precision_invalid/);
   assert.throws(() => toStripeMinorUnits('1.2345', 'KWD'), /checkout_amount_precision_invalid/);
+  assert.throws(() => toStripeMinorUnits('5.5', 'ISK'), /checkout_amount_precision_invalid/);
+  assert.throws(() => toStripeMinorUnits('5.5', 'UGX'), /checkout_amount_precision_invalid/);
+  assert.throws(() => fromStripeMinorUnits(550, 'ISK'), /stripe_amount_precision_invalid/);
+  assert.throws(() => fromStripeMinorUnits(550, 'UGX'), /stripe_amount_precision_invalid/);
 });
