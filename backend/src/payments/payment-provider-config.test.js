@@ -13,12 +13,12 @@ test('exposes only implemented payment providers for configuration', () => {
   assert.equal(providers.find((provider) => provider.id === 'stripe').status, 'available');
 });
 
-test('maps providers to buyer-owned secret configuration names', () => {
+test('maps the implemented provider to its server-side secret name', () => {
   assert.equal(getPaymentProviderSecretEnv('stripe'), 'STRIPE_SECRET_KEY');
-  assert.equal(getPaymentProviderSecretEnv('paypal'), 'PAYPAL_CLIENT_SECRET');
-  assert.equal(getPaymentProviderSecretEnv('adyen'), 'ADYEN_API_KEY');
-  assert.equal(getPaymentProviderSecretEnv('paddle'), 'PADDLE_API_KEY');
-  assert.equal(getPaymentProviderSecretEnv('paypay'), 'PAYPAY_API_KEY');
+  assert.equal(getPaymentProviderSecretEnv('paypal'), null);
+  assert.equal(getPaymentProviderSecretEnv('adyen'), null);
+  assert.equal(getPaymentProviderSecretEnv('paddle'), null);
+  assert.equal(getPaymentProviderSecretEnv('paypay'), null);
   assert.equal(getPaymentProviderSecretEnv('unknown'), null);
 });
 
