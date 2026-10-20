@@ -102,7 +102,6 @@ const totalNode = document.getElementById('cart-total');
 const clearButton = document.getElementById('cart-clear');
 const checkoutButton = document.getElementById('cart-checkout');
 const message = document.getElementById('cart-message');
-let cartInitialized = false;
 const isProductId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
 function readCart() {
@@ -145,7 +144,6 @@ async function initializeCart() {
       await saveServerCart(merged);
     }
   } catch {}
-  cartInitialized = true;
 }
 
 function formatPrice(amount, currency) {
