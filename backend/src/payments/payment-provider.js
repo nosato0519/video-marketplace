@@ -39,6 +39,9 @@ function createStripeProvider() {
         mode: 'payment', client_reference_id: orderId,
         line_items: [{ price_data: { currency: normalizedCurrency.toLowerCase(), product_data: { name: 'Video Marketplace purchase' }, unit_amount: unitAmount }, quantity: 1 }],
         metadata: { orderId, paymentId: String(metadata.paymentId), ...(metadata.reference ? { reference: String(metadata.reference) } : {}) },
+        payment_intent_data: {
+          metadata: { orderId, paymentId: String(metadata.paymentId) },
+        },
         success_url: withStripeSessionId(successUrl, orderId), cancel_url: cancelUrl,
       }, { idempotencyKey });
       if (!session.id || !session.url) throw new Error('stripe_checkout_response_invalid');
