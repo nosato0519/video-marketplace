@@ -62,6 +62,14 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
+        `UPDATE payments
+            SET provider_payment_id = $1,
+                status = 'succeeded',
+                succeeded_at = COALESCE(succeeded_at, NOW())
+          WHERE id = $2`,
+        [providerPaymentId, currentPayment.id]
+      );
+      await client.query(
         `INSERT INTO entitlements (user_id, product_id, order_id)
          VALUES ($1, $2, $3)
          ON CONFLICT (order_id) DO NOTHING`,
