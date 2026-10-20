@@ -271,33 +271,6 @@
     });
   </script>
 <script src="/app/catalog/published-listings.js" defer></script>
-<script src="/shared/site-branding.js"></script><script type="module">
-    const productId = new URLSearchParams(window.location.search).get("productId");
-    const buy = document.querySelector(".detail-buy-primary");
-    const cart = document.querySelector(".detail-buy-secondary");
-    const favorite = document.querySelector(".detail-favorite");
-
-    if (productId) {
-      if (favorite) favorite.href = "/pages/favorites.html?productId=" + encodeURIComponent(productId);
-      const checkoutUrl = "/pages/checkout.html?productId=" + encodeURIComponent(productId);
-      if (buy) buy.href = checkoutUrl;
-      buy?.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.location.assign(checkoutUrl);
-      });
-      cart?.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.location.assign("/pages/cart.html?productId=" + encodeURIComponent(productId));
-      });
-    } else {
-      buy?.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.alert("購入する作品を読み込めませんでした。動画一覧から選び直してください。");
-      });
-      cart?.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.alert("カートに追加する作品を読み込めませんでした。動画一覧から選び直してください。");
-      });
-    }
-  </script>\n</body>
+<script src="/shared/site-branding.js"></script>
+<script type="module" src="/app/catalog/product-detail-actions.js"></script>\n</body>
 </html>
