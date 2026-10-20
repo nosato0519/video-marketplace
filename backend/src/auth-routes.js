@@ -295,7 +295,7 @@ export function registerAuthRoutes(app) {
 
   app.patch('/api/auth/profile', requireAuth, async (req, res, next) => {
     try {
-      if (req.user.role !== 'buyer') {
+      if (!['buyer', 'seller'].includes(req.user.role)) {
         return res.status(403).json({ error: { code: 'ROLE_NOT_ALLOWED', message: 'Buyer account required' } });
       }
 
@@ -318,7 +318,7 @@ export function registerAuthRoutes(app) {
 
       let passwordHash = null;
       if (emailChanged || passwordChanged) {
-        const current = await query('SELECT password_hash FROM users WHERE id = $1 AND role = \'buyer\' LIMIT 1', [req.user.id]);
+        const current = await query('SELECT password_hash FROM users WHERE id = $1 AND role IN (\'buyer\', \'seller\') LIMIT 1', [req.user.id]);
         if (!current.rows[0]?.password_hash || !verifyPassword(currentPassword, current.rows[0].password_hash)) {
           return res.status(401).json({ error: { code: 'CURRENT_PASSWORD_INVALID', message: '現在のパスワードが正しくありません。' } });
         }
@@ -332,7 +332,7 @@ export function registerAuthRoutes(app) {
                 display_name = $2,
                 password_hash = COALESCE($3, password_hash),
                 updated_at = NOW()
-          WHERE id = $4 AND role = 'buyer'
+          WHERE id = $4 AND role IN ('buyer', 'seller')
           RETURNING id, email, display_name, role, status`,
         [email, displayName, passwordHash, req.user.id]
       );
