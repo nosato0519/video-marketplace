@@ -144,6 +144,15 @@ test.describe('role-specific registration acceptance', () => {
     await page.goto(appUrl + '#/browse');
     await expect(page).toHaveURL(/#\/browse/);
 
+    const sellerProducts = await page.request.get(backendUrl + '/api/seller/products');
+    expect(sellerProducts.ok()).toBeTruthy();
+    const sellerMediaLimits = await page.request.get(backendUrl + '/api/seller/media/limits');
+    expect(sellerMediaLimits.ok()).toBeTruthy();
+
+    await page.goto('http://127.0.0.1:4173/seller/product-editor.html');
+    await expect(page.getByRole('heading', { name: '新しい動画を登録する' })).toBeVisible();
+    await expect(page).toHaveURL(/\\/seller\\/product-editor\\.html$/);
+
     await page.goto('http://127.0.0.1:4173/pages/buyer-login.html');
     await page.getByLabel('メールアドレス').fill(sellerEmail);
     await page.getByLabel('パスワード').fill(password);
