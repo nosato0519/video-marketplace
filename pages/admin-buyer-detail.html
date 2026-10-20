@@ -27,53 +27,16 @@
   <div class="top-actions"><a class="btn" href="/pages/admin-buyers.html">購入者管理へ戻る</a></div>
 </header>
 
-<p class="preview-note">画面確認用のサンプルデータです。アカウント状態の操作は画面内の表示のみを変更します。</p>
+<p class="preview-note">登録済みの購入者アカウントをデータベースから取得して表示します。</p>
 <section class="section">
-<div class="section-head"><div><h2>登録購入者</h2><p>氏名・メールアドレス・アカウント状態で絞り込み</p></div><span class="muted">サンプル 6件</span></div>
+<div class="section-head"><div><h2>登録購入者</h2><p>氏名・メールアドレス・アカウント状態で絞り込み</p></div><span class="muted">登録データ</span></div>
 <div class="admin-filterbar"><label>購入者を検索<input id="buyer-search" type="search" placeholder="氏名・メールアドレス"></label><label>アカウント状態<select id="buyer-status"><option value="">すべて</option><option>利用中</option><option>確認中</option><option>一時停止</option></select></label><span id="buyer-count" class="muted">6件</span></div>
-<div class="panel admin-table-scroll"><table class="table" id="buyer-table"><thead><tr><th>購入者</th><th>登録日</th><th>購入数</th><th>累計購入額</th><th>アカウント</th><th>詳細</th></tr></thead><tbody>
-<tr><td><strong>山田 玲奈</strong><small>buyer@example.com</small></td><td>2026.08.14</td><td>12</td><td class="money">¥18,420</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1028">詳細を見る</a></td></tr>
-<tr><td><strong>佐藤 健</strong><small>member@example.com</small></td><td>2026.07.29</td><td>7</td><td class="money">¥9,860</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1027">詳細を見る</a></td></tr>
-<tr><td><strong>Studio N</strong><small>studio@example.com</small></td><td>2026.07.18</td><td>3</td><td class="money">¥6,400</td><td><span class="tag warn">確認中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1026">詳細を見る</a></td></tr>
-<tr><td><strong>高橋 美咲</strong><small>misaki@example.com</small></td><td>2026.06.30</td><td>21</td><td class="money">¥32,780</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1025">詳細を見る</a></td></tr>
-<tr><td><strong>映像ラボ</strong><small>lab@example.com</small></td><td>2026.06.12</td><td>1</td><td class="money">¥980</td><td><span class="tag danger">一時停止</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1024">詳細を見る</a></td></tr>
-<tr><td><strong>田中 悠</strong><small>yu@example.com</small></td><td>2026.05.22</td><td>5</td><td class="money">¥7,200</td><td><span class="tag ok">利用中</span></td><td><a class="btn small" href="/pages/admin-buyer-profile.html?buyer=VM-B1023">詳細を見る</a></td></tr>
-</tbody></table></div>
+<div class="panel admin-table-scroll"><table class="table" id="buyer-table"><thead><tr><th>購入者</th><th>登録日</th><th>購入数</th><th>累計購入額</th><th>アカウント</th></tr></thead><tbody></tbody></table></div>
 </section>
-<script>
-(function(){const table=document.getElementById('buyer-table');const rows=[...table.tBodies[0].rows];const search=document.getElementById('buyer-search');const status=document.getElementById('buyer-status');function filter(){const q=search.value.trim().toLowerCase();let n=0;rows.forEach(row=>{const state=row.cells[4].innerText.trim();const match=row.innerText.toLowerCase().includes(q)&&(!status.value||state.includes(status.value));row.dataset.filtered=match?'':'hidden';row.hidden=!match;if(match)n++;});document.getElementById('buyer-count').textContent=n+'件';}search.addEventListener('input',filter);status.addEventListener('change',filter);filter();})();
-</script>
+
 <footer class="footer">ADMIN ACCESS　•　BUYER MANAGEMENT</footer>
 </main>
 </div>
-<script>
-(function(){
-const tableIds=["buyer-table"];
-tableIds.forEach((id,index)=>{
- const table=document.getElementById(id);if(!table||!table.tBodies.length)return;
- const rows=[...table.tBodies[0].rows];
- rows.forEach(row=>{if(!row.dataset.filtered)row.dataset.filtered=row.hidden?'hidden':'';});
- const pageSize=20;let page=1;
- const nav=document.createElement('nav');nav.className='table-pagination';nav.setAttribute('aria-label','一覧ページ');
- const summary=document.createElement('span');const controls=document.createElement('div');controls.className='pagination-controls';nav.append(summary,controls);
- const host=table.closest('.panel')||table.parentElement;host.appendChild(nav);
- function render(){
-  const matches=rows.filter(row=>row.dataset.filtered!=='hidden');
-  const pages=Math.max(1,Math.ceil(matches.length/pageSize));page=Math.min(page,pages);
-  rows.forEach(row=>row.hidden=true);
-  matches.slice((page-1)*pageSize,page*pageSize).forEach(row=>row.hidden=false);
-  summary.textContent=matches.length?((page-1)*pageSize+1)+'–'+Math.min(page*pageSize,matches.length)+'件 / '+matches.length+'件':'0件';
-  controls.replaceChildren();
-  function add(label,target,disabled,active){const b=document.createElement('button');b.type='button';b.className='pagination-button'+(active?' active':'');b.textContent=label;b.disabled=disabled;if(active)b.setAttribute('aria-current','page');b.addEventListener('click',()=>{page=target;render();});controls.appendChild(b);}
-  add('前へ',page-1,page===1,false);
-  const set=new Set([1,pages,page-1,page,page+1].filter(n=>n>=1&&n<=pages));let previous=0;
-  [...set].sort((a,b)=>a-b).forEach(n=>{if(previous&&n-previous>1){const e=document.createElement('span');e.className='pagination-ellipsis';e.textContent='…';controls.appendChild(e);}add(String(n),n,false,n===page);previous=n;});
-  add('次へ',page+1,page===pages,false);
- }
- const filters=table.closest('.panel').querySelectorAll('input,select');
- filters.forEach(el=>{el.addEventListener('input',()=>{page=1;render();});el.addEventListener('change',()=>{page=1;render();});});
- render();
-});
-})();
-</script><script src="/shared/site-branding.js"></script></body>
+<script src="/app/admin/buyer-management.js"></script>
+<script src="/shared/site-branding.js"></script></body>
 </html>
