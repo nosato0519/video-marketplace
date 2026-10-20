@@ -28,6 +28,7 @@ function createStripeProvider() {
   const successUrl = process.env.STRIPE_SUCCESS_URL;
   const cancelUrl = process.env.STRIPE_CANCEL_URL;
   if (!successUrl || !cancelUrl) throw new Error('stripe_redirect_urls_not_configured');
+  validateStripeRedirectUrls(successUrl, cancelUrl);
   const stripe = new Stripe(secretKey);
   return {
     name: 'stripe', configured: true,
@@ -48,6 +49,25 @@ function createStripeProvider() {
       return { provider: 'stripe', orderId, amount, currency: normalizedCurrency, idempotencyKey, paymentId: metadata.paymentId, sessionId: session.id, url: session.url, status: session.status };
     },
   };
+}
+
+function validateStripeRedirectUrls(successUrl, cancelUrl) {
+  let success;
+  let cancel;
+  try {
+    success = new URL(successUrl);
+    cancel = new URL(cancelUrl);
+  } catch {
+    throw new Error('stripe_redirect_url_invalid');
+  }
+  for (const url of [success, cancel]) {
+    if (url.protocol !== 'https:' || url.username || url.password) {
+      throw new Error('stripe_redirect_url_must_be_https');
+    }
+  }
+  if (success.searchParams.has('orderId') || success.searchParams.has('session_id')) {
+    throw new Error('stripe_success_url_must_not_include_checkout_parameters');
+  }
 }
 
 function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
