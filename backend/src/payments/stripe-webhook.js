@@ -59,7 +59,9 @@ export function createStripeWebhookHandler({
         payloadHash,
         orderId: payload.orderId,
       });
-      if (recorded.duplicate) return res.status(200).json({ received: true, duplicate: true });
+      if (recorded.duplicate && recorded.event?.status === 'processed') {
+        return res.status(200).json({ received: true, duplicate: true });
+      }
 
       const input = {
         eventId: payload.eventId,
