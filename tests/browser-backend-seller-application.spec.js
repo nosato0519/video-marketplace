@@ -126,7 +126,7 @@ test.describe('role-specific registration acceptance', () => {
     expect((await me.json()).user).toMatchObject({ role: 'seller', status: 'active' });
 
     await page.goto(appUrl + '#/browse');
-    await expect(page).toHaveURL(/#\\/browse/);
+    await expect(page).toHaveURL(/#\/browse/);
     const sellerOrderHistory = await page.request.get(backendUrl + '/api/orders');
     expect(sellerOrderHistory.ok()).toBeTruthy();
   });
