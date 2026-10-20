@@ -103,20 +103,11 @@ function bindSellerRegistration() {
     submit.disabled = true;
 
     try {
-      try {
-        await authApi.register(email, password);
-      } catch (error) {
-        if (error.body?.error?.code !== 'EMAIL_ALREADY_REGISTERED') throw error;
-
-        const result = await authApi.login(email, password);
-        if (result.user?.role !== 'buyer') {
-          await authApi.logout();
-          throw new Error('購入者アカウントでログインしてから販売者申請を行ってください。');
-        }
-      }
-
-      await authApi.sellerApplication(creatorName, creatorName, 'JP');
-      message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者としてログインできます。';
+      const legalName = formElement.elements['legal-name'].value.trim();
+      const countryCode = formElement.elements['country-code'].value.trim().toUpperCase();
+      if (!legalName || !/^[A-Z]{2}$/.test(countryCode)) throw new Error('法的氏名と国/地域コードを入力してください。');
+      await authApi.registerSeller(email, password, creatorName, legalName, countryCode);
+      message.textContent = '販売者登録申請を受け付けました。運営者の承認後、販売者・購入者の両方の機能を利用できます。';
       formElement.reset();
     } catch (error) {
       message.textContent = (typeof error.body?.error === 'string' ? error.body.error : error.body?.error?.message) || error.message || '登録に失敗しました。';
