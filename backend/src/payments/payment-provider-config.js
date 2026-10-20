@@ -7,18 +7,15 @@ const SECRET_ENV_BY_PROVIDER = Object.freeze({
 export function getConfigurablePaymentProviders() {
   return getPaymentProviderCatalog()
     .filter((config) => config.status === 'available')
-    .map((config) => {
-    const id = config.id;
-    return {
-      id,
+    .map((config) => ({
+      id: config.id,
       name: config.name,
       regions: [...config.regions],
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
       status: config.status,
-      configured: Boolean(process.env[SECRET_ENV_BY_PROVIDER[id]]),
-      secretEnv: SECRET_ENV_BY_PROVIDER[id],
-    };
-  });
+      configured: Boolean(process.env[SECRET_ENV_BY_PROVIDER[config.id]]),
+      secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
+    }));
 }
 
 export function getPaymentProviderSecretEnv(providerId) {
