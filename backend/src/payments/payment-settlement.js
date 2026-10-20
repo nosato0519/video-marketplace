@@ -1,52 +1,74 @@
-import { query } from '../db.js';
+import { withTransaction } from '../db.js';
 import { grantPurchasedVideoAccess } from '../orders/grant-entitlement.js';
 
 export async function settleSuccessfulPayment({ paymentId, orderId, providerPaymentId } = {}) {
   if (!paymentId || !orderId) throw new Error('payment_settlement_identifiers_required');
 
-  const payment = await query(
-    `UPDATE payments
-        SET status = 'succeeded',
-            provider_payment_id = COALESCE($1, provider_payment_id)
-      WHERE id = $2
-        AND order_id = $3
-        AND status <> 'succeeded'
-      RETURNING id, order_id, user_id, status`,
-    [providerPaymentId ?? null, paymentId, orderId]
-  );
+  return withTransaction(async (client) => {
+    const order = await client.query(
+      'SELECT id, status FROM orders WHERE id = $1 FOR UPDATE',
+      [orderId]
+    );
+    if (order.rowCount === 0) throw new Error('order_not_found');
+    if (['refunded', 'cancelled'].includes(order.rows[0].status)) {
+      throw new Error('payment_order_not_settleable');
+    }
 
-  if (payment.rowCount === 0) {
-    const existing = await query(
+    const payment = await client.query(
       `SELECT id, order_id, user_id, status
          FROM payments
-        WHERE id = $1 AND order_id = $2`,
+        WHERE id = $1 AND order_id = $2
+        FOR UPDATE`,
       [paymentId, orderId]
     );
-    if (existing.rowCount === 0) throw new Error('payment_not_found');
-    if (existing.rows[0].status !== 'succeeded') throw new Error('payment_not_settled');
-  }
+    if (payment.rowCount === 0) throw new Error('payment_not_found');
+    const currentPayment = payment.rows[0];
+    if (['refunded', 'failed', 'cancelled'].includes(currentPayment.status)) {
+      throw new Error('payment_not_settleable');
+    }
 
-  await query(
-    `UPDATE orders
-        SET status = 'paid', paid_at = COALESCE(paid_at, NOW())
-      WHERE id = $1
-        AND status <> 'paid'`,
-    [orderId]
-  );
+    if (currentPayment.status !== 'succeeded') {
+      await client.query(
+        `UPDATE payments
+            SET status = 'succeeded',
+                provider_payment_id = COALESCE($1, provider_payment_id)
+          WHERE id = $2 AND order_id = $3`,
+        [providerPaymentId ?? null, paymentId, orderId]
+      );
+    } else if (providerPaymentId) {
+      await client.query(
+        `UPDATE payments
+            SET provider_payment_id = COALESCE(provider_payment_id, $1)
+          WHERE id = $2 AND order_id = $3`,
+        [providerPaymentId, paymentId, orderId]
+      );
+    }
 
-  const entitlement = await grantPurchasedVideoAccess({ orderId });
+    if (order.rows[0].status !== 'paid') {
+      const updatedOrder = await client.query(
+        `UPDATE orders
+            SET status = 'paid', paid_at = COALESCE(paid_at, NOW())
+          WHERE id = $1 AND status = 'pending'
+          RETURNING id`,
+        [orderId]
+      );
+      if (updatedOrder.rowCount === 0) throw new Error('payment_order_not_settleable');
+    }
 
-  await query(
-    `INSERT INTO seller_earnings
-      (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
-     SELECT p.seller_id, o.id, o.product_id, o.amount, 0, o.amount, o.currency, 'available'
-       FROM orders o
-       JOIN products p ON p.id = o.product_id
-      WHERE o.id = $1
-        AND o.status = 'paid'
-     ON CONFLICT (order_id, product_id) DO NOTHING`,
-    [orderId]
-  );
+    const entitlement = await grantPurchasedVideoAccess({ orderId });
 
-  return { paymentId, orderId, entitlementId: entitlement.id, status: 'settled' };
+    await client.query(
+      `INSERT INTO seller_earnings
+        (seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status)
+       SELECT p.seller_id, o.id, o.product_id, o.amount, 0, o.amount, o.currency, 'available'
+         FROM orders o
+         JOIN products p ON p.id = o.product_id
+        WHERE o.id = $1
+          AND o.status = 'paid'
+       ON CONFLICT (order_id, product_id) DO NOTHING`,
+      [orderId]
+    );
+
+    return { paymentId, orderId, entitlementId: entitlement.id, status: 'settled' };
+  });
 }
