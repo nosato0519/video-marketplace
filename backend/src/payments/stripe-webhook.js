@@ -25,7 +25,9 @@ export function createStripeWebhookHandler({
 } = {}) {
   return async function handleStripeWebhook(req, res, next) {
     try {
-      if (!secret) return res.status(503).json({ error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED' } });
+      if (!secret || (!stripe && !process.env.STRIPE_SECRET_KEY)) {
+        return res.status(503).json({ error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED', message: 'Stripe webhook configuration is incomplete' } });
+      }
       const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY);
       const signature = req.get('stripe-signature');
       const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
@@ -94,7 +96,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
   const paymentId = paymentIntentId || object.id;
   let orderId = metadata.orderId || object.client_reference_id;
 
-  if (eventType === 'payment_refunded' && object.payment_intent) {
+  if (eventType === 'payment_refunded' && paymentIntentId) {
     if (!object.refunded) {
       return {
         eventId: event.id,
@@ -110,7 +112,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
     }
 
     if (!orderId) {
-      const paymentIntent = await stripe.paymentIntents.retrieve(String(object.payment_intent));
+      const paymentIntent = await stripe.paymentIntents.retrieve(String(paymentIntentId));
       orderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
     }
   }
