@@ -24,7 +24,6 @@ import sellerMediaUploadRoutes from './media/media-upload-route.js';
 import sellerProfileRoutes from './seller/profile-routes.js';
 import sellerEarningsRoutes from './seller/earnings-routes.js';
 import sellerPayoutRoutes from './seller/payout-routes.js';
-import sellerApplicationRoutes from './seller/application-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
 import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
@@ -80,7 +79,6 @@ export function createApp() {
   registerLibraryRoutes(app);
   app.use('/api', contentReportRoutes);
   app.use('/api/messages', messageRoutes);
-  app.use('/api/seller', sellerApplicationRoutes);
   app.use('/api/seller', sellerProductRoutes);
   app.use('/api/seller/media', sellerMediaUploadRoutes);
   app.use('/api/seller', sellerProfileRoutes);
