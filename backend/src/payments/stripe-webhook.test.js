@@ -136,3 +136,28 @@ test('ignores unsupported Stripe event types without touching the payment ledger
   });
   assert.equal(recordCalls, 0);
 });
+
+test('retries settlement when a duplicate event is still pending', async () => {
+  let completeCalls = 0;
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => ({
+      duplicate: true,
+      event: { status: 'pending' },
+    }),
+    completePayment: async () => { completeCalls += 1; return { duplicate: false }; },
+    failPayment: async () => { throw new Error('should_not_fail'); },
+  });
+  const body = JSON.stringify(makeEvent());
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
+    });
+    assert.equal(response.status, 200);
+  });
+  assert.equal(completeCalls, 1);
+});
+
