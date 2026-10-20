@@ -31,7 +31,7 @@ Stripeの画面名は変更されることがあるため、最新の画面操�
 | `STRIPE_CANCEL_URL` | `https://あなたのドメイン/pages/video-list.html` |
 
 - `あなたのドメイン` は、実際に公開するHTTPSドメインに置き換えます。
-- `STRIPE_SUCCESS_URL` と `STRIPE_CANCEL_URL` は公開HTTPS URLを指定します。末尾に固定の注文番号を付ける必要はありません。システムが決済対象の注文番号とStripe Checkout session IDを成功URLへ付加します。
+- `STRIPE_SUCCESS_URL` と `STRIPE_CANCEL_URL` は公開HTTPS URLを指定します。`STRIPE_SUCCESS_URL` に `orderId` や `session_id` のクエリパラメーターをあらかじめ付けないでください。システムが決済対象の注文番号とStripe Checkout session IDを成功URLへ付加するため、固定値を設定すると戻り先の注文情報が一致しない原因になります。
 - Stripe用Webhookでは `STRIPE_WEBHOOK_SECRET` を使用します。`PAYMENT_WEBHOOK_SECRET` はStripe endpointの署名検証には使用しません。
 - APIキーや署名シークレットをGitHub、ソースコード、ログ、ブラウザー側のコードに保存しないでください。
 - 環境変数を保存した後、APIサービスを再デプロイまたは再起動します。
