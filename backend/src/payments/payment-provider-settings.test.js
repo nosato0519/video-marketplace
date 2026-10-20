@@ -29,7 +29,7 @@ test('configures a buyer-owned provider without returning credentials', () => {
 test('rejects a provider outside the selected region', () => {
   assert.throws(
     () => configurePaymentProvider({ ownerId: 'buyer-1', providerId: 'paypay', region: 'global', currency: 'JPY', credentials: { secret: 'buyer-secret' } }),
-    /payment_provider_region_unsupported:paypay:global/
+    /payment_provider_adapter_not_ready:paypay/
   );
 });
 
