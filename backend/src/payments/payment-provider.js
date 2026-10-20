@@ -24,7 +24,7 @@ function createUnavailableProvider(config) {
 
 function createStripeProvider() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) throw new Error('payment_provider_not_configured:stripe');
+  if (!secretKey || !process.env.STRIPE_WEBHOOK_SECRET) throw new Error('payment_provider_not_configured:stripe');
   const successUrl = process.env.STRIPE_SUCCESS_URL;
   const cancelUrl = process.env.STRIPE_CANCEL_URL;
   if (!successUrl || !cancelUrl) throw new Error('stripe_redirect_urls_not_configured');
