@@ -220,32 +220,59 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       );
       await pool.query('COMMIT');
 
-      await page.goto(`${appUrl}#/register`);
-      await page.getByLabel('Email').fill(email);
-      await page.getByLabel('Password').fill('TestPassword!123');
-      await page.getByRole('button', { name: /Register|Create account/i }).click();
-      await expect(page).toHaveURL(/#\/browse/);
+      await page.goto('http://127.0.0.1:4173/pages/seller-register.html');
+      await page.getByLabel('クリエイター名').fill('Approved Seller Buyer');
+      await page.getByLabel('法的氏名').fill('Approved Seller Buyer Legal');
+      await page.getByLabel('国/地域コード（2文字）').fill('JP');
+      await page.getByLabel('メールアドレス').fill(email);
+      await page.getByLabel('パスワード', { exact: true }).fill('TestPassword!123');
+      await page.getByLabel('パスワード（確認）').fill('TestPassword!123');
+      await page.getByLabel(/利用規約・プライバシーポリシーに同意する/).check();
+      await page.getByRole('button', { name: '販売者アカウントを作成' }).click();
+      await expect(page.locator('#seller-register-message')).toContainText('運営者の承認後');
 
       const registeredUser = await pool.query(
-        'SELECT id FROM users WHERE email_normalized = $1 LIMIT 1',
+        'SELECT id, password_hash, role, status FROM users WHERE email_normalized = $1 LIMIT 1',
         [email.toLowerCase()],
       );
       expect(registeredUser.rows).toHaveLength(1);
       ids.sellerBuyer = registeredUser.rows[0].id;
+      expect(registeredUser.rows[0]).toMatchObject({ role: 'seller', status: 'suspended' });
 
-      // Promote only the test fixture to seller role while retaining its valid registered session.
+      const adminEmail = `admin-${crypto.randomUUID()}@example.com`;
       await pool.query(
-        `UPDATE users SET role = 'seller' WHERE id = $1`,
-        [ids.sellerBuyer],
-      );
-      await pool.query(
-        `INSERT INTO seller_profiles (user_id, display_name, legal_name, country_code, verification_status)
-         VALUES ($1, 'Seller Buyer', 'Seller Buyer Legal', 'JP', 'verified')`,
-        [ids.sellerBuyer],
+        `INSERT INTO users (email, email_normalized, password_hash, role, status)
+         VALUES ($1, $1, $2, 'admin', 'active')`,
+        [adminEmail, registeredUser.rows[0].password_hash],
       );
 
-      await page.reload();
-      await page.goto(`${appUrl}#/browse`);
+      await page.goto(`${appUrl}#/login`);
+      await page.getByLabel('Email').fill(adminEmail);
+      await page.getByLabel('Password').fill('TestPassword!123');
+      await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
+      await expect(page).toHaveURL(/#\\/browse/);
+      await page.goto(`${appUrl}#/admin/seller-applications`);
+      await expect(page.getByRole('heading', { name: /Seller applications/i })).toBeVisible();
+      const applicationRow = page.locator('tbody tr').filter({ hasText: email }).first();
+      await expect(applicationRow).toBeVisible();
+      await applicationRow.locator('select[data-action]').selectOption('approve');
+      await applicationRow.getByRole('button', { name: 'Apply' }).click();
+      await expect.poll(async () => {
+        const result = await pool.query('SELECT status FROM users WHERE id = $1', [ids.sellerBuyer]);
+        return result.rows[0]?.status;
+      }).toBe('active');
+
+      await page.goto(`${appUrl}#/login`);
+      await page.getByLabel('Email').fill(email);
+      await page.getByLabel('Password').fill('TestPassword!123');
+      await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
+      await expect(page).toHaveURL(/#\\/browse/);
+      const approvedSeller = await pool.query(
+        'SELECT role, status FROM users WHERE id = $1 LIMIT 1',
+        [ids.sellerBuyer],
+      );
+      expect(approvedSeller.rows[0]).toMatchObject({ role: 'seller', status: 'active' });
+
       await expect(page.getByText('Seller Buyer E2E Product', { exact: true })).toBeVisible();
       await page.getByText('Seller Buyer E2E Product', { exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
