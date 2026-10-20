@@ -26,7 +26,11 @@
       <p class="auth-lead">動画を販売するためのアカウントを作成してください。</p>
       <form id="seller-register-form">
         <label for="creator-name">クリエイター名</label>
-        <input id="creator-name" name="creator-name" type="text" autocomplete="name" placeholder="表示する名前を入力" required>
+        <input id="creator-name" name="creator-name" type="text" autocomplete="nickname" maxlength="120" placeholder="表示する名前を入力" required>
+        <label for="legal-name">法的氏名</label>
+        <input id="legal-name" name="legal-name" type="text" autocomplete="name" maxlength="200" placeholder="本人確認に使用する氏名" required>
+        <label for="country-code">国/地域コード（2文字）</label>
+        <input id="country-code" name="country-code" type="text" autocomplete="country" minlength="2" maxlength="2" pattern="[A-Za-z]{2}" value="JP" required>
         <label for="email">メールアドレス</label>
         <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
         <label for="password">パスワード</label>
