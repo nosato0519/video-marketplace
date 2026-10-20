@@ -36,7 +36,8 @@ function makeEvent(overrides = {}) {
         amount_total: 1000,
         currency: 'jpy',
         payment_intent: 'pi_test_1',
-        metadata: { orderId: 'order_123', paymentId: 'pi_test_1' },
+        payment_status: 'paid',
+        metadata: { orderId: 'order_123', paymentId: 'internal_payment_row_123' },
       },
     },
     ...overrides,
@@ -68,6 +69,30 @@ test('accepts a valid Stripe signature and normalizes checkout completion', asyn
   assert.equal(calls[1][0], 'complete');
   assert.equal(calls[1][1].orderId, 'order_123');
   assert.equal(calls[1][1].providerPaymentId, 'pi_test_1');
+});
+
+test('ignores a completed Checkout session until Stripe reports it paid', async () => {
+  let recordCalls = 0;
+  const event = makeEvent();
+  event.data.object.payment_status = 'unpaid';
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    completePayment: async () => { throw new Error('must_not_complete'); },
+    failPayment: async () => {},
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { received: true, ignored: true, reason: 'payment_not_paid' });
+  });
+  assert.equal(recordCalls, 0);
 });
 
 test('rejects an invalid Stripe signature before settlement', async () => {
