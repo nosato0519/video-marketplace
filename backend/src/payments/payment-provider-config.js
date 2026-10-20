@@ -22,6 +22,7 @@ export function getConfigurablePaymentProviders() {
       name: config.name,
       regions: [...config.regions],
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
+      status: config.status,
       configured: Boolean(process.env[SECRET_ENV_BY_PROVIDER[id]]),
       secretEnv: SECRET_ENV_BY_PROVIDER[id],
     };
@@ -35,6 +36,9 @@ export function getPaymentProviderSecretEnv(providerId) {
 export function validatePaymentProviderConfig({ providerId, credentials }) {
   const config = getPaymentProviderConfig(providerId);
   if (!config) throw new Error(`unsupported_payment_provider:${providerId}`);
+  if (config.status !== 'available') {
+    throw new Error(`payment_provider_adapter_not_ready:${providerId}`);
+  }
   if (!credentials || typeof credentials !== 'object') throw new Error('payment_credentials_required');
 
   const secretEnv = SECRET_ENV_BY_PROVIDER[providerId];
