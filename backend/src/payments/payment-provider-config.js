@@ -13,7 +13,7 @@ export function getConfigurablePaymentProviders() {
       regions: [...config.regions],
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
       status: config.status,
-      configured: Boolean(process.env[SECRET_ENV_BY_PROVIDER[config.id]]),
+      configured: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.STRIPE_SUCCESS_URL && process.env.STRIPE_CANCEL_URL),
       secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
     }));
 }
