@@ -1,7 +1,8 @@
 const ZERO_DECIMAL_CURRENCIES = new Set([
-  'BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF',
+  'BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','VND','VUV','XAF','XOF','XPF',
 ]);
 const THREE_DECIMAL_CURRENCIES = new Set(['BHD', 'JOD', 'KWD', 'OMR', 'TND']);
+// Stripe represents ISK and UGX with two decimal places, but fractional currency units are not allowed.
 const TWO_DECIMAL_ZERO_VALUE_CURRENCIES = new Set(['ISK', 'UGX']);
 
 export function stripeCurrencyMinorUnitFactor(currency) {
