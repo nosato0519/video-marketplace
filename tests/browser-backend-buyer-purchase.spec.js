@@ -188,6 +188,8 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     const mediaPath = path.join(mediaDir, mediaFilename);
     const fixture = Buffer.from('browser-backend-seller-buyer-fixture');
 
+    const adminEmail = `admin-${crypto.randomUUID()}@example.com`;
+
     try {
       fs.mkdirSync(mediaDir, { recursive: true });
       fs.writeFileSync(mediaPath, fixture);
@@ -239,7 +241,6 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       ids.sellerBuyer = registeredUser.rows[0].id;
       expect(registeredUser.rows[0]).toMatchObject({ role: 'seller', status: 'suspended' });
 
-      const adminEmail = `admin-${crypto.randomUUID()}@example.com`;
       await pool.query(
         `INSERT INTO users (email, email_normalized, password_hash, role, status)
          VALUES ($1, $1, $2, 'admin', 'active')`,
@@ -315,6 +316,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       await pool.query('DELETE FROM seller_profiles WHERE user_id = $1', [ids.productOwner]).catch(() => {});
       await pool.query('DELETE FROM seller_profiles WHERE user_id = $1', [ids.sellerBuyer]).catch(() => {});
       await pool.query('DELETE FROM users WHERE id = $1', [ids.productOwner]).catch(() => {});
+      await pool.query('DELETE FROM users WHERE email_normalized = $1', [adminEmail.toLowerCase()]).catch(() => {});
       await pool.query('DELETE FROM users WHERE id = $1', [ids.sellerBuyer]).catch(() => {});
       fs.rmSync(mediaPath, { force: true });
       await pool.end();
