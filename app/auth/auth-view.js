@@ -121,7 +121,7 @@ if (document.getElementById('seller-register-form')) {
   bindSellerRegistration();
 }
 
-function bindSellerLogin() {
+function bindRoleLogin() {
   const formElement = document.getElementById('role-login-form');
   if (!formElement) return;
 
@@ -217,5 +217,5 @@ if (document.getElementById('admin-setup-form')) {
   bindAdminSetup();
 }
 if (document.getElementById('role-login-form')) {
-  bindSellerLogin();
+  bindRoleLogin();
 }
