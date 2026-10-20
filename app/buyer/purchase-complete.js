@@ -48,15 +48,26 @@ try {
   if (!order) throw new Error("注文情報が見つかりません。購入履歴から注文をご確認ください。");
 
   const isPaid = order.status === "paid";
-  const hasAccess = (libraryResult.items || []).some((item) => String(item.order_id) === String(order.orderId));
-  heading.textContent = isPaid
-    ? (hasAccess ? "購入が完了しました" : "決済が完了しました")
-    : "決済状況を確認しています";
-  lead.textContent = isPaid
-    ? (hasAccess
+  const isCancelled = ["cancelled", "failed"].includes(order.status);
+  const isRefunded = order.status === "refunded";
+  const hasAccess = isPaid && (libraryResult.items || []).some((item) => String(item.order_id) === String(order.orderId));
+
+  if (isPaid) {
+    heading.textContent = hasAccess ? "購入が完了しました" : "決済が完了しました";
+    lead.textContent = hasAccess
       ? "購入した動画はマイライブラリから確認できます。"
-      : "決済は完了していますが、ライブラリへの反映を確認できません。時間をおいて再読み込みしてください。")
-    : "決済の確定を待っています。購入履歴で注文状況をご確認ください。";
+      : "決済は完了していますが、ライブラリへの反映を確認できません。時間をおいて再読み込みしてください。";
+  } else if (isRefunded) {
+    heading.textContent = "返金が完了しました";
+    lead.textContent = "返金処理が完了しました。この注文で購入した作品の視聴権限は取り消されています。";
+  } else if (isCancelled) {
+    heading.textContent = "決済は完了していません";
+    lead.textContent = "この注文はキャンセルされています。購入を続ける場合は、動画一覧から作品を選び直してください。";
+  } else {
+    heading.textContent = "決済状況を確認しています";
+    lead.textContent = "決済の確定を待っています。購入履歴で注文状況をご確認ください。";
+  }
+
   orderNumber.textContent = "注文番号 #" + order.orderId;
   list.replaceChildren();
 
@@ -80,11 +91,13 @@ try {
   article.append(thumb, info, detail);
   list.append(article);
 
+  const paymentStatus = isPaid ? "完了" : isRefunded ? "返金済み" : isCancelled ? "キャンセル" : String(order.status || "確認中");
+  const accessStatus = hasAccess ? "可能" : isRefunded || isCancelled ? "不可" : "未確認";
   summary.replaceChildren(
     summaryValue("商品数", "1", "作品"),
     summaryValue("購入金額", money(order.amount, order.currency), order.currency || "JPY"),
-    summaryValue("決済", isPaid ? "完了" : String(order.status || "確認中"), "注文ステータス"),
-    summaryValue("視聴", hasAccess ? "可能" : "未確認", "マイライブラリ")
+    summaryValue("決済", paymentStatus, "注文ステータス"),
+    summaryValue("視聴", accessStatus, "マイライブラリ")
   );
 } catch (error) {
   if (error.status === 401) {
