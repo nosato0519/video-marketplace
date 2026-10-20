@@ -161,3 +161,75 @@ test('retries settlement when a duplicate event is still pending', async () => {
   assert.equal(completeCalls, 1);
 });
 
+
+test('ignores partial refund events without changing payment state', async () => {
+  let refundCalls = 0;
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { throw new Error('partial_refund_must_not_be_recorded'); },
+    refundPayment: async () => { refundCalls += 1; },
+  });
+  const event = makeEvent({
+    type: 'charge.refunded',
+    data: { object: {
+      id: 'ch_test_partial',
+      object: 'charge',
+      amount: 1000,
+      currency: 'jpy',
+      refunded: false,
+      payment_intent: 'pi_test_1',
+      metadata: { orderId: 'order_123' },
+    } },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      received: true, ignored: true, reason: 'partial_refund_not_supported',
+    });
+  });
+  assert.equal(refundCalls, 0);
+});
+
+test('routes a full refund event to the refund settlement handler', async () => {
+  const calls = [];
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async (input) => { calls.push(['record', input]); return { duplicate: false }; },
+    refundPayment: async (input) => { calls.push(['refund', input]); return { duplicate: false }; },
+  });
+  const event = makeEvent({
+    type: 'charge.refunded',
+    data: { object: {
+      id: 'ch_test_full',
+      object: 'charge',
+      amount: 1000,
+      currency: 'jpy',
+      refunded: true,
+      payment_intent: 'pi_test_1',
+      metadata: { orderId: 'order_123' },
+    } },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
+    });
+    assert.equal(response.status, 200);
+  });
+
+  assert.equal(calls[0][0], 'record');
+  assert.equal(calls[0][1].eventType, 'payment_refunded');
+  assert.equal(calls[1][0], 'refund');
+  assert.equal(calls[1][1].providerPaymentId, 'pi_test_1');
+  assert.equal(calls[1][1].orderId, 'order_123');
+});
