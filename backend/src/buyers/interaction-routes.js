@@ -17,7 +17,7 @@ async function replaceItems(userId, table, ids) {
     if (allowedIds.length) {
       await client.query(
         `INSERT INTO ${table} (user_id, product_id)
-         SELECT $1, product_id FROM unnest($2::uuid[]) AS product_id
+         SELECT $1, item.product_id FROM unnest($2::uuid[]) AS item(product_id)
          ON CONFLICT (user_id, product_id) DO NOTHING`,
         [userId, allowedIds]
       );
