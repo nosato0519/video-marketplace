@@ -84,6 +84,12 @@ test.describe('role-specific registration acceptance', () => {
     });
     expect(duplicateBuyer.status()).toBe(409);
     expect((await duplicateBuyer.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
+
+    const pendingLogin = await page.request.post(backendUrl + '/api/auth/login', {
+      data: { email, password },
+    });
+    expect(pendingLogin.status()).toBe(401);
+    expect((await pendingLogin.json()).error.code).toBe('INVALID_CREDENTIALS');
   });
 
   test('operator approval activates seller without converting buyer account', async ({ page }) => {
