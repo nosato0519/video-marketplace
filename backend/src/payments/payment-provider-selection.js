@@ -21,6 +21,9 @@ export function selectPaymentProvider({ providerId, region = 'global', currency 
 
   const provider = getPaymentProviderConfig(providerId);
   if (!provider) throw new Error(`unsupported_payment_provider:${providerId}`);
+  if (provider.status !== 'available') {
+    throw new Error(`payment_provider_adapter_not_ready:${providerId}`);
+  }
   if (!provider.regions.includes(region)) {
     throw new Error(`payment_provider_region_unsupported:${providerId}:${region}`);
   }
