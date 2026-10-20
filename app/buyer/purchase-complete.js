@@ -37,10 +37,14 @@ try {
   if (!order) throw new Error("注文情報が見つかりません。購入履歴から注文をご確認ください。");
 
   const isPaid = order.status === "paid";
-  const hasAccess = (libraryResult.items || []).some((item) => String(item.product_id) === String(order.productId));
-  heading.textContent = isPaid ? "購入が完了しました" : "決済状況を確認しています";
+  const hasAccess = (libraryResult.items || []).some((item) => String(item.order_id) === String(order.orderId));
+  heading.textContent = isPaid
+    ? (hasAccess ? "購入が完了しました" : "決済が完了しました")
+    : "決済状況を確認しています";
   lead.textContent = isPaid
-    ? "購入した動画はマイライブラリから確認できます。"
+    ? (hasAccess
+      ? "購入した動画はマイライブラリから確認できます。"
+      : "決済は完了していますが、ライブラリへの反映を確認できません。時間をおいて再読み込みしてください。")
     : "決済の確定を待っています。購入履歴で注文状況をご確認ください。";
   orderNumber.textContent = "注文番号 #" + order.orderId;
   list.replaceChildren();
