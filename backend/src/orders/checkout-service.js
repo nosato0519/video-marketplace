@@ -2,7 +2,7 @@ import { query } from '../db.js';
 import { ORDER_STATES } from './order-state.js';
 import { buildCheckoutReference } from './create-order-policy.js';
 import { buildCheckoutIdempotencyKey } from './checkout-session-idempotency.js';
-import { resolveProviderForOrder } from '../payments/payment-owner-routing.js';
+import { createPaymentProvider } from '../payments/payment-provider.js';
 import { createPendingPayment } from '../payments/payment-ledger.js';
 
 export async function getPendingOrderForCheckout({ orderId, userId }) {
@@ -31,17 +31,19 @@ export async function createCheckoutSession({ orderId, userId, providerId = null
   const order = await getPendingOrderForCheckout({ orderId, userId });
   if (!order) throw new Error('order_not_found');
 
-  const paymentRoute = await resolveProviderForOrder({
-    order,
-    product: { id: order.product_id, seller_id: order.seller_id },
-    providerId,
-  });
-  const provider = paymentRoute.provider;
+  const selectedProvider = providerId || process.env.PAYMENT_PROVIDER;
+  if (!selectedProvider) throw new Error('payment_provider_required');
+
+  const provider = createPaymentProvider({ provider: selectedProvider });
+  if (!provider.configured) {
+    throw new Error(`payment_provider_adapter_not_ready:${provider.name}`);
+  }
+
   const reference = buildCheckoutReference({ order });
   const idempotencyKey = buildCheckoutIdempotencyKey({ orderId: order.id });
   const payment = await createPendingPayment({
     order,
-    provider: paymentRoute.providerId,
+    provider: provider.name,
     idempotencyKey,
   });
 
@@ -56,7 +58,7 @@ export async function createCheckoutSession({ orderId, userId, providerId = null
         reference,
         paymentId: payment.id,
         sellerId: order.seller_id,
-        providerId: paymentRoute.providerId,
+        providerId: provider.name,
       },
     });
   } catch (error) {
