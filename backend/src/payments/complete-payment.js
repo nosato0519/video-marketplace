@@ -56,6 +56,9 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     if (String(currentPayment.currency).toUpperCase() !== String(current.currency).toUpperCase()) {
       throw new Error('payment_currency_mismatch');
     }
+    if (['failed', 'refunded', 'cancelled'].includes(currentPayment.status)) {
+      throw new Error('payment_not_settleable');
+    }
 
     if (current.status === ORDER_STATES.PAID) {
       await client.query(
