@@ -48,7 +48,7 @@ test.describe('seller browser acceptance', () => {
     expect(sellerApiCalls).toBe(0);
 
     await page.goto(appUrl('#/seller/register'));
-    await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '販売者登録' })).toBeVisible();
   });
 
   test('seller can save profile and submit verification', async ({ page }) => {
