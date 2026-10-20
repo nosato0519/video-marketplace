@@ -112,9 +112,9 @@ test.describe('real backend buyer purchase browser acceptance', () => {
         headers: { 'content-type': 'application/json' },
         data: {},
       });
-      expect(checkoutResponse.status()).toBe(409);
+      expect(checkoutResponse.status()).toBe(503);
       const checkoutBody = await checkoutResponse.json();
-      expect(checkoutBody.error.code).toBe('PAYMENT_PROVIDER_NOT_CONFIGURED');
+      expect(checkoutBody.error.code).toBe('PAYMENT_PROVIDER_REQUIRED');
 
       const ordersResponse = await page.request.get(`${backendUrl}/api/orders`);
       expect(ordersResponse.ok()).toBeTruthy();
