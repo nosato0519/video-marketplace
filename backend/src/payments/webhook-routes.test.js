@@ -84,13 +84,15 @@ test('processes a valid payment_succeeded webhook through the completion boundar
   assert.equal(calls[1][0], 'complete');
 });
 
-test('does not complete a duplicate webhook event', async () => {
+test('does not complete an already processed duplicate webhook event', async () => {
   process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
   let recordCalls = 0;
   let completeCalls = 0;
   const recordPaymentEvent = async () => {
     recordCalls += 1;
-    return { duplicate: recordCalls > 1 };
+    return recordCalls === 1
+      ? { duplicate: false, event: { status: 'received' } }
+      : { duplicate: true, event: { status: 'processed' } };
   };
   const completePayment = async () => {
     completeCalls += 1;
@@ -109,6 +111,40 @@ test('does not complete a duplicate webhook event', async () => {
 
   assert.equal(recordCalls, 2);
   assert.equal(completeCalls, 1);
+});
+
+test('retries an unprocessed duplicate webhook event after an earlier settlement failure', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  let recordCalls = 0;
+  let completeCalls = 0;
+  const recordPaymentEvent = async () => {
+    recordCalls += 1;
+    return recordCalls === 1
+      ? { duplicate: false, event: { status: 'received' } }
+      : { duplicate: true, event: { status: 'received' } };
+  };
+  const completePayment = async () => {
+    completeCalls += 1;
+    if (completeCalls === 1) throw new Error('temporary_settlement_failure');
+    return { duplicate: false, order: { id: 'order_123', status: 'paid' } };
+  };
+  const body = JSON.stringify(payload({ eventId: 'evt_retry_http_1', paymentId: 'pay_retry_1' }));
+  const headers = { 'content-type': 'application/json', 'x-payment-signature': sign(body) };
+
+  await withServer(async (baseUrl) => {
+    const first = await fetch(`${baseUrl}/api/payments/webhook`, { method: 'POST', headers, body });
+    assert.equal(first.status, 500);
+
+    const retry = await fetch(`${baseUrl}/api/payments/webhook`, { method: 'POST', headers, body });
+    assert.equal(retry.status, 200);
+    assert.deepEqual(await retry.json(), {
+      received: true,
+      result: { duplicate: false, order: { id: 'order_123', status: 'paid' } },
+    });
+  }, { recordPaymentEvent, completePayment });
+
+  assert.equal(recordCalls, 2);
+  assert.equal(completeCalls, 2);
 });
 
 test('rejects a same-event-id webhook whose payload has been changed', async () => {
