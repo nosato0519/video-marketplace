@@ -45,6 +45,12 @@ test.describe('role-specific registration acceptance', () => {
     });
     expect(applicationResponse.status()).toBe(403);
 
+    const duplicateSeller = await page.request.post(backendUrl + '/api/auth/register-seller', {
+      data: { email, password, displayName: 'Duplicate Seller', legalName: 'Duplicate Legal Name', countryCode: 'JP' },
+    });
+    expect(duplicateSeller.status()).toBe(409);
+    expect((await duplicateSeller.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
+
     const me = await page.request.get(backendUrl + '/api/auth/me');
     expect(me.ok()).toBeTruthy();
     expect((await me.json()).user).toMatchObject({ role: 'buyer', status: 'active' });
@@ -72,6 +78,12 @@ test.describe('role-specific registration acceptance', () => {
     expect(duplicate.status()).toBe(409);
     expect((await duplicate.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
     expect((await page.request.get(backendUrl + '/api/auth/me')).status()).toBe(401);
+
+    const duplicateBuyer = await page.request.post(backendUrl + '/api/auth/register', {
+      data: { email, password, displayName: 'Duplicate Buyer' },
+    });
+    expect(duplicateBuyer.status()).toBe(409);
+    expect((await duplicateBuyer.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
   });
 
   test('operator approval activates seller without converting buyer account', async ({ page }) => {
@@ -112,5 +124,10 @@ test.describe('role-specific registration acceptance', () => {
     const me = await page.request.get(backendUrl + '/api/auth/me');
     expect(me.ok()).toBeTruthy();
     expect((await me.json()).user).toMatchObject({ role: 'seller', status: 'active' });
+
+    await page.goto(appUrl + '#/browse');
+    await expect(page).toHaveURL(/#\\/browse/);
+    const sellerOrderHistory = await page.request.get(backendUrl + '/api/orders');
+    expect(sellerOrderHistory.ok()).toBeTruthy();
   });
 });
