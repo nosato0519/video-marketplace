@@ -15,13 +15,15 @@ test('keeps payment connections isolated by buyer', () => {
 });
 
 test('never exposes the credential reference through buyer settings', () => {
-  saveBuyerPaymentConnection({ buyerId: 'buyer-safe', providerId: 'paypal', credentialRef: 'secret-ref' });
+  saveBuyerPaymentConnection({ buyerId: 'buyer-safe', providerId: 'stripe', credentialRef: 'secret-ref' });
   const settings = getBuyerPaymentConnections('buyer-safe');
   assert.equal(Object.prototype.hasOwnProperty.call(settings[0], 'credentialRef'), false);
 });
 
-test('supports removing one buyer provider connection', () => {
-  saveBuyerPaymentConnection({ buyerId: 'buyer-remove', providerId: 'adyen', credentialRef: 'ref-remove' });
-  assert.equal(removeBuyerPaymentConnection({ buyerId: 'buyer-remove', providerId: 'adyen' }), true);
+test('rejects buyer connections for payment providers that are not implemented', () => {
+  assert.throws(
+    () => saveBuyerPaymentConnection({ buyerId: 'buyer-remove', providerId: 'adyen', credentialRef: 'ref-remove' }),
+    /payment_provider_adapter_not_ready:adyen/
+  );
   assert.deepEqual(getBuyerPaymentConnections('buyer-remove'), []);
 });
