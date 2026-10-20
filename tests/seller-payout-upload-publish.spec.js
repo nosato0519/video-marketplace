@@ -64,7 +64,7 @@ test.describe('seller business browser acceptance', () => {
 
   test('seller can publish and unpublish a product with a ready protected video', async ({ page }) => {
     await mockSellerSession(page);
-    let status = 'approved';
+    let status = 'draft';
     await page.route('**/api/seller/products', async (route) => {
       if (route.request().method() === 'GET') {
         await json(route, { products: [{ id: 'product-1', title: 'Demo Seller Video', description: 'Demo', price_amount: 1500, price_currency: 'JPY', status, media_asset_id: 'media-1', media_status: 'ready', media_original_filename: 'demo.webm', media_byte_size: 1048576 }] });
@@ -79,7 +79,7 @@ test.describe('seller business browser acceptance', () => {
     });
     await page.route('**/api/seller/products/product-1/unpublish', async (route) => {
       expect(route.request().method()).toBe('POST');
-      status = 'approved';
+      status = 'draft';
       await json(route, { product: { id: 'product-1', title: 'Demo Seller Video', status } });
     });
     await page.goto(appUrl('#/seller/products'));
