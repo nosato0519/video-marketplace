@@ -127,6 +127,39 @@ export function registerAuthRoutes(app) {
     }
   });
 
+  app.post('/api/auth/register-seller', authRegisterRateLimit, async (req, res, next) => {
+    try {
+      const email = normalizeEmail(req.body?.email);
+      const password = req.body?.password;
+      const displayName = typeof req.body?.displayName === 'string' ? req.body.displayName.trim() : '';
+      const legalName = typeof req.body?.legalName === 'string' ? req.body.legalName.trim() : '';
+      const countryCode = typeof req.body?.countryCode === 'string' ? req.body.countryCode.trim().toUpperCase() : '';
+      if (!validEmail(email) || !validPassword(password) || !displayName || displayName.length > 120 || !legalName || legalName.length > 200 || !/^[A-Z]{2}$/.test(countryCode)) {
+        return res.status(400).json({ error: { code: 'INVALID_SELLER_REGISTRATION', message: 'A valid email, password, creator name, legal name, and two-letter country code are required' } });
+      }
+      const result = await withTransaction(async (client) => {
+        const userResult = await client.query(
+          `INSERT INTO users (email, email_normalized, password_hash, display_name, role, status)
+           VALUES ($1, $2, $3, $4, 'seller', 'suspended')
+           RETURNING id, email, display_name, role, status`,
+          [email, email, hashPassword(password), displayName]
+        );
+        const user = userResult.rows[0];
+        const applicationResult = await client.query(
+          `INSERT INTO seller_applications (user_id, display_name, legal_name, country_code)
+           VALUES ($1, $2, $3, $4)
+           RETURNING id, user_id, status, display_name, legal_name, country_code, submitted_at`,
+          [user.id, displayName, legalName, countryCode]
+        );
+        return { application: applicationResult.rows[0] };
+      });
+      return res.status(201).json({ application: result.application, message: 'Seller registration received. Operator approval is required before account access is enabled.' });
+    } catch (error) {
+      if (error.code === '23505') return res.status(409).json({ error: { code: 'EMAIL_ALREADY_REGISTERED', message: 'Email is already registered' } });
+      return next(error);
+    }
+  });
+
   app.post('/api/auth/admin-setup', adminSetupRateLimit, async (req, res, next) => {
     try {
       if (!process.env.ADMIN_SETUP_TOKEN) {
