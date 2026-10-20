@@ -167,10 +167,25 @@ async function applyVerificationCardVisibility() {
   }
 }
 
-loadDashboard().catch((error) => {
-  if (error.status === 401) window.location.href = '/pages/seller-login.html';
-});
-applyVerificationCardVisibility();
+async function initializeSellerDashboard() {
+  try {
+    const { user } = await request('/api/auth/me', { cache: 'no-store' });
+    if (user?.role !== 'seller' || user?.status !== 'active') {
+      window.location.replace('/pages/seller-login.html');
+      return;
+    }
+    loadDashboard().catch((error) => {
+      if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html';
+    });
+    applyVerificationCardVisibility();
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.replace('/pages/seller-login.html');
+    }
+  }
+}
+
+initializeSellerDashboard();
 </script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
