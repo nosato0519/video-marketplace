@@ -26,7 +26,7 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
   if (!idempotencyKey) throw new Error('payment_idempotency_key_required');
 
   const retryKey = `order:${order.id}:retry:${randomUUID()}`;
-  const retryWithNewProviderSession = await query(
+  const retry = await query(
     `UPDATE payments
         SET status = 'pending',
             idempotency_key = $1,
@@ -34,25 +34,10 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
       WHERE order_id = $2
         AND provider = $3
         AND status = 'failed'
-        AND provider_payment_id IS NOT NULL
       RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
     [retryKey, order.id, provider]
   );
-  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
-
-  const retryAfterLocalFailure = await query(
-    `UPDATE payments
-        SET status = 'pending',
-            idempotency_key = $1,
-            provider_payment_id = NULL
-      WHERE order_id = $2
-        AND provider = $3
-        AND status = 'failed'
-        AND provider_payment_id IS NULL
-      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [idempotencyKey, order.id, provider]
-  );
-  if (retryAfterLocalFailure.rowCount > 0) return retryAfterLocalFailure.rows[0];
+  if (retry.rowCount > 0) return retry.rows[0];
 
   return createPendingPayment({ order, provider, idempotencyKey });
 }
