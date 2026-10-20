@@ -64,7 +64,7 @@ For a consistent sales presentation, follow `SALES_DEMO_SCRIPT.md`.
 2. Copy `backend/.env.example` to `backend/.env`.
 3. Configure `DATABASE_URL` and a strong `SESSION_SECRET`.
 4. Configure production storage.
-5. Configure payment credentials and webhook signing secret.
+5. Configure Stripe credentials, success/cancel URLs, and the signed webhook endpoint using `docs/PAYMENTS.md`.
 6. From `backend/`, run `npm install`.
 7. Run `npm run migrate:preflight` and `npm run migrate`.
 8. Deploy the API and frontend behind HTTPS/reverse proxy.
