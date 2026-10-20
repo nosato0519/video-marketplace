@@ -38,7 +38,8 @@ export const authApi = {
 
 export async function loginForRole({ email, password, role, redirectTo }) {
   const result = await authApi.login(email, password);
-  if (result.user?.role !== role) {
+  const allowedRoles = Array.isArray(role) ? role : [role];
+  if (!allowedRoles.includes(result.user?.role)) {
     await authApi.logout();
     const error = new Error('This account does not have access to this area.');
     error.code = 'ROLE_NOT_ALLOWED';
