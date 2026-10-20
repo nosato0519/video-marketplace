@@ -1,4 +1,4 @@
-import { getPaymentProviderConfig } from './payment-provider-catalog.js';
+import { getPaymentProviderCatalog, getPaymentProviderConfig } from './payment-provider-catalog.js';
 
 const SECRET_ENV_BY_PROVIDER = Object.freeze({
   stripe: 'STRIPE_SECRET_KEY',
@@ -9,14 +9,10 @@ const SECRET_ENV_BY_PROVIDER = Object.freeze({
 });
 
 export function getConfigurablePaymentProviders() {
-  return [
-    'stripe',
-    'paypal',
-    'adyen',
-    'paddle',
-    'paypay',
-  ].map((id) => {
-    const config = getPaymentProviderConfig(id);
+  return getPaymentProviderCatalog()
+    .filter((config) => config.status === 'available')
+    .map((config) => {
+    const id = config.id;
     return {
       id,
       name: config.name,
