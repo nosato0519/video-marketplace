@@ -2,10 +2,6 @@ import { getPaymentProviderCatalog, getPaymentProviderConfig } from './payment-p
 
 const SECRET_ENV_BY_PROVIDER = Object.freeze({
   stripe: 'STRIPE_SECRET_KEY',
-  paypal: 'PAYPAL_CLIENT_SECRET',
-  adyen: 'ADYEN_API_KEY',
-  paddle: 'PADDLE_API_KEY',
-  paypay: 'PAYPAY_API_KEY',
 });
 
 export function getConfigurablePaymentProviders() {
