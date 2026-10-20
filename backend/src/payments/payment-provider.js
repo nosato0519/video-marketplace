@@ -39,7 +39,7 @@ function createStripeProvider() {
         mode: 'payment', client_reference_id: orderId,
         line_items: [{ price_data: { currency: normalizedCurrency.toLowerCase(), product_data: { name: 'Video Marketplace purchase' }, unit_amount: unitAmount }, quantity: 1 }],
         metadata: { orderId, paymentId: String(metadata.paymentId), ...(metadata.reference ? { reference: String(metadata.reference) } : {}) },
-        success_url: withStripeSessionId(successUrl), cancel_url: cancelUrl,
+        success_url: withStripeSessionId(successUrl, orderId), cancel_url: cancelUrl,
       }, { idempotencyKey });
       if (!session.id || !session.url) throw new Error('stripe_checkout_response_invalid');
       return { provider: 'stripe', orderId, amount, currency: normalizedCurrency, idempotencyKey, paymentId: metadata.paymentId, sessionId: session.id, url: session.url, status: session.status };
@@ -56,8 +56,17 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
 }
 
-function withStripeSessionId(url) {
+function withStripeSessionId(url, orderId) {
   const value = String(url);
-  if (value.includes('{CHECKOUT_SESSION_ID}')) return value;
-  return `${value}${value.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
+  const hashIndex = value.indexOf('#');
+  const base = hashIndex === -1 ? value : value.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? '' : value.slice(hashIndex);
+  const params = [];
+  if (!/[?&]orderId=/.test(base)) params.push('orderId=' + encodeURIComponent(String(orderId)));
+  if (!base.includes('session_id=') && !base.includes('{CHECKOUT_SESSION_ID}')) {
+    params.push('session_id={CHECKOUT_SESSION_ID}');
+  }
+  if (!params.length) return value;
+  const separator = base.includes('?') ? (/[?&]$/.test(base) ? '' : '&') : '?';
+  return base + separator + params.join('&') + hash;
 }
