@@ -87,3 +87,29 @@ test('seller login rejects buyer accounts and opens the seller dashboard for sel
   await page.getByRole('button', { name: 'ログイン' }).click();
   await expect(page).toHaveURL(/\/seller\/dashboard\.html$/);
 });
+
+
+test('approved seller can sign in through buyer login and open buyer pages', async ({ page }) => {
+  await page.route('**/api/auth/login', async (route) => {
+    const { email } = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: { id: 'seller-1', email, role: 'seller', status: 'active' } }),
+    });
+  });
+  await page.route('**/api/auth/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller', status: 'active' } }),
+    });
+  });
+
+  await page.goto('/pages/buyer-login.html');
+  await page.getByLabel('メールアドレス').fill('seller@example.test');
+  await page.getByLabel('パスワード').fill('SellerPassword123!');
+  await page.getByRole('button', { name: 'ログイン' }).click();
+
+  await expect(page).toHaveURL(/\\/pages\\/buyer\\.html$/);
+});
