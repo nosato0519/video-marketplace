@@ -133,6 +133,14 @@ test.describe('role-specific registration acceptance', () => {
 
     await page.goto(appUrl + '#/browse');
     await expect(page).toHaveURL(/#\/browse/);
+
+    await page.goto('http://127.0.0.1:4173/pages/buyer-login.html');
+    await page.getByLabel('メールアドレス').fill(sellerEmail);
+    await page.getByLabel('パスワード').fill(password);
+    await page.getByRole('button', { name: 'ログイン' }).click();
+    await expect(page).toHaveURL(/\/pages\/buyer\.html$/);
+    await expect(page.getByRole('heading', { name: '購入者マイページ' })).toBeVisible();
+
     const sellerOrderHistory = await page.request.get(backendUrl + '/api/orders');
     expect(sellerOrderHistory.ok()).toBeTruthy();
   });
