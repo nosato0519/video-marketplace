@@ -34,11 +34,6 @@ export const authApi = {
   }),
   me: () => request('/api/auth/me'),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
-  sellerApplication: (displayName, legalName, countryCode, message = null) => request('/api/seller/application', {
-    method: 'POST',
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ displayName, legalName, countryCode, message })
-  }),
 };
 
 export async function loginForRole({ email, password, role, redirectTo }) {
