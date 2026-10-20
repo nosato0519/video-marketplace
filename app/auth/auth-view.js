@@ -127,6 +127,9 @@ function bindRoleLogin() {
 
   const isBuyerLogin = window.location.pathname === '/pages/buyer-login.html';
   const message = document.getElementById('login-message');
+  if (isBuyerLogin && new URLSearchParams(window.location.search).get('account') === 'closed') {
+    message.textContent = '退会手続きが完了しました。アカウントは無効化されています。';
+  }
   formElement.addEventListener('submit', async (event) => {
     event.preventDefault();
     const submit = formElement.querySelector('button[type="submit"]');
