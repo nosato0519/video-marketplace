@@ -27,6 +27,7 @@ import sellerPayoutRoutes from './seller/payout-routes.js';
 import adminPayoutRoutes from './admin/payout-routes.js';
 import adminSellerVerificationRoutes from './admin/seller-verification-routes.js';
 import adminSellerApplicationRoutes from './admin/seller-application-routes.js';
+import adminBuyerManagementRoutes from './admin/buyer-management-routes.js';
 import adminContentModerationRoutes from './admin/content-moderation-routes.js';
 import adminSettingsRoutes from './admin/settings-routes.js';
 import contentReportRoutes from './content-report-routes.js';
@@ -87,6 +88,7 @@ export function createApp() {
   app.use('/api/admin', adminPayoutRoutes);
   app.use('/api/admin', adminSellerVerificationRoutes);
   app.use('/api/admin', adminSellerApplicationRoutes);
+  app.use('/api/admin', adminBuyerManagementRoutes);
   app.use('/api/admin', adminContentModerationRoutes);
   app.use('/api/admin', adminSettingsRoutes);
   registerPaymentProviderRoutes(app, { requireAdmin: requireRole('admin') });
