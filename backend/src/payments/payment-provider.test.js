@@ -133,3 +133,33 @@ test('rejects checkout amounts that exceed currency precision instead of roundin
   assert.throws(() => fromStripeMinorUnits(550, 'ISK'), /stripe_amount_precision_invalid/);
   assert.throws(() => fromStripeMinorUnits(550, 'UGX'), /stripe_amount_precision_invalid/);
 });
+
+test('Stripe checkout rejects insecure or malformed redirect URLs', () => {
+  const names = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_CANCEL_URL'];
+  const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
+  process.env.STRIPE_SECRET_KEY = 'test-stripe-key';
+  process.env.STRIPE_WEBHOOK_SECRET = 'test-webhook-secret';
+  process.env.STRIPE_SUCCESS_URL = 'http://example.com/success';
+  process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
+  try {
+    assert.throws(
+      () => createPaymentProvider({ provider: 'stripe' }),
+      /stripe_redirect_url_must_be_https/
+    );
+    process.env.STRIPE_SUCCESS_URL = 'https://example.com/success?orderId=stale';
+    assert.throws(
+      () => createPaymentProvider({ provider: 'stripe' }),
+      /stripe_success_url_must_not_include_checkout_parameters/
+    );
+    process.env.STRIPE_SUCCESS_URL = 'not-a-url';
+    assert.throws(
+      () => createPaymentProvider({ provider: 'stripe' }),
+      /stripe_redirect_url_invalid/
+    );
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
