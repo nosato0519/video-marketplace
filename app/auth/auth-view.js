@@ -125,6 +125,7 @@ function bindSellerLogin() {
   const formElement = document.getElementById('role-login-form');
   if (!formElement) return;
 
+  const isBuyerLogin = window.location.pathname === '/pages/buyer-login.html';
   const message = document.getElementById('login-message');
   formElement.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -132,16 +133,21 @@ function bindSellerLogin() {
     submit.disabled = true;
     message.textContent = 'ログインしています…';
 
+    const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
+    const redirectTo = isBuyerLogin
+      ? (requestedNext.startsWith('/pages/checkout.html?productId=') ? requestedNext : '/pages/buyer.html')
+      : '/seller/dashboard.html';
+
     try {
       await loginForRole({
         email: formElement.elements.email.value,
         password: formElement.elements.password.value,
-        role: 'seller',
-        redirectTo: '/seller/dashboard.html',
+        role: isBuyerLogin ? ['buyer', 'seller'] : 'seller',
+        redirectTo,
       });
     } catch (error) {
       message.textContent = error.code === 'ROLE_NOT_ALLOWED'
-        ? '販売者アカウントではありません。'
+        ? (isBuyerLogin ? '購入者ページを利用できるアカウントではありません。' : '販売者アカウントではありません。')
         : (error.body?.error?.message || 'ログインできませんでした。');
       submit.disabled = false;
     }
