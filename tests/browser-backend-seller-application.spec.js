@@ -55,6 +55,13 @@ test.describe('role-specific registration acceptance', () => {
     expect(me.ok()).toBeTruthy();
     expect((await me.json()).user).toMatchObject({ role: 'buyer', status: 'active' });
     expect((await page.request.get(backendUrl + '/api/seller/products')).status()).toBe(403);
+
+    await page.goto('http://127.0.0.1:4173/pages/seller-login.html');
+    await page.getByLabel('メールアドレス').fill(email);
+    await page.getByLabel('パスワード').fill(password);
+    await page.getByRole('button', { name: 'ログイン' }).click();
+    await expect(page.locator('#login-message')).toContainText('販売者アカウントではありません。');
+    await expect(page).toHaveURL(/pages\/seller-login\.html$/);
   });
 
   test('seller registration creates a pending seller and rejects duplicate email', async ({ page }) => {
