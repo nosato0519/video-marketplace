@@ -1,71 +1,68 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Payment settings</title>
+  <title>決済設定</title>
   <style>
-    body{font-family:system-ui,sans-serif;max-width:960px;margin:40px auto;padding:0 20px;background:#f7f7f8;color:#171717}
+    body{font-family:system-ui,sans-serif;max-width:880px;margin:40px auto;padding:0 20px;background:#f7f7f8;color:#171717;line-height:1.65}
     .card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:20px;margin:14px 0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-    label{display:block;font-weight:600;margin:12px 0 6px} select,input,button{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:9px;font:inherit}
-    button{cursor:pointer;background:#171717;color:#fff;margin-top:16px}.muted{color:#666;font-size:.9rem}.status{margin-top:12px;padding:10px;border-radius:8px;background:#f0f0f0}
+    .muted{color:#666;font-size:.94rem}.status{padding:12px;border-radius:8px;background:#f0f0f0}
+    code{overflow-wrap:anywhere;background:#f2f2f2;padding:2px 5px;border-radius:4px}
+    ul{padding-left:1.4rem}
   </style>
 </head>
 <body>
-  <h1>Payment settings</h1>
-  <p class="muted">Connect your own payment provider. Secret credentials are sent to the server and are never displayed back in this page.</p>
+  <h1>決済設定</h1>
+  <p class="muted">決済サービスの接続情報は、バックエンドAPIサービスの環境変数で管理します。この画面やブラウザーからAPIキーを入力・保存することはありません。</p>
 
-  <section class="card">
-    <h2>Choose provider</h2>
-    <div class="grid">
-      <div><label for="region">Region</label><select id="region"><option value="global">Global / Overseas</option><option value="japan">Japan</option></select></div>
-      <div><label for="currency">Currency</label><input id="currency" value="USD" maxlength="3" autocomplete="off"></div>
-      <div><label for="provider">Payment provider</label><select id="provider"></select></div>
-    </div>
+  <section class="card" aria-labelledby="provider-heading">
+    <h2 id="provider-heading">利用可能な決済サービス</h2>
+    <div id="provider-status" class="status" role="status">設定状態を読み込み中です…</div>
   </section>
 
   <section class="card">
-    <h2>Connect your account</h2>
-    <label for="secret">Provider secret / API credential</label>
-    <input id="secret" type="password" autocomplete="new-password" placeholder="Enter your provider credential">
-    <button id="configure">Validate and save provider</button>
-    <div id="status" class="status" hidden></div>
+    <h2>接続設定の手順</h2>
+    <ol>
+      <li>決済事業者のアカウントを準備し、まずはテストモードを使用します。</li>
+      <li>ホスティング事業者のバックエンドAPIサービスの環境変数に、次の値を登録します。</li>
+    </ol>
+    <ul>
+      <li><code>PAYMENT_PROVIDER=stripe</code></li>
+      <li><code>STRIPE_SECRET_KEY</code></li>
+      <li><code>STRIPE_WEBHOOK_SECRET</code></li>
+      <li><code>STRIPE_SUCCESS_URL</code></li>
+      <li><code>STRIPE_CANCEL_URL</code></li>
+    </ul>
+    <p>Stripe Webhookの送信先は、公開ドメインの <code>/api/payments/stripe/webhook</code> です。必要なイベント、テストから本番への切り替え、確認項目は導入ガイド <code>docs/PAYMENTS.md</code> を参照してください。</p>
+    <p class="muted">このバージョンで実装済みの決済アダプターはStripeです。販売者ごとの決済アカウントへの直接入金（Stripe Connect）は、この設定には含まれません。</p>
   </section>
 
   <script>
-    const region = document.querySelector('#region');
-    const currency = document.querySelector('#currency');
-    const provider = document.querySelector('#provider');
-    const secret = document.querySelector('#secret');
-    const status = document.querySelector('#status');
+    const status = document.querySelector('#provider-status');
 
-    async function loadProviders(){
-      const params = new URLSearchParams({region: region.value, currency: currency.value.trim().toUpperCase()});
-      const response = await fetch('/api/admin/payment-providers?' + params);
-      if(!response.ok) throw new Error('Unable to load payment providers');
-      const data = await response.json();
-      provider.replaceChildren(...data.providers.map((item)=>{
-        const option=document.createElement('option'); option.value=item.id; option.textContent=item.name; return option;
-      }));
+    async function loadPaymentStatus() {
+      try {
+        const response = await fetch('/api/admin/payment-providers', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error('決済設定の状態を取得できませんでした。');
+        const stripe = (data.providers || []).find((item) => item.id === 'stripe');
+        if (!stripe) {
+          status.textContent = '利用可能な決済アダプターがありません。導入ガイドとバックエンドの設定を確認してください。';
+          return;
+        }
+        status.textContent = stripe.configured
+          ? 'Stripe：必要な環境変数が設定されています。テストモードで決済とWebhookを確認してから本番公開してください。'
+          : 'Stripe：接続設定が未完了です。バックエンドAPIサービスに必要な環境変数を登録し、再デプロイしてください。';
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : '決済設定の状態を取得できませんでした。';
+      }
     }
 
-    async function configure(){
-      status.hidden=false; status.textContent='Validating…';
-      const response = await fetch('/api/admin/payment-providers/configure', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({providerId:provider.value, region:region.value, currency:currency.value.trim().toUpperCase(), credentials:{secret:secret.value}})
-      });
-      const data = await response.json().catch(()=>({}));
-      if(!response.ok) { status.textContent=data.error || 'Configuration failed'; return; }
-      secret.value='';
-      status.textContent='Provider configured successfully.';
-    }
-
-    region.addEventListener('change', loadProviders);
-    currency.addEventListener('change', loadProviders);
-    document.querySelector('#configure').addEventListener('click', configure);
-    loadProviders().catch((error)=>{status.hidden=false;status.textContent=error.message});
+    loadPaymentStatus();
   </script>
 </body>
 </html>
