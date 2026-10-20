@@ -151,7 +151,7 @@ test.describe('role-specific registration acceptance', () => {
 
     await page.goto('http://127.0.0.1:4173/seller/product-editor.html');
     await expect(page.getByRole('heading', { name: '新しい動画を登録する' })).toBeVisible();
-    await expect(page).toHaveURL(/\\/seller\\/product-editor\\.html$/);
+    await expect(page).toHaveURL(/product-editor\.html$/);
 
     await page.goto('http://127.0.0.1:4173/pages/buyer-login.html');
     await page.getByLabel('メールアドレス').fill(sellerEmail);
