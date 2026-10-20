@@ -121,75 +121,7 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
-<script src="/shared/site-branding.js"></script><script type="module">
-  import { authApi } from "/app/auth/auth-api.js";
-
-  const form = document.querySelector("#buyer-profile-form");
-  const message = document.querySelector("#profile-message");
-  let currentUser;
-
-  try {
-    const result = await authApi.me();
-    currentUser = result.user;
-    if (currentUser?.role !== "buyer") throw new Error("ROLE_NOT_ALLOWED");
-    form.elements.name.value = currentUser.display_name || "";
-    form.elements.email.value = currentUser.email || "";
-  } catch {
-    window.location.assign("/pages/buyer-login.html");
-  }
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const displayName = form.elements.name.value.trim();
-    const email = form.elements.email.value.trim();
-    const currentPassword = form.elements["current-password"].value;
-    const newPassword = form.elements["new-password"].value;
-    const passwordConfirm = form.elements["new-password-confirm"].value;
-    const submit = form.querySelector('button[type="submit"]');
-
-    if (!displayName) {
-      message.textContent = "お名前を入力してください。";
-      return;
-    }
-    if (newPassword || passwordConfirm) {
-      if (newPassword !== passwordConfirm) {
-        message.textContent = "新しいパスワードが一致しません。";
-        form.elements["new-password-confirm"].focus();
-        return;
-      }
-      if (newPassword.length < 12) {
-        message.textContent = "新しいパスワードは12文字以上で入力してください。";
-        return;
-      }
-    }
-    if ((email !== currentUser.email || newPassword) && !currentPassword) {
-      message.textContent = "メールアドレスまたはパスワードを変更する場合は、現在のパスワードを入力してください。";
-      form.elements["current-password"].focus();
-      return;
-    }
-
-    submit.disabled = true;
-    message.textContent = "登録情報を保存しています…";
-    try {
-      const result = await authApi.updateProfile({
-        displayName,
-        email,
-        currentPassword,
-        newPassword,
-      });
-      currentUser = result.user;
-      form.elements.name.value = currentUser.display_name || "";
-      form.elements.email.value = currentUser.email || "";
-      form.elements["current-password"].value = "";
-      form.elements["new-password"].value = "";
-      form.elements["new-password-confirm"].value = "";
-      message.textContent = "登録情報を保存しました。";
-    } catch (error) {
-      message.textContent = error.body?.error?.message || "登録情報を保存できませんでした。";
-    } finally {
-      submit.disabled = false;
-    }
-  });
-</script>
+<script type="module" src="/app/buyer/account-settings.js"></script>
+<script src="/shared/site-branding.js"></script>
 </body>
 </html>
