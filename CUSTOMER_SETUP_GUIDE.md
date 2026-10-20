@@ -84,7 +84,7 @@ S3 access key はサーバー側専用で、Storage の操作権限が広く RLS
 
 1. Stripeアカウントを作成し、まずテストモードのAPIキーを取得します。
 2. APIサービスの環境変数に `PAYMENT_PROVIDER=stripe`、`STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`STRIPE_SUCCESS_URL`、`STRIPE_CANCEL_URL` を登録します。
-3. Stripe DashboardにWebhook URL `https://あなたのドメイン/api/payments/stripe/webhook` を登録し、`checkout.session.completed`、`checkout.session.async_payment_succeeded`、`checkout.session.async_payment_failed`、`payment_intent.payment_failed`、`charge.refunded` を購読します。
+3. Stripe DashboardにWebhook URL `https://あなたのドメイン/api/payments/stripe/webhook` を登録し、`checkout.session.completed`、`checkout.session.async_payment_succeeded`、`checkout.session.async_payment_failed`、`checkout.session.expired`、`charge.refunded` を購読します。
 4. Webhook署名シークレットを `STRIPE_WEBHOOK_SECRET` に設定し、APIサービスを再デプロイします。
 5. テストモードで決済成功・失敗・返金と、注文・マイライブラリへの反映を確認します。
 6. 本番公開時は本番モードのAPIキーとWebhook署名シークレットに切り替えます。テスト用と本番用のキーを混在させないでください。
