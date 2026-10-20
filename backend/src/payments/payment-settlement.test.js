@@ -16,7 +16,7 @@ test('requires payment and order identifiers', async () => {
   );
 });
 
-test('records seller earnings once for a successful webhook settlement', { skip: !hasDatabase }, async () => {
+test('records seller earnings once and rejects stale success after refund', { skip: !hasDatabase }, async () => {
   const { getPool } = await import('../db.js');
   const pool = getPool();
   const suffix = crypto.randomUUID();
@@ -88,6 +88,37 @@ test('records seller earnings once for a successful webhook settlement', { skip:
       [orderId]
     );
     assert.equal(afterRetry.rows[0].count, 1);
+
+    await pool.query("UPDATE orders SET status = 'refunded' WHERE id = $1", [orderId]);
+    await pool.query("UPDATE payments SET status = 'refunded' WHERE id = $1", [paymentId]);
+    await pool.query(
+      "UPDATE entitlements SET status = 'revoked', revoked_at = NOW() WHERE order_id = $1",
+      [orderId]
+    );
+    await pool.query(
+      "UPDATE seller_earnings SET status = 'refunded' WHERE order_id = $1",
+      [orderId]
+    );
+
+    await assert.rejects(
+      settleSuccessfulPayment({ paymentId, orderId, providerPaymentId }),
+      /payment_order_not_settleable/
+    );
+
+    const protectedState = await pool.query(
+      `SELECT o.status AS order_status, p.status AS payment_status,
+              e.status AS entitlement_status, se.status AS earnings_status
+         FROM orders o
+         JOIN payments p ON p.order_id = o.id
+         JOIN entitlements e ON e.order_id = o.id
+         JOIN seller_earnings se ON se.order_id = o.id AND se.product_id = o.product_id
+        WHERE o.id = $1`,
+      [orderId]
+    );
+    assert.equal(protectedState.rows[0].order_status, 'refunded');
+    assert.equal(protectedState.rows[0].payment_status, 'refunded');
+    assert.equal(protectedState.rows[0].entitlement_status, 'revoked');
+    assert.equal(protectedState.rows[0].earnings_status, 'refunded');
   } finally {
     if (orderId) {
       await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [orderId]).catch(() => {});
