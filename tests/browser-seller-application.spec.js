@@ -111,5 +111,5 @@ test('approved seller can sign in through buyer login and open buyer pages', asy
   await page.getByLabel('パスワード').fill('SellerPassword123!');
   await page.getByRole('button', { name: 'ログイン' }).click();
 
-  await expect(page).toHaveURL(/\\/pages\\/buyer\\.html$/);
+  await expect(page).toHaveURL(/\/pages\/buyer\.html$/);
 });
