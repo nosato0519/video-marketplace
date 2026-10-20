@@ -56,7 +56,7 @@ The buyer must configure their own production environment before going live:
 - PostgreSQL
 - HTTPS and a production reverse proxy/runtime
 - Production object/file storage for video media
-- Payment provider account and webhook signing secret
+- Payment provider account and webhook signing secret (Stripe setup is documented in `docs/PAYMENTS.md`)
 - Secure `SESSION_SECRET`
 - Production database/storage/payment credentials
 
