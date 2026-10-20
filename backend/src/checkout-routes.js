@@ -21,9 +21,6 @@ function checkoutError(error) {
   if (error.message === 'stripe_redirect_urls_not_configured') {
     return { status: 503, body: { error: { code: 'PAYMENT_REDIRECT_URLS_NOT_CONFIGURED', message: 'The payment success and cancel URLs are not configured' } } };
   }
-  if (error.message === 'payment_provider_not_configured_for_owner') {
-    return { status: 409, body: { error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED', message: 'The selected payment provider is not configured for this seller' } } };
-  }
   if (error.message.startsWith('payment_provider_adapter_not_ready:')) {
     const providerId = error.message.split(':')[1] ?? 'unknown';
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_ADAPTER_NOT_READY', message: `Payment provider adapter is not ready: ${providerId}` } } };
@@ -37,7 +34,6 @@ export function registerCheckoutRoutes(app) {
       const session = await createCheckoutSession({
         orderId: req.params.orderId,
         userId: req.user.id,
-        providerId: req.body?.providerId ?? null,
       });
 
       return res.status(200).json({ session });
