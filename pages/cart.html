@@ -102,6 +102,8 @@ const totalNode = document.getElementById('cart-total');
 const clearButton = document.getElementById('cart-clear');
 const checkoutButton = document.getElementById('cart-checkout');
 const message = document.getElementById('cart-message');
+let cartInitialized = false;
+const isProductId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
 function readCart() {
   try {
@@ -120,6 +122,30 @@ function saveCart(ids) {
     message.textContent = 'ブラウザーにカートを保存できません。ブラウザーの保存設定をご確認ください。';
     return false;
   }
+}
+
+async function saveServerCart(ids) {
+  try {
+    await fetch('/api/buyer/cart', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ productIds: [...new Set(ids.filter(isProductId))] })
+    });
+  } catch {}
+}
+
+async function initializeCart() {
+  try {
+    const response = await fetch('/api/buyer/cart', { credentials: 'same-origin', cache: 'no-store' });
+    if (response.ok) {
+      const result = await response.json();
+      const merged = [...new Set([...readCart(), ...(Array.isArray(result.productIds) ? result.productIds : [])])];
+      saveCart(merged);
+      await saveServerCart(merged);
+    }
+  } catch {}
+  cartInitialized = true;
 }
 
 function formatPrice(amount, currency) {
@@ -175,6 +201,7 @@ async function renderCart() {
 
   if (products.length !== ids.length) {
     message.textContent = '公開が終了した作品をカートから除外しました。';
+    await saveServerCart(readCart());
     return renderCart();
   }
 
@@ -197,8 +224,10 @@ async function renderCart() {
     checkoutLink.href = '/pages/checkout.html?productId=' + encodeURIComponent(product.id);
     const remove = element('button', 'cart-remove-link', '削除');
     remove.type = 'button';
-    remove.addEventListener('click', () => {
-      saveCart(readCart().filter((id) => id !== product.id));
+    remove.addEventListener('click', async () => {
+      const ids = readCart().filter((id) => id !== product.id);
+      saveCart(ids);
+      await saveServerCart(ids);
       renderCart();
     });
     actions.append(checkoutLink, remove);
@@ -220,8 +249,9 @@ if (requestedProductId) {
   window.history.replaceState({}, '', '/pages/cart.html');
 }
 
-clearButton.addEventListener('click', () => {
+clearButton.addEventListener('click', async () => {
   saveCart([]);
+  await saveServerCart([]);
   message.textContent = 'カートを空にしました。';
   renderCart();
 });
@@ -235,7 +265,10 @@ checkoutButton.addEventListener('click', () => {
   message.textContent = '現在は一作品ずつ購入手続きに進みます。購入する作品の「この作品を購入」を選択してください。';
 });
 
-renderCart().catch(() => {
+initializeCart().then(() => {
+  if (requestedProductId) saveServerCart(readCart());
+  return renderCart();
+}).catch(() => {
   itemsNode.replaceChildren(element('p', 'announcement-empty', 'カートを読み込めませんでした。時間をおいて再度お試しください。'));
 });
 </script>
