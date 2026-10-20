@@ -2,26 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { listPaymentProviderOptions, selectPaymentProvider } from './payment-provider-selection.js';
 
-test('lists global providers for overseas installations', () => {
+test('lists only implemented global providers for overseas installations', () => {
   const providers = listPaymentProviderOptions({ region: 'global' });
-  assert.deepEqual(providers.map((provider) => provider.id), ['stripe', 'paypal', 'adyen', 'paddle']);
+  assert.deepEqual(providers.map((provider) => provider.id), ['stripe']);
 });
 
-test('lists PayPay for Japan installations', () => {
+test('lists only implemented providers for Japan installations', () => {
   const providers = listPaymentProviderOptions({ region: 'japan', currency: 'JPY' });
-  assert.deepEqual(providers.map((provider) => provider.id), ['stripe', 'paypal', 'adyen', 'paypay']);
+  assert.deepEqual(providers.map((provider) => provider.id), ['stripe']);
 });
 
-test('rejects a provider that is unavailable in the selected region', () => {
+test('rejects providers whose checkout adapter is not implemented', () => {
   assert.throws(
     () => selectPaymentProvider({ providerId: 'paypay', region: 'global', currency: 'USD' }),
-    /payment_provider_region_unsupported:paypay:global/
+    /payment_provider_adapter_not_ready:paypay/
   );
 });
 
-test('rejects an unsupported currency for a regional provider', () => {
+test('does not allow configuring an unimplemented regional provider', () => {
   assert.throws(
-    () => selectPaymentProvider({ providerId: 'paypay', region: 'japan', currency: 'USD' }),
-    /payment_provider_currency_unsupported:paypay:USD/
+    () => selectPaymentProvider({ providerId: 'paypay', region: 'japan', currency: 'JPY' }),
+    /payment_provider_adapter_not_ready:paypay/
   );
 });
