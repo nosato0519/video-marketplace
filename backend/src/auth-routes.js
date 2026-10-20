@@ -355,6 +355,46 @@ export function registerAuthRoutes(app) {
     }
   });
 
+  app.post('/api/auth/delete-account', requireAuth, async (req, res, next) => {
+    try {
+      const password = req.body?.password;
+      if (typeof password !== 'string' || !password) {
+        return res.status(400).json({ error: { code: 'PASSWORD_REQUIRED', message: '退会確認のため、現在のパスワードを入力してください。' } });
+      }
+      if (!['buyer', 'seller'].includes(req.user.role)) {
+        return res.status(403).json({ error: { code: 'ROLE_NOT_ALLOWED', message: 'このアカウントでは退会手続きを利用できません。' } });
+      }
+      const result = await query(
+        'SELECT password_hash FROM users WHERE id = $1 AND role IN (\'buyer\', \'seller\') AND status = \'active\' LIMIT 1',
+        [req.user.id]
+      );
+      if (!result.rows[0]?.password_hash || !verifyPassword(password, result.rows[0].password_hash)) {
+        return res.status(401).json({ error: { code: 'CURRENT_PASSWORD_INVALID', message: '現在のパスワードが正しくありません。' } });
+      }
+
+      await withTransaction(async (client) => {
+        await client.query(
+          `UPDATE users
+              SET email = $1,
+                  email_normalized = $1,
+                  display_name = '退会済みユーザー',
+                  password_hash = NULL,
+                  status = 'disabled',
+                  updated_at = NOW()
+            WHERE id = $2 AND role IN ('buyer', 'seller')`,
+          [`deleted+${req.user.id}@invalid.local`, req.user.id]
+        );
+        await client.query('UPDATE user_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL', [req.user.id]);
+        await client.query('DELETE FROM user_favorites WHERE user_id = $1', [req.user.id]);
+        await client.query('DELETE FROM user_cart_items WHERE user_id = $1', [req.user.id]);
+      });
+      res.clearCookie(SESSION_COOKIE, { ...cookieOptions(), maxAge: 0 });
+      return res.json({ ok: true });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: req.user }));
 
   app.post('/api/auth/logout', async (req, res, next) => {
