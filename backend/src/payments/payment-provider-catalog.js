@@ -11,28 +11,28 @@ export const PAYMENT_PROVIDER_CATALOG = Object.freeze([
     name: 'PayPal',
     regions: ['global', 'japan'],
     currencies: 'multi',
-    status: 'adapter_ready',
+    status: 'not_implemented',
   },
   {
     id: 'adyen',
     name: 'Adyen',
     regions: ['global', 'japan'],
     currencies: 'multi',
-    status: 'adapter_ready',
+    status: 'not_implemented',
   },
   {
     id: 'paddle',
     name: 'Paddle',
     regions: ['global'],
     currencies: 'multi',
-    status: 'adapter_ready',
+    status: 'not_implemented',
   },
   {
     id: 'paypay',
     name: 'PayPay',
     regions: ['japan'],
     currencies: ['JPY'],
-    status: 'adapter_ready',
+    status: 'not_implemented',
   },
 ]);
 
