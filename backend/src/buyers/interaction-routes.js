@@ -13,7 +13,11 @@ async function replaceItems(userId, table, ids) {
       [productIds]
     );
     const allowedIds = visible.rows.map((row) => row.id);
-    await client.query(`DELETE FROM ${table} WHERE user_id = $1`, [userId]);
+    await client.query(
+      `DELETE FROM ${table}
+        WHERE user_id = $1 AND NOT (product_id = ANY($2::uuid[]))`,
+      [userId, allowedIds]
+    );
     if (allowedIds.length) {
       await client.query(
         `INSERT INTO ${table} (user_id, product_id)
@@ -52,8 +56,8 @@ router.put('/favorites', async (req, res, next) => {
   try {
     const ids = parseIds(req.body?.productIds);
     if (!ids) return res.status(400).json({ error: { code: 'INVALID_FAVORITES', message: 'Invalid favorite product list' } });
-    await replaceItems(req.user.id, 'user_favorites', ids);
-    return res.json({ productIds: ids });
+    const productIds = await replaceItems(req.user.id, 'user_favorites', ids);
+    return res.json({ productIds });
   } catch (error) { return next(error); }
 });
 
@@ -75,8 +79,8 @@ router.put('/cart', async (req, res, next) => {
   try {
     const ids = parseIds(req.body?.productIds);
     if (!ids) return res.status(400).json({ error: { code: 'INVALID_CART', message: 'Invalid cart product list' } });
-    await replaceItems(req.user.id, 'user_cart_items', ids);
-    return res.json({ productIds: ids });
+    const productIds = await replaceItems(req.user.id, 'user_cart_items', ids);
+    return res.json({ productIds });
   } catch (error) { return next(error); }
 });
 
