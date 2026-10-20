@@ -4,161 +4,109 @@ import { query } from '../backend/src/db.js';
 
 const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
 const appUrl = 'http://127.0.0.1:4173/app/index.html';
+const sellerRegisterUrl = 'http://127.0.0.1:4173/pages/seller-register.html';
 
 async function registerAndLogin(page, email, password) {
-  await page.goto(`${appUrl}#/register`);
+  await page.goto(appUrl + '#/register');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: /Register|Create account/i }).click();
-  await expect(page).toHaveURL(/#\/browse/);
+  await expect.poll(() => page.url()).toContain('#/browse');
 }
 
 async function login(page, email, password) {
-  await page.goto(`${appUrl}#/login`);
+  await page.goto(appUrl + '#/login');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: /Log in|Login|Sign in/i }).click();
-  await expect(page).toHaveURL(/#\/browse/);
+  await expect.poll(() => page.url()).toContain('#/browse');
 }
 
-test.describe('real backend seller application acceptance', () => {
-  test('new account registration from seller application returns to the application form', async ({ page }) => {
-    const email = `seller-applicant-${crypto.randomUUID()}@example.test`;
-    const password = 'TestPassword!123';
-    const health = await page.request.get(`${backendUrl}/api/health`);
-    expect(health.ok()).toBeTruthy();
+async function registerSeller(page, email, password) {
+  await page.goto(sellerRegisterUrl);
+  await page.getByLabel('クリエイター名').fill('Dedicated Seller Creator');
+  await page.getByLabel('法的氏名').fill('Dedicated Seller Legal Name');
+  await page.getByLabel('国/地域コード（2文字）').fill('JP');
+  await page.getByLabel('メールアドレス').fill(email);
+  await page.getByLabel('パスワード', { exact: true }).fill(password);
+  await page.getByLabel('パスワード（確認）').fill(password);
+  await page.getByLabel(/利用規約・プライバシーポリシーに同意する/).check();
+  await page.getByRole('button', { name: '販売者アカウントを作成' }).click();
+}
 
-    await page.goto(`${appUrl}#/seller/register`);
-    await expect(page.getByRole('heading', { name: 'Login required' })).toBeVisible();
-    await page.getByRole('link', { name: 'Create an account' }).click();
-    await expect(page).toHaveURL(/#\/register\?return=\/seller\/register$/);
-    await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
-    await page.getByRole('button', { name: 'Create account' }).click();
-
-    await expect(page).toHaveURL(/#\/seller\/register$/);
-    await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
-    await page.getByLabel('Display name').fill('Shared Account Creator');
-    await page.getByLabel('Legal name').fill('Shared Account Creator Legal');
-    await page.getByLabel('Country code').fill('JP');
-    await page.getByRole('button', { name: 'Submit application' }).click();
-    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
-
-    const me = await page.request.get(`${backendUrl}/api/auth/me`);
-    expect(me.ok()).toBeTruthy();
-    const meBody = await me.json();
-    expect(meBody.user.email).toBe(email);
-    expect(meBody.user.role).toBe('buyer');
-
-  });
-
-  test('an existing buyer can apply from the seller registration page with the same account', async ({ page }) => {
-    const email = `existing-buyer-${crypto.randomUUID()}@example.test`;
+test.describe('role-specific registration acceptance', () => {
+  test('buyer registration remains buyer-only', async ({ page }) => {
+    const email = 'buyer-' + crypto.randomUUID() + '@example.test';
     const password = 'TestPassword!123';
     await registerAndLogin(page, email, password);
-    await page.evaluate(async () => {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+
+    const applicationResponse = await page.request.post(backendUrl + '/api/seller/application', {
+      data: { displayName: 'Buyer Must Not Become Seller', legalName: 'Buyer Legal Name', countryCode: 'JP' },
     });
+    expect(applicationResponse.status()).toBe(404);
 
-    await page.goto('http://127.0.0.1:4173/pages/seller-register.html');
-    await page.getByLabel('クリエイター名').fill('Existing Buyer Creator');
-    await page.getByLabel('メールアドレス').fill(email);
-    await page.getByLabel('パスワード', { exact: true }).fill(password);
-    await page.getByLabel('パスワード（確認）').fill(password);
-    await page.getByLabel(/利用規約・プライバシーポリシーに同意する/).check();
-    await page.getByRole('button', { name: '販売者アカウントを作成' }).click();
-
-    await expect(page.locator('#seller-register-message')).toContainText('販売者登録申請を受け付けました');
-    const application = await page.evaluate(async () => {
-      const response = await fetch('/api/seller/application', { credentials: 'same-origin' });
-      return { status: response.status, body: await response.json() };
-    });
-    expect(application.status).toBe(200);
-    expect(application.body.application.display_name).toBe('Existing Buyer Creator');
-    const me = await page.evaluate(async () => (await fetch('/api/auth/me', { credentials: 'same-origin' })).json());
-    expect(me.user.email).toBe(email);
-    expect(me.user.role).toBe('buyer');
-  });
-
-  test('buyer registers, logs in, and submits a real seller application', async ({ page }) => {
-    const email = `buyer-${crypto.randomUUID()}@example.test`;
-    const password = 'TestPassword!123';
-    const health = await page.request.get(`${backendUrl}/api/health`);
-    expect(health.ok()).toBeTruthy();
-    await registerAndLogin(page, email, password);
-    await page.goto(`${appUrl}#/seller/register`);
-    await expect(page.getByRole('heading', { name: 'Start selling your videos' })).toBeVisible();
-    await page.getByLabel('Display name').fill('Real Backend Creator');
-    await page.getByLabel('Legal name').fill('Real Backend Creator Legal');
-    await page.getByLabel('Country code').fill('JP');
-    await page.getByLabel(/Message/).fill('Real backend browser acceptance.');
-    await page.getByRole('button', { name: 'Submit application' }).click();
-    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
-    await expect(page.getByText('Real Backend Creator', { exact: true })).toBeVisible();
-    const me = await page.request.get(`${backendUrl}/api/auth/me`);
+    const me = await page.request.get(backendUrl + '/api/auth/me');
     expect(me.ok()).toBeTruthy();
-    const meBody = await me.json();
-    expect(meBody.user.email).toBe(email);
-    expect(meBody.user.role).toBe('buyer');
-
-    const sellerProducts = await page.request.get(`${backendUrl}/api/seller/products`);
-    expect(sellerProducts.status()).toBe(403);
-
-    await page.goto(`${appUrl}#/seller/upload`);
-    await expect(page.getByRole('heading', { name: 'Seller account required' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /upload/i })).toHaveCount(0);
+    expect((await me.json()).user).toMatchObject({ role: 'buyer', status: 'active' });
+    expect((await page.request.get(backendUrl + '/api/seller/products')).status()).toBe(403);
   });
 
-  test('admin reviews the submitted seller application through the real backend', async ({ page }) => {
+  test('seller registration creates a pending seller and rejects duplicate email', async ({ page }) => {
+    const email = 'seller-' + crypto.randomUUID() + '@example.test';
+    const password = 'TestPassword!123';
+    expect((await page.request.get(backendUrl + '/api/health')).ok()).toBeTruthy();
+
+    await registerSeller(page, email, password);
+    await expect(page.locator('#seller-register-message')).toContainText('運営者の承認後');
+    const seller = await query('SELECT id, role, status FROM users WHERE email_normalized = $1 LIMIT 1', [email]);
+    expect(seller.rows).toHaveLength(1);
+    expect(seller.rows[0]).toMatchObject({ role: 'seller', status: 'suspended' });
+
+    const application = await query('SELECT user_id, status, legal_name FROM seller_applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1', [seller.rows[0].id]);
+    expect(application.rows).toHaveLength(1);
+    expect(application.rows[0]).toMatchObject({ status: 'pending', legal_name: 'Dedicated Seller Legal Name' });
+
+    const duplicate = await page.request.post(backendUrl + '/api/auth/register-seller', {
+      data: { email, password, displayName: 'Duplicate Seller', legalName: 'Duplicate Legal Name', countryCode: 'JP' },
+    });
+    expect(duplicate.status()).toBe(409);
+    expect((await duplicate.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
+    expect((await page.request.get(backendUrl + '/api/auth/me')).status()).toBe(401);
+  });
+
+  test('operator approval activates seller without converting buyer account', async ({ page }) => {
     const suffix = crypto.randomUUID();
-    const sellerEmail = `seller-${suffix}@example.test`;
-    const adminEmail = `admin-${suffix}@example.test`;
+    const sellerEmail = 'seller-' + suffix + '@example.test';
+    const buyerEmail = 'buyer-' + suffix + '@example.test';
+    const adminEmail = 'admin-' + suffix + '@example.test';
     const password = 'TestPassword!123';
-    const health = await page.request.get(`${backendUrl}/api/health`);
-    expect(health.ok()).toBeTruthy();
-    await registerAndLogin(page, sellerEmail, password);
-    await page.goto(`${appUrl}#/seller/register`);
-    await page.getByLabel('Display name').fill('Real Backend Admin Review Seller');
-    await page.getByLabel('Legal name').fill('Real Backend Admin Review Seller Legal');
-    await page.getByLabel('Country code').fill('JP');
-    await page.getByLabel(/Message/).fill('Real backend admin review acceptance.');
-    await page.getByRole('button', { name: 'Submit application' }).click();
-    await expect(page.getByRole('heading', { name: 'Pending review' })).toBeVisible();
-    const sellerMe = await page.request.get(`${backendUrl}/api/auth/me`);
-    expect(sellerMe.ok()).toBeTruthy();
-    const sellerBody = await sellerMe.json();
-    expect(sellerBody.user.email).toBe(sellerEmail);
-    expect(sellerBody.user.role).toBe('buyer');
 
-    const sellerRow = await query(`SELECT password_hash FROM users WHERE email_normalized = $1 LIMIT 1`, [sellerEmail]);
-    expect(sellerRow.rows).toHaveLength(1);
-    const adminInsert = await query(
-      `INSERT INTO users (email, email_normalized, password_hash, role, status)
-       VALUES ($1, $1, $2, 'admin', 'active')
-       RETURNING id, email, role, status`,
-      [adminEmail, sellerRow.rows[0].password_hash]
-    );
-    expect(adminInsert.rows[0].role).toBe('admin');
+    await registerSeller(page, sellerEmail, password);
+    await expect(page.locator('#seller-register-message')).toContainText('運営者の承認後');
+    await registerAndLogin(page, buyerEmail, password);
+    const buyerBefore = await query('SELECT role, status FROM users WHERE email_normalized = $1 LIMIT 1', [buyerEmail]);
+    expect(buyerBefore.rows[0]).toMatchObject({ role: 'buyer', status: 'active' });
+
+    const sellerRow = await query('SELECT password_hash, role, status FROM users WHERE email_normalized = $1 LIMIT 1', [sellerEmail]);
+    expect(sellerRow.rows[0]).toMatchObject({ role: 'seller', status: 'suspended' });
+    await query("INSERT INTO users (email, email_normalized, password_hash, role, status) VALUES ($1, $1, $2, 'admin', 'active')", [adminEmail, sellerRow.rows[0].password_hash]);
 
     await login(page, adminEmail, password);
-    await page.goto(`${appUrl}#/admin/seller-applications`);
+    await page.goto(appUrl + '#/admin/seller-applications');
     await expect(page.getByRole('heading', { name: /Seller applications/i })).toBeVisible();
-    const applicationRow = page.locator('tbody tr').filter({ hasText: 'Real Backend Admin Review Seller' }).first();
-    await expect(applicationRow).toBeVisible();
-    await expect(applicationRow).toContainText(sellerEmail);
-    const actionSelect = applicationRow.locator('select[data-action]');
-    await actionSelect.selectOption('approve');
-    await applicationRow.getByRole('button', { name: 'Apply' }).click();
-    const applications = await page.request.get(`${backendUrl}/api/admin/seller-applications?status=approved`);
-    expect(applications.ok()).toBeTruthy();
-    const approvedBody = await applications.json();
-    expect(approvedBody.applications.some((application) => application.email === sellerEmail && application.status === 'approved')).toBe(true);
+    const row = page.locator('tbody tr').filter({ hasText: sellerEmail }).first();
+    await expect(row).toBeVisible();
+    await row.locator('select[data-action]').selectOption('approve');
+    await row.getByRole('button', { name: 'Apply' }).click();
+
+    const approved = await query('SELECT role, status FROM users WHERE email_normalized = $1 LIMIT 1', [sellerEmail]);
+    expect(approved.rows[0]).toMatchObject({ role: 'seller', status: 'active' });
+    const buyerAfter = await query('SELECT role, status FROM users WHERE email_normalized = $1 LIMIT 1', [buyerEmail]);
+    expect(buyerAfter.rows[0]).toMatchObject({ role: 'buyer', status: 'active' });
 
     await login(page, sellerEmail, password);
-    const approvedSellerMe = await page.request.get(`${backendUrl}/api/auth/me`);
-    expect(approvedSellerMe.ok()).toBeTruthy();
-    const approvedSellerBody = await approvedSellerMe.json();
-    expect(approvedSellerBody.user.email).toBe(sellerEmail);
-    expect(approvedSellerBody.user.role).toBe('seller');
+    const me = await page.request.get(backendUrl + '/api/auth/me');
+    expect(me.ok()).toBeTruthy();
+    expect((await me.json()).user).toMatchObject({ role: 'seller', status: 'active' });
   });
 });
