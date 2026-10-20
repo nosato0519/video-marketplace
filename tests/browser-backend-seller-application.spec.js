@@ -43,7 +43,7 @@ test.describe('role-specific registration acceptance', () => {
     const applicationResponse = await page.request.post(backendUrl + '/api/seller/application', {
       data: { displayName: 'Buyer Must Not Become Seller', legalName: 'Buyer Legal Name', countryCode: 'JP' },
     });
-    expect(applicationResponse.status()).toBe(404);
+    expect(applicationResponse.status()).toBe(403);
 
     const me = await page.request.get(backendUrl + '/api/auth/me');
     expect(me.ok()).toBeTruthy();
