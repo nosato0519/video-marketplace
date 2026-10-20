@@ -68,7 +68,7 @@ try {
     headers: { cookie: buyerCookie, 'content-type': 'application/json' },
     body: JSON.stringify({ displayName: 'Must Stay Buyer', legalName: 'Buyer Legal Name', countryCode: 'JP' })
   });
-  assert.equal(oldApplicationEndpoint.response.status, 404);
+  assert.equal(oldApplicationEndpoint.response.status, 403);
   const buyerSellerRegistration = await request(baseUrl, '/api/auth/register-seller', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
