@@ -55,8 +55,8 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
     await pool.query(
       `INSERT INTO payments
         (order_id, user_id, provider, provider_payment_id, amount, currency, status, succeeded_at, idempotency_key)
-       VALUES ($1, $2, $3, $4, 1000, 'JPY', 'succeeded', NOW(), $5)`,
-      [orderId, buyerId, provider, providerPaymentId, `${provider}:${providerPaymentId}`]
+       VALUES ($1, $2, $3, NULL, 1000, 'JPY', 'pending', NULL, $4)`,
+      [orderId, buyerId, provider, `${provider}:${providerPaymentId}`]
     );
 
     await pool.query(
@@ -77,6 +77,16 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
 
     assert.equal(result.duplicate, true);
     assert.equal(result.alreadyPaid, true);
+
+    const repairedPayment = await pool.query(
+      `SELECT provider_payment_id, status, succeeded_at
+         FROM payments WHERE order_id = $1`,
+      [orderId]
+    );
+    assert.equal(repairedPayment.rowCount, 1);
+    assert.equal(repairedPayment.rows[0].provider_payment_id, providerPaymentId);
+    assert.equal(repairedPayment.rows[0].status, 'succeeded');
+    assert.ok(repairedPayment.rows[0].succeeded_at);
 
     const entitlements = await pool.query(
       `SELECT user_id, product_id, status, revoked_at
