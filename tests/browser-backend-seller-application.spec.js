@@ -56,6 +56,9 @@ test.describe('role-specific registration acceptance', () => {
     expect((await me.json()).user).toMatchObject({ role: 'buyer', status: 'active' });
     expect((await page.request.get(backendUrl + '/api/seller/products')).status()).toBe(403);
 
+    await page.goto('http://127.0.0.1:4173/seller/dashboard.html');
+    await expect(page).toHaveURL(/pages\/seller-login\.html$/);
+
     await page.goto('http://127.0.0.1:4173/pages/seller-login.html');
     await page.getByLabel('メールアドレス').fill(email);
     await page.getByLabel('パスワード').fill(password);
