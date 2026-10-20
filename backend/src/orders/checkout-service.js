@@ -27,11 +27,11 @@ export async function getPendingOrderForCheckout({ orderId, userId }) {
   return order;
 }
 
-export async function createCheckoutSession({ orderId, userId, providerId = null }) {
+export async function createCheckoutSession({ orderId, userId }) {
   const order = await getPendingOrderForCheckout({ orderId, userId });
   if (!order) throw new Error('order_not_found');
 
-  const selectedProvider = providerId || process.env.PAYMENT_PROVIDER;
+  const selectedProvider = process.env.PAYMENT_PROVIDER;
   if (!selectedProvider) throw new Error('payment_provider_required');
 
   const provider = createPaymentProvider({ provider: selectedProvider });
