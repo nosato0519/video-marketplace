@@ -80,65 +80,6 @@
     <div>VIDEO MARKETPLACE</div>
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
-<script src="/shared/site-branding.js"></script><script type="module">
-  import { authApi } from "/app/auth/auth-api.js";
-  import { libraryApi } from "/app/library/library-api.js";
-
-  try {
-    const { user } = await authApi.me();
-    if (!["buyer", "seller"].includes(user?.role)) throw new Error("ROLE_NOT_ALLOWED");
-    const [libraryResult, orderResult] = await Promise.all([libraryApi.list(), libraryApi.orders()]);
-    const items = libraryResult.items || [];
-    const orders = orderResult.items || [];
-    let favorites = [];
-    try {
-      const saved = JSON.parse(localStorage.getItem("video-marketplace-favorites") || "[]");
-      favorites = Array.isArray(saved) ? saved : [];
-    } catch {}
-    document.getElementById("buyer-video-count").textContent = String(items.length);
-    document.getElementById("buyer-watching-count").textContent = String(items.filter((item) => item.streaming_enabled && item.media_status === "ready").length);
-    document.getElementById("buyer-favorite-count").textContent = String(favorites.length);
-    document.getElementById("buyer-order-count").textContent = String(orders.length);
-    const recent = document.getElementById("buyer-recent-items");
-    recent.replaceChildren();
-    if (!items.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-state";
-      empty.textContent = "購入した動画はまだありません。";
-      recent.append(empty);
-    } else {
-      items.slice(0, 3).forEach((item) => {
-        const card = document.createElement("article");
-        card.className = "buyer-recent-card";
-        const thumb = document.createElement("div");
-        thumb.className = "library-thumb";
-        const body = document.createElement("div");
-        const title = document.createElement("strong");
-        title.textContent = item.title || "購入作品";
-        const date = document.createElement("span");
-        date.textContent = item.purchased_at ? "購入日 " + new Date(item.purchased_at).toLocaleDateString("ja-JP") : "購入済み";
-        body.append(title, date);
-        if (item.streaming_enabled && item.media_status === "ready") {
-          const watch = document.createElement("a");
-          watch.href = "/pages/watch.html?productId=" + encodeURIComponent(item.product_id);
-          watch.textContent = "視聴する →";
-          body.append(watch);
-        } else {
-          const availability = document.createElement("span");
-          availability.textContent = "視聴準備中";
-          body.append(availability);
-        }
-        card.append(thumb, body);
-        recent.append(card);
-      });
-    }
-  } catch (error) {
-    if (error.status === 401 || error.message === "ROLE_NOT_ALLOWED") {
-      window.location.assign("/pages/buyer-login.html");
-    } else {
-      const recent = document.getElementById("buyer-recent-items");
-      recent.textContent = "購入者情報を読み込めませんでした。";
-    }
-  }
-</script>\n</body>
+<script type="module" src="/app/buyer/buyer-dashboard.js"></script>
+<script src="/shared/site-branding.js"></script></body>
 </html>
