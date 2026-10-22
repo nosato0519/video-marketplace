@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPendingPayment } from './payment-ledger.js';
+import { createPendingPayment, requirePendingPayment } from './payment-ledger.js';
 
 test('requires a pending order and payment provider inputs', async () => {
   await assert.rejects(
@@ -11,4 +11,12 @@ test('requires a pending order and payment provider inputs', async () => {
     () => createPendingPayment({ order: { id: 'o1', status: 'pending', buyer_id: 'u1', amount: '1000.00', currency: 'JPY' }, provider: 'pending' }),
     /payment_idempotency_key_required/
   );
+});
+
+test('refuses to start checkout from a non-pending payment record', () => {
+  assert.throws(() => requirePendingPayment({ id: 'p1', status: 'succeeded' }), /payment_not_pending/);
+  assert.throws(() => requirePendingPayment({ id: 'p1', status: 'failed' }), /payment_not_pending/);
+  assert.throws(() => requirePendingPayment(null), /payment_record_not_found/);
+  const payment = { id: 'p1', status: 'pending' };
+  assert.equal(requirePendingPayment(payment), payment);
 });
