@@ -4,7 +4,9 @@ export function buildCheckoutIdempotencyKey({ orderId } = {}) {
   }
   const normalizedOrderId = String(orderId).trim();
   if (!normalizedOrderId) throw new Error('order_required');
-  return `order:${normalizedOrderId}`;
+  const idempotencyKey = `order:${normalizedOrderId}`;
+  if (idempotencyKey.length > 255) throw new Error('payment_idempotency_key_invalid');
+  return idempotencyKey;
 }
 
 export function shouldReuseCheckout(session) {
