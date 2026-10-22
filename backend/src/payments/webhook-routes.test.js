@@ -201,6 +201,7 @@ test('routes payment_refunded to refund processing and does not call payment com
     eventId: 'evt_refund_1',
     eventType: 'payment_refunded',
     paymentId: 'pay_refund_1',
+    status: 'refunded',
   }));
 
   await withServer(async (baseUrl) => {
