@@ -100,6 +100,13 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
       /provider_payment_id_mismatch/
     );
 
+    await pool.query(
+      `INSERT INTO payment_events
+        (provider, event_id, event_type, provider_payment_id, payload_hash, status, order_id)
+       VALUES ($1, $2, 'payment_succeeded', $3, $4, 'received', NULL)`,
+      [provider, eventId, providerPaymentId, payloadHash]
+    );
+
     const result = await completePayment({
       eventId,
       provider,
