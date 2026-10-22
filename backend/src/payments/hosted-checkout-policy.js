@@ -11,10 +11,20 @@ export function buildHostedCheckoutResponse({ providerId, checkout } = {}) {
   }
   if (!checkout?.url) throw new Error('checkout_url_missing');
 
+  let checkoutUrl;
+  try {
+    checkoutUrl = new URL(checkout.url);
+  } catch {
+    throw new Error('checkout_url_invalid');
+  }
+  if (checkoutUrl.protocol !== 'https:' || checkoutUrl.username || checkoutUrl.password) {
+    throw new Error('checkout_url_must_be_secure');
+  }
+
   return Object.freeze({
     mode: 'provider_hosted',
     providerId,
-    url: checkout.url,
+    url: checkoutUrl.toString(),
     orderId: checkout.orderId,
     paymentId: checkout.paymentId ?? null,
   });
