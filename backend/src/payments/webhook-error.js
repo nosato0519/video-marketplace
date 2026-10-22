@@ -12,6 +12,8 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
   'stripe_amount_invalid',
   'stripe_amount_precision_invalid',
   'invalid_payment_event',
+  'payment_webhook_event_required',
+  'payment_webhook_metadata_missing',
   'payment_event_payload_mismatch',
   'payment_order_mismatch',
   'payment_currency_mismatch',
