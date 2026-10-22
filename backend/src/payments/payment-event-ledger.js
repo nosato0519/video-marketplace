@@ -40,13 +40,17 @@ export async function recordPaymentEvent({
     throw new Error('payment_event_not_found');
   }
 
+  const recordedOrderId = event.order_id ?? null;
+  const incomingOrderId = orderId ?? null;
+  const sameOrder =
+    recordedOrderId === null
+      ? incomingOrderId === null
+      : incomingOrderId !== null && String(recordedOrderId) === String(incomingOrderId);
   const samePayload =
     event.event_type === eventType &&
     event.provider_payment_id === providerPaymentId &&
     event.payload_hash === payloadHash &&
-    ((event.order_id ?? null) === null && (orderId ?? null) === null) ||
-    ((event.order_id ?? null) !== null && (orderId ?? null) !== null &&
-      String(event.order_id) === String(orderId));
+    sameOrder;
 
   if (!samePayload) {
     throw new Error('payment_event_payload_mismatch');
