@@ -43,6 +43,29 @@ test('pending provider rejects blank idempotency keys and unsafe numeric identif
   );
 });
 
+test('checkout validation rejects non-scalar amounts and non-string currencies', async () => {
+  const provider = createPaymentProvider({ provider: 'pending' });
+  const base = {
+    orderId: 'o1',
+    amount: 100,
+    currency: 'JPY',
+    idempotencyKey: 'order:o1',
+    metadata: { orderId: 'o1', paymentId: 'p1' },
+  };
+  for (const amount of [true, [100], {}, '   ']) {
+    await assert.rejects(
+      () => provider.createCheckout({ ...base, amount }),
+      /checkout_amount_invalid/
+    );
+  }
+  for (const currency of [123, ['JPY'], {}]) {
+    await assert.rejects(
+      () => provider.createCheckout({ ...base, currency }),
+      /checkout_currency_invalid/
+    );
+  }
+});
+
 test('pending provider rejects mismatched order metadata', async () => {
   const provider = createPaymentProvider({ provider: 'pending' });
   await assert.rejects(
