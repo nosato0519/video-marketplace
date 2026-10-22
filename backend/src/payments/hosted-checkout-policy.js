@@ -1,8 +1,9 @@
-const HOSTED_CHECKOUT_PROVIDERS = new Set(['stripe', 'paypal', 'adyen', 'paddle', 'paypay']);
+import { getPaymentProviderConfig } from './payment-provider-catalog.js';
 
 export function getCheckoutMode({ providerId } = {}) {
   if (!providerId) throw new Error('payment_provider_required');
-  return HOSTED_CHECKOUT_PROVIDERS.has(providerId) ? 'provider_hosted' : 'provider_unavailable';
+  const provider = getPaymentProviderConfig(providerId);
+  return provider?.status === 'available' ? 'provider_hosted' : 'provider_unavailable';
 }
 
 export function buildHostedCheckoutResponse({ providerId, checkout } = {}) {
