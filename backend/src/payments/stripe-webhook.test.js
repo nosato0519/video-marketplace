@@ -127,6 +127,21 @@ test('ignores async Checkout success until payment status is paid', async () => 
   assert.equal(completeCalls, 0);
 });
 
+test('rejects webhook requests that were not parsed as raw bytes', async () => {
+  const handler = createStripeWebhookHandler({ secret, stripe });
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain', 'stripe-signature': 'unused' },
+      body: 'not raw JSON',
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK_BODY', message: 'Webhook body must be raw JSON bytes' },
+    });
+  });
+});
+
 test('rejects an invalid Stripe signature before settlement', async () => {
   let completeCalls = 0;
   const handler = createStripeWebhookHandler({
