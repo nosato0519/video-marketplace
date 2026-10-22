@@ -9,9 +9,10 @@ export function verifyWebhookSignature({ rawBody, signature, secret }) {
     .digest('hex');
 
   const provided = String(signature).trim().toLowerCase();
-  const expectedBuffer = Buffer.from(expected, 'utf8');
-  const providedBuffer = Buffer.from(provided, 'utf8');
+  if (!/^[a-f0-9]{64}$/.test(provided)) return false;
 
+  const expectedBuffer = Buffer.from(expected, 'hex');
+  const providedBuffer = Buffer.from(provided, 'hex');
   if (expectedBuffer.length !== providedBuffer.length) return false;
   return crypto.timingSafeEqual(expectedBuffer, providedBuffer);
 }
