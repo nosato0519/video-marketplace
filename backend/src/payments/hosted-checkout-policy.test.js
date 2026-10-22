@@ -22,3 +22,31 @@ test('returns only safe checkout information', () => {
   });
   assert.equal('secret' in result, false);
 });
+
+
+test('rejects missing or blank hosted checkout order identifiers', () => {
+  for (const orderId of [undefined, null, '', '   ']) {
+    assert.throws(
+      () => buildHostedCheckoutResponse({
+        providerId: 'stripe',
+        checkout: { url: 'https://checkout.example.test/session', orderId },
+      }),
+      { message: 'checkout_order_id_missing' }
+    );
+  }
+});
+
+test('rejects insecure or credential-bearing hosted checkout URLs', () => {
+  for (const url of [
+    'http://checkout.example.test/session',
+    'https://user:password@checkout.example.test/session',
+  ]) {
+    assert.throws(
+      () => buildHostedCheckoutResponse({
+        providerId: 'stripe',
+        checkout: { url, orderId: 'order-1' },
+      }),
+      { message: 'checkout_url_must_be_secure' }
+    );
+  }
+});
