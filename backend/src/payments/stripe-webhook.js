@@ -34,7 +34,10 @@ export function createStripeWebhookHandler({
       }
       const verifier = stripe || new Stripe(process.env.STRIPE_SECRET_KEY);
       const signature = req.get('stripe-signature');
-      const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+      if (!Buffer.isBuffer(req.body)) {
+        return res.status(400).json({ error: { code: 'INVALID_WEBHOOK_BODY', message: 'Webhook body must be raw JSON bytes' } });
+      }
+      const rawBody = req.body;
       let event;
       try {
         event = verifier.webhooks.constructEvent(rawBody, signature, secret);
