@@ -70,6 +70,28 @@ test('checkout validation rejects non-scalar amounts and non-string currencies',
   }
 });
 
+test('rejects invalid or overlong checkout reference metadata', async () => {
+  const provider = createPaymentProvider({ provider: 'pending' });
+  const base = {
+    orderId: 'o1',
+    amount: 100,
+    currency: 'JPY',
+    idempotencyKey: 'order:o1',
+    metadata: { orderId: 'o1', paymentId: 'p1' },
+  };
+  for (const reference of [' ', 'r'.repeat(501), {}, true]) {
+    await assert.rejects(
+      () => provider.createCheckout({ ...base, metadata: { ...base.metadata, reference } }),
+      /checkout_reference_invalid/
+    );
+  }
+  const valid = await provider.createCheckout({
+    ...base,
+    metadata: { ...base.metadata, reference: 'r'.repeat(500) },
+  });
+  assert.equal(valid.status, 'not_configured');
+});
+
 test('pending provider rejects mismatched order metadata', async () => {
   const provider = createPaymentProvider({ provider: 'pending' });
   await assert.rejects(
