@@ -49,3 +49,17 @@ test('rejects status mismatches for failed and refunded events', () => {
     );
   }
 });
+
+test('requires refunded status for payment_refunded payloads', () => {
+  const refundPayload = {
+    ...basePayload,
+    eventType: 'payment_refunded',
+    amount: 1000,
+    status: 'refunded',
+  };
+  assert.deepEqual(validateWebhookPayload(refundPayload), refundPayload);
+  assert.throws(
+    () => validateWebhookPayload({ ...refundPayload, status: 'failed' }),
+    /invalid_webhook_status/
+  );
+});
