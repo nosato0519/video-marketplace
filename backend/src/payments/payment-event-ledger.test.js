@@ -89,3 +89,15 @@ test('allows failed webhook retry only while its order is pending', () => {
     );
   }
 });
+
+test('requires an event ID when building a failed webhook retry', async () => {
+  const { buildPaymentEventRetry } = await import('./payment-event-retry.js');
+  assert.throws(
+    () => buildPaymentEventRetry({ event: { status: 'failed' } }),
+    /payment_event_id_required/
+  );
+  assert.throws(
+    () => buildPaymentEventRetry({ event: { id: '  ', status: 'failed' } }),
+    /payment_event_id_required/
+  );
+});
