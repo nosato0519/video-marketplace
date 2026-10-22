@@ -257,7 +257,7 @@ export async function refundPayment({
       duplicate: false,
       order: updated.rows[0],
       payment: updatedPayment.rows[0],
-      entitlement: revoked.rows[0] ?? null,
+      entitlement: revoked ?? null,
       earnings: earnings.rows[0] ?? null,
     };
   } catch (error) {
