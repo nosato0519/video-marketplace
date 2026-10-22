@@ -68,20 +68,22 @@ export async function createCheckoutSession({ orderId, userId }) {
     },
   });
 
-  if (checkout.sessionId) {
-    const savedSession = await query(
-      `UPDATE payments
-          SET checkout_session_id = $1
-        WHERE id = $2
-          AND provider = $3
-          AND status = 'pending'
-          AND (checkout_session_id IS NULL OR checkout_session_id = $1)
-        RETURNING id`,
-      [checkout.sessionId, payment.id, provider.name]
-    );
-    if (savedSession.rowCount !== 1) {
-      throw new Error('checkout_session_persistence_failed');
-    }
+  if (typeof checkout.sessionId !== 'string' || checkout.sessionId.trim() === '') {
+    throw new Error('checkout_session_persistence_failed');
+  }
+
+  const savedSession = await query(
+    `UPDATE payments
+        SET checkout_session_id = $1
+      WHERE id = $2
+        AND provider = $3
+        AND status = 'pending'
+        AND (checkout_session_id IS NULL OR checkout_session_id = $1)
+      RETURNING id`,
+    [checkout.sessionId, payment.id, provider.name]
+  );
+  if (savedSession.rowCount !== 1) {
+    throw new Error('checkout_session_persistence_failed');
   }
 
   return checkout;
