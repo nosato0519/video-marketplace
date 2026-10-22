@@ -287,3 +287,21 @@ test('payment provider catalog preserves planned integrations without enabling u
   assert.deepEqual(getPaymentProviderConfig('paypal').regions, ['global', 'japan']);
   assert.equal(getPaymentProviderConfig('unknown'), null);
 });
+
+
+test('unimplemented payment providers fail closed instead of returning a checkout URL', async () => {
+  for (const providerId of ['paypal', 'adyen', 'paddle', 'paypay']) {
+    const provider = createPaymentProvider({ provider: providerId });
+    assert.equal(provider.configured, false);
+    await assert.rejects(
+      () => provider.createCheckout({
+        orderId: 'order-1',
+        amount: 1000,
+        currency: 'JPY',
+        metadata: { orderId: 'order-1', paymentId: 'payment-1' },
+        idempotencyKey: 'order:order-1',
+      }),
+      new RegExp('payment_provider_adapter_not_implemented:' + providerId)
+    );
+  }
+});
