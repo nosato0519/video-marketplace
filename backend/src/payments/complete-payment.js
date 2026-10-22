@@ -18,10 +18,6 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     );
     if (event.rowCount === 0) throw new Error('payment_event_not_found');
     const recordedEvent = event.rows[0];
-    if (recordedEvent.status === 'processed') {
-      await client.query('ROLLBACK');
-      return { duplicate: true };
-    }
     if (
       recordedEvent.event_type !== 'payment_succeeded' ||
       recordedEvent.provider_payment_id !== providerPaymentId ||
@@ -29,6 +25,10 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
       (recordedEvent.payload_hash && recordedEvent.payload_hash !== payloadHash)
     ) {
       throw new Error('payment_event_payload_mismatch');
+    }
+    if (recordedEvent.status === 'processed') {
+      await client.query('ROLLBACK');
+      return { duplicate: true };
     }
 
     const order = await client.query(
