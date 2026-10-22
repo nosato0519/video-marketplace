@@ -139,14 +139,16 @@ async function normalizeStripeEvent(event, eventType, stripe) {
   const amountMinor = eventType === 'payment_refunded'
     ? object.amount
     : object.amount_total ?? object.amount_received ?? object.amount;
-  const amount = typeof amountMinor === 'number' ? amountMinor : Number(amountMinor);
+  const amount = eventType === 'payment_failed'
+    ? 0
+    : fromStripeMinorUnits(typeof amountMinor === 'number' ? amountMinor : Number(amountMinor), currency);
   return {
     eventId: event.id,
     provider: 'stripe',
     eventType,
     paymentId: String(paymentId || ''),
     orderId: String(orderId || ''),
-    amount: fromStripeMinorUnits(amount, currency),
+    amount,
     currency,
     status: eventType === 'payment_succeeded' ? 'succeeded' : 'failed',
     fullRefund: eventType !== 'payment_refunded' || object.refunded === true,
