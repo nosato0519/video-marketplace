@@ -78,8 +78,17 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   ) {
     throw new Error('checkout_order_id_required');
   }
-  if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('checkout_amount_invalid');
-  if (!currency || !/^[A-Za-z]{3}$/.test(String(currency))) throw new Error('checkout_currency_invalid');
+  if (
+    (typeof amount !== 'string' && typeof amount !== 'number') ||
+    (typeof amount === 'string' && !amount.trim()) ||
+    !Number.isFinite(Number(amount)) ||
+    Number(amount) <= 0
+  ) {
+    throw new Error('checkout_amount_invalid');
+  }
+  if (typeof currency !== 'string' || !/^[A-Za-z]{3}$/.test(currency)) {
+    throw new Error('checkout_currency_invalid');
+  }
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('checkout_metadata_required');
   if (metadata.orderId !== undefined && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
   if (typeof idempotencyKey !== 'string' || !idempotencyKey.trim()) throw new Error('checkout_idempotency_key_required');
