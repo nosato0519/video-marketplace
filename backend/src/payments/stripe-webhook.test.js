@@ -389,3 +389,44 @@ test('ignores expired Checkout sessions without a payment intent instead of stor
   assert.equal(recordCalls, 0);
   assert.equal(failCalls, 0);
 });
+
+
+test('rejects a full refund event without a PaymentIntent before recording it', async () => {
+  let recordCalls = 0;
+  let refundCalls = 0;
+  const event = makeEvent({
+    id: 'evt_refund_without_payment_intent',
+    type: 'charge.refunded',
+    data: { object: {
+      id: 'ch_refund_without_intent',
+      object: 'charge',
+      amount: 1000,
+      currency: 'jpy',
+      refunded: true,
+      payment_intent: null,
+      metadata: { orderId: 'order_123' },
+    } },
+  });
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    refundPayment: async () => { refundCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(refundCalls, 0);
+});
