@@ -15,6 +15,7 @@ const STRIPE_EVENTS = new Map([
   ['checkout.session.expired', 'payment_failed'],
   ['payment_intent.succeeded', 'payment_succeeded'],
   ['payment_intent.payment_failed', 'payment_failed'],
+  ['payment_intent.canceled', 'payment_failed'],
   ['charge.refunded', 'payment_refunded'],
 ]);
 
