@@ -36,6 +36,30 @@ test('rejects settlement when the payment record provider differs from the webho
   }), /payment_provider_mismatch/);
 });
 
+test('rejects non-positive or non-finite settlement amounts', () => {
+  const order = { id: 'o1', status: 'pending', amount: '0', currency: 'JPY' };
+  const payment = { order_id: 'o1', status: 'succeeded', amount: '0', currency: 'JPY', provider_payment_id: 'pay-1' };
+  assert.throws(() => validateSuccessfulPaymentSettlement({ order, payment }), /payment_amount_mismatch/);
+  assert.throws(() => validateSuccessfulPaymentSettlement({
+    order: { ...order, amount: '1200' },
+    payment: { ...payment, amount: 'Infinity' },
+  }), /payment_amount_mismatch/);
+});
+
+test('rejects malformed currency codes and blank provider payment IDs', () => {
+  const order = { id: 'o1', status: 'pending', amount: '1200', currency: 'JPY' };
+  const payment = { order_id: 'o1', status: 'succeeded', amount: '1200', currency: 'undefined', provider_payment_id: 'pay-1' };
+  assert.throws(() => validateSuccessfulPaymentSettlement({ order, payment }), /payment_currency_mismatch/);
+  assert.throws(() => validateSuccessfulPaymentSettlement({
+    order: { ...order, currency: undefined },
+    payment: { ...payment, currency: undefined },
+  }), /payment_currency_mismatch/);
+  assert.throws(() => validateSuccessfulPaymentSettlement({
+    order,
+    payment: { ...payment, currency: 'JPY', provider_payment_id: '   ' },
+  }), /provider_payment_id_required/);
+});
+
 test('accepts matching numeric database order IDs and string webhook IDs', () => {
   assert.equal(validateSuccessfulPaymentSettlement({
     order: { id: 123, status: 'pending', amount: '1200.00', currency: 'JPY' },
