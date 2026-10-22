@@ -27,8 +27,15 @@ jobs:
           cache-dependency-path: backend/package.json
       - name: Install backend dependencies
         run: npm install --no-package-lock
-      - name: Run payment regression tests
-        run: node --test src/payments/payment-provider.test.js
+      - name: Run payment policy and verification tests
+        run: >-
+          node --test
+          src/payments/payment-provider.test.js
+          src/payments/payment-provider-selection.test.js
+          src/payments/payment-start-policy.test.js
+          src/payments/payment-verification.test.js
+          src/payments/payment-success-guard.test.js
+          src/payments/checkout-contract.test.js
       - name: Run webhook regression tests
         run: node --test src/payments/stripe-webhook.test.js
       - name: Run protected S3 media adapter regression tests
