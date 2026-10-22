@@ -21,6 +21,16 @@ export function buildHostedCheckoutResponse({ providerId, checkout } = {}) {
     throw new Error('checkout_order_id_missing');
   }
 
+  if (checkout.paymentId !== undefined && checkout.paymentId !== null) {
+    if (
+      (typeof checkout.paymentId !== 'string' && typeof checkout.paymentId !== 'number') ||
+      !String(checkout.paymentId).trim() ||
+      (typeof checkout.paymentId === 'number' && !Number.isSafeInteger(checkout.paymentId))
+    ) {
+      throw new Error('checkout_payment_id_invalid');
+    }
+  }
+
   let checkoutUrl;
   try {
     checkoutUrl = new URL(checkout.url);
