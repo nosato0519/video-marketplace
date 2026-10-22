@@ -89,10 +89,10 @@ export async function failPayment({
     }
 
     if (current.status === ORDER_STATES.CANCELLED) {
-      if (currentPayment.status !== 'failed') {
+      if (currentPayment.status !== 'failed' || !currentPayment.provider_payment_id) {
         await client.query(
           `UPDATE payments
-              SET provider_payment_id = $1,
+              SET provider_payment_id = COALESCE(provider_payment_id, $1),
                   status = 'failed'
             WHERE id = $2`,
           [providerPaymentId, currentPayment.id]
