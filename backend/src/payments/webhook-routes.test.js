@@ -225,6 +225,29 @@ test('routes payment_refunded to refund processing and does not call payment com
   assert.equal(calls.filter(([name]) => name === 'complete').length, 0);
 });
 
+test('returns a validation response when the event ledger rejects an invalid payment event', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  const body = JSON.stringify(payload({ eventId: 'evt_invalid_payment_event' }));
+  const recordPaymentEvent = async () => {
+    throw new Error('invalid_payment_event');
+  };
+
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-payment-signature': sign(body),
+      },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  }, { recordPaymentEvent });
+});
+
 test('returns a validation response for payment identity mismatches', async () => {
   process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
   const body = JSON.stringify(payload({
