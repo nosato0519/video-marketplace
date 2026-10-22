@@ -59,11 +59,25 @@ test('completePayment creates one seller earning and keeps it idempotent for an 
       [orderId, buyerId, provider, `${provider}:${providerPaymentId}`]
     );
 
+    const mismatchedProviderEventId = `evt_paid_wrong_provider_${suffix}`;
+    const mismatchedProviderPayloadHash = `hash_paid_wrong_provider_${suffix}`;
     await pool.query(
       `INSERT INTO payment_events
         (provider, event_id, event_type, provider_payment_id, payload_hash, status, order_id)
-       VALUES ($1, $2, 'payment_succeeded', $3, $4, 'received', NULL)`,
-      [provider, eventId, providerPaymentId, payloadHash]
+       VALUES ('paypal', $1, 'payment_succeeded', $2, $3, 'received', NULL)`,
+      [mismatchedProviderEventId, providerPaymentId, mismatchedProviderPayloadHash]
+    );
+
+    await assert.rejects(
+      completePayment({
+        eventId: mismatchedProviderEventId,
+        provider: 'paypal',
+        providerPaymentId,
+        orderId,
+        payloadHash: mismatchedProviderPayloadHash,
+        payment: { orderId, amount: 1000, currency: 'JPY', status: 'succeeded' },
+      }),
+      /payment_provider_mismatch/
     );
 
     const result = await completePayment({
