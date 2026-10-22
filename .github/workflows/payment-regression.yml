@@ -2,9 +2,9 @@ name: Payment Regression
 
 on:
   push:
-    branches: [main]
+    branches: [main, production/top-clean]
   pull_request:
-    branches: [main]
+    branches: [main, production/top-clean]
 
 permissions:
   contents: read
