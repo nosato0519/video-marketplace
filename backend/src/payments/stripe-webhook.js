@@ -132,10 +132,12 @@ async function normalizeStripeEvent(event, eventType, stripe) {
       };
     }
 
-    if (!orderId) {
-      const paymentIntent = await stripe.paymentIntents.retrieve(String(paymentIntentId));
-      orderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
+    const paymentIntent = await stripe.paymentIntents.retrieve(String(paymentIntentId));
+    const paymentIntentOrderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
+    if (orderId && paymentIntentOrderId && String(orderId) !== String(paymentIntentOrderId)) {
+      throw new Error('payment_order_mismatch');
     }
+    orderId = orderId || paymentIntentOrderId;
   }
 
   const currency = String(object.currency || '').toUpperCase();
