@@ -22,3 +22,14 @@ test('requires an idempotency key for retries', async () => {
     /payment_idempotency_key_required/
   );
 });
+
+test('rejects a whitespace-only idempotency key for retries', async () => {
+  await assert.rejects(
+    () => retryFailedPayment({
+      order: { id: 'o1', buyer_id: 'u1', amount: '1000.00', currency: 'JPY', status: 'pending' },
+      provider: 'pending',
+      idempotencyKey: '   ',
+    }),
+    /payment_idempotency_key_required/
+  );
+});
