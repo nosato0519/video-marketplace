@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { query } from '../db.js';
 
+export function requirePendingPayment(payment) {
+  if (!payment) throw new Error('payment_record_not_found');
+  if (payment.status !== 'pending') throw new Error('payment_not_pending');
+  return payment;
+}
+
 export async function createPendingPayment({ order, provider, idempotencyKey }) {
   if (!order?.id) throw new Error('order_required');
   if (order.status !== 'pending') throw new Error('order_not_pending');
@@ -16,7 +22,7 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
     [order.id, order.buyer_id, provider, order.amount, order.currency, idempotencyKey]
   );
 
-  return result.rows[0];
+  return requirePendingPayment(result.rows[0]);
 }
 
 export async function retryFailedPayment({ order, provider, idempotencyKey }) {
