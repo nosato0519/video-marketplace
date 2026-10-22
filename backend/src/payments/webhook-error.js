@@ -31,6 +31,8 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
   'payment_verification_input_required',
   'payment_settlement_identifiers_required',
   'payment_order_not_settleable',
+  'provider_payment_id_required',
+  'paid_order_required',
   'order_not_settleable',
 ]);
 
