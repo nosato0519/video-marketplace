@@ -9,6 +9,8 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
   'invalid_webhook_amount',
   'invalid_webhook_currency',
   'invalid_webhook_status',
+  'stripe_amount_invalid',
+  'stripe_amount_precision_invalid',
   'invalid_payment_event',
   'payment_event_payload_mismatch',
   'payment_order_mismatch',
