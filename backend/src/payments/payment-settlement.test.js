@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { settleSuccessfulPayment } from './payment-settlement.js';
+import { settlePaymentWebhook } from './payment-webhook-settlement.js';
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 
@@ -163,4 +164,41 @@ test('records seller earnings once and rejects stale success after refund', { sk
     if (buyerId) await pool.query('DELETE FROM users WHERE id = $1', [buyerId]).catch(() => {});
     if (sellerId) await pool.query('DELETE FROM users WHERE id = $1', [sellerId]).catch(() => {});
   }
+});
+
+
+test('rejects successful Stripe webhook events without payment identifiers before settlement', async () => {
+  const base = {
+    id: 'evt_validation',
+    type: 'payment_intent.succeeded',
+    data: {
+      object: {
+        id: 'pi_validation',
+        metadata: { paymentId: 'payment_validation', orderId: 'order_validation' },
+      },
+    },
+  };
+
+  await assert.rejects(
+    settlePaymentWebhook({ event: { ...base, id: ' ' } }),
+    /payment_webhook_event_required/
+  );
+  await assert.rejects(
+    settlePaymentWebhook({
+      event: {
+        ...base,
+        data: { object: { ...base.data.object, metadata: { paymentId: ' ', orderId: 'order_validation' } } },
+      },
+    }),
+    /payment_webhook_metadata_missing/
+  );
+  await assert.rejects(
+    settlePaymentWebhook({
+      event: {
+        ...base,
+        data: { object: { id: '', metadata: base.data.object.metadata } },
+      },
+    }),
+    /payment_provider_id_required/
+  );
 });
