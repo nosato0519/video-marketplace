@@ -1,5 +1,5 @@
 import { getPool } from '../db.js';
-import { ORDER_STATES } from '../orders/order-state.js';
+import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
 
 export async function failPayment({
   eventId,
@@ -46,7 +46,6 @@ export async function failPayment({
         FOR UPDATE`,
       [orderId]
     );
-
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
 
@@ -64,7 +63,6 @@ export async function failPayment({
         FOR UPDATE`,
       [orderId, provider]
     );
-
     if (payment.rowCount === 0) throw new Error('payment_record_not_found');
     const currentPayment = payment.rows[0];
 
@@ -79,9 +77,7 @@ export async function failPayment({
       currentPayment.status === 'refunded'
     ) {
       await client.query(
-        `UPDATE payment_events
-            SET status = 'processed', processed_at = NOW()
-          WHERE id = $1`,
+        `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
         [recordedEvent.id]
       );
       await client.query('COMMIT');
@@ -99,43 +95,43 @@ export async function failPayment({
         );
       }
       await client.query(
-        `UPDATE payment_events
-            SET status = 'processed', processed_at = NOW()
-          WHERE id = $1`,
+        `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
         [recordedEvent.id]
       );
       await client.query('COMMIT');
       return { duplicate: true, alreadyCancelled: true };
     }
 
-    if (current.status !== ORDER_STATES.PENDING) {
+    if (!canTransitionOrder(current.status, ORDER_STATES.CANCELLED)) {
       throw new Error('order_not_cancellable');
     }
 
     const updatedPayment = await client.query(
       `UPDATE payments
-          SET provider_payment_id = $1,
-              status = 'failed'
+          SET provider_payment_id = $1, status = 'failed'
         WHERE id = $2
         RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status`,
       [providerPaymentId, currentPayment.id]
     );
 
-    // Keep the order pending after a failed attempt so checkout can be retried.
-    // The payment record carries the failed state; a failure is not an order cancellation.
+    const updatedOrder = await client.query(
+      `UPDATE orders
+          SET status = 'cancelled', provider = $1, provider_payment_id = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING id, buyer_id, product_id, amount, currency, status, provider, provider_payment_id, updated_at`,
+      [provider, providerPaymentId, current.id]
+    );
+
     await client.query(
-      `UPDATE payment_events
-          SET status = 'processed', processed_at = NOW()
-        WHERE id = $1`,
+      `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
       [recordedEvent.id]
     );
 
     await client.query('COMMIT');
-
     return {
       duplicate: false,
       payment: updatedPayment.rows[0],
-      order: current,
+      order: updatedOrder.rows[0],
     };
   } catch (error) {
     await client.query('ROLLBACK');
