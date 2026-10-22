@@ -39,6 +39,7 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
       validateSuccessfulPaymentSettlement({
         order: current,
         payment: { ...payment, provider_payment_id: providerPaymentId },
+        provider,
       });
     }
 
