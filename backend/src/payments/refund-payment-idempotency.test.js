@@ -63,7 +63,3 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
   }
 });
 
-test('refund idempotency contract never revokes an already-revoked entitlement again', () => {
-  const result = { duplicate: true, alreadyRefunded: true };
-  assert.deepEqual(result, { duplicate: true, alreadyRefunded: true });
-});
