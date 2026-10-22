@@ -6,6 +6,9 @@ export function shouldRetryPaymentEvent(event) {
 
 export function buildPaymentEventRetry({ event, now = new Date() }) {
   if (!shouldRetryPaymentEvent(event)) throw new Error('event_not_retryable');
+  if (typeof event.id !== 'string' || event.id.trim() === '') {
+    throw new Error('payment_event_id_required');
+  }
   return {
     eventId: event.id,
     retryRequestedAt: now.toISOString(),
