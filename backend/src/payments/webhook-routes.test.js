@@ -232,6 +232,7 @@ test('returns a validation response for payment identity mismatches', async () =
     eventType: 'payment_failed',
     paymentId: 'pay_identity_mismatch',
   }));
+  const recordPaymentEvent = async () => ({ duplicate: false, event: { status: 'received' } });
   const failPayment = async () => {
     throw new Error('provider_payment_id_mismatch');
   };
@@ -249,6 +250,6 @@ test('returns a validation response for payment identity mismatches', async () =
     assert.deepEqual(await response.json(), {
       error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
     });
-  }, { failPayment });
+  }, { recordPaymentEvent, failPayment });
 });
 
