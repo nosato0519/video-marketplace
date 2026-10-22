@@ -6,6 +6,34 @@ export const PAYMENT_PROVIDER_CATALOG = Object.freeze([
     currencies: 'multi',
     status: 'available',
   },
+  {
+    id: 'paypal',
+    name: 'PayPal',
+    regions: Object.freeze(['global', 'japan']),
+    currencies: 'multi',
+    status: 'not_implemented',
+  },
+  {
+    id: 'adyen',
+    name: 'Adyen',
+    regions: Object.freeze(['global', 'japan']),
+    currencies: 'multi',
+    status: 'not_implemented',
+  },
+  {
+    id: 'paddle',
+    name: 'Paddle',
+    regions: Object.freeze(['global']),
+    currencies: 'multi',
+    status: 'not_implemented',
+  },
+  {
+    id: 'paypay',
+    name: 'PayPay',
+    regions: Object.freeze(['japan']),
+    currencies: Object.freeze(['JPY']),
+    status: 'not_implemented',
+  },
 ]);
 
 function copyProvider(provider) {
