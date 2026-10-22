@@ -50,6 +50,7 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
     assert.equal(second.duplicate, true);
   } finally {
     if (orderId) {
+      await pool.query('DELETE FROM seller_earnings WHERE order_id = ANY($1::uuid[])',[ [orderId, secondOrderId].filter(Boolean) ]).catch(()=>{});
       await pool.query('DELETE FROM entitlements WHERE order_id = ANY($1::uuid[])',[ [orderId, secondOrderId].filter(Boolean) ]).catch(()=>{});
       await pool.query('DELETE FROM payment_events WHERE order_id=$1',[orderId]).catch(()=>{});
       await pool.query('DELETE FROM payments WHERE order_id = ANY($1::uuid[])',[ [orderId, secondOrderId].filter(Boolean) ]).catch(()=>{});
