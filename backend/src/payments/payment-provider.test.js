@@ -92,6 +92,25 @@ test('rejects invalid or overlong checkout reference metadata', async () => {
   assert.equal(valid.status, 'not_configured');
 });
 
+test('rejects checkout identifiers that exceed Stripe field limits', async () => {
+  const provider = createPaymentProvider({ provider: 'pending' });
+  const base = {
+    orderId: 'o1',
+    amount: 100,
+    currency: 'JPY',
+    idempotencyKey: 'order:o1',
+    metadata: { orderId: 'o1', paymentId: 'p1' },
+  };
+  await assert.rejects(
+    () => provider.createCheckout({ ...base, orderId: 'o'.repeat(256), metadata: { orderId: 'o'.repeat(256), paymentId: 'p1' } }),
+    /checkout_order_id_required/
+  );
+  await assert.rejects(
+    () => provider.createCheckout({ ...base, metadata: { orderId: 'o1', paymentId: 'p'.repeat(501) } }),
+    /checkout_payment_id_required/
+  );
+});
+
 test('pending provider rejects mismatched order metadata', async () => {
   const provider = createPaymentProvider({ provider: 'pending' });
   await assert.rejects(
