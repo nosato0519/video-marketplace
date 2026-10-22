@@ -16,15 +16,17 @@ export function validateWebhookPayload(payload) {
     throw new Error('unsupported_webhook_event_type');
   }
 
+  const expectedStatus = payload.eventType === 'payment_succeeded' ? 'succeeded' : 'failed';
+  if (payload.status !== expectedStatus) {
+    throw new Error('invalid_webhook_status');
+  }
+
   if (payload.eventType === 'payment_succeeded') {
     if (typeof payload.amount !== 'number' || !Number.isFinite(payload.amount) || payload.amount <= 0) {
       throw new Error('invalid_webhook_amount');
     }
     if (typeof payload.currency !== 'string' || !/^[A-Za-z]{3}$/.test(payload.currency)) {
       throw new Error('invalid_webhook_currency');
-    }
-    if (payload.status !== 'succeeded') {
-      throw new Error('invalid_webhook_status');
     }
   }
 
