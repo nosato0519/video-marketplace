@@ -54,28 +54,17 @@ export async function createCheckoutSession({ orderId, userId }) {
     throw new Error('payment_order_amount_mismatch');
   }
 
-  try {
-    return await provider.createCheckout({
+  return provider.createCheckout({
+    orderId: order.id,
+    amount: payment.amount,
+    currency: payment.currency,
+    idempotencyKey: payment.idempotency_key,
+    metadata: {
       orderId: order.id,
-      amount: payment.amount,
-      currency: payment.currency,
-      idempotencyKey: payment.idempotency_key,
-      metadata: {
-        orderId: order.id,
-        reference,
-        paymentId: payment.id,
-        sellerId: order.seller_id,
-        providerId: provider.name,
-      },
-    });
-  } catch (error) {
-    await query(
-      `UPDATE payments
-          SET status = 'failed'
-        WHERE id = $1
-          AND status = 'pending'`,
-      [payment.id]
-    );
-    throw error;
-  }
+      reference,
+      paymentId: payment.id,
+      sellerId: order.seller_id,
+      providerId: provider.name,
+    },
+  });
 }
