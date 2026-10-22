@@ -33,6 +33,9 @@ function checkoutError(error) {
   if (error.message === 'stripe_redirect_urls_not_configured') {
     return { status: 503, body: { error: { code: 'PAYMENT_REDIRECT_URLS_NOT_CONFIGURED', message: 'The payment success and cancel URLs are not configured' } } };
   }
+  if (['stripe_redirect_url_invalid', 'stripe_redirect_url_must_be_https', 'stripe_success_url_must_not_include_checkout_parameters'].includes(error.message)) {
+    return { status: 503, body: { error: { code: 'PAYMENT_REDIRECT_URLS_INVALID', message: 'The payment success and cancel URLs are invalid server configuration' } } };
+  }
   if (error.message.startsWith('payment_provider_adapter_not_ready:')) {
     const providerId = error.message.split(':')[1] ?? 'unknown';
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_ADAPTER_NOT_READY', message: `Payment provider adapter is not ready: ${providerId}` } } };
