@@ -40,7 +40,491 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
   const retryWithNewProviderSession = await query(
     `UPDATE payments
         SET status = 'pending',
+            idempotency_key = CASE
+              WHEN idempotency_key ~ ':retry:[0-9]+
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = CASE
+              WHEN idempotency_key ~ ':retry:[0-9]+
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+ THEN
+                regexp_replace(
+                  idempotency_key,
+                  ':retry:[0-9]+
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
             idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+,
+                  ':retry:' || ((substring(idempotency_key FROM ':retry:([0-9]+)
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+))::integer + 1)::text
+                )
+              ELSE left($1, 235) || ':retry:1'
+            END,
+            provider_payment_id = NULL,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+ THEN
+                regexp_replace(
+                  idempotency_key,
+                  ':retry:[0-9]+
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+ THEN
+                regexp_replace(
+                  idempotency_key,
+                  ':retry:[0-9]+
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+,
+                  ':retry:' || ((substring(idempotency_key FROM ':retry:([0-9]+)
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+))::integer + 1)::text
+                )
+              ELSE left($1, 235) || ':retry:1'
+            END,
+            provider_payment_id = NULL,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+,
+                  ':retry:' || ((substring(idempotency_key FROM ':retry:([0-9]+)
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+ THEN
+                regexp_replace(
+                  idempotency_key,
+                  ':retry:[0-9]+
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+,
+                  ':retry:' || ((substring(idempotency_key FROM ':retry:([0-9]+)
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+))::integer + 1)::text
+                )
+              ELSE left($1, 235) || ':retry:1'
+            END,
+            provider_payment_id = NULL,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+))::integer + 1)::text
+                )
+              ELSE left($1, 235) || ':retry:1'
+            END,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+ THEN
+                regexp_replace(
+                  idempotency_key,
+                  ':retry:[0-9]+
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+,
+                  ':retry:' || ((substring(idempotency_key FROM ':retry:([0-9]+)
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
+
+  const retryAfterUnconfirmedProviderResult = await query(
+    `UPDATE payments
+        SET status = 'pending',
+            idempotency_key = $1,
+            checkout_session_id = NULL
+      WHERE order_id = $2
+        AND provider = $3
+        AND status = 'failed'
+        AND provider_payment_id IS NULL
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
+  );
+  if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
+    return retryAfterUnconfirmedProviderResult.rows[0];
+  }
+
+  return createPendingPayment({ order, provider, idempotencyKey });
+}
+))::integer + 1)::text
+                )
+              ELSE left($1, 235) || ':retry:1'
+            END,
             provider_payment_id = NULL,
             checkout_session_id = NULL
       WHERE order_id = $2
