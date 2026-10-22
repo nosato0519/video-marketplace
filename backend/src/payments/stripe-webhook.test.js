@@ -598,3 +598,48 @@ test('rejects conflicting Checkout order references before recording or settling
   assert.equal(recordCalls, 0);
   assert.equal(completeCalls, 0);
 });
+
+test('rejects refund when Charge and PaymentIntent refer to different orders', async () => {
+  let recordCalls = 0;
+  let refundCalls = 0;
+  const verifier = new Stripe('test-webhook-verifier-key');
+  verifier.paymentIntents.retrieve = async () => ({
+    id: 'pi_test_1',
+    metadata: { orderId: 'order_from_payment_intent' },
+  });
+  const event = makeEvent({
+    id: 'evt_refund_order_mismatch',
+    type: 'charge.refunded',
+    data: { object: {
+      id: 'ch_refund_order_mismatch',
+      object: 'charge',
+      amount: 1000,
+      currency: 'jpy',
+      refunded: true,
+      payment_intent: 'pi_test_1',
+      metadata: { orderId: 'order_from_charge' },
+    } },
+  });
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe: verifier,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    refundPayment: async () => { refundCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = verifier.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(refundCalls, 0);
+});
