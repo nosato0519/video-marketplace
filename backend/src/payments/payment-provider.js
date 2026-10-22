@@ -77,7 +77,10 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('checkout_metadata_required');
   if (metadata.orderId !== undefined && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
   if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
-  if (typeof metadata.paymentId !== 'string' || metadata.paymentId.trim() === '') {
+  if (
+    (typeof metadata.paymentId !== 'string' && typeof metadata.paymentId !== 'number') ||
+    !String(metadata.paymentId).trim()
+  ) {
     throw new Error('checkout_payment_id_required');
   }
 }
