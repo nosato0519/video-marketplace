@@ -35,6 +35,9 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     const current = order.rows[0];
 
     verifyPaymentAgainstOrder({ payment, order: current });
+    if (current.provider && current.provider !== provider) {
+      throw new Error('payment_provider_mismatch');
+    }
     if (current.status !== ORDER_STATES.PAID) {
       validateSuccessfulPaymentSettlement({
         order: current,
