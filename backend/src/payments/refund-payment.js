@@ -208,12 +208,7 @@ export async function refundPayment({
                         SELECT 1
                           FROM payments replacement_payment
                          WHERE replacement_payment.order_id = replacement.id
-                           AND replacement.status = 'paid'
-                           AND EXISTS (
-                             SELECT 1 FROM payments replacement_payment
-                              WHERE replacement_payment.order_id = replacement.id
-                                AND replacement_payment.status = 'succeeded'
-                           )
+                           AND replacement_payment.status = 'succeeded'
                       )
                    AND replacement.id <> $1
               ) THEN NULL ELSE NOW() END
