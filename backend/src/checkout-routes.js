@@ -12,6 +12,9 @@ function checkoutError(error) {
   if (error.message === 'order_not_pending') {
     return { status: 409, body: { error: { code: 'ORDER_NOT_PENDING', message: 'Order is not available for checkout' } } };
   }
+  if (error.message === 'payment_not_pending') {
+    return { status: 409, body: { error: { code: 'PAYMENT_NOT_PENDING', message: 'Payment is not available for checkout' } } };
+  }
   if (error.message === 'payment_owner_missing') {
     return { status: 409, body: { error: { code: 'PAYMENT_OWNER_MISSING', message: 'This order is not available for payment' } } };
   }
