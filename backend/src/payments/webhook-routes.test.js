@@ -224,3 +224,31 @@ test('routes payment_refunded to refund processing and does not call payment com
   assert.equal(calls[1][0], 'refund');
   assert.equal(calls.filter(([name]) => name === 'complete').length, 0);
 });
+
+test('returns a validation response for payment identity mismatches', async () => {
+  process.env.PAYMENT_WEBHOOK_SECRET = 'test-secret';
+  const body = JSON.stringify(payload({
+    eventId: 'evt_payment_identity_mismatch',
+    eventType: 'payment_failed',
+    paymentId: 'pay_identity_mismatch',
+  }));
+  const failPayment = async () => {
+    throw new Error('provider_payment_id_mismatch');
+  };
+
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/webhook`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-payment-signature': sign(body),
+      },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  }, { failPayment });
+});
+
