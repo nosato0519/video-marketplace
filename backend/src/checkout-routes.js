@@ -15,6 +15,9 @@ function checkoutError(error) {
   if (error.message === 'payment_owner_missing') {
     return { status: 409, body: { error: { code: 'PAYMENT_OWNER_MISSING', message: 'This order is not available for payment' } } };
   }
+  if (['checkout_amount_invalid', 'checkout_amount_precision_invalid'].includes(error.message)) {
+    return { status: 409, body: { error: { code: 'ORDER_AMOUNT_INVALID', message: 'The order amount is not valid for checkout' } } };
+  }
   if (error.message === 'payment_provider_required') {
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_REQUIRED', message: 'Payment provider is not configured for this site' } } };
   }
