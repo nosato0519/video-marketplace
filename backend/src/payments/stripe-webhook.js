@@ -77,6 +77,7 @@ export function createStripeWebhookHandler({
         eventId: payload.eventId,
         provider: 'stripe',
         providerPaymentId: payload.paymentId,
+        checkoutSessionId: payload.checkoutSessionId,
         orderId: payload.orderId,
         payloadHash,
       };
@@ -151,6 +152,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
     eventId: event.id,
     provider: 'stripe',
     eventType,
+    checkoutSessionId: event.type.startsWith('checkout.session.') ? String(object.id || '') : null,
     paymentId: String(paymentId || ''),
     orderId: String(orderId || ''),
     amount,
