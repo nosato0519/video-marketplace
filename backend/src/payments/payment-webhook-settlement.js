@@ -11,7 +11,7 @@ export async function settlePaymentWebhook({ event } = {}) {
   if (!SUCCESS_EVENTS.has(event.type)) return { handled: false, eventId: event.id };
 
   const object = event.data?.object ?? {};
-  if (event.type === 'checkout.session.completed' && object.payment_status !== 'paid') {
+  if (event.type.startsWith('checkout.session.') && object.payment_status !== 'paid') {
     return { handled: false, eventId: event.id, reason: 'payment_not_paid' };
   }
 
