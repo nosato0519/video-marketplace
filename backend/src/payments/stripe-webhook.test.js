@@ -271,3 +271,28 @@ test('does not run refund settlement again for an already processed Stripe event
   });
   assert.equal(refundCalls, 0);
 });
+
+
+test('returns a client error for a permanent Stripe settlement validation failure', async () => {
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => ({ duplicate: false }),
+    completePayment: async () => { throw new Error('payment_amount_mismatch'); },
+    failPayment: async () => {},
+  });
+  const body = JSON.stringify(makeEvent());
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+});
