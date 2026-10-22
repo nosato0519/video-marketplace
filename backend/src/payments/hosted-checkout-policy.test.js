@@ -64,3 +64,19 @@ test('rejects a hosted checkout returned by a different provider', () => {
     { message: 'checkout_provider_mismatch' }
   );
 });
+
+test('rejects malformed hosted checkout payment identifiers', () => {
+  for (const paymentId of ['', '   ', {}, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(
+      () => buildHostedCheckoutResponse({
+        providerId: 'stripe',
+        checkout: {
+          url: 'https://checkout.example.test/session',
+          orderId: 'order-1',
+          paymentId,
+        },
+      }),
+      { message: 'checkout_payment_id_invalid' }
+    );
+  }
+});
