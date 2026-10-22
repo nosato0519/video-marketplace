@@ -29,7 +29,9 @@ export async function settlePaymentWebhook({ event } = {}) {
   }
 
   const isCheckoutSession = event.type.startsWith('checkout.session.');
-  const providerPaymentId = isCheckoutSession ? object.payment_intent : object.id;
+  const providerPaymentId = isCheckoutSession
+    ? (typeof object.payment_intent === 'string' ? object.payment_intent : object.payment_intent?.id)
+    : object.id;
   if (!hasIdentifier(providerPaymentId)) {
     throw new Error('payment_provider_id_required');
   }
