@@ -235,3 +235,14 @@ test('does not settle Checkout Sessions that Stripe has not marked paid', async 
     reason: 'payment_not_paid',
   });
 });
+
+test('requires the provider payment ID before settling an order', async () => {
+  await assert.rejects(
+    settleSuccessfulPayment({ paymentId: 'payment_1', orderId: 'order_1' }),
+    /payment_provider_id_required/
+  );
+  await assert.rejects(
+    settleSuccessfulPayment({ paymentId: 'payment_1', orderId: 'order_1', providerPaymentId: '   ' }),
+    /payment_provider_id_required/
+  );
+});
