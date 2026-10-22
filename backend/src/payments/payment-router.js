@@ -18,6 +18,9 @@ export function resolvePaymentProvider({ providerId, region = 'global', currency
   if (currency && config.currencies !== 'multi' && !config.currencies.includes(String(currency).toUpperCase())) {
     throw new Error(`payment_provider_currency_unsupported:${providerId}:${String(currency).toUpperCase()}`);
   }
+  if (config.status !== 'available') {
+    throw new Error(`payment_provider_adapter_not_ready:${providerId}`);
+  }
 
   const setting = getPaymentProviderSettings(providerId);
   if (!setting) throw new Error(`payment_provider_not_configured:${providerId}`);
