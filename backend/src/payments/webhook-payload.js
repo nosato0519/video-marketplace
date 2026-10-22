@@ -17,7 +17,7 @@ export function validateWebhookPayload(payload) {
   }
 
   if (payload.eventType === 'payment_succeeded') {
-    if (typeof payload.amount !== 'number' || !Number.isFinite(payload.amount) || payload.amount < 0) {
+    if (typeof payload.amount !== 'number' || !Number.isFinite(payload.amount) || payload.amount <= 0) {
       throw new Error('invalid_webhook_amount');
     }
     if (typeof payload.currency !== 'string' || !/^[A-Za-z]{3}$/.test(payload.currency)) {
