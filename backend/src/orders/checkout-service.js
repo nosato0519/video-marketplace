@@ -54,7 +54,7 @@ export async function createCheckoutSession({ orderId, userId }) {
     throw new Error('payment_order_amount_mismatch');
   }
 
-  return provider.createCheckout({
+  const checkout = await provider.createCheckout({
     orderId: order.id,
     amount: payment.amount,
     currency: payment.currency,
@@ -67,4 +67,22 @@ export async function createCheckoutSession({ orderId, userId }) {
       providerId: provider.name,
     },
   });
+
+  if (checkout.sessionId) {
+    const savedSession = await query(
+      `UPDATE payments
+          SET checkout_session_id = $1
+        WHERE id = $2
+          AND provider = $3
+          AND status = 'pending'
+          AND (checkout_session_id IS NULL OR checkout_session_id = $1)
+        RETURNING id`,
+      [checkout.sessionId, payment.id, provider.name]
+    );
+    if (savedSession.rowCount !== 1) {
+      throw new Error('checkout_session_persistence_failed');
+    }
+  }
+
+  return checkout;
 }
