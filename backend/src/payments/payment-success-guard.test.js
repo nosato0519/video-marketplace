@@ -27,3 +27,11 @@ test('rejects settlement when the order provider differs from the webhook provid
     provider: 'paypal',
   }), /payment_provider_mismatch/);
 });
+
+test('rejects settlement when the payment record provider differs from the webhook provider', () => {
+  assert.throws(() => validateSuccessfulPaymentSettlement({
+    order: { id: 'o1', provider: 'stripe', status: 'pending', amount: '1200.00', currency: 'JPY' },
+    payment: { order_id: 'o1', provider: 'paypal', status: 'succeeded', amount: '1200.00', currency: 'JPY', provider_payment_id: 'pay-1' },
+    provider: 'stripe',
+  }), /payment_provider_mismatch/);
+});
