@@ -13,6 +13,7 @@ const STRIPE_EVENTS = new Map([
   ['checkout.session.async_payment_succeeded', 'payment_succeeded'],
   ['checkout.session.async_payment_failed', 'payment_failed'],
   ['checkout.session.expired', 'payment_failed'],
+  ['payment_intent.succeeded', 'payment_succeeded'],
   ['charge.refunded', 'payment_refunded'],
 ]);
 
@@ -98,9 +99,11 @@ export function createStripeWebhookHandler({
 async function normalizeStripeEvent(event, eventType, stripe) {
   const object = event?.data?.object || {};
   const metadata = object.metadata || {};
-  const paymentIntentId = typeof object.payment_intent === 'string'
-    ? object.payment_intent
-    : object.payment_intent?.id;
+  const paymentIntentId = event.type === 'payment_intent.succeeded'
+    ? object.id
+    : typeof object.payment_intent === 'string'
+      ? object.payment_intent
+      : object.payment_intent?.id;
   // Refund settlement is keyed by the original PaymentIntent, not the Charge ID.
   // If Stripe omits that link, reject the event instead of persisting a mismatched payment ID.
   const paymentId = paymentIntentId;
