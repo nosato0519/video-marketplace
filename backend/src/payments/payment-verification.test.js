@@ -98,3 +98,16 @@ test('rejects unsafe numeric order identifiers', () => {
     /payment_order_id_required/
   );
 });
+
+test('rejects non-scalar or blank payment amounts', () => {
+  for (const amount of [true, [], {}, '   ']) {
+    assert.throws(
+      () => verifyPaymentAgainstOrder({ payment: { ...payment, amount }, order }),
+      /payment_amount_invalid/
+    );
+  }
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment, order: { ...order, amount: true } }),
+    /payment_amount_invalid/
+  );
+});
