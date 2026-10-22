@@ -40,7 +40,7 @@ export async function failPayment({
     }
 
     const order = await client.query(
-      `SELECT id, status
+      `SELECT id, status, provider, provider_payment_id
          FROM orders
         WHERE id = $1
         FOR UPDATE`,
@@ -49,6 +49,13 @@ export async function failPayment({
 
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
+
+    if (
+      (current.provider && current.provider !== provider) ||
+      (current.provider_payment_id && current.provider_payment_id !== providerPaymentId)
+    ) {
+      throw new Error('payment_provider_or_id_mismatch');
+    }
 
     const payment = await client.query(
       `SELECT id, order_id, user_id, provider, provider_payment_id, amount, currency, status
