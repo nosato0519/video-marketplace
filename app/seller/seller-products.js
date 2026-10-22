@@ -281,7 +281,7 @@ export function initSellerProductsPage() {
 
   const initialPage = Math.max(1, Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10) || 1);
   load(initialPage).catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; });
-  loadUnusedMedia().catch(() => { unusedMediaList.innerHTML = '<small>未使用の動画ファイルを読み込めませんでした。</small>'; });
+  loadUnusedMedia().catch((error) => { if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html'; else unusedMediaList.innerHTML = '<small>未使用の動画ファイルを読み込めませんでした。</small>'; });
 }
 
 if (document.querySelector('#seller-product-list')) initSellerProductsPage();
