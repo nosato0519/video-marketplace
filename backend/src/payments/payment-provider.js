@@ -89,7 +89,7 @@ function withStripeSessionId(url, orderId) {
   const hash = hashIndex === -1 ? '' : value.slice(hashIndex);
   const params = [];
   if (!/[?&]orderId=/.test(base)) params.push('orderId=' + encodeURIComponent(String(orderId)));
-  if (!base.includes('session_id=') && !base.includes('{CHECKOUT_SESSION_ID}')) {
+  if (!/[?&]session_id=/.test(base) && !base.includes('{CHECKOUT_SESSION_ID}')) {
     params.push('session_id={CHECKOUT_SESSION_ID}');
   }
   if (!params.length) return value;
