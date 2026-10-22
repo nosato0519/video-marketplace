@@ -40,3 +40,12 @@ test('rejects unsupported event type', () => {
 test('rejects zero-value successful payment', () => {
   assert.throws(() => validateWebhookPayload({ ...basePayload, amount: 0 }), /invalid_webhook_amount/);
 });
+
+test('rejects status mismatches for failed and refunded events', () => {
+  for (const eventType of ['payment_failed', 'payment_refunded']) {
+    assert.throws(
+      () => validateWebhookPayload({ ...basePayload, eventType, status: 'succeeded' }),
+      /invalid_webhook_status/
+    );
+  }
+});
