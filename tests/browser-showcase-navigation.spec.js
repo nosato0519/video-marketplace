@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const demoPort = 4176;
 const demoUrl = `http://127.0.0.1:${demoPort}/`;
 const demoRoot = dirname(fileURLToPath(new URL('../demo/', import.meta.url)));
-const demoScript = fileURLToPath(new URL('../demo/showcase-navigation-proxy.mjs', import.meta.url));
+const demoScript = fileURLToPath(new URL('../demo/home-nav-proxy.mjs', import.meta.url));
 let demoProcess;
 let demoOutput = '';
 
@@ -48,7 +48,7 @@ test.describe('sales showcase navigation', () => {
 
     await page.goto(demoUrl);
     await page.getByText('購入者デモ', { exact: true }).click();
-    await expect(page).toHaveURL(/\/pages\/library\.html$/);
+    await expect(page).toHaveURL(/\/pages\/account\.html$/);
 
     await page.goto(demoUrl);
     await page.getByRole('link', { name: '動画を探す' }).first().click();
