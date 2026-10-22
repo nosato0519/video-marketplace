@@ -27,6 +27,7 @@ test('records seller earnings once and rejects stale success after refund', { sk
   let buyerId;
   let productId;
   let orderId;
+  let secondOrderId;
 
   try {
     const seller = await pool.query(
@@ -89,6 +90,33 @@ test('records seller earnings once and rejects stale success after refund', { sk
     );
     assert.equal(afterRetry.rows[0].count, 1);
 
+    const secondOrder = await pool.query(
+      `INSERT INTO orders (buyer_id, product_id, amount, currency, status)
+       VALUES ($1, $2, 1500, 'JPY', 'pending') RETURNING id`,
+      [buyerId, productId]
+    );
+    secondOrderId = secondOrder.rows[0].id;
+    const secondPayment = await pool.query(
+      `INSERT INTO payments
+        (order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key)
+       VALUES ($1, $2, 'test', $3, 1500, 'JPY', 'pending', $4)
+       RETURNING id`,
+      [secondOrderId, buyerId, `${providerPaymentId}-second`, `test:settlement:second:${suffix}`]
+    );
+    await settleSuccessfulPayment({
+      paymentId: secondPayment.rows[0].id,
+      orderId: secondOrderId,
+      providerPaymentId: `${providerPaymentId}-second`,
+    });
+
+    const activeEntitlement = await pool.query(
+      `SELECT order_id FROM entitlements
+        WHERE user_id = $1 AND product_id = $2 AND status = 'active'`,
+      [buyerId, productId]
+    );
+    assert.equal(activeEntitlement.rowCount, 1);
+    assert.equal(activeEntitlement.rows[0].order_id, orderId);
+
     await pool.query("UPDATE orders SET status = 'refunded' WHERE id = $1", [orderId]);
     await pool.query("UPDATE payments SET status = 'refunded' WHERE id = $1", [paymentId]);
     await pool.query(
@@ -120,6 +148,11 @@ test('records seller earnings once and rejects stale success after refund', { sk
     assert.equal(protectedState.rows[0].entitlement_status, 'revoked');
     assert.equal(protectedState.rows[0].earnings_status, 'refunded');
   } finally {
+    if (secondOrderId) {
+      await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [secondOrderId]).catch(() => {});
+      await pool.query('DELETE FROM payments WHERE order_id = $1', [secondOrderId]).catch(() => {});
+      await pool.query('DELETE FROM orders WHERE id = $1', [secondOrderId]).catch(() => {});
+    }
     if (orderId) {
       await pool.query('DELETE FROM seller_earnings WHERE order_id = $1', [orderId]).catch(() => {});
       await pool.query('DELETE FROM entitlements WHERE order_id = $1', [orderId]).catch(() => {});
