@@ -130,6 +130,23 @@ export async function refundPayment({
       return { duplicate: true };
     }
 
+    // Read the buyer/product without taking an order lock. Acquire the shared
+    // buyer/product lock first so concurrent refunds cannot deadlock while
+    // each holds a different order row and tries to lock the other's order.
+    const orderIdentity = await client.query(
+      `SELECT id, product_id, buyer_id
+         FROM orders
+        WHERE id = $1`,
+      [orderId]
+    );
+    if (orderIdentity.rowCount === 0) throw new Error('order_not_found');
+    const identity = orderIdentity.rows[0];
+
+    await client.query(
+      `SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))`,
+      [String(identity.buyer_id), String(identity.product_id)]
+    );
+
     const order = await client.query(
       `SELECT o.id, o.status, o.product_id, o.buyer_id
          FROM orders o
@@ -140,13 +157,6 @@ export async function refundPayment({
 
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
-
-    // Serialize refunds for the same buyer/product so concurrent refunds cannot
-    // make entitlement reassignment decisions from conflicting purchase states.
-    await client.query(
-      `SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))`,
-      [String(current.buyer_id), String(current.product_id)]
-    );
 
     const paymentRecord = await client.query(
       `SELECT id, order_id, provider, provider_payment_id, status
