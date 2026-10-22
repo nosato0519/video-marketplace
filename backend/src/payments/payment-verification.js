@@ -23,10 +23,17 @@ export function verifyPaymentAgainstOrder({
     throw new Error('payment_currency_mismatch');
   }
 
+  const isValidAmount = (value) =>
+    (typeof value === 'number' && Number.isFinite(value)) ||
+    (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value)));
+  if (!isValidAmount(payment.amount) || !isValidAmount(order.amount)) {
+    throw new Error('payment_amount_invalid');
+  }
+
   const paidAmount = Number(payment.amount);
   const orderAmount = Number(order.amount);
 
-  if (!Number.isFinite(paidAmount) || !Number.isFinite(orderAmount) || paidAmount <= 0 || orderAmount <= 0) {
+  if (paidAmount <= 0 || orderAmount <= 0) {
     throw new Error('payment_amount_invalid');
   }
 
