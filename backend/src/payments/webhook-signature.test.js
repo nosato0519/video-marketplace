@@ -19,6 +19,14 @@ test('rejects an invalid signature', () => {
   );
 });
 
+test('rejects a same-length signature containing non-hex characters', () => {
+  const body = Buffer.from('{"eventId":"evt_123"}');
+  assert.equal(
+    verifyWebhookSignature({ rawBody: body, signature: 'g'.repeat(64), secret: 'test-secret' }),
+    false
+  );
+});
+
 test('rejects missing signature or secret', () => {
   const body = Buffer.from('{}');
   assert.equal(verifyWebhookSignature({ rawBody: body, signature: '', secret: 'secret' }), false);
