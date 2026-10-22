@@ -113,7 +113,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
   // If Stripe omits that link, reject the event instead of persisting a mismatched payment ID.
   const paymentId = paymentIntentId;
   if (metadata.orderId && object.client_reference_id && String(metadata.orderId) !== String(object.client_reference_id)) {
-    throw new Error('stripe_order_reference_mismatch');
+    throw new Error('payment_order_mismatch');
   }
   let orderId = metadata.orderId || object.client_reference_id;
 
