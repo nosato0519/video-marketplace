@@ -39,3 +39,21 @@ test('rejects a payment for another order', () => {
     /payment_order_mismatch/
   );
 });
+
+test('rejects missing order identifiers instead of treating them as a match', () => {
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment: { ...payment, orderId: undefined }, order: { ...order, id: undefined } }),
+    /payment_order_id_required/
+  );
+});
+
+test('rejects missing or malformed currency codes', () => {
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment: { ...payment, currency: undefined }, order }),
+    /payment_currency_invalid/
+  );
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment, order: { ...order, currency: 'JP' } }),
+    /payment_currency_invalid/
+  );
+});
