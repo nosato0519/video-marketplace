@@ -6,6 +6,7 @@ import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event
 import { completePayment as defaultCompletePayment } from './complete-payment.js';
 import { failPayment as defaultFailPayment } from './fail-payment.js';
 import { refundPayment as defaultRefundPayment } from './refund-payment.js';
+import { toWebhookErrorResponse } from './webhook-error.js';
 
 const STRIPE_EVENTS = new Map([
   ['checkout.session.completed', 'payment_succeeded'],
@@ -84,7 +85,9 @@ export function createStripeWebhookHandler({
       });
       return res.status(200).json({ received: true, result });
     } catch (error) {
-      next(error);
+      const response = toWebhookErrorResponse(error);
+      if (response.status === 500) return next(error);
+      return res.status(response.status).json(response.body);
     }
   };
 }
