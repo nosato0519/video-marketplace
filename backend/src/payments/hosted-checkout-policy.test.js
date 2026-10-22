@@ -50,3 +50,17 @@ test('rejects insecure or credential-bearing hosted checkout URLs', () => {
     );
   }
 });
+
+test('rejects a hosted checkout returned by a different provider', () => {
+  assert.throws(
+    () => buildHostedCheckoutResponse({
+      providerId: 'stripe',
+      checkout: {
+        provider: 'paypal',
+        url: 'https://checkout.example.test/session',
+        orderId: 'order-1',
+      },
+    }),
+    { message: 'checkout_provider_mismatch' }
+  );
+});
