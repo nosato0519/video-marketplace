@@ -16,7 +16,9 @@ export function validateWebhookPayload(payload) {
     throw new Error('unsupported_webhook_event_type');
   }
 
-  const expectedStatus = payload.eventType === 'payment_succeeded' ? 'succeeded' : 'failed';
+  const expectedStatus = payload.eventType === 'payment_succeeded'
+    ? 'succeeded'
+    : payload.eventType === 'payment_refunded' ? 'refunded' : 'failed';
   if (payload.status !== expectedStatus) {
     throw new Error('invalid_webhook_status');
   }
