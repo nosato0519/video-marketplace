@@ -17,6 +17,32 @@ test('pending provider rejects a missing idempotency key', async () => {
   );
 });
 
+test('pending provider rejects blank idempotency keys and unsafe numeric identifiers', async () => {
+  const provider = createPaymentProvider({ provider: 'pending' });
+  const base = {
+    orderId: 'o1',
+    amount: 100,
+    currency: 'JPY',
+    metadata: { orderId: 'o1', paymentId: 'p1' },
+  };
+  await assert.rejects(
+    () => provider.createCheckout({ ...base, idempotencyKey: '   ' }),
+    /checkout_idempotency_key_required/
+  );
+  await assert.rejects(
+    () => provider.createCheckout({ ...base, orderId: Number.MAX_SAFE_INTEGER + 1, idempotencyKey: 'order:o1' }),
+    /checkout_order_id_required/
+  );
+  await assert.rejects(
+    () => provider.createCheckout({
+      ...base,
+      idempotencyKey: 'order:o1',
+      metadata: { orderId: 'o1', paymentId: Number.MAX_SAFE_INTEGER + 1 },
+    }),
+    /checkout_payment_id_required/
+  );
+});
+
 test('pending provider rejects mismatched order metadata', async () => {
   const provider = createPaymentProvider({ provider: 'pending' });
   await assert.rejects(
