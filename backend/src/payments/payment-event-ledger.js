@@ -8,7 +8,9 @@ export async function recordPaymentEvent({
   payloadHash,
   orderId = null,
 }) {
-  if (!provider || !eventId || !eventType || !providerPaymentId || !payloadHash) {
+  const requiredIdentifiers = { provider, eventId, eventType, providerPaymentId, payloadHash };
+  if (Object.values(requiredIdentifiers).some((value) => typeof value !== 'string' || value.trim() === '') ||
+      (orderId !== null && orderId !== undefined && (typeof orderId !== 'string' || orderId.trim() === ''))) {
     throw new Error('invalid_payment_event');
   }
 
