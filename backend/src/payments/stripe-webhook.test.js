@@ -430,3 +430,45 @@ test('rejects a full refund event without a PaymentIntent before recording it', 
   assert.equal(recordCalls, 0);
   assert.equal(refundCalls, 0);
 });
+
+
+test('rejects a paid Checkout session without a PaymentIntent before recording or settling it', async () => {
+  let recordCalls = 0;
+  let completeCalls = 0;
+  const event = makeEvent({
+    id: 'evt_paid_without_payment_intent',
+    type: 'checkout.session.completed',
+    data: { object: {
+      id: 'cs_paid_without_payment_intent',
+      object: 'checkout.session',
+      client_reference_id: 'order_123',
+      amount_total: 1000,
+      currency: 'jpy',
+      payment_intent: null,
+      payment_status: 'paid',
+      metadata: { orderId: 'order_123', paymentId: 'internal_payment_row_123' },
+    } },
+  });
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    completePayment: async () => { completeCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(completeCalls, 0);
+});
