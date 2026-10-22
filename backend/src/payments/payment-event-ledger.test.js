@@ -101,3 +101,12 @@ test('requires an event ID when building a failed webhook retry', async () => {
     /payment_event_id_required/
   );
 });
+
+test('normalizes a numeric database event ID when building a retry', async () => {
+  const { buildPaymentEventRetry } = await import('./payment-event-retry.js');
+  const retry = buildPaymentEventRetry({
+    event: { id: 42, status: 'failed' },
+    now: new Date('2026-10-22T00:00:00.000Z'),
+  });
+  assert.equal(retry.eventId, '42');
+});
