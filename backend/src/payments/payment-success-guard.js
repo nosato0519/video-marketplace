@@ -1,4 +1,4 @@
-export function validateSuccessfulPaymentSettlement({ order, payment }) {
+export function validateSuccessfulPaymentSettlement({ order, payment, provider }) {
   if (!order || !payment) throw new Error('payment_verification_input_required');
 
   // Payment verification accepts the public camelCase shape used by the
@@ -7,6 +7,7 @@ export function validateSuccessfulPaymentSettlement({ order, payment }) {
   const providerPaymentId = payment.provider_payment_id ?? payment.providerPaymentId;
 
   if (order.id !== paymentOrderId) throw new Error('payment_order_mismatch');
+  if (order.provider && provider && order.provider !== provider) throw new Error('payment_provider_mismatch');
   if (order.status !== 'pending') throw new Error('order_not_settleable');
   if (payment.status !== 'succeeded') throw new Error('payment_not_succeeded');
   if (Number(payment.amount) !== Number(order.amount)) throw new Error('payment_amount_mismatch');
