@@ -76,7 +76,7 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
       await client.query(
         `INSERT INTO entitlements (user_id, product_id, order_id)
          VALUES ($1, $2, $3)
-         ON CONFLICT (order_id) DO NOTHING`,
+         ON CONFLICT DO NOTHING`,
         [current.buyer_id, current.product_id, current.id]
       );
       await client.query(
@@ -107,7 +107,7 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     );
     const entitlement = await client.query(
       `INSERT INTO entitlements (user_id, product_id, order_id) VALUES ($1, $2, $3)
-       ON CONFLICT (order_id) DO NOTHING
+       ON CONFLICT DO NOTHING
        RETURNING id, user_id, product_id, order_id, status, created_at`,
       [current.buyer_id, current.product_id, current.id]
     );
