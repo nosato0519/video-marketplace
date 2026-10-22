@@ -12,9 +12,12 @@ export async function ensurePendingPayment({ order, provider, providerPaymentId 
      ON CONFLICT (order_id) DO UPDATE
        SET provider = EXCLUDED.provider,
            provider_payment_id = EXCLUDED.provider_payment_id
+       WHERE payments.status = 'pending'
      RETURNING id, order_id, provider, provider_payment_id, amount, currency, status, created_at`,
     [order.id, provider, providerPaymentId, order.amount, order.currency]
   );
+
+  if (result.rowCount === 0) throw new Error('payment_not_pending');
 
   return result.rows[0];
 }
