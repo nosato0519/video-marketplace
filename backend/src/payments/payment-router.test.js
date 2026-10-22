@@ -13,6 +13,13 @@ test('rejects a provider unavailable to the selected region', () => {
   );
 });
 
+test('rejects a region-compatible provider that is not implemented', () => {
+  assert.throws(
+    () => resolvePaymentProvider({ providerId: 'paypay', region: 'japan', currency: 'JPY' }),
+    /payment_provider_adapter_not_ready:paypay/
+  );
+});
+
 test('requires the selected provider to be configured before checkout routing', () => {
   assert.throws(
     () => resolvePaymentProvider({ providerId: 'stripe', region: 'global', currency: 'USD' }),
