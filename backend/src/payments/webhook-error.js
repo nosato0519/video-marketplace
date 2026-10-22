@@ -15,10 +15,23 @@ const PUBLIC_WEBHOOK_ERRORS = new Set([
   'payment_amount_invalid',
   'payment_amount_mismatch',
   'payment_not_succeeded',
+  'payment_provider_mismatch',
+  'payment_provider_or_id_mismatch',
+  'provider_payment_id_mismatch',
+  'payment_not_settleable',
+  'payment_not_refundable',
   'payment_event_not_found',
   'order_not_found',
   'order_not_payable',
   'order_not_refundable',
+  'order_not_cancellable',
+  'payment_record_not_found',
+  'payment_not_found',
+  'payment_order_mismatch',
+  'payment_verification_input_required',
+  'payment_settlement_identifiers_required',
+  'payment_order_not_settleable',
+  'order_not_settleable',
 ]);
 
 export function toWebhookErrorResponse(error) {
