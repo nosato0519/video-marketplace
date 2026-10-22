@@ -54,3 +54,26 @@ test('rejects reuse of an event id when the payload hash changes', { skip: !proc
     /payment_event_payload_mismatch/
   );
 });
+
+test('rejects blank required identifiers and malformed optional order ids before database access', async () => {
+  const valid = {
+    provider: 'test',
+    eventId: 'evt_valid',
+    eventType: 'payment_succeeded',
+    providerPaymentId: 'pay_valid',
+    payloadHash: 'hash_valid',
+  };
+  for (const [field, value] of [
+    ['provider', ' '],
+    ['eventId', ' '],
+    ['eventType', ' '],
+    ['providerPaymentId', ' '],
+    ['payloadHash', ' '],
+    ['orderId', ' '],
+  ]) {
+    await assert.rejects(
+      recordPaymentEvent({ ...valid, [field]: value }),
+      /invalid_payment_event/
+    );
+  }
+});
