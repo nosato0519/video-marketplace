@@ -29,7 +29,7 @@ export function toStripeMinorUnits(amount, currency) {
 
 export function fromStripeMinorUnits(amount, currency) {
   const value = Number(amount);
-  if (!Number.isFinite(value) || value < 0) throw new Error('stripe_amount_invalid');
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error('stripe_amount_invalid');
   const normalizedCurrency = String(currency || '').toUpperCase();
   if (TWO_DECIMAL_ZERO_VALUE_CURRENCIES.has(normalizedCurrency) && value % 100 !== 0) {
     throw new Error('stripe_amount_precision_invalid');
