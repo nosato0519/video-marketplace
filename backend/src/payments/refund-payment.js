@@ -25,11 +25,6 @@ export async function refundPayment({
     if (event.rowCount === 0) throw new Error('payment_event_not_found');
     const recordedEvent = event.rows[0];
 
-    if (recordedEvent.status === 'processed') {
-      await client.query('ROLLBACK');
-      return { duplicate: true };
-    }
-
     if (
       recordedEvent.event_type !== 'payment_refunded' ||
       recordedEvent.provider_payment_id !== providerPaymentId ||
@@ -37,6 +32,11 @@ export async function refundPayment({
       (recordedEvent.order_id ?? null) !== (orderId ?? null)
     ) {
       throw new Error('payment_event_payload_mismatch');
+    }
+
+    if (recordedEvent.status === 'processed') {
+      await client.query('ROLLBACK');
+      return { duplicate: true };
     }
 
     const order = await client.query(
@@ -208,7 +208,12 @@ export async function refundPayment({
                         SELECT 1
                           FROM payments replacement_payment
                          WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
+                           AND replacement.status = 'paid'
+                           AND EXISTS (
+                             SELECT 1 FROM payments replacement_payment
+                              WHERE replacement_payment.order_id = replacement.id
+                                AND replacement_payment.status = 'succeeded'
+                           )
                       )
                    AND replacement.id <> $1
               ) THEN NULL ELSE NOW() END
