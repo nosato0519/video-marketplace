@@ -91,6 +91,15 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   }
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('checkout_metadata_required');
   if (metadata.orderId !== undefined && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
+  if (
+    metadata.reference !== undefined &&
+    metadata.reference !== null &&
+    ((typeof metadata.reference !== 'string' && typeof metadata.reference !== 'number') ||
+      !String(metadata.reference).trim() ||
+      String(metadata.reference).length > 500)
+  ) {
+    throw new Error('checkout_reference_invalid');
+  }
   if (typeof idempotencyKey !== 'string' || !idempotencyKey.trim()) throw new Error('checkout_idempotency_key_required');
   if (idempotencyKey.length > 255) throw new Error('checkout_idempotency_key_invalid');
   if (
