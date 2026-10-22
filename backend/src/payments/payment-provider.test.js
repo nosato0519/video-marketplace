@@ -267,3 +267,23 @@ test('Stripe checkout rejects insecure or malformed redirect URLs', () => {
     }
   }
 });
+
+
+test('payment provider catalog preserves planned integrations without enabling unimplemented adapters', async () => {
+  const { getPaymentProviderCatalog, getPaymentProviderConfig } = await import('./payment-provider-catalog.js');
+  const catalog = getPaymentProviderCatalog();
+  assert.deepEqual(catalog.map(({ id, status }) => [id, status]), [
+    ['stripe', 'available'],
+    ['paypal', 'not_implemented'],
+    ['adyen', 'not_implemented'],
+    ['paddle', 'not_implemented'],
+    ['paypay', 'not_implemented'],
+  ]);
+
+  const paypal = getPaymentProviderConfig('paypal');
+  assert.equal(paypal.name, 'PayPal');
+  assert.equal(paypal.status, 'not_implemented');
+  paypal.regions.push('test-only');
+  assert.deepEqual(getPaymentProviderConfig('paypal').regions, ['global', 'japan']);
+  assert.equal(getPaymentProviderConfig('unknown'), null);
+});
