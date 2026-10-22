@@ -21,7 +21,7 @@ export function verifyPaymentAgainstOrder({
   const paidAmount = Number(payment.amount);
   const orderAmount = Number(order.amount);
 
-  if (!Number.isFinite(paidAmount) || !Number.isFinite(orderAmount)) {
+  if (!Number.isFinite(paidAmount) || !Number.isFinite(orderAmount) || paidAmount <= 0 || orderAmount <= 0) {
     throw new Error('payment_amount_invalid');
   }
 
