@@ -40,7 +40,7 @@ test('available balance source is seller earnings', () => {
 
 test('withdrawable balance reserves only allocations attached to available earnings', () => {
   const allocationReservationQueries = sellerPayoutRoute.match(
-    /FROM payout_earnings_allocations a[\\s\\S]*?JOIN payouts p ON p\\.id = a\\.payout_id[\\s\\S]*?JOIN seller_earnings e ON e\\.id = a\\.seller_earning_id[\\s\\S]*?e\\.status = 'available'[\\s\\S]*?p\\.status NOT IN \\('failed','cancelled'\\)/g
+    /FROM payout_earnings_allocations a[\s\S]*?JOIN payouts p ON p\.id = a\.payout_id[\s\S]*?JOIN seller_earnings e ON e\.id = a\.seller_earning_id[\s\S]*?e\.status = 'available'[\s\S]*?p\.status NOT IN \('failed','cancelled'\)/g
   ) || [];
   assert.equal(allocationReservationQueries.length, 2);
 });
