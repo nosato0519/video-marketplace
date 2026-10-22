@@ -99,7 +99,7 @@ export async function failPayment({
         [recordedEvent.id]
       );
       await client.query('COMMIT');
-      return { duplicate: true, alreadyCancelled: true };
+      return { duplicate: false, alreadyCancelled: true };
     }
 
     const updatedPayment = await client.query(
