@@ -40,7 +40,7 @@ export async function refundPayment({
     }
 
     const order = await client.query(
-      `SELECT o.id, o.status, o.product_id
+      `SELECT o.id, o.status, o.product_id, o.buyer_id
          FROM orders o
         WHERE o.id = $1
         FOR UPDATE`,
@@ -69,11 +69,37 @@ export async function refundPayment({
 
     if (current.status === ORDER_STATES.REFUNDED) {
       await client.query(
-        `UPDATE entitlements
-            SET status = 'revoked', revoked_at = COALESCE(revoked_at, NOW())
-          WHERE order_id = $1
-            AND (status = 'active' OR revoked_at IS NULL)`,
-        [current.id]
+        `UPDATE entitlements e
+            SET order_id = COALESCE(
+                  (SELECT replacement.id
+                     FROM orders replacement
+                    WHERE replacement.buyer_id = $2
+                      AND replacement.product_id = $3
+                      AND replacement.status = 'paid'
+                      AND replacement.id <> $1
+                    ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
+                    LIMIT 1),
+                  e.order_id
+                ),
+                status = CASE WHEN EXISTS (
+                  SELECT 1
+                    FROM orders replacement
+                   WHERE replacement.buyer_id = $2
+                     AND replacement.product_id = $3
+                     AND replacement.status = 'paid'
+                     AND replacement.id <> $1
+                ) THEN 'active' ELSE 'revoked' END,
+                revoked_at = CASE WHEN EXISTS (
+                  SELECT 1
+                    FROM orders replacement
+                   WHERE replacement.buyer_id = $2
+                     AND replacement.product_id = $3
+                     AND replacement.status = 'paid'
+                     AND replacement.id <> $1
+                ) THEN NULL ELSE COALESCE(e.revoked_at, NOW()) END
+          WHERE e.order_id = $1
+            AND (e.status = 'active' OR e.revoked_at IS NULL)`,
+        [current.id, current.buyer_id, current.product_id]
       );
 
       if (currentPayment.status !== 'refunded') {
@@ -115,11 +141,37 @@ export async function refundPayment({
     );
 
     const revoked = await client.query(
-      `UPDATE entitlements
-          SET status = 'revoked', revoked_at = NOW()
-        WHERE order_id = $1 AND status = 'active'
-        RETURNING id, user_id, product_id, order_id, status, revoked_at`,
-      [current.id]
+      `UPDATE entitlements e
+          SET order_id = COALESCE(
+                (SELECT replacement.id
+                   FROM orders replacement
+                  WHERE replacement.buyer_id = $2
+                    AND replacement.product_id = $3
+                    AND replacement.status = 'paid'
+                    AND replacement.id <> $1
+                  ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
+                  LIMIT 1),
+                e.order_id
+              ),
+              status = CASE WHEN EXISTS (
+                SELECT 1
+                  FROM orders replacement
+                 WHERE replacement.buyer_id = $2
+                   AND replacement.product_id = $3
+                   AND replacement.status = 'paid'
+                   AND replacement.id <> $1
+              ) THEN 'active' ELSE 'revoked' END,
+              revoked_at = CASE WHEN EXISTS (
+                SELECT 1
+                  FROM orders replacement
+                 WHERE replacement.buyer_id = $2
+                   AND replacement.product_id = $3
+                   AND replacement.status = 'paid'
+                   AND replacement.id <> $1
+              ) THEN NULL ELSE NOW() END
+        WHERE e.order_id = $1 AND e.status = 'active'
+        RETURNING e.id, e.user_id, e.product_id, e.order_id, e.status, e.revoked_at`,
+      [current.id, current.buyer_id, current.product_id]
     );
 
     const earnings = await client.query(
