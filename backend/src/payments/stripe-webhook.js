@@ -14,6 +14,7 @@ const STRIPE_EVENTS = new Map([
   ['checkout.session.async_payment_failed', 'payment_failed'],
   ['checkout.session.expired', 'payment_failed'],
   ['payment_intent.succeeded', 'payment_succeeded'],
+  ['payment_intent.payment_failed', 'payment_failed'],
   ['charge.refunded', 'payment_refunded'],
 ]);
 
@@ -99,7 +100,7 @@ export function createStripeWebhookHandler({
 async function normalizeStripeEvent(event, eventType, stripe) {
   const object = event?.data?.object || {};
   const metadata = object.metadata || {};
-  const paymentIntentId = event.type === 'payment_intent.succeeded'
+  const paymentIntentId = event.type.startsWith('payment_intent.')
     ? object.id
     : typeof object.payment_intent === 'string'
       ? object.payment_intent
