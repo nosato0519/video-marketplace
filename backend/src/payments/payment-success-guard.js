@@ -8,6 +8,7 @@ export function validateSuccessfulPaymentSettlement({ order, payment, provider }
 
   if (order.id !== paymentOrderId) throw new Error('payment_order_mismatch');
   if (order.provider && provider && order.provider !== provider) throw new Error('payment_provider_mismatch');
+  if (payment.provider && provider && payment.provider !== provider) throw new Error('payment_provider_mismatch');
   if (order.status !== 'pending') throw new Error('order_not_settleable');
   if (payment.status !== 'succeeded') throw new Error('payment_not_succeeded');
   if (Number(payment.amount) !== Number(order.amount)) throw new Error('payment_amount_mismatch');
