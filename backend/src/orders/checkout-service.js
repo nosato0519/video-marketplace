@@ -47,6 +47,13 @@ export async function createCheckoutSession({ orderId, userId }) {
     idempotencyKey,
   });
 
+  if (
+    Number(payment.amount) !== Number(order.amount) ||
+    String(payment.currency).toUpperCase() !== String(order.currency).toUpperCase()
+  ) {
+    throw new Error('payment_order_amount_mismatch');
+  }
+
   try {
     return await provider.createCheckout({
       orderId: order.id,
