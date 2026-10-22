@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { recordPaymentEvent } from './payment-event-ledger.js';
+import { assertSafeRetry } from './payment-event-retry.js';
 
 // The production ledger uses the real database helper. Integration checks run
 // only when a test database is explicitly configured.
@@ -74,6 +75,17 @@ test('rejects blank required identifiers and malformed optional order ids before
     await assert.rejects(
       recordPaymentEvent({ ...valid, [field]: value }),
       /invalid_payment_event/
+    );
+  }
+});
+
+test('allows failed webhook retry only while its order is pending', () => {
+  const event = { status: 'failed', order_id: 'order_1' };
+  assert.equal(assertSafeRetry({ event, order: { id: 'order_1', status: 'pending' } }), true);
+  for (const status of ['paid', 'refunded', 'cancelled', 'failed']) {
+    assert.throws(
+      () => assertSafeRetry({ event, order: { id: 'order_1', status } }),
+      /order_not_retryable/
     );
   }
 });
