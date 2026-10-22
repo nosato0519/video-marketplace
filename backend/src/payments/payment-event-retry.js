@@ -6,11 +6,12 @@ export function shouldRetryPaymentEvent(event) {
 
 export function buildPaymentEventRetry({ event, now = new Date() }) {
   if (!shouldRetryPaymentEvent(event)) throw new Error('event_not_retryable');
-  if (typeof event.id !== 'string' || event.id.trim() === '') {
-    throw new Error('payment_event_id_required');
-  }
+  const validId =
+    (typeof event.id === 'string' && event.id.trim() !== '') ||
+    (typeof event.id === 'number' && Number.isSafeInteger(event.id) && event.id > 0);
+  if (!validId) throw new Error('payment_event_id_required');
   return {
-    eventId: event.id,
+    eventId: String(event.id),
     retryRequestedAt: now.toISOString(),
     status: 'received',
   };
