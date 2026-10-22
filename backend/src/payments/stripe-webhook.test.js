@@ -536,9 +536,7 @@ test('routes PaymentIntent success, failure, and cancellation events using the P
         data: { object: {
           id: `pi_direct_${index}`,
           object: 'payment_intent',
-          amount: 1000,
-          amount_received: 1000,
-          currency: 'jpy',
+          ...(item.type === 'payment_intent.succeeded' ? { amount: 1000, amount_received: 1000, currency: 'jpy' } : {}),
           status: item.type === 'payment_intent.succeeded' ? 'succeeded' : 'requires_payment_method',
           metadata: { orderId: 'order_123', paymentId: 'internal_payment_row_123' },
         } },
