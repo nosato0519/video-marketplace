@@ -101,7 +101,11 @@ async function normalizeStripeEvent(event, eventType, stripe) {
   const paymentIntentId = typeof object.payment_intent === 'string'
     ? object.payment_intent
     : object.payment_intent?.id;
-  const paymentId = paymentIntentId || object.id;
+  // Refund settlement is keyed by the original PaymentIntent, not the Charge ID.
+  // If Stripe omits that link, reject the event instead of persisting a mismatched payment ID.
+  const paymentId = eventType === 'payment_refunded'
+    ? paymentIntentId
+    : paymentIntentId || object.id;
   let orderId = metadata.orderId || object.client_reference_id;
 
   if (eventType === 'payment_refunded' && paymentIntentId) {
