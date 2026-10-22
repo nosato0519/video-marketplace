@@ -19,10 +19,13 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
      VALUES ($1, $2, $3, $4, $5, 'pending', $6)
      ON CONFLICT (order_id, provider)
      DO UPDATE SET idempotency_key = payments.idempotency_key
+       WHERE payments.amount = EXCLUDED.amount
+         AND payments.currency = EXCLUDED.currency
      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
     [order.id, order.buyer_id, provider, order.amount, order.currency, idempotencyKey]
   );
 
+  if (result.rowCount === 0) throw new Error('payment_order_amount_mismatch');
   return requirePendingPayment(result.rows[0]);
 }
 
@@ -60,7 +63,7 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
         AND provider_payment_id IS NULL
         AND amount = $4
         AND currency = $5
-      RETURNING id, order_id, user_id, provider, amount, currency, status, idempotency_key, created_at`,
+      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
     [idempotencyKey, order.id, provider, order.amount, order.currency]
   );
   if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
