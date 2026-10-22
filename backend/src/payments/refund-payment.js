@@ -1,6 +1,97 @@
 import { getPool } from '../db.js';
 import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
 
+async function reconcileRefundedEntitlement(client, { orderId, buyerId, productId }) {
+  const entitlementResult = await client.query(
+    `SELECT id, user_id, product_id, order_id, status, revoked_at
+       FROM entitlements
+      WHERE order_id = $1
+      FOR UPDATE`,
+    [orderId]
+  );
+  const entitlement = entitlementResult.rows[0];
+  if (!entitlement) return null;
+
+  const replacementResult = await client.query(
+    `SELECT replacement.id
+       FROM orders replacement
+      WHERE replacement.buyer_id = $1
+        AND replacement.product_id = $2
+        AND replacement.status = 'paid'
+        AND replacement.id <> $3
+        AND EXISTS (
+          SELECT 1
+            FROM payments replacement_payment
+           WHERE replacement_payment.order_id = replacement.id
+             AND replacement_payment.status = 'succeeded'
+        )
+      ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
+      LIMIT 1
+      FOR UPDATE`,
+    [buyerId, productId, orderId]
+  );
+  const replacementOrderId = replacementResult.rows[0]?.id;
+
+  if (!replacementOrderId) {
+    const revoked = await client.query(
+      `UPDATE entitlements
+          SET status = 'revoked', revoked_at = COALESCE(revoked_at, NOW())
+        WHERE id = $1
+          AND (status = 'active' OR revoked_at IS NULL)
+        RETURNING id, user_id, product_id, order_id, status, revoked_at`,
+      [entitlement.id]
+    );
+    return revoked.rows[0] ?? entitlement;
+  }
+
+  const replacementEntitlementResult = await client.query(
+    `SELECT id, status
+       FROM entitlements
+      WHERE order_id = $1
+        AND user_id = $2
+        AND product_id = $3
+      FOR UPDATE`,
+    [replacementOrderId, entitlement.user_id, entitlement.product_id]
+  );
+  const replacementEntitlement = replacementEntitlementResult.rows[0];
+
+  if (!replacementEntitlement) {
+    const reassigned = await client.query(
+      `UPDATE entitlements
+          SET order_id = $2, status = 'active', revoked_at = NULL
+        WHERE id = $1
+        RETURNING id, user_id, product_id, order_id, status, revoked_at`,
+      [entitlement.id, replacementOrderId]
+    );
+    return reassigned.rows[0] ?? null;
+  }
+
+  await client.query(
+    `UPDATE entitlements
+        SET status = 'revoked', revoked_at = COALESCE(revoked_at, NOW())
+      WHERE id = $1 AND status = 'active'`,
+    [entitlement.id]
+  );
+
+  if (replacementEntitlement.status !== 'active') {
+    await client.query(
+      `UPDATE entitlements
+          SET status = 'active', revoked_at = NULL
+        WHERE id = $1`,
+      [replacementEntitlement.id]
+    );
+  }
+
+  return {
+    id: replacementEntitlement.id,
+    user_id: entitlement.user_id,
+    product_id: entitlement.product_id,
+    order_id: replacementOrderId,
+    status: 'active',
+    revoked_at: null,
+  };
+}
+
 export async function refundPayment({
   eventId,
   provider,
@@ -75,64 +166,11 @@ export async function refundPayment({
     }
 
     if (current.status === ORDER_STATES.REFUNDED) {
-      await client.query(
-        `UPDATE entitlements e
-            SET order_id = COALESCE(
-                  (SELECT replacement.id
-                     FROM orders replacement
-                    WHERE replacement.buyer_id = $2
-                      AND replacement.product_id = $3
-                      AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                      AND replacement.id <> $1
-                    ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
-                    LIMIT 1),
-                  e.order_id
-                ),
-                status = CASE WHEN EXISTS (
-                  SELECT 1
-                    FROM orders replacement
-                   WHERE replacement.buyer_id = $2
-                     AND replacement.product_id = $3
-                     AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                     AND replacement.id <> $1
-                ) THEN 'active' ELSE 'revoked' END,
-                revoked_at = CASE WHEN EXISTS (
-                  SELECT 1
-                    FROM orders replacement
-                   WHERE replacement.buyer_id = $2
-                     AND replacement.product_id = $3
-                     AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                     AND replacement.id <> $1
-                ) THEN NULL ELSE COALESCE(e.revoked_at, NOW()) END
-          WHERE e.order_id = $1
-            AND (e.status = 'active' OR e.revoked_at IS NULL)
-            AND NOT EXISTS (
-              SELECT 1 FROM entitlements existing
-               WHERE existing.user_id = e.user_id
-                 AND existing.product_id = e.product_id
-                 AND existing.status = 'active'
-                 AND existing.id <> e.id
-            )`,
-        [current.id, current.buyer_id, current.product_id]
-      );
+      await reconcileRefundedEntitlement(client, {
+        orderId: current.id,
+        buyerId: current.buyer_id,
+        productId: current.product_id,
+      });
 
       if (currentPayment.status !== 'refunded') {
         await client.query(
@@ -172,65 +210,11 @@ export async function refundPayment({
       [current.id]
     );
 
-    const revoked = await client.query(
-      `UPDATE entitlements e
-          SET order_id = COALESCE(
-                (SELECT replacement.id
-                   FROM orders replacement
-                  WHERE replacement.buyer_id = $2
-                    AND replacement.product_id = $3
-                    AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                    AND replacement.id <> $1
-                  ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
-                  LIMIT 1),
-                e.order_id
-              ),
-              status = CASE WHEN EXISTS (
-                SELECT 1
-                  FROM orders replacement
-                 WHERE replacement.buyer_id = $2
-                   AND replacement.product_id = $3
-                   AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                   AND replacement.id <> $1
-              ) THEN 'active' ELSE 'revoked' END,
-              revoked_at = CASE WHEN EXISTS (
-                SELECT 1
-                  FROM orders replacement
-                 WHERE replacement.buyer_id = $2
-                   AND replacement.product_id = $3
-                   AND replacement.status = 'paid'
-                      AND EXISTS (
-                        SELECT 1
-                          FROM payments replacement_payment
-                         WHERE replacement_payment.order_id = replacement.id
-                           AND replacement_payment.status = 'succeeded'
-                      )
-                   AND replacement.id <> $1
-              ) THEN NULL ELSE NOW() END
-        WHERE e.order_id = $1
-          AND e.status = 'active'
-          AND NOT EXISTS (
-            SELECT 1 FROM entitlements existing
-             WHERE existing.user_id = e.user_id
-               AND existing.product_id = e.product_id
-               AND existing.status = 'active'
-               AND existing.id <> e.id
-          )
-        RETURNING e.id, e.user_id, e.product_id, e.order_id, e.status, e.revoked_at`,
-      [current.id, current.buyer_id, current.product_id]
-    );
+    const revoked = await reconcileRefundedEntitlement(client, {
+      orderId: current.id,
+      buyerId: current.buyer_id,
+      productId: current.product_id,
+    });
 
     const earnings = await client.query(
       `UPDATE seller_earnings
