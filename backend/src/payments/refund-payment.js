@@ -76,6 +76,12 @@ export async function refundPayment({
                     WHERE replacement.buyer_id = $2
                       AND replacement.product_id = $3
                       AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                       AND replacement.id <> $1
                     ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
                     LIMIT 1),
@@ -87,6 +93,12 @@ export async function refundPayment({
                    WHERE replacement.buyer_id = $2
                      AND replacement.product_id = $3
                      AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                      AND replacement.id <> $1
                 ) THEN 'active' ELSE 'revoked' END,
                 revoked_at = CASE WHEN EXISTS (
@@ -95,6 +107,12 @@ export async function refundPayment({
                    WHERE replacement.buyer_id = $2
                      AND replacement.product_id = $3
                      AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                      AND replacement.id <> $1
                 ) THEN NULL ELSE COALESCE(e.revoked_at, NOW()) END
           WHERE e.order_id = $1
@@ -148,6 +166,12 @@ export async function refundPayment({
                   WHERE replacement.buyer_id = $2
                     AND replacement.product_id = $3
                     AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                     AND replacement.id <> $1
                   ORDER BY replacement.paid_at DESC NULLS LAST, replacement.id DESC
                   LIMIT 1),
@@ -159,6 +183,12 @@ export async function refundPayment({
                  WHERE replacement.buyer_id = $2
                    AND replacement.product_id = $3
                    AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                    AND replacement.id <> $1
               ) THEN 'active' ELSE 'revoked' END,
               revoked_at = CASE WHEN EXISTS (
@@ -167,6 +197,12 @@ export async function refundPayment({
                  WHERE replacement.buyer_id = $2
                    AND replacement.product_id = $3
                    AND replacement.status = 'paid'
+                      AND EXISTS (
+                        SELECT 1
+                          FROM payments replacement_payment
+                         WHERE replacement_payment.order_id = replacement.id
+                           AND replacement_payment.status = 'succeeded'
+                      )
                    AND replacement.id <> $1
               ) THEN NULL ELSE NOW() END
         WHERE e.order_id = $1 AND e.status = 'active'
