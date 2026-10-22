@@ -50,6 +50,13 @@ export async function refundPayment({
     if (order.rowCount === 0) throw new Error('order_not_found');
     const current = order.rows[0];
 
+    // Serialize refunds for the same buyer/product so concurrent refunds cannot
+    // make entitlement reassignment decisions from conflicting purchase states.
+    await client.query(
+      `SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))`,
+      [String(current.buyer_id), String(current.product_id)]
+    );
+
     const paymentRecord = await client.query(
       `SELECT id, order_id, provider, provider_payment_id, status
          FROM payments
