@@ -246,9 +246,14 @@ test('ignores partial refund events without changing payment state', async () =>
 
 test('routes a full refund event to the refund settlement handler', async () => {
   const calls = [];
+  const refundStripe = new Stripe('test-webhook-verifier-key');
+  refundStripe.paymentIntents.retrieve = async () => ({
+    id: 'pi_test_1',
+    metadata: { orderId: 'order_123' },
+  });
   const handler = createStripeWebhookHandler({
     secret,
-    stripe,
+    stripe: refundStripe,
     recordPaymentEvent: async (input) => { calls.push(['record', input]); return { duplicate: false }; },
     refundPayment: async (input) => { calls.push(['refund', input]); return { duplicate: false }; },
   });
@@ -284,9 +289,14 @@ test('routes a full refund event to the refund settlement handler', async () => 
 
 test('does not run refund settlement again for an already processed Stripe event', async () => {
   let refundCalls = 0;
+  const refundStripe = new Stripe('test-webhook-verifier-key');
+  refundStripe.paymentIntents.retrieve = async () => ({
+    id: 'pi_test_1',
+    metadata: { orderId: 'order_123' },
+  });
   const handler = createStripeWebhookHandler({
     secret,
-    stripe,
+    stripe: refundStripe,
     recordPaymentEvent: async () => ({
       duplicate: true,
       event: { status: 'processed' },
