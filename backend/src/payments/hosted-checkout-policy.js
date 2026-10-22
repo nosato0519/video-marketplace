@@ -11,6 +11,9 @@ export function buildHostedCheckoutResponse({ providerId, checkout } = {}) {
     throw new Error(`payment_provider_checkout_unavailable:${providerId}`);
   }
   if (!checkout?.url) throw new Error('checkout_url_missing');
+  if (checkout.provider !== undefined && checkout.provider !== providerId) {
+    throw new Error('checkout_provider_mismatch');
+  }
   if (
     (typeof checkout.orderId !== 'string' && typeof checkout.orderId !== 'number') ||
     !String(checkout.orderId).trim()
