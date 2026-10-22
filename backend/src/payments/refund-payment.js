@@ -123,7 +123,14 @@ export async function refundPayment({
                      AND replacement.id <> $1
                 ) THEN NULL ELSE COALESCE(e.revoked_at, NOW()) END
           WHERE e.order_id = $1
-            AND (e.status = 'active' OR e.revoked_at IS NULL)`,
+            AND (e.status = 'active' OR e.revoked_at IS NULL)
+            AND NOT EXISTS (
+              SELECT 1 FROM entitlements existing
+               WHERE existing.user_id = e.user_id
+                 AND existing.product_id = e.product_id
+                 AND existing.status = 'active'
+                 AND existing.id <> e.id
+            )`,
         [current.id, current.buyer_id, current.product_id]
       );
 
@@ -212,7 +219,15 @@ export async function refundPayment({
                       )
                    AND replacement.id <> $1
               ) THEN NULL ELSE NOW() END
-        WHERE e.order_id = $1 AND e.status = 'active'
+        WHERE e.order_id = $1
+          AND e.status = 'active'
+          AND NOT EXISTS (
+            SELECT 1 FROM entitlements existing
+             WHERE existing.user_id = e.user_id
+               AND existing.product_id = e.product_id
+               AND existing.status = 'active'
+               AND existing.id <> e.id
+          )
         RETURNING e.id, e.user_id, e.product_id, e.order_id, e.status, e.revoked_at`,
       [current.id, current.buyer_id, current.product_id]
     );
