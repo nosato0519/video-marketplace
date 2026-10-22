@@ -72,6 +72,22 @@ router.post('/payouts/:id/status', async (req, res, next) => {
         return { kind: 'invalid', from, to: nextStatus };
       }
 
+      if (nextStatus === 'processing' || nextStatus === 'paid') {
+        const refundedAllocation = await db.query(
+          `SELECT e.id
+             FROM payout_earnings_allocations a
+             JOIN seller_earnings e ON e.id = a.seller_earning_id
+            WHERE a.payout_id = $1
+              AND e.status = 'refunded'
+            LIMIT 1
+            FOR UPDATE OF e`,
+          [req.params.id]
+        );
+        if (refundedAllocation.rowCount > 0) {
+          return { kind: 'refunded_earnings' };
+        }
+      }
+
       const reason = req.body?.failure_reason
         ? String(req.body.failure_reason).slice(0, 500)
         : null;
@@ -111,6 +127,9 @@ router.post('/payouts/:id/status', async (req, res, next) => {
 
     if (result.kind === 'not_found') return res.status(404).json({ error: 'payout_not_found' });
     if (result.kind === 'invalid') return res.status(409).json({ error: 'invalid_status_transition', from: result.from, to: result.to });
+    if (result.kind === 'refunded_earnings') {
+      return res.status(409).json({ error: 'payout_contains_refunded_earnings' });
+    }
     return res.json({ payout: result.payout });
   } catch (error) { return next(error); }
 });
