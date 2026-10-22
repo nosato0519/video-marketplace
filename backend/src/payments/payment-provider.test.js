@@ -30,6 +30,10 @@ test('pending provider rejects blank idempotency keys and unsafe numeric identif
     /checkout_idempotency_key_required/
   );
   await assert.rejects(
+    () => provider.createCheckout({ ...base, idempotencyKey: 'k'.repeat(256) }),
+    /checkout_idempotency_key_invalid/
+  );
+  await assert.rejects(
     () => provider.createCheckout({ ...base, orderId: Number.MAX_SAFE_INTEGER + 1, idempotencyKey: 'order:o1' }),
     /checkout_order_id_required/
   );
