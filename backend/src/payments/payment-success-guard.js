@@ -6,7 +6,14 @@ export function validateSuccessfulPaymentSettlement({ order, payment, provider }
   const paymentOrderId = payment.order_id ?? payment.orderId;
   const providerPaymentId = payment.provider_payment_id ?? payment.providerPaymentId;
 
-  if (order.id !== paymentOrderId) throw new Error('payment_order_mismatch');
+  const validId = (value) =>
+    (typeof value === 'string' && value.trim() !== '') ||
+    (typeof value === 'number' && Number.isSafeInteger(value));
+
+  if (!validId(order.id) || !validId(paymentOrderId)) {
+    throw new Error('payment_order_mismatch');
+  }
+  if (String(order.id) !== String(paymentOrderId)) throw new Error('payment_order_mismatch');
   if (order.provider && provider && order.provider !== provider) throw new Error('payment_provider_mismatch');
   if (payment.provider && provider && payment.provider !== provider) throw new Error('payment_provider_mismatch');
   if (order.status !== 'pending') throw new Error('order_not_settleable');
