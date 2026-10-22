@@ -13,6 +13,29 @@ test('exposes only implemented payment providers for configuration', () => {
   assert.equal(providers.find((provider) => provider.id === 'stripe').status, 'available');
 });
 
+
+test('reports Stripe configured only when Stripe is the selected provider and all secrets and URLs exist', () => {
+  const names = ['PAYMENT_PROVIDER', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_CANCEL_URL'];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  try {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_example';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_example';
+    process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
+    process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
+    delete process.env.PAYMENT_PROVIDER;
+    assert.equal(getConfigurablePaymentProviders()[0].configured, false);
+    process.env.PAYMENT_PROVIDER = 'stripe';
+    assert.equal(getConfigurablePaymentProviders()[0].configured, true);
+    process.env.PAYMENT_PROVIDER = 'paypal';
+    assert.equal(getConfigurablePaymentProviders()[0].configured, false);
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
 test('maps the implemented provider to its server-side secret name', () => {
   assert.equal(getPaymentProviderSecretEnv('stripe'), 'STRIPE_SECRET_KEY');
   assert.equal(getPaymentProviderSecretEnv('paypal'), null);
