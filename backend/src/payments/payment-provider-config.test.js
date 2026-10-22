@@ -18,8 +18,8 @@ test('reports Stripe configured only when Stripe is the selected provider and al
   const names = ['PAYMENT_PROVIDER', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_CANCEL_URL'];
   const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
   try {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_example';
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_example';
+    process.env.STRIPE_SECRET_KEY = 'placeholder-secret-value';
+    process.env.STRIPE_WEBHOOK_SECRET = 'placeholder-webhook-value';
     process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
     process.env.STRIPE_CANCEL_URL = 'https://example.com/cancel';
     delete process.env.PAYMENT_PROVIDER;
