@@ -36,3 +36,7 @@ test('rejects unsuccessful payment status', () => {
 test('rejects unsupported event type', () => {
   assert.throws(() => validateWebhookPayload({ ...basePayload, eventType: 'unknown' }), /unsupported_webhook_event_type/);
 });
+
+test('rejects zero-value successful payment', () => {
+  assert.throws(() => validateWebhookPayload({ ...basePayload, amount: 0 }), /invalid_webhook_amount/);
+});
