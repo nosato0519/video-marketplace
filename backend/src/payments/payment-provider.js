@@ -74,6 +74,7 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   if (
     (typeof orderId !== 'string' && typeof orderId !== 'number') ||
     !String(orderId).trim() ||
+    String(orderId).length > 255 ||
     (typeof orderId === 'number' && !Number.isSafeInteger(orderId))
   ) {
     throw new Error('checkout_order_id_required');
@@ -91,6 +92,7 @@ function validateCheckoutInput({ orderId, amount, currency, metadata, idempotenc
   }
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('checkout_metadata_required');
   if (metadata.orderId !== undefined && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
+  if (String(metadata.paymentId ?? '').length > 500) throw new Error('checkout_payment_id_required');
   if (
     metadata.reference !== undefined &&
     metadata.reference !== null &&
