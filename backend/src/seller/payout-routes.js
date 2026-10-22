@@ -127,8 +127,9 @@ router.post('/payouts', async (req, res, next) => {
   try {
     const amount = Number(req.body?.amount);
     const currency = String(req.body?.currency ?? 'JPY').trim().toUpperCase();
-    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'invalid_amount' });
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(Math.round(amount * 100))) return res.status(400).json({ error: 'invalid_amount' });
     if (!/^[A-Z]{3}$/.test(currency)) return res.status(400).json({ error: 'invalid_currency' });
+    if (currency === 'JPY' && !Number.isSafeInteger(amount)) return res.status(400).json({ error: 'invalid_amount' });
 
     await client.query('BEGIN');
     await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2))`, [String(req.user.id), currency]);
