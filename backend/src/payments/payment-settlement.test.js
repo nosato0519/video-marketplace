@@ -202,3 +202,36 @@ test('rejects successful Stripe webhook events without payment identifiers befor
     /payment_provider_id_required/
   );
 });
+
+
+test('ignores unsupported Stripe webhook event types without attempting settlement', async () => {
+  const result = await settlePaymentWebhook({
+    event: {
+      id: 'evt_unsupported',
+      type: 'customer.updated',
+      data: { object: { id: 'cus_1', metadata: {} } },
+    },
+  });
+  assert.deepEqual(result, { handled: false, eventId: 'evt_unsupported' });
+});
+
+test('does not settle Checkout Sessions that Stripe has not marked paid', async () => {
+  const result = await settlePaymentWebhook({
+    event: {
+      id: 'evt_unpaid_checkout',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          payment_status: 'unpaid',
+          payment_intent: 'pi_unpaid',
+          metadata: { paymentId: 'payment_1', orderId: 'order_1' },
+        },
+      },
+    },
+  });
+  assert.deepEqual(result, {
+    handled: false,
+    eventId: 'evt_unpaid_checkout',
+    reason: 'payment_not_paid',
+  });
+});
