@@ -57,3 +57,14 @@ test('rejects missing or malformed currency codes', () => {
     /payment_currency_invalid/
   );
 });
+
+test('rejects zero and negative payment amounts', () => {
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment: { ...payment, amount: 0 }, order: { ...order, amount: 0 } }),
+    /payment_amount_invalid/
+  );
+  assert.throws(
+    () => verifyPaymentAgainstOrder({ payment: { ...payment, amount: -1 }, order: { ...order, amount: -1 } }),
+    /payment_amount_invalid/
+  );
+});
