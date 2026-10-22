@@ -94,6 +94,16 @@ test('Stripe checkout validates its payment metadata and currency before the API
       }),
       /checkout_currency_invalid/
     );
+    await assert.rejects(
+      () => provider.createCheckout({
+        orderId: 'o1',
+        amount: '1000.00',
+        currency: 'INVALID',
+        idempotencyKey: 'order:o1',
+        metadata: { orderId: 'o1', paymentId: 123 },
+      }),
+      /checkout_currency_invalid/
+    );
   } finally {
     if (previous === undefined) delete process.env.STRIPE_SECRET_KEY;
     else process.env.STRIPE_SECRET_KEY = previous;
