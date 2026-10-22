@@ -37,11 +37,11 @@ function createStripeProvider() {
       const normalizedCurrency = String(currency).toUpperCase();
       const unitAmount = toStripeMinorUnits(amount, normalizedCurrency);
       const session = await stripe.checkout.sessions.create({
-        mode: 'payment', client_reference_id: orderId,
+        mode: 'payment', client_reference_id: String(orderId),
         line_items: [{ price_data: { currency: normalizedCurrency.toLowerCase(), product_data: { name: 'Video Marketplace purchase' }, unit_amount: unitAmount }, quantity: 1 }],
-        metadata: { orderId, paymentId: String(metadata.paymentId), ...(metadata.reference ? { reference: String(metadata.reference) } : {}) },
+        metadata: { orderId: String(orderId), paymentId: String(metadata.paymentId), ...(metadata.reference ? { reference: String(metadata.reference) } : {}) },
         payment_intent_data: {
-          metadata: { orderId, paymentId: String(metadata.paymentId) },
+          metadata: { orderId: String(orderId), paymentId: String(metadata.paymentId) },
         },
         success_url: withStripeSessionId(successUrl, orderId), cancel_url: cancelUrl,
       }, { idempotencyKey });
@@ -71,15 +71,22 @@ function validateStripeRedirectUrls(successUrl, cancelUrl) {
 }
 
 function validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey }) {
-  if (!orderId) throw new Error('checkout_order_id_required');
+  if (
+    (typeof orderId !== 'string' && typeof orderId !== 'number') ||
+    !String(orderId).trim() ||
+    (typeof orderId === 'number' && !Number.isSafeInteger(orderId))
+  ) {
+    throw new Error('checkout_order_id_required');
+  }
   if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) throw new Error('checkout_amount_invalid');
   if (!currency || !/^[A-Za-z]{3}$/.test(String(currency))) throw new Error('checkout_currency_invalid');
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('checkout_metadata_required');
   if (metadata.orderId !== undefined && String(metadata.orderId) !== String(orderId)) throw new Error('checkout_order_mismatch');
-  if (!idempotencyKey) throw new Error('checkout_idempotency_key_required');
+  if (typeof idempotencyKey !== 'string' || !idempotencyKey.trim()) throw new Error('checkout_idempotency_key_required');
   if (
     (typeof metadata.paymentId !== 'string' && typeof metadata.paymentId !== 'number') ||
-    !String(metadata.paymentId).trim()
+    !String(metadata.paymentId).trim() ||
+    (typeof metadata.paymentId === 'number' && !Number.isSafeInteger(metadata.paymentId))
   ) {
     throw new Error('checkout_payment_id_required');
   }
