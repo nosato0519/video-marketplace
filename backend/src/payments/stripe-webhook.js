@@ -41,6 +41,9 @@ export function createStripeWebhookHandler({
 
       const eventType = STRIPE_EVENTS.get(event.type);
       if (!eventType) return res.status(200).json({ received: true, ignored: true });
+      if (event.type === 'checkout.session.expired' && !event.data?.object?.payment_intent) {
+        return res.status(200).json({ received: true, ignored: true, reason: 'expired_session_without_payment_intent' });
+      }
       if (event.type === 'checkout.session.completed' && event.data?.object?.payment_status !== 'paid') {
         return res.status(200).json({ received: true, ignored: true, reason: 'payment_not_paid' });
       }
