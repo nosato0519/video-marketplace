@@ -3,6 +3,12 @@ export function verifyPaymentAgainstOrder({
   order,
 }) {
   if (!payment || !order) throw new Error('payment_verification_input_required');
+  if (typeof order.id !== 'string' || order.id.trim() === '' || typeof payment.orderId !== 'string' || payment.orderId.trim() === '') {
+    throw new Error('payment_order_id_required');
+  }
+  if (typeof order.currency !== 'string' || !/^[A-Za-z]{3}$/.test(order.currency) || typeof payment.currency !== 'string' || !/^[A-Za-z]{3}$/.test(payment.currency)) {
+    throw new Error('payment_currency_invalid');
+  }
 
   if (payment.orderId !== order.id) {
     throw new Error('payment_order_mismatch');
