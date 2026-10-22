@@ -25,11 +25,6 @@ export async function failPayment({
     if (event.rowCount === 0) throw new Error('payment_event_not_found');
     const recordedEvent = event.rows[0];
 
-    if (recordedEvent.status === 'processed') {
-      await client.query('ROLLBACK');
-      return { duplicate: true };
-    }
-
     if (
       recordedEvent.event_type !== 'payment_failed' ||
       recordedEvent.provider_payment_id !== providerPaymentId ||
@@ -37,6 +32,11 @@ export async function failPayment({
       (recordedEvent.order_id ?? null) !== (orderId ?? null)
     ) {
       throw new Error('payment_event_payload_mismatch');
+    }
+
+    if (recordedEvent.status === 'processed') {
+      await client.query('ROLLBACK');
+      return { duplicate: true };
     }
 
     const order = await client.query(
