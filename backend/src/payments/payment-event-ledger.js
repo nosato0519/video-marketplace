@@ -44,7 +44,9 @@ export async function recordPaymentEvent({
     event.event_type === eventType &&
     event.provider_payment_id === providerPaymentId &&
     event.payload_hash === payloadHash &&
-    (event.order_id ?? null) === (orderId ?? null);
+    ((event.order_id ?? null) === null && (orderId ?? null) === null) ||
+    ((event.order_id ?? null) !== null && (orderId ?? null) !== null &&
+      String(event.order_id) === String(orderId));
 
   if (!samePayload) {
     throw new Error('payment_event_payload_mismatch');
