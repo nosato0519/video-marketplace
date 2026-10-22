@@ -1,5 +1,5 @@
 import { getPool } from '../db.js';
-import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
+import { ORDER_STATES } from '../orders/order-state.js';
 
 export async function failPayment({
   eventId,
@@ -108,7 +108,7 @@ export async function failPayment({
       return { duplicate: true, alreadyCancelled: true };
     }
 
-    if (!canTransitionOrder(current.status, ORDER_STATES.CANCELLED)) {
+    if (current.status !== ORDER_STATES.PENDING) {
       throw new Error('order_not_cancellable');
     }
 
@@ -121,17 +121,8 @@ export async function failPayment({
       [providerPaymentId, currentPayment.id]
     );
 
-    const updatedOrder = await client.query(
-      `UPDATE orders
-          SET status = 'cancelled',
-              provider = $1,
-              provider_payment_id = $2,
-              updated_at = NOW()
-        WHERE id = $3
-        RETURNING id, buyer_id, product_id, amount, currency, status, provider, provider_payment_id, updated_at`,
-      [provider, providerPaymentId, current.id]
-    );
-
+    // Keep the order pending after a failed attempt so checkout can be retried.
+    // The payment record carries the failed state; a failure is not an order cancellation.
     await client.query(
       `UPDATE payment_events
           SET status = 'processed', processed_at = NOW()
@@ -144,7 +135,7 @@ export async function failPayment({
     return {
       duplicate: false,
       payment: updatedPayment.rows[0],
-      order: updatedOrder.rows[0],
+      order: current,
     };
   } catch (error) {
     await client.query('ROLLBACK');
