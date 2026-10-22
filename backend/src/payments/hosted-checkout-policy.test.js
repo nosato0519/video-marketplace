@@ -4,7 +4,8 @@ import { getCheckoutMode, buildHostedCheckoutResponse } from './hosted-checkout-
 
 test('uses provider-hosted checkout for supported providers', () => {
   assert.equal(getCheckoutMode({ providerId: 'stripe' }), 'provider_hosted');
-  assert.equal(getCheckoutMode({ providerId: 'paypal' }), 'provider_hosted');
+  assert.equal(getCheckoutMode({ providerId: 'paypal' }), 'provider_unavailable');
+  assert.equal(getCheckoutMode({ providerId: 'paypay' }), 'provider_unavailable');
 });
 
 test('returns only safe checkout information', () => {
