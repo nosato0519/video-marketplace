@@ -12,6 +12,9 @@ function checkoutError(error) {
   if (error.message === 'order_not_pending') {
     return { status: 409, body: { error: { code: 'ORDER_NOT_PENDING', message: 'Order is not available for checkout' } } };
   }
+  if (error.message === 'payment_owner_missing') {
+    return { status: 409, body: { error: { code: 'PAYMENT_OWNER_MISSING', message: 'This order is not available for payment' } } };
+  }
   if (error.message === 'payment_provider_required') {
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_REQUIRED', message: 'Payment provider is not configured for this site' } } };
   }
