@@ -33,6 +33,10 @@ test('payout lifecycle is shared by the migration and route policy', () => {
   for (const status of statuses) assert.match(adminPayoutRoute, new RegExp(status));
 });
 
+test('JPY payout requests reject fractional yen amounts', () => {
+  assert.match(sellerPayoutRoute, /currency === 'JPY' && !Number\.isSafeInteger\(amount\)/);
+});
+
 test('available balance source is seller earnings', () => {
   assert.match(sellerPayoutRoute, /FROM seller_earnings/);
   assert.match(sellerPayoutRoute, /status = 'available'/);
