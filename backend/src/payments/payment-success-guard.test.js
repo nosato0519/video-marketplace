@@ -19,3 +19,11 @@ test('rejects settlement for a non-pending order', () => {
     payment: { order_id: 'o1', status: 'succeeded', amount: '1200.00', currency: 'JPY', provider_payment_id: 'pay-1' },
   }), /order_not_settleable/);
 });
+
+test('rejects settlement when the order provider differs from the webhook provider', () => {
+  assert.throws(() => validateSuccessfulPaymentSettlement({
+    order: { id: 'o1', provider: 'stripe', status: 'pending', amount: '1200.00', currency: 'JPY' },
+    payment: { order_id: 'o1', status: 'succeeded', amount: '1200.00', currency: 'JPY', provider_payment_id: 'pay-1' },
+    provider: 'paypal',
+  }), /payment_provider_mismatch/);
+});
