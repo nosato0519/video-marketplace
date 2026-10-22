@@ -4,6 +4,15 @@ const SECRET_ENV_BY_PROVIDER = Object.freeze({
   stripe: 'STRIPE_SECRET_KEY',
 });
 
+function isSecureHttpsUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'https:' && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
 export function getConfigurablePaymentProviders() {
   return getPaymentProviderCatalog()
     .filter((config) => config.status === 'available')
@@ -13,7 +22,12 @@ export function getConfigurablePaymentProviders() {
       regions: [...config.regions],
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
       status: config.status,
-      configured: process.env.PAYMENT_PROVIDER === config.id && Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.STRIPE_SUCCESS_URL && process.env.STRIPE_CANCEL_URL),
+      configured: process.env.PAYMENT_PROVIDER === config.id && Boolean(
+        process.env.STRIPE_SECRET_KEY?.trim() &&
+        process.env.STRIPE_WEBHOOK_SECRET?.trim() &&
+        isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL) &&
+        isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)
+      ),
       secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
     }));
 }
