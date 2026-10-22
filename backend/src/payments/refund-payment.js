@@ -120,7 +120,7 @@ export async function refundPayment({
       recordedEvent.event_type !== 'payment_refunded' ||
       recordedEvent.provider_payment_id !== providerPaymentId ||
       recordedEvent.payload_hash !== payloadHash ||
-      (recordedEvent.order_id ?? null) !== (orderId ?? null)
+      (recordedEvent.order_id != null && String(recordedEvent.order_id) !== String(orderId ?? ''))
     ) {
       throw new Error('payment_event_payload_mismatch');
     }
