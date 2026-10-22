@@ -19,7 +19,21 @@ export function buildPaymentEventRetry({ event, now = new Date() }) {
 
 export function assertSafeRetry({ event, order }) {
   if (!event || !order) throw new Error('retry_context_missing');
-  if (event.order_id && event.order_id !== order.id) throw new Error('order_reference_mismatch');
+
+  const eventOrderId = event.order_id;
+  const orderId = order.id;
+  if (
+    eventOrderId === null ||
+    eventOrderId === undefined ||
+    orderId === null ||
+    orderId === undefined ||
+    !String(eventOrderId).trim() ||
+    !String(orderId).trim() ||
+    String(eventOrderId) !== String(orderId)
+  ) {
+    throw new Error('order_reference_mismatch');
+  }
+
   if (order.status !== 'pending') throw new Error('order_not_retryable');
   return true;
 }
