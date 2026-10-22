@@ -12,7 +12,7 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
   if (!provider) throw new Error('payment_provider_required');
   if (typeof idempotencyKey !== 'string' || idempotencyKey.trim() === '') {
     throw new Error('payment_idempotency_key_required');
-}
+  }
 
   const result = await query(
     `INSERT INTO payments (order_id, user_id, provider, amount, currency, status, idempotency_key)
@@ -32,7 +32,7 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
   if (!provider) throw new Error('payment_provider_required');
   if (typeof idempotencyKey !== 'string' || idempotencyKey.trim() === '') {
     throw new Error('payment_idempotency_key_required');
-}
+  }
 
   const retryWithNewProviderSession = await query(
     `UPDATE payments
@@ -43,8 +43,10 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
         AND provider = $3
         AND status = 'failed'
         AND provider_payment_id IS NOT NULL
+        AND amount = $4
+        AND currency = $5
       RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [idempotencyKey, order.id, provider]
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
   );
   if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
 
@@ -56,8 +58,10 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
         AND provider = $3
         AND status = 'failed'
         AND provider_payment_id IS NULL
-      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [idempotencyKey, order.id, provider]
+        AND amount = $4
+        AND currency = $5
+      RETURNING id, order_id, user_id, provider, amount, currency, status, idempotency_key, created_at`,
+    [idempotencyKey, order.id, provider, order.amount, order.currency]
   );
   if (retryAfterUnconfirmedProviderResult.rowCount > 0) {
     return retryAfterUnconfirmedProviderResult.rows[0];
