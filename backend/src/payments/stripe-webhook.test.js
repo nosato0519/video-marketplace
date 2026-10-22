@@ -95,6 +95,38 @@ test('ignores a completed Checkout session until Stripe reports it paid', async 
   assert.equal(recordCalls, 0);
 });
 
+test('ignores async Checkout success until payment status is paid', async () => {
+  let recordCalls = 0;
+  let completeCalls = 0;
+  const event = makeEvent({
+    id: 'evt_async_unpaid',
+    type: 'checkout.session.async_payment_succeeded',
+  });
+  event.data.object.payment_status = 'unpaid';
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    completePayment: async () => { completeCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      received: true, ignored: true, reason: 'payment_not_paid',
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(completeCalls, 0);
+});
+
 test('rejects an invalid Stripe signature before settlement', async () => {
   let completeCalls = 0;
   const handler = createStripeWebhookHandler({
