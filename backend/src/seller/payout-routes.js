@@ -64,12 +64,15 @@ router.get('/payouts', async (req, res, next) => {
     );
 
     const reserved = await query(
-      `SELECT currency,
-              COALESCE(SUM(amount), 0) AS reserved_amount
-         FROM payouts
-        WHERE seller_id = $1
-          AND status NOT IN ('failed','cancelled')
-        GROUP BY currency`,
+      `SELECT e.currency,
+              COALESCE(SUM(a.amount), 0) AS reserved_amount
+         FROM payout_earnings_allocations a
+         JOIN payouts p ON p.id = a.payout_id
+         JOIN seller_earnings e ON e.id = a.seller_earning_id
+        WHERE e.seller_id = $1
+          AND e.status = 'available'
+          AND p.status NOT IN ('failed','cancelled')
+        GROUP BY e.currency`,
       [req.user.id]
     );
 
@@ -139,10 +142,14 @@ router.post('/payouts', async (req, res, next) => {
     const available = Number(balance.rows[0]?.available || 0);
 
     const reserved = await client.query(
-      `SELECT COALESCE(SUM(amount), 0) AS reserved_amount
-         FROM payouts
-        WHERE seller_id = $1 AND currency = $2
-          AND status NOT IN ('failed','cancelled')`,
+      `SELECT COALESCE(SUM(a.amount), 0) AS reserved_amount
+         FROM payout_earnings_allocations a
+         JOIN payouts p ON p.id = a.payout_id
+         JOIN seller_earnings e ON e.id = a.seller_earning_id
+        WHERE e.seller_id = $1
+          AND e.currency = $2
+          AND e.status = 'available'
+          AND p.status NOT IN ('failed','cancelled')`,
       [req.user.id, currency]
     );
     const reservedAmount = Number(reserved.rows[0]?.reserved_amount || 0);
