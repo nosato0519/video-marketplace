@@ -296,3 +296,30 @@ test('returns a client error for a permanent Stripe settlement validation failur
     });
   });
 });
+
+
+test('returns a client error for an invalid Stripe amount before settlement', async () => {
+  const event = makeEvent();
+  event.data.object.amount_total = 'not-a-number';
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { throw new Error('must_not_record_invalid_amount'); },
+    completePayment: async () => { throw new Error('must_not_settle_invalid_amount'); },
+    failPayment: async () => {},
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+});
