@@ -569,3 +569,32 @@ test('routes PaymentIntent success, failure, and cancellation events using the P
     });
   }
 });
+
+test('rejects conflicting Checkout order references before recording or settling', async () => {
+  let recordCalls = 0;
+  let completeCalls = 0;
+  const event = makeEvent();
+  event.data.object.client_reference_id = 'order_other';
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    completePayment: async () => { completeCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'INVALID_WEBHOOK', message: 'Webhook validation failed' },
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(completeCalls, 0);
+});
