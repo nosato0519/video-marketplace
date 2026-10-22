@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { query } from '../db.js';
 
 export function requirePendingPayment(payment) {
@@ -41,7 +40,7 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
         AND status = 'failed'
         AND provider_payment_id IS NOT NULL
       RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [`order:${order.id}:retry:${randomUUID()}`, order.id, provider]
+    [idempotencyKey, order.id, provider]
   );
   if (retryWithNewProviderSession.rowCount > 0) return retryWithNewProviderSession.rows[0];
 
