@@ -124,7 +124,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
         orderId: String(orderId || ''),
         amount: 0,
         currency: String(object.currency || '').toUpperCase(),
-        status: 'failed',
+        status: 'refunded',
         fullRefund: false,
       };
     }
@@ -150,7 +150,9 @@ async function normalizeStripeEvent(event, eventType, stripe) {
     orderId: String(orderId || ''),
     amount,
     currency,
-    status: eventType === 'payment_succeeded' ? 'succeeded' : 'failed',
+    status: eventType === 'payment_succeeded'
+      ? 'succeeded'
+      : eventType === 'payment_refunded' ? 'refunded' : 'failed',
     fullRefund: eventType !== 'payment_refunded' || object.refunded === true,
   };
 }
