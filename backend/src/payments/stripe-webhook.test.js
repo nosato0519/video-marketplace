@@ -69,6 +69,7 @@ test('accepts a valid Stripe signature and normalizes checkout completion', asyn
   assert.equal(calls[1][0], 'complete');
   assert.equal(calls[1][1].orderId, 'order_123');
   assert.equal(calls[1][1].providerPaymentId, 'pi_test_1');
+  assert.equal(calls[1][1].checkoutSessionId, 'cs_test_1');
 });
 
 test('ignores a completed Checkout session until Stripe reports it paid', async () => {
