@@ -16,6 +16,14 @@ test('rejects a Japan-only provider for global checkout', () => {
   );
 });
 
+
+test('rejects providers that are listed but not implemented', () => {
+  assert.throws(
+    () => validateProviderCheckout({ providerId: 'paypay', region: 'japan', currency: 'JPY' }),
+    /payment_provider_unavailable:paypay/
+  );
+});
+
 test('builds safe checkout metadata without credentials', () => {
   const metadata = buildProviderCheckoutMetadata({
     order: { id: 'order-1' },
