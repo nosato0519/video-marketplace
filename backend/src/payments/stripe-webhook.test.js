@@ -323,3 +323,26 @@ test('returns a client error for an invalid Stripe amount before settlement', as
     });
   });
 });
+
+
+test('returns a server error for transient Stripe settlement failures so delivery can retry', async () => {
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => ({ duplicate: false }),
+    completePayment: async () => { throw new Error('database_connection_lost'); },
+    failPayment: async () => {},
+  });
+  const body = JSON.stringify(makeEvent());
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), { error: 'database_connection_lost' });
+  });
+});
