@@ -1,6 +1,10 @@
-export function buildCheckoutIdempotencyKey({ orderId }) {
-  if (!orderId) throw new Error('order_required');
-  return `order:${orderId}`;
+export function buildCheckoutIdempotencyKey({ orderId } = {}) {
+  if (typeof orderId !== 'string' && typeof orderId !== 'number') {
+    throw new Error('order_required');
+  }
+  const normalizedOrderId = String(orderId).trim();
+  if (!normalizedOrderId) throw new Error('order_required');
+  return `order:${normalizedOrderId}`;
 }
 
 export function shouldReuseCheckout(session) {
