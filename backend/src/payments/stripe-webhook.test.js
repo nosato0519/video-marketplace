@@ -504,3 +504,55 @@ test('rejects a paid Checkout session without a PaymentIntent before recording o
   assert.equal(recordCalls, 0);
   assert.equal(completeCalls, 0);
 });
+
+test('routes PaymentIntent success, failure, and cancellation events using the PaymentIntent ID', async (t) => {
+  const cases = [
+    { type: 'payment_intent.succeeded', eventType: 'payment_succeeded', handler: 'complete' },
+    { type: 'payment_intent.payment_failed', eventType: 'payment_failed', handler: 'fail' },
+    { type: 'payment_intent.canceled', eventType: 'payment_failed', handler: 'fail' },
+  ];
+
+  for (const [index, item] of cases.entries()) {
+    await t.test(item.type, async () => {
+      const calls = [];
+      const event = makeEvent({
+        id: `evt_payment_intent_${index}`,
+        type: item.type,
+        data: { object: {
+          id: `pi_direct_${index}`,
+          object: 'payment_intent',
+          amount: 1000,
+          amount_received: 1000,
+          currency: 'jpy',
+          status: item.type === 'payment_intent.succeeded' ? 'succeeded' : 'requires_payment_method',
+          metadata: { orderId: 'order_123', paymentId: 'internal_payment_row_123' },
+        } },
+      });
+      const handler = createStripeWebhookHandler({
+        secret,
+        stripe,
+        recordPaymentEvent: async (input) => { calls.push(['record', input]); return { duplicate: false }; },
+        completePayment: async (input) => { calls.push(['complete', input]); return { duplicate: false }; },
+        failPayment: async (input) => { calls.push(['fail', input]); return { duplicate: false }; },
+      });
+      const body = JSON.stringify(event);
+      const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+      await withServer(handler, async (baseUrl) => {
+        const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+          body,
+        });
+        assert.equal(response.status, 200);
+      });
+
+      assert.equal(calls[0][0], 'record');
+      assert.equal(calls[0][1].eventType, item.eventType);
+      assert.equal(calls[0][1].providerPaymentId, `pi_direct_${index}`);
+      assert.equal(calls[0][1].orderId, 'order_123');
+      assert.equal(calls[1][0], item.handler);
+      assert.equal(calls[1][1].providerPaymentId, `pi_direct_${index}`);
+    });
+  }
+});
