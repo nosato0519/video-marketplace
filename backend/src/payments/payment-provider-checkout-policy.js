@@ -10,6 +10,9 @@ export function validateProviderCheckout({ providerId, region, currency } = {}) 
   if (currency && provider.currencies !== 'multi' && !provider.currencies.includes(String(currency).toUpperCase())) {
     throw new Error(`payment_provider_currency_unsupported:${providerId}:${String(currency).toUpperCase()}`);
   }
+  if (provider.status !== 'available') {
+    throw new Error(`payment_provider_unavailable:${providerId}`);
+  }
   return { providerId: provider.id, valid: true };
 }
 
