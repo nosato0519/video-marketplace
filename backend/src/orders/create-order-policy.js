@@ -33,6 +33,8 @@ export async function createPendingOrder({ user, product, existingActiveEntitlem
   const reusableOrder = await findReusablePendingOrder({
     buyerId: input.buyerId,
     productId: input.productId,
+    amount: input.amount,
+    currency: input.currency,
   });
 
   if (reusableOrder) {
