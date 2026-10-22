@@ -2,6 +2,9 @@ import { withTransaction } from '../db.js';
 
 export async function settleSuccessfulPayment({ paymentId, orderId, providerPaymentId } = {}) {
   if (!paymentId || !orderId) throw new Error('payment_settlement_identifiers_required');
+  if (typeof providerPaymentId !== 'string' || providerPaymentId.trim() === '') {
+    throw new Error('payment_provider_id_required');
+  }
 
   return withTransaction(async (client) => {
     const order = await client.query(
