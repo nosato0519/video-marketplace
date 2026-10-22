@@ -88,7 +88,16 @@ export async function failPayment({
       return { duplicate: false, ignored: true, reason: 'payment_already_settled' };
     }
 
-    if (current.status === ORDER_STATES.CANCELLED && currentPayment.status === 'failed') {
+    if (current.status === ORDER_STATES.CANCELLED) {
+      if (currentPayment.status !== 'failed') {
+        await client.query(
+          `UPDATE payments
+              SET provider_payment_id = $1,
+                  status = 'failed'
+            WHERE id = $2`,
+          [providerPaymentId, currentPayment.id]
+        );
+      }
       await client.query(
         `UPDATE payment_events
             SET status = 'processed', processed_at = NOW()
@@ -96,7 +105,7 @@ export async function failPayment({
         [recordedEvent.id]
       );
       await client.query('COMMIT');
-      return { duplicate: true, alreadyFailed: true };
+      return { duplicate: true, alreadyCancelled: true };
     }
 
     if (!canTransitionOrder(current.status, ORDER_STATES.CANCELLED)) {
