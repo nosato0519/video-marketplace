@@ -1,5 +1,8 @@
 export function buildCheckoutIdempotencyKey({ orderId } = {}) {
-  if (typeof orderId !== 'string' && typeof orderId !== 'number') {
+  if (
+    (typeof orderId !== 'string' && typeof orderId !== 'number') ||
+    (typeof orderId === 'number' && !Number.isSafeInteger(orderId))
+  ) {
     throw new Error('order_required');
   }
   const normalizedOrderId = String(orderId).trim();
