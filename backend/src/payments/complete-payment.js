@@ -10,15 +10,24 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
   try {
     await client.query('BEGIN');
     const event = await client.query(
-      `SELECT id, status, payload_hash FROM payment_events WHERE provider = $1 AND event_id = $2 FOR UPDATE`,
+      `SELECT id, status, event_type, provider_payment_id, payload_hash, order_id
+         FROM payment_events
+        WHERE provider = $1 AND event_id = $2
+        FOR UPDATE`,
       [provider, eventId]
     );
     if (event.rowCount === 0) throw new Error('payment_event_not_found');
-    if (event.rows[0].status === 'processed') {
+    const recordedEvent = event.rows[0];
+    if (recordedEvent.status === 'processed') {
       await client.query('ROLLBACK');
       return { duplicate: true };
     }
-    if (event.rows[0].payload_hash && event.rows[0].payload_hash !== payloadHash) {
+    if (
+      recordedEvent.event_type !== 'payment_succeeded' ||
+      recordedEvent.provider_payment_id !== providerPaymentId ||
+      (recordedEvent.order_id !== null && String(recordedEvent.order_id) !== String(orderId)) ||
+      (recordedEvent.payload_hash && recordedEvent.payload_hash !== payloadHash)
+    ) {
       throw new Error('payment_event_payload_mismatch');
     }
 
@@ -88,7 +97,7 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
       );
       await client.query(
         `UPDATE payment_events SET status = 'processed', processed_at = NOW(), order_id = $1 WHERE id = $2`,
-        [current.id, event.rows[0].id]
+        [current.id, recordedEvent.id]
       );
       await client.query('COMMIT');
       return { duplicate: true, alreadyPaid: true };
@@ -120,7 +129,7 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     );
     await client.query(
       `UPDATE payment_events SET status = 'processed', processed_at = NOW(), order_id = $1 WHERE id = $2`,
-      [current.id, event.rows[0].id]
+      [current.id, recordedEvent.id]
     );
     await client.query('COMMIT');
     return { duplicate: false, order: updated.rows[0], payment: updatedPayment.rows[0], entitlement: entitlement.rows[0] ?? null };
