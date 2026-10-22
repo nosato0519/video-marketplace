@@ -41,7 +41,8 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
     `UPDATE payments
         SET status = 'pending',
             idempotency_key = $1,
-            provider_payment_id = NULL
+            provider_payment_id = NULL,
+            checkout_session_id = NULL
       WHERE order_id = $2
         AND provider = $3
         AND status = 'failed'
@@ -56,7 +57,8 @@ export async function retryFailedPayment({ order, provider, idempotencyKey }) {
   const retryAfterUnconfirmedProviderResult = await query(
     `UPDATE payments
         SET status = 'pending',
-            idempotency_key = $1
+            idempotency_key = $1,
+            checkout_session_id = NULL
       WHERE order_id = $2
         AND provider = $3
         AND status = 'failed'
