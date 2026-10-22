@@ -3,7 +3,7 @@ import { ORDER_STATES, canTransitionOrder } from '../orders/order-state.js';
 import { verifyPaymentAgainstOrder } from './payment-verification.js';
 import { validateSuccessfulPaymentSettlement } from './payment-success-guard.js';
 
-export async function completePayment({ eventId, provider, providerPaymentId, orderId, payloadHash, payment }) {
+export async function completePayment({ eventId, provider, providerPaymentId, checkoutSessionId, orderId, payloadHash, payment }) {
   const pool = getPool();
   const client = await pool.connect();
 
@@ -59,12 +59,15 @@ export async function completePayment({ eventId, provider, providerPaymentId, or
     }
 
     const paymentRecord = await client.query(
-      `SELECT id, order_id, user_id, provider, provider_payment_id, amount, currency, status
+      `SELECT id, order_id, user_id, provider, provider_payment_id, checkout_session_id, amount, currency, status
          FROM payments WHERE order_id = $1 AND provider = $2 FOR UPDATE`,
       [current.id, provider]
     );
     if (paymentRecord.rowCount === 0) throw new Error('payment_record_not_found');
     const currentPayment = paymentRecord.rows[0];
+    if (checkoutSessionId && currentPayment.checkout_session_id !== checkoutSessionId) {
+      throw new Error('checkout_session_mismatch');
+    }
     if (currentPayment.provider_payment_id && currentPayment.provider_payment_id !== providerPaymentId) {
       throw new Error('provider_payment_id_mismatch');
     }
