@@ -9,7 +9,7 @@ export async function settleSuccessfulPayment({ paymentId, orderId, providerPaym
       [orderId]
     );
     if (order.rowCount === 0) throw new Error('order_not_found');
-    if (['refunded', 'cancelled'].includes(order.rows[0].status)) {
+    if (!['pending', 'paid'].includes(order.rows[0].status)) {
       throw new Error('payment_order_not_settleable');
     }
 
