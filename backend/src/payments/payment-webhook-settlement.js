@@ -6,8 +6,14 @@ const SUCCESS_EVENTS = new Set([
   'payment_intent.succeeded',
 ]);
 
+function hasIdentifier(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 export async function settlePaymentWebhook({ event } = {}) {
-  if (!event?.id) throw new Error('payment_webhook_event_required');
+  if (!hasIdentifier(event?.id) || !hasIdentifier(event?.type)) {
+    throw new Error('payment_webhook_event_required');
+  }
   if (!SUCCESS_EVENTS.has(event.type)) return { handled: false, eventId: event.id };
 
   const object = event.data?.object ?? {};
@@ -18,11 +24,13 @@ export async function settlePaymentWebhook({ event } = {}) {
   const metadata = object.metadata ?? {};
   const paymentId = metadata.paymentId;
   const orderId = metadata.orderId;
-  if (!paymentId || !orderId) throw new Error('payment_webhook_metadata_missing');
+  if (!hasIdentifier(paymentId) || !hasIdentifier(orderId)) {
+    throw new Error('payment_webhook_metadata_missing');
+  }
 
   const isCheckoutSession = event.type.startsWith('checkout.session.');
   const providerPaymentId = isCheckoutSession ? object.payment_intent : object.id;
-  if (!providerPaymentId || typeof providerPaymentId !== 'string') {
+  if (!hasIdentifier(providerPaymentId)) {
     throw new Error('payment_provider_id_required');
   }
 
