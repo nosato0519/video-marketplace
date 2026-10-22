@@ -68,3 +68,33 @@ test('rejects zero and negative payment amounts', () => {
     /payment_amount_invalid/
   );
 });
+
+test('accepts matching numeric database order identifiers', () => {
+  assert.equal(
+    verifyPaymentAgainstOrder({
+      payment: { ...payment, orderId: 123 },
+      order: { ...order, id: 123 },
+    }),
+    true
+  );
+});
+
+test('rejects numeric order identifiers that do not match', () => {
+  assert.throws(
+    () => verifyPaymentAgainstOrder({
+      payment: { ...payment, orderId: 124 },
+      order: { ...order, id: 123 },
+    }),
+    /payment_order_mismatch/
+  );
+});
+
+test('rejects unsafe numeric order identifiers', () => {
+  assert.throws(
+    () => verifyPaymentAgainstOrder({
+      payment: { ...payment, orderId: Number.MAX_SAFE_INTEGER + 1 },
+      order: { ...order, id: Number.MAX_SAFE_INTEGER + 1 },
+    }),
+    /payment_order_id_required/
+  );
+});
