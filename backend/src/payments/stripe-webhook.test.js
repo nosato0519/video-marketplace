@@ -346,3 +346,46 @@ test('returns a server error for transient Stripe settlement failures so deliver
     assert.deepEqual(await response.json(), { error: 'database_connection_lost' });
   });
 });
+
+
+test('ignores expired Checkout sessions without a payment intent instead of storing the session id as a payment id', async () => {
+  let recordCalls = 0;
+  let failCalls = 0;
+  const event = makeEvent({
+    id: 'evt_expired_without_payment_intent',
+    type: 'checkout.session.expired',
+    data: { object: {
+      id: 'cs_expired_without_intent',
+      object: 'checkout.session',
+      client_reference_id: 'order_123',
+      amount_total: 1000,
+      currency: 'jpy',
+      payment_intent: null,
+      payment_status: 'unpaid',
+      metadata: { orderId: 'order_123', paymentId: 'internal_payment_row_123' },
+    } },
+  });
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async () => { recordCalls += 1; return { duplicate: false }; },
+    completePayment: async () => { throw new Error('must_not_complete'); },
+    failPayment: async () => { failCalls += 1; },
+  });
+  const body = JSON.stringify(event);
+  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+
+  await withServer(handler, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+      body,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      received: true, ignored: true, reason: 'expired_session_without_payment_intent',
+    });
+  });
+  assert.equal(recordCalls, 0);
+  assert.equal(failCalls, 0);
+});
