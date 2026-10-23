@@ -98,6 +98,9 @@ export async function refundPayment({
   providerPaymentId,
   orderId,
   payloadHash,
+  refundAmount,
+  refundMode = 'incremental',
+  refundCurrency,
 }) {
   const pool = getPool();
   const client = await pool.connect();
@@ -175,6 +178,67 @@ export async function refundPayment({
       throw new Error('payment_not_refundable');
     }
 
+    const requestedRefund = Number(refundAmount);
+    const originalAmount = Number(currentPayment.amount);
+    const previousRefunded = Number(currentPayment.refunded_amount || 0);
+    if (!Number.isFinite(requestedRefund) || requestedRefund <= 0) {
+      throw new Error('invalid_refund_amount');
+    }
+    if (refundMode !== 'incremental' && refundMode !== 'cumulative') {
+      throw new Error('invalid_refund_mode');
+    }
+    if (refundCurrency && String(refundCurrency).toUpperCase() !== String(currentPayment.currency).toUpperCase()) {
+      throw new Error('payment_currency_mismatch');
+    }
+
+    const cumulativeRefund = refundMode === 'cumulative'
+      ? requestedRefund
+      : previousRefunded + requestedRefund;
+    const money = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+    if (cumulativeRefund < previousRefunded - 0.001) {
+      await client.query(
+        `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
+        [recordedEvent.id]
+      );
+      await client.query('COMMIT');
+      return { duplicate: false, ignored: true, reason: 'stale_refund_event' };
+    }
+    if (cumulativeRefund > originalAmount + 0.001) {
+      throw new Error('refund_amount_exceeds_payment');
+    }
+    const isFullRefund = money(cumulativeRefund) >= money(originalAmount);
+
+    if (!isFullRefund) {
+      await client.query(
+        `UPDATE payments SET refunded_amount = $1 WHERE id = $2`,
+        [money(cumulativeRefund), currentPayment.id]
+      );
+      await client.query(
+        `UPDATE seller_earnings
+            SET refunded_amount = LEAST(gross_amount, $2),
+                net_amount = CASE
+                  WHEN gross_amount <= 0 THEN 0
+                  ELSE ROUND(GREATEST(0, gross_amount - platform_fee) *
+                    (1 - LEAST(gross_amount, $2) / gross_amount), 2)
+                END
+          WHERE order_id = $1
+            AND product_id = $3
+            AND status IN ('pending', 'available', 'paid')`,
+        [current.id, money(cumulativeRefund), current.product_id]
+      );
+      await client.query(
+        `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
+        [recordedEvent.id]
+      );
+      await client.query('COMMIT');
+      return {
+        duplicate: false,
+        partial: true,
+        refundedAmount: money(cumulativeRefund),
+        remainingAmount: money(originalAmount - cumulativeRefund),
+      };
+    }
+
     if (current.status === ORDER_STATES.REFUNDED) {
       await reconcileRefundedEntitlement(client, {
         orderId: current.id,
@@ -192,11 +256,12 @@ export async function refundPayment({
       }
       await client.query(
         `UPDATE seller_earnings
-            SET status = 'refunded', refunded_at = COALESCE(refunded_at, NOW())
+            SET status = 'refunded', refunded_amount = LEAST(gross_amount, $3),
+              net_amount = 0, refunded_at = COALESCE(refunded_at, NOW())
           WHERE order_id = $1
             AND product_id = $2
             AND status IN ('pending', 'available', 'paid')`,
-        [current.id, current.product_id]
+        [current.id, current.product_id, money(cumulativeRefund)]
       );
       await client.query(
         `UPDATE payment_events
@@ -228,20 +293,21 @@ export async function refundPayment({
 
     const earnings = await client.query(
       `UPDATE seller_earnings
-          SET status = 'refunded', refunded_at = NOW()
+          SET status = 'refunded', refunded_amount = LEAST(gross_amount, $3),
+              net_amount = 0, refunded_at = NOW()
         WHERE order_id = $1
           AND product_id = $2
           AND status IN ('pending', 'available', 'paid')
         RETURNING id, seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status, refunded_at`,
-      [current.id, current.product_id]
+      [current.id, current.product_id, money(cumulativeRefund)]
     );
 
     const updatedPayment = await client.query(
       `UPDATE payments
-          SET status = 'refunded', refunded_at = NOW()
+          SET status = 'refunded', refunded_amount = $2, refunded_at = NOW()
         WHERE id = $1
-        RETURNING id, order_id, provider, provider_payment_id, amount, currency, status, succeeded_at, refunded_at`,
-      [currentPayment.id]
+        RETURNING id, order_id, provider, provider_payment_id, amount, currency, status, succeeded_at, refunded_at, refunded_amount`,
+      [currentPayment.id, money(cumulativeRefund)]
     );
 
     await client.query(
