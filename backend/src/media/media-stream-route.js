@@ -1,3 +1,4 @@
+import { pipeline } from 'node:stream/promises';
 import { requireAuth } from '../auth/require-auth.js';
 import { getProtectedMediaContext } from './protected-media-repository.js';
 import { authorizeProtectedMedia } from './protected-access.js';
@@ -51,7 +52,16 @@ export function registerMediaStreamRoutes(app, {
       } else {
         res.setHeader('Content-Length', String(size));
       }
-      return object.stream.pipe(res);
+      try {
+        await pipeline(object.stream, res);
+      } catch (error) {
+        if (res.headersSent) {
+          res.destroy();
+          return;
+        }
+        return next(error);
+      }
+      return;
     } catch (error) { return next(error); }
   });
 }
