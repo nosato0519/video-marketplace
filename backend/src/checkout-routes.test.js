@@ -26,6 +26,18 @@ test('maps checkout session persistence failure to a retryable service response'
   });
 });
 
+test('rejects a payment method that is not enabled for the site', () => {
+  assert.deepEqual(checkoutError(new Error('payment_provider_not_enabled:paypal')), {
+    status: 400,
+    body: {
+      error: {
+        code: 'PAYMENT_PROVIDER_NOT_ENABLED',
+        message: 'That payment method is not enabled for this site',
+      },
+    },
+  });
+});
+
 test('leaves unknown checkout errors to the shared error handler', () => {
   assert.equal(checkoutError(new Error('unexpected_database_error')), null);
 });
