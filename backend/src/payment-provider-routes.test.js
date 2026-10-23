@@ -12,7 +12,7 @@ function createFakeApp() {
   };
 }
 
-test('registers environment-managed payment provider endpoints behind the admin guard', () => {
+test('registers public buyer options separately from admin-guarded configuration endpoints', () => {
   const app = createFakeApp();
   const guard = (_req, _res, next) => next();
   registerPaymentProviderRoutes(app, { requireAdmin: guard });
@@ -34,6 +34,7 @@ test('registers environment-managed payment provider endpoints behind the admin 
 
   for (const group of Object.values(app.routes)) {
     for (const route of group) {
+      if (route.path === '/api/payment-providers') continue;
       assert.equal(route.handlers[0], guard);
       assert.equal(typeof route.handlers[route.handlers.length - 1], 'function');
     }
