@@ -12,13 +12,20 @@ export async function getOrderHistory(userId) {
             o.paid_at,
             o.refunded_at,
             o.product_id,
-            p.title,
+            COALESCE(translation.title, p.title) AS title,
             CASE WHEN thumbnail.media_asset_id IS NOT NULL
               THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.media_asset_id::text
               ELSE NULL
             END AS thumbnail_url
        FROM orders o
        JOIN products p ON p.id = o.product_id
+       LEFT JOIN LATERAL (
+         SELECT pt.title
+           FROM product_translations pt
+          WHERE pt.product_id = p.id
+          ORDER BY CASE WHEN pt.locale = 'en' THEN 0 ELSE 1 END, pt.locale
+          LIMIT 1
+       ) translation ON TRUE
        LEFT JOIN LATERAL (
          SELECT pi.media_asset_id
            FROM product_images pi
