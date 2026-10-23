@@ -321,6 +321,7 @@ test('does not run refund settlement again for an already processed Stripe event
       id: 'ch_test_full',
       object: 'charge',
       amount: 1000,
+      amount_refunded: 1000,
       currency: 'jpy',
       refunded: true,
       payment_intent: 'pi_test_1',
