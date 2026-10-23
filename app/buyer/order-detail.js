@@ -16,13 +16,13 @@ try {
   const status = order.status || "—";
   const libraryItem = (libraryResult.items || []).find((item) => String(item.product_id) === String(order.productId));
   const canAccessLibrary = order.status === "paid" && Boolean(libraryItem);
-  const title = escapeHtml(order.title || libraryItem?.title || "購入作品");
+  const title = escapeHtml(libraryItem?.title || order.title || "購入作品");
   const safeOrderId = escapeHtml(order.orderId);
   const safeDate = escapeHtml(date);
   const safeAmount = escapeHtml(amount);
   const safeCurrency = escapeHtml(order.currency || "JPY");
   const safeStatus = escapeHtml(status);
-  const thumbnailUrl = order.thumbnailUrl || libraryItem?.thumbnail_url || "";
+  const thumbnailUrl = libraryItem?.thumbnail_url || order.thumbnailUrl || "";
   const thumbnail = thumbnailUrl
     ? '<img src="' + escapeHtml(thumbnailUrl) + '" alt="' + title + '" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover">'
     : '<span>VIDEO</span>';
