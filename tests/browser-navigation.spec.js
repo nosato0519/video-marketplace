@@ -44,7 +44,7 @@ test('homepage demo and role-login controls navigate by real browser clicks', as
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
   await page.locator('.login-menu').hover();
   await page.locator('.login-dropdown button').filter({ hasText: '販売者ログイン' }).click();
-  await expect(page).toHaveURL(/\/pages\/seller-login\.html$/);
+  await expect(page).toHaveURL(/\/pages\/login\.html\?role=seller$/);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
   await page.locator('.login-menu').hover();
