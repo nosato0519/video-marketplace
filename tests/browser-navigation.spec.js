@@ -42,7 +42,7 @@ test('homepage demo and role-login controls navigate by real browser clicks', as
   await expect(page).toHaveURL(/\/pages\/register\.html\?returnTo=/);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
-  await page.getByText('販売者ログイン', { exact: true }).click();
+  await page.getByRole('banner').getByText('販売者ログイン', { exact: true }).click();
   await expect(page).toHaveURL(/\/pages\/seller-login\.html$/);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
@@ -52,7 +52,7 @@ test('homepage demo and role-login controls navigate by real browser clicks', as
 
 test('homepage video card opens the product detail page by a real browser click', async ({ page }) => {
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
-  const card = page.locator('.video-card, .showcase-card, .mosaic-card, [data-video-id]').first();
+  const card = page.locator('[data-video-id]').first();
   await expect(card).toBeVisible();
   await card.click();
   await expect(page).toHaveURL(/\/pages\/product-detail\.html\?(?:id|product)=\d+/);
