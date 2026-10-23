@@ -107,6 +107,19 @@ export function createPayPalWebhookHandler({
         const captureId = String(refund.supplementary_data?.related_ids?.capture_id || '');
         if (!captureId) return res.status(200).json({ received: true, ignored: true });
         const capture = await apiRequest(`/v2/payments/captures/${encodeURIComponent(captureId)}`);
+        const refundedAmount = Number(refund.amount?.value);
+        const capturedAmount = Number(capture.amount?.value);
+        const refundCurrency = String(refund.amount?.currency_code || '').toUpperCase();
+        const captureCurrency = String(capture.amount?.currency_code || '').toUpperCase();
+        if (
+          !Number.isFinite(refundedAmount) ||
+          !Number.isFinite(capturedAmount) ||
+          Math.abs(refundedAmount - capturedAmount) > 1e-8 ||
+          !refundCurrency ||
+          refundCurrency !== captureCurrency
+        ) {
+          return res.status(200).json({ received: true, ignored: true, reason: 'partial_or_mismatched_refund_not_supported' });
+        }
         const orderId = String(capture.supplementary_data?.related_ids?.order_id || '');
         if (!orderId) return res.status(200).json({ received: true, ignored: true });
         const order = await apiRequest(`/v2/checkout/orders/${encodeURIComponent(orderId)}`);
