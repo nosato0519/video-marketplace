@@ -203,6 +203,7 @@ router.post('/products', async (req, res, next) => {
     });
     if (creation.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (creation.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    if (creation.error === 'product_media_asset_not_video') return res.status(422).json({ error: 'media_asset_not_video' });
     if (creation.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
     if (creation.error === 'product_image_asset_invalid') return res.status(422).json({ error: 'product_image_asset_invalid' });
     return res.status(201).json({ product: creation.product });
@@ -295,6 +296,7 @@ router.patch('/products/:productId', async (req, res, next) => {
         const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
         if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
         if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
+        if (!PRODUCT_VIDEO_MIME_TYPES.has(mediaAsset.mime_type)) return { error: 'product_media_asset_not_video' };
       }
       if (hasImages) {
         for (const image of normalizedImages) {
@@ -339,6 +341,7 @@ router.patch('/products/:productId', async (req, res, next) => {
     if (update.error === 'product_under_review_locked') return res.status(409).json({ error: 'product_under_review_locked' });
     if (update.error === 'product_media_asset_not_owned') return res.status(422).json({ error: 'media_asset_not_owned' });
     if (update.error === 'product_media_asset_not_ready') return res.status(422).json({ error: 'media_asset_not_ready' });
+    if (update.error === 'product_media_asset_not_video') return res.status(422).json({ error: 'media_asset_not_video' });
     if (update.error === 'product_category_not_found') return res.status(422).json({ error: 'product_category_not_found' });
     if (update.error === 'product_image_asset_invalid') return res.status(422).json({ error: 'product_image_asset_invalid' });
     return res.json({ product: update.product });
@@ -394,7 +397,7 @@ router.post('/products/:productId/submit', async (req, res, next) => {
       if (!thumbnailValidation.allowed) return { error: thumbnailValidation.error };
 
       const mediaResult = product.media_asset_id
-        ? await client.query('SELECT id, owner_user_id, status FROM media_assets WHERE id = $1 FOR UPDATE', [product.media_asset_id])
+        ? await client.query('SELECT id, owner_user_id, status, mime_type FROM media_assets WHERE id = $1 FOR UPDATE', [product.media_asset_id])
         : { rows: [] };
       const validation = validateProductForPublishing({
         product: { seller_id: req.user.id, title: product.title, price_amount: product.price_amount, price_currency: product.price_currency, media_asset_id: product.media_asset_id },
