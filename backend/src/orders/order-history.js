@@ -23,7 +23,7 @@ export async function getOrderHistory(userId) {
          SELECT pt.title
            FROM product_translations pt
           WHERE pt.product_id = p.id
-          ORDER BY CASE WHEN pt.locale = 'en' THEN 0 ELSE 1 END, pt.locale
+          ORDER BY CASE WHEN pt.locale = 'ja' THEN 0 WHEN pt.locale LIKE 'ja-%' THEN 1 WHEN pt.locale = 'en' THEN 2 ELSE 3 END, pt.locale
           LIMIT 1
        ) translation ON TRUE
        LEFT JOIN LATERAL (
