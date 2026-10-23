@@ -1,6 +1,7 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
@@ -116,7 +117,16 @@ router.get('/assets/:assetId/preview', async (req, res, next) => {
     } else {
       res.setHeader('Content-Length', String(size));
     }
-    return object.stream.pipe(res);
+    try {
+      await pipeline(object.stream, res);
+    } catch (error) {
+      if (res.headersSent) {
+        res.destroy();
+        return;
+      }
+      return next(error);
+    }
+    return;
   } catch (error) { return next(error); }
 });
 
