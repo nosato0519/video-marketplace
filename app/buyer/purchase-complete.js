@@ -26,6 +26,22 @@ function summaryValue(label, value, note) {
   return card;
 }
 
+function renderThumbnail(container, url, title) {
+  container.className = "library-thumb";
+  container.style.cssText = "overflow:hidden;display:grid;place-items:center";
+  if (!url) {
+    container.textContent = "VIDEO";
+    return;
+  }
+  const image = document.createElement("img");
+  image.src = url;
+  image.alt = title || "購入作品";
+  image.loading = "lazy";
+  image.style.cssText = "display:block;width:100%;height:100%;object-fit:cover";
+  image.addEventListener("error", () => { container.textContent = "VIDEO"; }, { once: true });
+  container.replaceChildren(image);
+}
+
 try {
   const params = new URLSearchParams(window.location.search);
   const requestedId = params.get("orderId");
@@ -50,7 +66,8 @@ try {
   const isPaid = order.status === "paid";
   const isCancelled = ["cancelled", "failed"].includes(order.status);
   const isRefunded = order.status === "refunded";
-  const hasAccess = isPaid && (libraryResult.items || []).some((item) => String(item.order_id) === String(order.orderId));
+  const libraryItem = (libraryResult.items || []).find((item) => String(item.order_id) === String(order.orderId));
+  const hasAccess = isPaid && Boolean(libraryItem);
 
   if (isPaid) {
     heading.textContent = hasAccess ? "購入が完了しました" : "決済が完了しました";
@@ -74,11 +91,11 @@ try {
   const article = document.createElement("article");
   article.className = "buyer-history-card";
   const thumb = document.createElement("div");
-  thumb.className = "library-thumb";
+  renderThumbnail(thumb, order.thumbnailUrl || libraryItem?.thumbnail_url, order.title || libraryItem?.title);
   const info = document.createElement("div");
   info.className = "buyer-history-info";
   const title = document.createElement("strong");
-  title.textContent = order.title || "購入作品";
+  title.textContent = order.title || libraryItem?.title || "購入作品";
   const date = document.createElement("span");
   date.textContent = "注文日 " + (order.createdAt ? new Date(order.createdAt).toLocaleDateString("ja-JP") : "—");
   const price = document.createElement("small");
