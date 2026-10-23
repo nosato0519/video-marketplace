@@ -98,11 +98,15 @@ for (const [pageName, pageSource] of [
   ['buyer login', buyerLogin],
   ['buyer dashboard', buyerDashboard],
 ]) {
-  const scripts = [...pageSource.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)];
-  assert.ok(scripts.length > 0, `${pageName} module script exists`);
-  for (const [, script] of scripts) {
+  const inlineScripts = [...pageSource.matchAll(/<script type="module">([\\s\\S]*?)<\\/script>/g)];
+  const externalScripts = [...pageSource.matchAll(/<script type="module"\\s+src="([^"]+)"/g)];
+  assert.ok(inlineScripts.length + externalScripts.length > 0, `${pageName} module script exists`);
+  for (const [, script] of inlineScripts) {
     const hash = crypto.createHash('sha256').update(script).digest('base64');
-    assert.ok(allowedInlineScriptHashes.includes(hash), `${pageName} module script is allowed by CSP`);
+    assert.ok(allowedInlineScriptHashes.includes(hash), `${pageName} inline module script is allowed by CSP`);
+  }
+  for (const [, src] of externalScripts) {
+    assert.ok(src.startsWith('/'), `${pageName} external module script is same-origin`);
   }
 }
 assert.match(buyerLogin, /startsWith\('\/pages\/checkout\.html\?productId='/);
