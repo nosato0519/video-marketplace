@@ -78,7 +78,7 @@ Before a customer's site is opened to real users:
 
 - [ ] Production PostgreSQL configured and migrations applied.
 - [ ] Production object/file storage configured.
-- [ ] Stripe live checkout credentials configured and webhook signature verified.
+- [ ] Selected payment provider's live credentials configured and webhook signature verified (PayPal marketplace payouts require PayPal partner approval).
 - [ ] Strong production `SESSION_SECRET` and `MEDIA_URL_SECRET` configured.
 - [ ] HTTPS/reverse proxy configured.
 - [ ] Database backup/restore drill completed.
