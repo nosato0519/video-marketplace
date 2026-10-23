@@ -50,6 +50,9 @@ https://あなたのドメイン/api/payments/stripe/webhook
 - `checkout.session.async_payment_succeeded`
 - `checkout.session.async_payment_failed`
 - `checkout.session.expired`
+- `payment_intent.succeeded`
+- `payment_intent.payment_failed`
+- `payment_intent.canceled`
 - `charge.refunded`
 
 Webhook endpointの作成後に表示される署名シークレットを、環境変数 `STRIPE_WEBHOOK_SECRET` に登録します。テストモードと本番モードではWebhook endpointと署名シークレットを分けて管理してください。
