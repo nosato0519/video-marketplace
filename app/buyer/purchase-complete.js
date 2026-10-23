@@ -66,7 +66,7 @@ try {
   const isPaid = order.status === "paid";
   const isCancelled = ["cancelled", "failed"].includes(order.status);
   const isRefunded = order.status === "refunded";
-  const libraryItem = (libraryResult.items || []).find((item) => String(item.order_id) === String(order.orderId));
+  const libraryItem = (libraryResult.items || []).find((item) => String(item.product_id) === String(order.productId));
   const hasAccess = isPaid && Boolean(libraryItem);
 
   if (isPaid) {
