@@ -4,7 +4,7 @@ import { listPaymentProviderOptions, selectPaymentProvider } from './payment-pro
 
 test('lists only implemented global providers for overseas installations', () => {
   const providers = listPaymentProviderOptions({ region: 'global' });
-  assert.deepEqual(providers.map((provider) => provider.id), ['stripe']);
+  assert.deepEqual(providers.map((provider) => provider.id), ['stripe', 'paypal']);
 });
 
 test('lists only implemented providers for Japan installations', () => {
