@@ -138,3 +138,46 @@ test('PayPal webhook rejects an unverified event before capture or settlement', 
     assert.deepEqual(res.body.error.code, 'INVALID_WEBHOOK_SIGNATURE');
   });
 });
+
+
+test('PayPal partial refund is ignored without recording or changing payment state', async () => {
+  await withPayPalEnvironment(async () => {
+    const event = {
+      id: 'WH-PARTIAL-REFUND-1',
+      event_type: 'PAYMENT.CAPTURE.REFUNDED',
+      resource: {
+        id: 'PAYPAL-REFUND-1',
+        amount: { value: '2.00', currency_code: 'USD' },
+        supplementary_data: { related_ids: { capture_id: 'PAYPAL-CAPTURE-1' } },
+      },
+    };
+    let recordCalls = 0;
+    let refundCalls = 0;
+    const handler = createPayPalWebhookHandler({
+      apiRequest: async (path) => {
+        if (path === '/v1/notifications/verify-webhook-signature') return { verification_status: 'SUCCESS' };
+        if (path === '/v2/payments/captures/PAYPAL-CAPTURE-1') {
+          return {
+            id: 'PAYPAL-CAPTURE-1',
+            amount: { value: '10.00', currency_code: 'USD' },
+            supplementary_data: { related_ids: { order_id: 'PAYPAL-ORDER-1' } },
+          };
+        }
+        throw new Error('unexpected_api_request');
+      },
+      recordPaymentEvent: async () => { recordCalls += 1; throw new Error('partial_refund_must_not_be_recorded'); },
+      refundPayment: async () => { refundCalls += 1; },
+    });
+    const res = responseRecorder();
+    await handler(requestFor(event), res, (error) => { throw error; });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      received: true,
+      ignored: true,
+      reason: 'partial_or_mismatched_refund_not_supported',
+    });
+    assert.equal(recordCalls, 0);
+    assert.equal(refundCalls, 0);
+  });
+});
