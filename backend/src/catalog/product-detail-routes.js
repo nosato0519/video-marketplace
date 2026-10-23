@@ -1,3 +1,4 @@
+import { pipeline } from 'node:stream/promises';
 import { query } from '../db.js';
 import { getPublicProductDetail } from './product-detail-service.js';
 
@@ -48,7 +49,16 @@ export function registerProductDetailRoutes(app, { storage } = {}) {
       res.setHeader('Content-Length', String(Number(asset.byte_size)));
       res.setHeader('Cache-Control', 'public, max-age=3600');
       res.setHeader('X-Content-Type-Options', 'nosniff');
-      return object.stream.pipe(res);
+      try {
+        await pipeline(object.stream, res);
+      } catch (error) {
+        if (res.headersSent) {
+          res.destroy();
+          return;
+        }
+        return next(error);
+      }
+      return;
     } catch (error) {
       return next(error);
     }
