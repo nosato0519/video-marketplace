@@ -91,7 +91,7 @@ try {
   const article = document.createElement("article");
   article.className = "buyer-history-card";
   const thumb = document.createElement("div");
-  renderThumbnail(thumb, libraryItem?.thumbnail_url || order.thumbnailUrl, libraryItem?.title || order.title);
+  renderThumbnail(thumb, libraryItem?.thumbnail_url, libraryItem?.title || order.title);
   const info = document.createElement("div");
   info.className = "buyer-history-info";
   const title = document.createElement("strong");
