@@ -85,7 +85,18 @@ submit.addEventListener('click', async () => {
   message.textContent = '購入手続きを開始しています…';
   try {
     const intent = await checkoutApi.purchaseIntent(productId, 'ja');
-    const order = await checkoutApi.createOrder(intent.data.productId);
+    if (String(intent.data?.productId) !== String(productId)) {
+      throw new Error('購入対象の作品IDが一致しません。決済を開始していません。');
+    }
+
+    const order = await checkoutApi.createOrder(productId);
+    if (
+      String(order.order?.product_id) !== String(productId)
+      || !order.order?.id
+    ) {
+      throw new Error('注文の商品が選択した作品と一致しません。決済を開始していません。');
+    }
+
     const result = await checkoutApi.checkout(order.order.id);
     if (!result.session?.url) throw new Error('決済画面のURLを取得できませんでした。');
     window.location.assign(result.session.url);
