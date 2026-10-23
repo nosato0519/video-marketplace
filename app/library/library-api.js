@@ -1,5 +1,9 @@
-async function request(path) {
-  const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
+async function request(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: 'same-origin',
+    cache: 'no-store',
+    signal: options.signal,
+  });
   const text = await response.text();
   let body = null;
   try { body = text ? JSON.parse(text) : null; } catch { body = null; }
@@ -12,6 +16,6 @@ async function request(path) {
 }
 
 export const libraryApi = {
-  list: () => request('/api/library'),
+  list: (options) => request('/api/library', options),
   orders: () => request('/api/orders'),
 };
