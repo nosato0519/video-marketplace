@@ -3,6 +3,7 @@ import { ORDER_STATES } from './order-state.js';
 import { buildCheckoutReference } from './create-order-policy.js';
 import { buildCheckoutIdempotencyKey } from './checkout-session-idempotency.js';
 import { createPaymentProvider } from '../payments/payment-provider.js';
+import { isPaymentProviderEnabled } from '../payments/payment-provider-config.js';
 import { retryFailedPayment } from '../payments/payment-ledger.js';
 
 export async function getPendingOrderForCheckout({ orderId, userId }) {
@@ -27,14 +28,15 @@ export async function getPendingOrderForCheckout({ orderId, userId }) {
   return order;
 }
 
-export async function createCheckoutSession({ orderId, userId }) {
+export async function createCheckoutSession({ orderId, userId, provider: requestedProvider }) {
   const order = await getPendingOrderForCheckout({ orderId, userId });
   if (!order) throw new Error('order_not_found');
 
-  const selectedProvider = process.env.PAYMENT_PROVIDER;
-  if (!selectedProvider) throw new Error('payment_provider_required');
+  const providerId = String(requestedProvider || process.env.PAYMENT_PROVIDER || '').trim().toLowerCase();
+  if (!providerId) throw new Error('payment_provider_required');
+  if (!isPaymentProviderEnabled(providerId)) throw new Error(`payment_provider_not_enabled:${providerId}`);
 
-  const provider = createPaymentProvider({ provider: selectedProvider });
+  const provider = createPaymentProvider({ provider: providerId });
   if (!provider.configured) {
     throw new Error(`payment_provider_adapter_not_ready:${provider.name}`);
   }
