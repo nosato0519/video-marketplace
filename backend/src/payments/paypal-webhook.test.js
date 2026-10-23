@@ -86,6 +86,34 @@ test('PayPal approval webhook captures once and settles the matching order', asy
   });
 });
 
+test('PayPal approval webhook surfaces capture failures when no completed capture exists', async () => {
+  await withPayPalEnvironment(async () => {
+    const event = {
+      id: 'WH-ORDER-APPROVED-CAPTURE-FAIL',
+      event_type: 'CHECKOUT.ORDER.APPROVED',
+      resource: { id: 'PAYPAL-ORDER-CAPTURE-FAIL' },
+    };
+    const handler = createPayPalWebhookHandler({
+      apiRequest: async (path) => {
+        if (path === '/v1/notifications/verify-webhook-signature') return { verification_status: 'SUCCESS' };
+        if (path.endsWith('/capture')) throw new Error('paypal_api_request_failed');
+        if (path === '/v2/checkout/orders/PAYPAL-ORDER-CAPTURE-FAIL') {
+          return { purchase_units: [{ custom_id: 'order-capture-fail', payments: { captures: [] } }] };
+        }
+        throw new Error('unexpected_api_request');
+      },
+      recordPaymentEvent: async () => { throw new Error('must_not_record_unsettled_payment'); },
+      completePayment: async () => { throw new Error('must_not_settle_unsettled_payment'); },
+    });
+    const res = responseRecorder();
+    let forwardedError = null;
+    await handler(requestFor(event), res, (error) => { forwardedError = error; });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(forwardedError?.message, 'paypal_api_request_failed');
+  });
+});
+
 test('PayPal webhook rejects an unverified event before capture or settlement', async () => {
   await withPayPalEnvironment(async () => {
     const event = {
