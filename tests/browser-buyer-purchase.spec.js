@@ -10,6 +10,13 @@ async function mockBuyerSession(page, role = 'buyer') {
       body: JSON.stringify({ user: { id: `${role}-1`, email: `${role}@example.test`, role } }),
     });
   });
+  await page.route('**/api/payment-providers', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ providers: [{ id: 'stripe', name: 'Stripe' }] }),
+    });
+  });
 }
 
 test.describe('buyer purchase browser acceptance', () => {
