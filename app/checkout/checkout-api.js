@@ -13,6 +13,9 @@ async function request(path, options = {}) {
 }
 
 export const checkoutApi = {
+  paymentProviders() {
+    return request('/api/payment-providers');
+  },
   purchaseIntent(productId, locale = 'en') {
     return request(`/api/catalog/products/${encodeURIComponent(productId)}/purchase-intent`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ locale }),
@@ -23,7 +26,9 @@ export const checkoutApi = {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ productId }),
     });
   },
-  checkout(orderId) {
-    return request(`/api/orders/${encodeURIComponent(orderId)}/checkout`, { method: 'POST' });
+  checkout(orderId, provider) {
+    return request(`/api/orders/${encodeURIComponent(orderId)}/checkout`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider }),
+    });
   },
 };
