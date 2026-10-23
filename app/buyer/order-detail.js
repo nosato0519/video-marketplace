@@ -22,7 +22,7 @@ try {
   const safeAmount = escapeHtml(amount);
   const safeCurrency = escapeHtml(order.currency || "JPY");
   const safeStatus = escapeHtml(status);
-  const thumbnailUrl = libraryItem?.thumbnail_url || order.thumbnailUrl || "";
+  const thumbnailUrl = libraryItem?.thumbnail_url || "";
   const thumbnail = thumbnailUrl
     ? '<img src="' + escapeHtml(thumbnailUrl) + '" alt="' + title + '" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover">'
     : '<span>VIDEO</span>';
