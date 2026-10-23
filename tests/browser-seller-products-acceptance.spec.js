@@ -58,7 +58,7 @@ test.describe('seller products browser acceptance', () => {
         status: 'ready'
       } }, 201);
     });
-    await page.route('**/api/seller/products', async (route) => {
+    await page.route('**/api/seller/products**', async (route) => {
       if (route.request().method() === 'GET') {
         await fulfillJson(route, { products: [] });
         return;
@@ -66,6 +66,9 @@ test.describe('seller products browser acceptance', () => {
       expect(route.request().method()).toBe('POST');
       createBody = route.request().postDataJSON();
       await fulfillJson(route, { product: { id: 'product-draft', title: 'Draft Product', status: 'draft', media_asset_id: 'media-ready' } }, 201);
+    });
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [] });
     });
     await page.goto('/seller/product-editor.html');
     await page.getByRole('textbox', { name: '例：THE LAST SIGNAL' }).fill('Draft Product');
