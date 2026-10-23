@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-async function mockPaymentProviders(page) {
+async function mockPaymentProviders(page, providers = [{ id: 'stripe', name: 'Stripe' }]) {
   await page.route('**/api/payment-providers', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ providers: [{ id: 'stripe', name: 'Stripe' }] }),
+      body: JSON.stringify({ providers }),
     });
   });
 }
@@ -80,6 +80,49 @@ test('buyer checkout flow calls the authenticated purchase APIs', async ({ page 
 
   await expect(page.getByText(/Checkout provider is not configured yet/i)).toBeVisible();
   expect(calls).toEqual(['me', 'purchase-intent', 'create-order', 'checkout']);
+});
+
+test('checkout page lets the buyer select PayPal when both methods are enabled', async ({ page }) => {
+  let selectedProvider;
+
+  await mockDemoProduct(page);
+  await mockPaymentProviders(page, [
+    { id: 'stripe', name: 'Stripe' },
+    { id: 'paypal', name: 'PayPal' },
+  ]);
+
+  await page.route('**/api/catalog/products/demo-1/purchase-intent', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: { productId: 'demo-1', price: 12.99, currency: 'USD' } }),
+    });
+  });
+
+  await page.route('**/api/orders', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ order: { id: 'order-page-1', product_id: 'demo-1' } }),
+    });
+  });
+
+  await page.route('**/api/orders/order-page-1/checkout', async (route) => {
+    selectedProvider = route.request().postDataJSON().provider;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ session: { status: 'not_configured' } }),
+    });
+  });
+
+  await page.goto('/pages/checkout.html?productId=demo-1');
+  const paypalOption = page.getByRole('radio', { name: 'PayPal' });
+  await expect(paypalOption).toBeVisible();
+  await paypalOption.check();
+  await page.getByRole('button', { name: '購入手続きへ進む' }).click();
+
+  await expect.poll(() => selectedProvider).toBe('paypal');
 });
 
 test('buyer is redirected to login when the session is missing', async ({ page }) => {
