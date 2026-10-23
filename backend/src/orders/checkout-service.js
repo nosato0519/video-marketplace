@@ -61,7 +61,7 @@ export async function createCheckoutSession({ orderId, userId }) {
     idempotencyKey: payment.idempotency_key,
     metadata: {
       orderId: order.id,
-      reference,
+      reference: JSON.stringify(reference),
       paymentId: payment.id,
       sellerId: order.seller_id,
       providerId: provider.name,
