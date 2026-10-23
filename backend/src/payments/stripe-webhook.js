@@ -121,20 +121,6 @@ async function normalizeStripeEvent(event, eventType, stripe) {
   let orderId = metadata.orderId || object.client_reference_id;
 
   if (eventType === 'payment_refunded' && paymentIntentId) {
-    if (!object.refunded) {
-      return {
-        eventId: event.id,
-        provider: 'stripe',
-        eventType,
-        paymentId: String(paymentId || ''),
-        orderId: String(orderId || ''),
-        amount: 0,
-        currency: String(object.currency || '').toUpperCase(),
-        status: 'refunded',
-        fullRefund: false,
-      };
-    }
-
     const paymentIntent = await stripe.paymentIntents.retrieve(String(paymentIntentId));
     const paymentIntentOrderId = paymentIntent?.metadata?.orderId || paymentIntent?.client_reference_id;
     if (orderId && paymentIntentOrderId && String(orderId) !== String(paymentIntentOrderId)) {
