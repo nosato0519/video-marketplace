@@ -86,7 +86,7 @@ const cart = fs.readFileSync(path.join(root, 'pages/cart.html'), 'utf8');
 const cartScript = fs.readFileSync(path.join(root, 'app/catalog/cart.js'), 'utf8');
 const cartClient = [cart, cartScript].join('\n');
 assert.match(cartClient, /video-marketplace-cart/);
-assert.match(cartScript, /\/api\/catalog\/products\?/);
+assert.match(cartScript, /\/api\/catalog\/products\//);
 assert.match(cartClient, /cart-clear/);
 assert.match(cartClient, /この作品を購入/);
 assert.match(cartClient, /\/pages\/checkout\.html\?productId=/);
