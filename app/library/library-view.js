@@ -29,7 +29,7 @@ export async function renderLibrary(root) {
         const canDownload = state === 'ready' && item.download_enabled === true;
         const unavailableText = state === 'processing' ? 'Preparing your video…' : 'Video temporarily unavailable';
         return `<article class="library-card">
-          <div class="library-card-media"><div class="product-thumb large"><span>▶</span></div><span class="library-status ${state}">${state === 'ready' ? 'Ready to watch' : unavailableText}</span></div>
+          <div class="library-card-media"><div class="product-thumb large">${item.thumbnail_url ? `<img src="${escapeHtml(item.thumbnail_url)}" alt="${escapeHtml(item.title)}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : '<span>▶</span>'}</div><span class="library-status ${state}">${state === 'ready' ? 'Ready to watch' : unavailableText}</span></div>
           <div class="library-copy">
             <p class="eyebrow">Purchased</p>
             <h2>${escapeHtml(item.title)}</h2>
