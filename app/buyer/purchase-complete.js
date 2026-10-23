@@ -91,11 +91,11 @@ try {
   const article = document.createElement("article");
   article.className = "buyer-history-card";
   const thumb = document.createElement("div");
-  renderThumbnail(thumb, order.thumbnailUrl || libraryItem?.thumbnail_url, order.title || libraryItem?.title);
+  renderThumbnail(thumb, libraryItem?.thumbnail_url || order.thumbnailUrl, libraryItem?.title || order.title);
   const info = document.createElement("div");
   info.className = "buyer-history-info";
   const title = document.createElement("strong");
-  title.textContent = order.title || libraryItem?.title || "購入作品";
+  title.textContent = libraryItem?.title || order.title || "購入作品";
   const date = document.createElement("span");
   date.textContent = "注文日 " + (order.createdAt ? new Date(order.createdAt).toLocaleDateString("ja-JP") : "—");
   const price = document.createElement("small");
