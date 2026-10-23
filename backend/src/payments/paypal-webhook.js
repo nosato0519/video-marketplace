@@ -115,12 +115,13 @@ export function createPayPalWebhookHandler({
         const captureCurrency = String(capture.amount?.currency_code || '').toUpperCase();
         if (
           !Number.isFinite(refundedAmount) ||
+          refundedAmount <= 0 ||
           !Number.isFinite(capturedAmount) ||
-          Math.abs(refundedAmount - capturedAmount) > 1e-8 ||
+          refundedAmount > capturedAmount + 0.001 ||
           !refundCurrency ||
           refundCurrency !== captureCurrency
         ) {
-          return res.status(200).json({ received: true, ignored: true, reason: 'partial_or_mismatched_refund_not_supported' });
+          return res.status(200).json({ received: true, ignored: true, reason: 'invalid_or_mismatched_refund' });
         }
         const orderId = String(capture.supplementary_data?.related_ids?.order_id || '');
         if (!orderId) return res.status(200).json({ received: true, ignored: true });
@@ -130,6 +131,7 @@ export function createPayPalWebhookHandler({
           res, event, eventType: 'payment_refunded', providerPaymentId: captureId,
           orderId: String(unit?.custom_id || unit?.reference_id || ''), checkoutSessionId: orderId,
           amount: Number(refund.amount?.value || 0), currency: String(refund.amount?.currency_code || '').toUpperCase(),
+          refundAmount: refundedAmount, refundMode: 'incremental', refundCurrency,
           payloadHash, recordPaymentEvent, completePayment, failPayment, refundPayment,
         });
       }
@@ -145,7 +147,7 @@ export function createPayPalWebhookHandler({
 
 async function settleEvent({
   res, event, eventType, providerPaymentId, orderId, checkoutSessionId,
-  amount, currency, payloadHash, recordPaymentEvent, completePayment, failPayment, refundPayment,
+  amount, currency, refundAmount, refundMode, refundCurrency, payloadHash, recordPaymentEvent, completePayment, failPayment, refundPayment,
 }) {
   if (!orderId || !providerPaymentId || !event.id) {
     return res.status(400).json({ error: { code: 'INVALID_WEBHOOK_PAYLOAD', message: 'Required PayPal payment identifiers are missing' } });
@@ -177,7 +179,12 @@ async function settleEvent({
     return res.status(200).json({ received: true, result });
   }
   if (mappedType === 'payment_refunded') {
-    const result = await refundPayment(input);
+    const result = await refundPayment({
+      ...input,
+      refundAmount: refundAmount ?? amount,
+      refundMode: refundMode || 'incremental',
+      refundCurrency: refundCurrency || currency,
+    });
     return res.status(200).json({ received: true, result });
   }
   const payload = {
