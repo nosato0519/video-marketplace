@@ -173,3 +173,29 @@ test('S3 adapter requires credentials and a fetch implementation', () => {
   assert.throws(() => createS3MediaStorage({ bucket: 'bucket', region: 'auto', secretAccessKey: 'secret' }), /media_s3_configuration_missing/);
   assert.throws(() => createS3MediaStorage({ bucket: 'bucket', region: 'auto', accessKeyId: 'access', secretAccessKey: 'secret', fetchImpl: null }), /media_s3_fetch_missing/);
 });
+
+
+test('S3 adapter keeps the upload error listener until a timed-out source stream closes', async () => {
+  let stream;
+  const storage = createS3MediaStorage({
+    bucket: 'private-media',
+    region: 'us-east-1',
+    accessKeyId: 'ACCESS',
+    secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async (_url, options) => {
+      stream = options.body;
+      throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+    },
+  });
+
+  const source = new Readable({ read() {} });
+  await assert.rejects(
+    storage.putStream({ storageKey: 'private/a.mp4', stream: source }),
+    /timeout/i,
+  );
+  assert.equal(source.listenerCount('error'), 1);
+  source.destroy(new Error('late_upload_stream_error'));
+  await new Promise((resolve) => source.once('close', resolve));
+  assert.equal(source.listenerCount('error'), 0);
+});
