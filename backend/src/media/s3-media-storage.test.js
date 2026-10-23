@@ -176,7 +176,6 @@ test('S3 adapter requires credentials and a fetch implementation', () => {
 
 
 test('S3 adapter keeps the upload error listener until a timed-out source stream closes', async () => {
-  let stream;
   const storage = createS3MediaStorage({
     bucket: 'private-media',
     region: 'us-east-1',
@@ -184,7 +183,7 @@ test('S3 adapter keeps the upload error listener until a timed-out source stream
     secretAccessKey: 'SECRET',
     endpoint: 'https://objects.example.test',
     fetchImpl: async (_url, options) => {
-      stream = options.body;
+      assert.ok(options.body);
       throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
     },
   });
