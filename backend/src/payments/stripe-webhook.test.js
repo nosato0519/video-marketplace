@@ -210,13 +210,18 @@ test('retries settlement when a duplicate event is still pending', async () => {
 });
 
 
-test('ignores partial refund events without changing payment state', async () => {
-  let refundCalls = 0;
+test('routes a partial Stripe refund using the cumulative refunded amount', async () => {
+  const calls = [];
+  const verifier = new Stripe('test-webhook-verifier-key');
+  verifier.paymentIntents.retrieve = async () => ({
+    id: 'pi_test_1',
+    metadata: { orderId: 'order_123' },
+  });
   const handler = createStripeWebhookHandler({
     secret,
-    stripe,
-    recordPaymentEvent: async () => { throw new Error('partial_refund_must_not_be_recorded'); },
-    refundPayment: async () => { refundCalls += 1; },
+    stripe: verifier,
+    recordPaymentEvent: async (input) => { calls.push(['record', input]); return { duplicate: false }; },
+    refundPayment: async (input) => { calls.push(['refund', input]); return { partial: true }; },
   });
   const event = makeEvent({
     type: 'charge.refunded',
@@ -224,6 +229,7 @@ test('ignores partial refund events without changing payment state', async () =>
       id: 'ch_test_partial',
       object: 'charge',
       amount: 1000,
+      amount_refunded: 200,
       currency: 'jpy',
       refunded: false,
       payment_intent: 'pi_test_1',
@@ -231,18 +237,21 @@ test('ignores partial refund events without changing payment state', async () =>
     } },
   });
   const body = JSON.stringify(event);
-  const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+  const signature = verifier.webhooks.generateTestHeaderString({ payload: body, secret });
 
   await withServer(handler, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body,
     });
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), {
-      received: true, ignored: true, reason: 'partial_refund_not_supported',
-    });
+    assert.deepEqual(await response.json(), { received: true, result: { partial: true } });
   });
-  assert.equal(refundCalls, 0);
+  assert.equal(calls[0][0], 'record');
+  assert.equal(calls[0][1].eventType, 'payment_refunded');
+  assert.equal(calls[1][0], 'refund');
+  assert.equal(calls[1][1].refundAmount, 200);
+  assert.equal(calls[1][1].refundMode, 'cumulative');
+  assert.equal(calls[1][1].refundCurrency, 'JPY');
 });
 
 test('routes a full refund event to the refund settlement handler', async () => {
@@ -264,6 +273,7 @@ test('routes a full refund event to the refund settlement handler', async () => 
       id: 'ch_test_full',
       object: 'charge',
       amount: 1000,
+      amount_refunded: 1000,
       currency: 'jpy',
       refunded: true,
       payment_intent: 'pi_test_1',
