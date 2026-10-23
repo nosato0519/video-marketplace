@@ -95,6 +95,35 @@ test('S3 adapter supports metadata, upload, and delete through the same signed b
   ]);
 });
 
+test('S3 adapter aborts an upload request when its source stream errors', async () => {
+  const stream = new Readable({
+    read() {
+      this.destroy(new Error('upload_source_failed'));
+    },
+  });
+  let requestSignal;
+  const storage = createS3MediaStorage({
+    bucket: 'private-media',
+    region: 'us-east-1',
+    accessKeyId: 'ACCESS',
+    secretAccessKey: 'SECRET',
+    endpoint: 'https://objects.example.test',
+    fetchImpl: async (_url, options) => {
+      requestSignal = options.signal;
+      return new Promise((resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true });
+        stream.resume();
+      });
+    },
+  });
+
+  await assert.rejects(
+    storage.putStream({ storageKey: 'private/a.mp4', stream }),
+    /upload_source_failed/,
+  );
+  assert.equal(requestSignal.aborted, true);
+});
+
 test('S3 adapter rejects traversal keys before making a network request', async () => {
   let called = false;
   const storage = createS3MediaStorage({
