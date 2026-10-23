@@ -93,8 +93,8 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       }
 
       await page.goto(`${appUrl}#/browse`);
-      await expect(page.getByText('Browser E2E Product', { exact: true })).toBeVisible();
-      await page.getByText('Browser E2E Product', { exact: true }).click();
+      await expect(page.getByText('Browser E2E Product', { exact: true }).first()).toBeVisible();
+      await page.getByText('Browser E2E Product', { exact: true }).first().click();
       await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
       await expect(page.getByRole('heading', { name: 'Browser E2E Product' })).toBeVisible();
 
@@ -274,8 +274,8 @@ test.describe('real backend buyer purchase browser acceptance', () => {
       );
       expect(approvedSeller.rows[0]).toMatchObject({ role: 'seller', status: 'active' });
 
-      await expect(page.getByText('Seller Buyer E2E Product', { exact: true })).toBeVisible();
-      await page.getByText('Seller Buyer E2E Product', { exact: true }).click();
+      await expect(page.getByText('Seller Buyer E2E Product', { exact: true }).first()).toBeVisible();
+      await page.getByText('Seller Buyer E2E Product', { exact: true }).first().click();
       await expect(page).toHaveURL(new RegExp(`#/product/${ids.product}$`));
 
       const orderResponsePromise = page.waitForResponse(
