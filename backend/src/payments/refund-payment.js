@@ -208,6 +208,18 @@ export async function refundPayment({
     }
     const isFullRefund = money(cumulativeRefund) >= money(originalAmount);
 
+    if (current.status === ORDER_STATES.REFUNDED && !isFullRefund) {
+      await client.query(
+        `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
+        [recordedEvent.id]
+      );
+      await client.query('COMMIT');
+      return { duplicate: false, ignored: true, reason: 'order_already_refunded' };
+    }
+    if (!isFullRefund && current.status !== ORDER_STATES.PAID) {
+      throw new Error('order_not_refundable');
+    }
+
     if (!isFullRefund) {
       await client.query(
         `UPDATE payments SET refunded_amount = $1 WHERE id = $2`,
