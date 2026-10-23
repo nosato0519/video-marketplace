@@ -103,7 +103,7 @@
           if (title) title.textContent = productTitle;
           if (breadcrumb) breadcrumb.textContent = "HOME / MY LIBRARY / " + productTitle;
           if (description) description.textContent = item.description || "購入した動画を視聴できます。";
-          if (details) details.textContent = item.description || "購入した動画を視聴できます.";
+          if (details) details.textContent = item.description || "購入した動画を視聴できます。";
           if (watchFacts.format) watchFacts.format.textContent = item.media_mime_type || "動画";
           if (watchFacts.streaming) watchFacts.streaming.textContent = item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中";
           if (watchFacts.download) watchFacts.download.textContent = item.download_enabled && item.media_status === "ready" ? "ダウンロード可能" : "ダウンロード不可";
