@@ -14,6 +14,7 @@ export function validateProductForPublishing({ product, mediaAsset }) {
   if (!product?.media_asset_id || !mediaAsset) errors.push('video_required');
   else if (String(mediaAsset.id) !== String(product.media_asset_id)) errors.push('video_mismatch');
   else if (String(mediaAsset.owner_user_id) !== String(product.seller_id)) errors.push('video_owner_mismatch');
+  else if (!['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska'].includes(mediaAsset.mime_type)) errors.push('video_mime_type_invalid');
   else if (!canPublishMedia(mediaAsset.status)) errors.push('video_not_ready');
 
   return { allowed: errors.length === 0, errors };
