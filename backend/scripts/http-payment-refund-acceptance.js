@@ -91,7 +91,7 @@ try {
 
   const refund = JSON.stringify({
     eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded',
-    paymentId: providerPaymentId, orderId: ids.order
+    paymentId: providerPaymentId, orderId: ids.order, status: 'refunded'
   });
   result = await postWebhook(baseUrl, refund, sign(refund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
@@ -131,7 +131,7 @@ try {
   );
   const reconciliationRefund = JSON.stringify({
     eventId: reconciliationEventId, provider: 'mock', eventType: 'payment_refunded',
-    paymentId: providerPaymentId, orderId: ids.order
+    paymentId: providerPaymentId, orderId: ids.order, status: 'refunded'
   });
   result = await postWebhook(baseUrl, reconciliationRefund, sign(reconciliationRefund));
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
