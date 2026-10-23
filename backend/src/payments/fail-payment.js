@@ -110,6 +110,15 @@ export async function failPayment({
       [providerPaymentId, currentPayment.id]
     );
 
+    const updatedOrder = await client.query(
+      `UPDATE orders
+          SET status = $1
+        WHERE id = $2 AND status = $3
+        RETURNING id, status`,
+      [ORDER_STATES.CANCELLED, orderId, ORDER_STATES.PENDING]
+    );
+    if (updatedOrder.rowCount !== 1) throw new Error('order_not_cancellable');
+
     await client.query(
       `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
       [recordedEvent.id]
@@ -119,7 +128,7 @@ export async function failPayment({
     return {
       duplicate: false,
       payment: updatedPayment.rows[0],
-      order: current,
+      order: { ...current, status: updatedOrder.rows[0].status },
     };
   } catch (error) {
     await client.query('ROLLBACK');
