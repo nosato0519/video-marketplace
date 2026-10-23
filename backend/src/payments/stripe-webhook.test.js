@@ -654,3 +654,92 @@ test('rejects refund when Charge and PaymentIntent refer to different orders', a
   assert.equal(recordCalls, 0);
   assert.equal(refundCalls, 0);
 });
+
+test('settles PaymentIntent success and routes failed or canceled PaymentIntents', async () => {
+  const calls = [];
+  const handler = createStripeWebhookHandler({
+    secret,
+    stripe,
+    recordPaymentEvent: async (input) => { calls.push(['record', input]); return { duplicate: false }; },
+    completePayment: async (input) => { calls.push(['complete', input]); return { ok: true }; },
+    failPayment: async (input) => { calls.push(['fail', input]); return { ok: true }; },
+  });
+  const events = [
+    {
+      id: 'evt_pi_succeeded',
+      type: 'payment_intent.succeeded',
+      data: { object: {
+        id: 'pi_succeeded',
+        object: 'payment_intent',
+        amount_received: 1000,
+        currency: 'jpy',
+        status: 'succeeded',
+        metadata: { orderId: 'order_123' },
+      } },
+      expectedHandler: 'complete',
+      expectedStatus: 'succeeded',
+    },
+    {
+      id: 'evt_pi_failed',
+      type: 'payment_intent.payment_failed',
+      data: { object: {
+        id: 'pi_failed',
+        object: 'payment_intent',
+        amount: 1000,
+        amount_received: 0,
+        currency: 'jpy',
+        status: 'requires_payment_method',
+        metadata: { orderId: 'order_123' },
+      } },
+      expectedHandler: 'fail',
+      expectedStatus: 'failed',
+    },
+    {
+      id: 'evt_pi_canceled',
+      type: 'payment_intent.canceled',
+      data: { object: {
+        id: 'pi_canceled',
+        object: 'payment_intent',
+        amount: 1000,
+        currency: 'jpy',
+        status: 'canceled',
+        metadata: { orderId: 'order_123' },
+      } },
+      expectedHandler: 'fail',
+      expectedStatus: 'failed',
+    },
+  ];
+
+  await withServer(handler, async (baseUrl) => {
+    for (const event of events) {
+      const body = JSON.stringify({
+        object: 'event',
+        api_version: '2025-06-30.basil',
+        created: 1770000000,
+        livemode: false,
+        pending_webhooks: 1,
+        ...event,
+      });
+      const signature = stripe.webhooks.generateTestHeaderString({ payload: body, secret });
+      const response = await fetch(`${baseUrl}/api/payments/stripe/webhook`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'stripe-signature': signature },
+        body,
+      });
+      assert.equal(response.status, 200, `unexpected response for ${event.type}: ${await response.text()}`);
+    }
+  });
+
+  const completeCall = calls.find(([type]) => type === 'complete');
+  assert.ok(completeCall);
+  assert.equal(completeCall[1].orderId, 'order_123');
+  assert.equal(completeCall[1].providerPaymentId, 'pi_succeeded');
+  assert.equal(completeCall[1].payment.status, 'succeeded');
+  const failureCalls = calls.filter(([type]) => type === 'fail');
+  assert.equal(failureCalls.length, 2);
+  assert.deepEqual(failureCalls.map(([, input]) => input.providerPaymentId), ['pi_failed', 'pi_canceled']);
+  assert.deepEqual(
+    calls.filter(([type]) => type === 'record').map(([, input]) => input.eventType),
+    ['payment_succeeded', 'payment_failed', 'payment_failed'],
+  );
+});
