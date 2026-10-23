@@ -274,7 +274,7 @@ test('payment provider catalog preserves planned integrations without enabling u
   const catalog = getPaymentProviderCatalog();
   assert.deepEqual(catalog.map(({ id, status }) => [id, status]), [
     ['stripe', 'available'],
-    ['paypal', 'not_implemented'],
+    ['paypal', 'available'],
     ['adyen', 'not_implemented'],
     ['paddle', 'not_implemented'],
     ['paypay', 'not_implemented'],
@@ -282,15 +282,29 @@ test('payment provider catalog preserves planned integrations without enabling u
 
   const paypal = getPaymentProviderConfig('paypal');
   assert.equal(paypal.name, 'PayPal');
-  assert.equal(paypal.status, 'not_implemented');
+  assert.equal(paypal.status, 'available');
   paypal.regions.push('test-only');
   assert.deepEqual(getPaymentProviderConfig('paypal').regions, ['global', 'japan']);
   assert.equal(getPaymentProviderConfig('unknown'), null);
 });
 
 
+test('PayPal checkout requires server credentials before it can be used', () => {
+  const names = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_SUCCESS_URL', 'PAYPAL_CANCEL_URL'];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  for (const name of names) delete process.env[name];
+  try {
+    assert.throws(() => createPaymentProvider({ provider: 'paypal' }), /payment_provider_not_configured:paypal/);
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
 test('unimplemented payment providers fail closed instead of returning a checkout URL', async () => {
-  for (const providerId of ['paypal', 'adyen', 'paddle', 'paypay']) {
+  for (const providerId of ['adyen', 'paddle', 'paypay']) {
     const provider = createPaymentProvider({ provider: providerId });
     assert.equal(provider.configured, false);
     await assert.rejects(

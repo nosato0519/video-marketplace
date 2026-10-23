@@ -9,7 +9,7 @@ test('lists only implemented global providers for overseas installations', () =>
 
 test('lists only implemented providers for Japan installations', () => {
   const providers = listPaymentProviderOptions({ region: 'japan', currency: 'JPY' });
-  assert.deepEqual(providers.map((provider) => provider.id), ['stripe']);
+  assert.deepEqual(providers.map((provider) => provider.id), ['stripe', 'paypal']);
 });
 
 test('rejects providers whose checkout adapter is not implemented', () => {
