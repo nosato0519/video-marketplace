@@ -52,6 +52,7 @@ export function createPayPalWebhookHandler({
       if (eventType === 'CHECKOUT.ORDER.APPROVED') {
         const orderId = String(event.resource?.id || '');
         if (!orderId) return res.status(400).json({ error: { code: 'INVALID_WEBHOOK_PAYLOAD', message: 'PayPal order ID is missing' } });
+        let captureRequestError = null;
         try {
           await apiRequest(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
             method: 'POST',
@@ -60,11 +61,12 @@ export function createPayPalWebhookHandler({
           });
         } catch (error) {
           if (error.message !== 'paypal_api_request_failed') throw error;
-          // A duplicate approval event may arrive after the order was already captured.
+          captureRequestError = error;
         }
         const order = await apiRequest(`/v2/checkout/orders/${encodeURIComponent(orderId)}`);
         const unit = order.purchase_units?.[0];
         const capture = unit?.payments?.captures?.find((item) => item.status === 'COMPLETED');
+        if (!capture && captureRequestError) throw captureRequestError;
         if (!capture) return res.status(202).json({ received: true, pending: true });
         return await settleEvent({
           res, event, eventType: 'payment_succeeded', providerPaymentId: String(capture.id),
