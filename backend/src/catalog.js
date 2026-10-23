@@ -47,7 +47,7 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
        SELECT title, description
        FROM product_translations
        WHERE product_id = p.id
-       ORDER BY CASE WHEN locale = 'en' THEN 0 ELSE 1 END
+       ORDER BY CASE WHEN locale = $1 THEN 0 WHEN locale LIKE $1 || '-%' THEN 1 WHEN locale = 'en' THEN 2 ELSE 3 END, locale
        LIMIT 1
      ) fallback ON TRUE
      WHERE p.status = 'published'
