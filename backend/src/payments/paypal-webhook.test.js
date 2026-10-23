@@ -140,7 +140,7 @@ test('PayPal webhook rejects an unverified event before capture or settlement', 
 });
 
 
-test('PayPal partial refund is ignored without recording or changing payment state', async () => {
+test('routes a partial PayPal refund with its incremental amount', async () => {
   await withPayPalEnvironment(async () => {
     const event = {
       id: 'WH-PARTIAL-REFUND-1',
@@ -151,8 +151,8 @@ test('PayPal partial refund is ignored without recording or changing payment sta
         supplementary_data: { related_ids: { capture_id: 'PAYPAL-CAPTURE-1' } },
       },
     };
-    let recordCalls = 0;
-    let refundCalls = 0;
+    let recorded;
+    let refunded;
     const handler = createPayPalWebhookHandler({
       apiRequest: async (path) => {
         if (path === '/v1/notifications/verify-webhook-signature') return { verification_status: 'SUCCESS' };
@@ -163,21 +163,23 @@ test('PayPal partial refund is ignored without recording or changing payment sta
             supplementary_data: { related_ids: { order_id: 'PAYPAL-ORDER-1' } },
           };
         }
+        if (path === '/v2/checkout/orders/PAYPAL-ORDER-1') {
+          return { purchase_units: [{ custom_id: 'internal-order-1' }] };
+        }
         throw new Error('unexpected_api_request');
       },
-      recordPaymentEvent: async () => { recordCalls += 1; throw new Error('partial_refund_must_not_be_recorded'); },
-      refundPayment: async () => { refundCalls += 1; },
+      recordPaymentEvent: async (input) => { recorded = input; return { duplicate: false }; },
+      refundPayment: async (input) => { refunded = input; return { partial: true, refundedAmount: 2 }; },
     });
     const res = responseRecorder();
     await handler(requestFor(event), res, (error) => { throw error; });
 
     assert.equal(res.statusCode, 200);
-    assert.deepEqual(res.body, {
-      received: true,
-      ignored: true,
-      reason: 'partial_or_mismatched_refund_not_supported',
-    });
-    assert.equal(recordCalls, 0);
-    assert.equal(refundCalls, 0);
+    assert.deepEqual(res.body, { received: true, result: { partial: true, refundedAmount: 2 } });
+    assert.equal(recorded.eventType, 'payment_refunded');
+    assert.equal(recorded.orderId, 'internal-order-1');
+    assert.equal(refunded.refundAmount, 2);
+    assert.equal(refunded.refundMode, 'incremental');
+    assert.equal(refunded.refundCurrency, 'USD');
   });
 });
