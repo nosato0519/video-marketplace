@@ -14,6 +14,7 @@ const validAsset = () => ({
   id: 'asset-1',
   owner_user_id: 'seller-1',
   status: 'ready',
+  mime_type: 'video/mp4',
 });
 
 test('allows a seller-owned ready media asset to be published', () => {
