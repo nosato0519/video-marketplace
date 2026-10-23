@@ -14,6 +14,18 @@ test('maps checkout amount mismatch to a conflict response', () => {
   });
 });
 
+test('maps a provider change on an existing pending order to a conflict response', () => {
+  assert.deepEqual(checkoutError(new Error('payment_provider_order_conflict')), {
+    status: 409,
+    body: {
+      error: {
+        code: 'PAYMENT_PROVIDER_ORDER_CONFLICT',
+        message: 'This pending order already has a checkout with another payment method. Continue with the original payment method for this order.',
+      },
+    },
+  });
+});
+
 test('maps checkout session persistence failure to a retryable service response', () => {
   assert.deepEqual(checkoutError(new Error('checkout_session_persistence_failed')), {
     status: 503,

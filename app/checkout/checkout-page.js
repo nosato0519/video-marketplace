@@ -9,7 +9,9 @@ const subtotal = document.getElementById('checkout-subtotal');
 const total = document.getElementById('checkout-total');
 const message = document.getElementById('checkout-message');
 const submit = document.getElementById('checkout-submit');
+const paymentList = document.getElementById('checkout-payment-list');
 let product;
+let selectedProvider;
 
 function formatPrice(amount, currency) {
   const value = Number(amount);
@@ -23,6 +25,46 @@ function showError(text) {
   items.textContent = text;
   message.textContent = text;
   submit.disabled = true;
+}
+
+function renderPaymentProviders(providers) {
+  if (!Array.isArray(providers) || providers.length === 0) {
+    throw new Error('利用可能なお支払い方法がありません。サイト運営者にお問い合わせください。');
+  }
+
+  selectedProvider = providers[0].id;
+  paymentList.replaceChildren();
+
+  for (const [index, provider] of providers.entries()) {
+    const card = document.createElement('div');
+    card.className = 'checkout-payment-card';
+    const label = document.createElement('label');
+    label.className = 'checkout-payment-option';
+    const title = document.createElement('strong');
+    title.textContent = provider.name;
+    if (providers.length > 1) {
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'checkout-payment-provider';
+      radio.value = provider.id;
+      radio.checked = index === 0;
+      radio.addEventListener('change', () => {
+        if (radio.checked) selectedProvider = provider.id;
+      });
+      label.append(radio, title);
+    } else {
+      label.append(title);
+    }
+
+    const description = document.createElement('p');
+    description.textContent = provider.id === 'stripe'
+      ? 'Stripeの安全な決済画面でお支払いします。'
+      : provider.id === 'paypal'
+        ? 'PayPalの安全な決済画面でお支払いします。'
+        : '選択した決済事業者の安全な画面でお支払いします。';
+    card.append(label, description);
+    paymentList.append(card);
+  }
 }
 
 if (!productId) {
@@ -72,6 +114,8 @@ if (!productId) {
       summaryCount.textContent = '1';
       subtotal.textContent = formattedPrice;
       total.textContent = formattedPrice;
+      const providerResponse = await checkoutApi.paymentProviders();
+      renderPaymentProviders(providerResponse?.providers);
       submit.disabled = false;
     }
   } catch (error) {
@@ -97,7 +141,8 @@ submit.addEventListener('click', async () => {
       throw new Error('注文の商品が選択した作品と一致しません。決済を開始していません。');
     }
 
-    const result = await checkoutApi.checkout(order.order.id);
+    if (!selectedProvider) throw new Error('お支払い方法を選択してください。');
+    const result = await checkoutApi.checkout(order.order.id, selectedProvider);
     if (!result.session?.url) throw new Error('決済画面のURLを取得できませんでした。');
     window.location.assign(result.session.url);
   } catch (error) {

@@ -1,5 +1,15 @@
 import { test, expect } from '@playwright/test';
 
+async function mockPaymentProviders(page) {
+  await page.route('**/api/payment-providers', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ providers: [{ id: 'stripe', name: 'Stripe' }] }),
+    });
+  });
+}
+
 async function mockDemoProduct(page) {
   await page.route('**/api/catalog/products/demo-1?*', async (route) => {
     await route.fulfill({
@@ -24,6 +34,7 @@ test('buyer checkout flow calls the authenticated purchase APIs', async ({ page 
   const calls = [];
 
   await mockDemoProduct(page);
+  await mockPaymentProviders(page);
 
   await page.route('**/api/auth/me', async (route) => {
     calls.push('me');
@@ -54,6 +65,7 @@ test('buyer checkout flow calls the authenticated purchase APIs', async ({ page 
 
   await page.route('**/api/orders/order-browser-1/checkout', async (route) => {
     calls.push('checkout');
+    expect(route.request().postDataJSON()).toEqual({ provider: 'stripe' });
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -72,6 +84,7 @@ test('buyer checkout flow calls the authenticated purchase APIs', async ({ page 
 
 test('buyer is redirected to login when the session is missing', async ({ page }) => {
   await mockDemoProduct(page);
+  await mockPaymentProviders(page);
 
   await page.route('**/api/auth/me', async (route) => {
     await route.fulfill({

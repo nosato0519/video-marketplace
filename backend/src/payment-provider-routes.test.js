@@ -18,9 +18,12 @@ test('registers environment-managed payment provider endpoints behind the admin 
   registerPaymentProviderRoutes(app, { requireAdmin: guard });
 
   assert.deepEqual(app.routes.get.map((route) => route.path), [
+    '/api/payment-providers',
     '/api/admin/payment-providers',
     '/api/admin/payment-providers/settings',
   ]);
+  assert.equal(app.routes.get[0].handlers.length, 1);
+  assert.equal(app.routes.get[0].handlers[0] === guard, false);
   assert.deepEqual(app.routes.post.map((route) => route.path), [
     '/api/admin/payment-providers/validate',
     '/api/admin/payment-providers/configure',

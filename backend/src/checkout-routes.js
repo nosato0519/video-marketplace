@@ -21,6 +21,9 @@ export function checkoutError(error) {
   if (['checkout_amount_invalid', 'checkout_amount_precision_invalid'].includes(error.message)) {
     return { status: 409, body: { error: { code: 'ORDER_AMOUNT_INVALID', message: 'The order amount is not valid for checkout' } } };
   }
+  if (error.message === 'payment_provider_order_conflict') {
+    return { status: 409, body: { error: { code: 'PAYMENT_PROVIDER_ORDER_CONFLICT', message: 'This pending order already has a checkout with another payment method. Continue with the original payment method for this order.' } } };
+  }
   if (error.message === 'payment_order_amount_mismatch') {
     return { status: 409, body: { error: { code: 'PAYMENT_ORDER_AMOUNT_MISMATCH', message: 'The payment amount does not match the order' } } };
   }

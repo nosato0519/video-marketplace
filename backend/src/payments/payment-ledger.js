@@ -30,8 +30,10 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
 
     if (existing.rowCount > 0) {
       const payment = existing.rows[0];
+      if (payment.provider !== provider) {
+        throw new Error('payment_provider_order_conflict');
+      }
       if (
-        payment.provider !== provider ||
         Number(payment.amount) !== Number(order.amount) ||
         String(payment.currency).toUpperCase() !== String(order.currency).toUpperCase()
       ) {
