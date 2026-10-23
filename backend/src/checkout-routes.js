@@ -2,7 +2,7 @@ import { requireAuth } from './auth/require-auth.js';
 import { createCheckoutSession } from './orders/checkout-service.js';
 import { checkoutRateLimit } from './rate-limit.js';
 
-function checkoutError(error) {
+export function checkoutError(error) {
   if (error.message === 'order_required') {
     return { status: 400, body: { error: { code: 'ORDER_REQUIRED', message: 'Order id is required' } } };
   }
