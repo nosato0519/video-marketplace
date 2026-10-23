@@ -56,6 +56,7 @@ test.describe('seller business browser acceptance', () => {
     });
     await page.goto(appUrl('#/seller/upload'));
     await page.getByLabel('Video file').setInputFiles({ name: 'demo.webm', mimeType: 'video/webm', buffer: Buffer.from('demo-video') });
+    await page.getByLabel('Thumbnail image').setInputFiles({ name: 'thumbnail.jpg', mimeType: 'image/jpeg', buffer: Buffer.from([255, 216, 255, 217]) });
     await page.getByLabel('Title').fill('Demo Seller Video');
     await page.getByLabel('Description').fill('Browser acceptance video');
     await page.getByLabel('Price (JPY)').fill('1500');
