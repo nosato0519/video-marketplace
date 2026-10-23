@@ -28,29 +28,20 @@
   </header>
 
   <main class="watch-main">
-    <div class="watch-breadcrumb">HOME / MY LIBRARY / THE LAST SIGNAL</div>
+    <div class="watch-breadcrumb">HOME / MY LIBRARY</div>
 
     <section class="watch-player">
       <div class="watch-screen">
-        <span class="watch-quality">4K UHD</span>
-        <span class="watch-duration">18:42</span>
-        <button class="watch-play" type="button" aria-label="再生">▶</button>
-        <div class="watch-controls">
-          <span>▶</span>
-          <div class="watch-progress"><i></i></div>
-          <span>18:42</span>
-          <span>⚙</span>
-          <span>⛶</span>
-        </div>
+        <div class="watch-placeholder">購入した動画を読み込んでいます…</div>
       </div>
     </section>
 
     <section class="watch-info">
       <div>
         <span class="section-kicker">NOW WATCHING</span>
-        <h1>THE LAST SIGNAL</h1>
-        <p>静かな街に残された最後の信号を追う、シネマティック・ドキュメンタリー。</p>
-        <div class="watch-meta"><span>4K UHD</span><span>18:42</span><span>日本語</span><span>North Frame</span></div>
+        <h1>購入作品</h1>
+        <p>購入した動画の作品情報を読み込んでいます。</p>
+        <div class="watch-meta"></div>
       </div>
       <div class="watch-actions">
         <a class="watch-download" href="#">↓ ダウンロード</a>
@@ -62,7 +53,7 @@
       <div>
         <div class="detail-section-label">ABOUT THIS VIDEO</div>
         <h2>作品について</h2>
-        <p>都市の夜に残るわずかな光を手がかりに、忘れられた場所とそこに生きる人々を描いた映像作品です。</p>
+        <p>購入した動画の説明を読み込んでいます。</p>
       </div>
       <div class="watch-facts">
         <div><small>FORMAT</small><strong data-watch-format>—</strong></div>
@@ -109,8 +100,7 @@
           if (watchFacts.download) watchFacts.download.textContent = item.download_enabled && item.media_status === "ready" ? "ダウンロード可能" : "ダウンロード不可";
           if (meta) {
             meta.replaceChildren();
-            [item.media_mime_type || "VIDEO", item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中", item.seller_name || ""]
-              .filter(Boolean)
+            [item.media_mime_type || "動画", item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中"]
               .forEach((value) => {
                 const span = document.createElement("span");
                 span.textContent = value;
