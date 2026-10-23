@@ -30,6 +30,9 @@ export function checkoutError(error) {
   if (error.message === 'payment_provider_required') {
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_REQUIRED', message: 'Payment provider is not configured for this site' } } };
   }
+  if (error.message.startsWith('payment_provider_not_enabled:')) {
+    return { status: 400, body: { error: { code: 'PAYMENT_PROVIDER_NOT_ENABLED', message: 'That payment method is not enabled for this site' } } };
+  }
   if (error.message.startsWith('unsupported_payment_provider:')) {
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_UNSUPPORTED', message: 'The configured payment provider is not supported by this version' } } };
   }
@@ -55,6 +58,7 @@ export function registerCheckoutRoutes(app) {
       const session = await createCheckoutSession({
         orderId: req.params.orderId,
         userId: req.user.id,
+        provider: req.body?.provider,
       });
 
       return res.status(200).json({ session });
