@@ -4,7 +4,7 @@ const appUrl = (hash) => `/app/index.html${hash}`;
 
 async function mockSellerSession(page) {
   await page.route('**/api/auth/me', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } }) });
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller', status: 'active' } }) });
   });
 }
 
