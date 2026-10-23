@@ -14,26 +14,37 @@ try {
   const orderDate = order.paidAt || order.createdAt;
   const date = orderDate ? new Date(orderDate).toLocaleDateString("ja-JP") : "—";
   const status = order.status || "—";
-  const hasLibraryAccess = (libraryResult.items || []).some((item) => String(item.order_id) === String(order.orderId));
-  const canAccessLibrary = order.status === "paid" && hasLibraryAccess;
-  const title = escapeHtml(order.title || "購入作品");
+  const libraryItem = (libraryResult.items || []).find((item) => String(item.order_id) === String(order.orderId));
+  const canAccessLibrary = order.status === "paid" && Boolean(libraryItem);
+  const title = escapeHtml(order.title || libraryItem?.title || "購入作品");
   const safeOrderId = escapeHtml(order.orderId);
   const safeDate = escapeHtml(date);
   const safeAmount = escapeHtml(amount);
   const safeCurrency = escapeHtml(order.currency || "JPY");
   const safeStatus = escapeHtml(status);
+  const thumbnailUrl = order.thumbnailUrl || libraryItem?.thumbnail_url || "";
+  const thumbnail = thumbnailUrl
+    ? '<img src="' + escapeHtml(thumbnailUrl) + '" alt="' + title + '" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover">'
+    : '<span>VIDEO</span>';
 
-  const accessMessage = order.status === "paid" && !hasLibraryAccess
+  const accessMessage = order.status === "paid" && !canAccessLibrary
     ? '<p class="empty-state">決済は完了していますが、ライブラリへの反映を確認できません。時間をおいて再読み込みしてください。</p>'
     : '';
 
   contentRoot.innerHTML =
-    '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">ORDER</span><h2>注文 #' + safeOrderId + '</h2></div><span>' + safeStatus + '</span></div><div class="buyer-history-list"><article class="buyer-history-card"><div class="library-thumb catalog-t1"></div><div class="buyer-history-info"><strong>' + title + '</strong><span>購入日 ' + safeDate + '</span><small>' + safeAmount + '</small></div><a href="/pages/library.html">ライブラリで見る →</a></article></div></section>' +
+    '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">ORDER</span><h2>注文 #' + safeOrderId + '</h2></div><span>' + safeStatus + '</span></div><div class="buyer-history-list"><article class="buyer-history-card"><div class="library-thumb" style="overflow:hidden;display:grid;place-items:center">' + thumbnail + '</div><div class="buyer-history-info"><strong>' + title + '</strong><span>購入日 ' + safeDate + '</span><small>' + safeAmount + '</small></div><a href="/pages/library.html">ライブラリで見る →</a></article></div></section>' +
     '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">PAYMENT</span><h2>決済情報</h2></div></div><div class="buyer-summary buyer-order-summary"><div><span>商品数</span><strong>1</strong><small>作品</small></div><div><span>購入金額</span><strong>' + safeAmount + '</strong><small>' + safeCurrency + '</small></div><div><span>決済状態</span><strong>' + safeStatus + '</strong><small>注文ステータス</small></div><div><span>購入日</span><strong>' + safeDate + '</strong><small>注文日時</small></div></div></section>' +
     accessMessage +
     '<section class="buyer-section"><div class="buyer-section-head"><div><span class="section-kicker">LIBRARY</span><h2>購入後の操作</h2></div></div><div class="buyer-action-row"><a class="buyer-account" href="/pages/purchase-history.html">購入履歴へ戻る</a><a class="primary" href="/pages/library.html">マイライブラリへ →</a></div></section>';
 
   if (!canAccessLibrary) contentRoot.querySelectorAll('a[href="/pages/library.html"]').forEach((link) => link.remove());
+  contentRoot.querySelectorAll(".library-thumb img").forEach((image) => {
+    image.addEventListener("error", () => {
+      const fallback = document.createElement("span");
+      fallback.textContent = "VIDEO";
+      image.replaceWith(fallback);
+    }, { once: true });
+  });
 } catch (error) {
   if (error.status === 401) {
     window.location.assign("/pages/buyer-login.html");
