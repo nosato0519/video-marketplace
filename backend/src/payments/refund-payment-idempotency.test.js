@@ -13,7 +13,9 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
   const provider = 'test';
   const providerPaymentId = `pay_${suffix}`;
   const eventId = `evt_refund_${suffix}`;
+  const fullEventId = `evt_refund_full_${suffix}`;
   const payloadHash = `hash_${suffix}`;
+  const fullPayloadHash = `hash_full_${suffix}`;
   let userId, productId, orderId, secondOrderId;
   try {
     userId = (await pool.query(`INSERT INTO users (email,email_normalized,role) VALUES ($1,$1,'buyer') RETURNING id`, [email])).rows[0].id;
@@ -34,12 +36,42 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
     );
     await pool.query(`INSERT INTO payment_events (provider,event_id,event_type,provider_payment_id,payload_hash,status,order_id) VALUES ($1,$2,'payment_refunded',$3,$4,'received',$5)`, [provider,eventId,providerPaymentId,payloadHash,orderId]);
 
-    const first = await refundPayment({ eventId, provider, providerPaymentId, orderId, payloadHash });
+    const first = await refundPayment({
+      eventId, provider, providerPaymentId, orderId, payloadHash,
+      refundAmount: 200, refundCurrency: 'JPY',
+    });
     assert.equal(first.duplicate, false);
-    assert.equal(first.order.status, 'refunded');
-    assert.equal(first.entitlement.status, 'active');
-    assert.equal(first.entitlement.order_id, secondOrderId);
-    const activeEntitlement = await pool.query(
+    assert.equal(first.partial, true);
+    assert.equal(first.refundedAmount, 200);
+    let state = await pool.query(
+      `SELECT o.status AS order_status, p.status AS payment_status, p.refunded_amount
+         FROM orders o JOIN payments p ON p.order_id = o.id WHERE o.id = $1`,
+      [orderId]
+    );
+    assert.equal(state.rows[0].order_status, 'paid');
+    assert.equal(state.rows[0].payment_status, 'succeeded');
+    assert.equal(Number(state.rows[0].refunded_amount), 200);
+    let activeEntitlement = await pool.query(
+      `SELECT order_id, status FROM entitlements WHERE user_id = $1 AND product_id = $2 AND status = 'active'`,
+      [userId, productId]
+    );
+    assert.equal(activeEntitlement.rowCount, 1);
+    assert.equal(activeEntitlement.rows[0].order_id, orderId);
+
+    await pool.query(
+      `INSERT INTO payment_events (provider,event_id,event_type,provider_payment_id,payload_hash,status,order_id)
+       VALUES ($1,$2,'payment_refunded',$3,$4,'received',$5)`,
+      [provider, fullEventId, providerPaymentId, fullPayloadHash, orderId]
+    );
+    const full = await refundPayment({
+      eventId: fullEventId, provider, providerPaymentId, orderId, payloadHash: fullPayloadHash,
+      refundAmount: 800, refundCurrency: 'JPY',
+    });
+    assert.equal(full.duplicate, false);
+    assert.equal(full.order.status, 'refunded');
+    assert.equal(full.entitlement.status, 'active');
+    assert.equal(full.entitlement.order_id, secondOrderId);
+    activeEntitlement = await pool.query(
       `SELECT order_id, status FROM entitlements WHERE user_id = $1 AND product_id = $2 AND status = 'active'`,
       [userId, productId]
     );
