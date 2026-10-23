@@ -65,9 +65,9 @@
         <p>都市の夜に残るわずかな光を手がかりに、忘れられた場所とそこに生きる人々を描いた映像作品です。</p>
       </div>
       <div class="watch-facts">
-        <div><small>QUALITY</small><strong>4K UHD</strong></div>
-        <div><small>DURATION</small><strong>18 min 42 sec</strong></div>
-        <div><small>ACCESS</small><strong>購入済み</strong></div>
+        <div><small>FORMAT</small><strong data-watch-format>—</strong></div>
+        <div><small>STREAMING</small><strong data-watch-streaming>—</strong></div>
+        <div><small>DOWNLOAD</small><strong data-watch-download>—</strong></div>
       </div>
     </section>
   </main>
@@ -84,6 +84,11 @@
     const breadcrumb = document.querySelector(".watch-breadcrumb");
     const meta = document.querySelector(".watch-meta");
     const details = document.querySelector(".watch-details p");
+    const watchFacts = {
+      format: document.querySelector("[data-watch-format]"),
+      streaming: document.querySelector("[data-watch-streaming]"),
+      download: document.querySelector("[data-watch-download]"),
+    };
 
     if (!productId) {
       window.location.assign("/pages/library.html");
@@ -98,7 +103,10 @@
           if (title) title.textContent = productTitle;
           if (breadcrumb) breadcrumb.textContent = "HOME / MY LIBRARY / " + productTitle;
           if (description) description.textContent = item.description || "購入した動画を視聴できます。";
-          if (details) details.textContent = item.description || "購入した動画を視聴できます。";
+          if (details) details.textContent = item.description || "購入した動画を視聴できます.";
+          if (watchFacts.format) watchFacts.format.textContent = item.media_mime_type || "動画";
+          if (watchFacts.streaming) watchFacts.streaming.textContent = item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中";
+          if (watchFacts.download) watchFacts.download.textContent = item.download_enabled && item.media_status === "ready" ? "ダウンロード可能" : "ダウンロード不可";
           if (meta) {
             meta.replaceChildren();
             [item.media_mime_type || "VIDEO", item.streaming_enabled && item.media_status === "ready" ? "視聴可能" : "視聴準備中", item.seller_name || ""]
@@ -115,6 +123,7 @@
               const video = document.createElement("video");
               video.controls = true;
               video.preload = "metadata";
+              if (item.thumbnail_url) video.poster = item.thumbnail_url;
               video.style.cssText = "width:100%;height:100%;object-fit:contain;background:#000";
               video.src = mediaStreamUrl(productId);
               video.addEventListener("error", () => {
