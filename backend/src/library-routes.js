@@ -6,8 +6,8 @@ export function registerLibraryRoutes(app) {
     try {
       const result = await query(
         `SELECT e.id AS entitlement_id,
-                e.product_id,
-                e.order_id,
+                o.product_id,
+                o.id AS order_id,
                 e.status AS entitlement_status,
                 COALESCE(translation.title, p.title) AS title,
                 COALESCE(translation.description, p.description) AS description,
@@ -25,7 +25,12 @@ export function registerLibraryRoutes(app) {
                 END AS thumbnail_url,
                 e.created_at AS purchased_at
            FROM entitlements e
-           JOIN products p ON p.id = e.product_id
+           JOIN orders o
+             ON o.id = e.order_id
+            AND o.buyer_id = e.user_id
+            AND o.product_id = e.product_id
+            AND o.status = 'paid'
+           JOIN products p ON p.id = o.product_id
            LEFT JOIN media_assets m ON m.id = p.media_asset_id
            LEFT JOIN LATERAL (
              SELECT pi.media_asset_id
@@ -35,9 +40,7 @@ export function registerLibraryRoutes(app) {
                 AND pi.image_role = 'thumbnail'
                 AND image_asset.status = 'ready'
                 AND image_asset.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
-              ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END,
-                       pi.sort_order ASC,
-                       pi.id ASC
+              ORDER BY pi.sort_order ASC, pi.id ASC
               LIMIT 1
            ) thumbnail ON TRUE
            LEFT JOIN LATERAL (
