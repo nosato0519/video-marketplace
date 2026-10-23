@@ -6,6 +6,8 @@
 
 実決済アダプターが実装されているのは **Stripe と PayPal Checkout** です。Adyen、Paddle、PayPay はこのバージョンでは未実装です。PayPalは運営者アカウントで受け付けるCheckoutであり、販売者ごとの自動分配・送金を行うPayPalマーケットプレイス契約を代替するものではありません。PayPalのマーケットプレイス向け機能を本番で利用するには、PayPalのパートナー承認が必要です。
 
+運営者は環境変数 `PAYMENT_PROVIDERS_ENABLED` で `stripe`、`paypal`、または `stripe,paypal` を指定できます。両方を指定し、両サービスの認証情報とURLが正しく設定されている場合、購入画面にStripeとPayPalの両方が表示され、購入者が決済方法を選べます。1つだけ指定した場合は、その決済方法だけが表示されます。未設定・認証情報不足の方法は購入画面に表示されません。既存の単一プロバイダー設定 `PAYMENT_PROVIDER` は、`PAYMENT_PROVIDERS_ENABLED` が未設定の場合の後方互換用です。
+
 この構成では、StripeまたはPayPalの運営者アカウントで決済を受け付けます。販売者の売上はシステム内で記録され、販売者への支払いは運営者が別途定めた精算手順に従います。Stripe ConnectやPayPalのマーケットプレイス機能による販売者ごとの直接入金を意味するものではありません。
 
 ## 2. PayPal Checkout のテスト設定
@@ -13,7 +15,7 @@
 1. PayPal Developer DashboardでSandboxアプリを作成し、Client IDとSecretを取得します。
 2. SandboxのWebhook endpointに `https://あなたのドメイン/api/payments/paypal/webhook` を登録し、`CHECKOUT.ORDER.APPROVED`、`PAYMENT.CAPTURE.COMPLETED`、`PAYMENT.CAPTURE.DENIED`、`PAYMENT.CAPTURE.REFUNDED` を購読します。
 3. Webhook IDを取得し、バックエンド環境変数に登録します。
-4. `PAYPAL_ENVIRONMENT=sandbox`、`PAYPAL_CLIENT_ID`、`PAYPAL_CLIENT_SECRET`、`PAYPAL_WEBHOOK_ID`、`PAYPAL_SUCCESS_URL`、`PAYPAL_CANCEL_URL` を設定し、`PAYMENT_PROVIDER=paypal` にします。
+4. `PAYPAL_ENVIRONMENT=sandbox`、`PAYPAL_CLIENT_ID`、`PAYPAL_CLIENT_SECRET`、`PAYPAL_WEBHOOK_ID`、`PAYPAL_SUCCESS_URL`、`PAYPAL_CANCEL_URL` を設定します。PayPalだけを有効にする場合は `PAYMENT_PROVIDERS_ENABLED=paypal`、Stripeと併用する場合は `PAYMENT_PROVIDERS_ENABLED=stripe,paypal` にします。併用する場合はStripeの認証情報とURLも設定してください。
 5. サンドボックス購入で、Webhook後に注文が購入済みになり、マイライブラリに反映されることをテスト環境で確認します。
 
 PayPalのWebhook署名はPayPal APIで検証します。購入者が戻り先URLに到達しただけでは購入済みにはなりません。注文承認Webhookを受けた後にサーバー側でCaptureを行い、決済確定を処理します。PayPalのマーケットプレイス向けパートナー機能は別途審査・承認が必要です。
@@ -34,7 +36,8 @@ Stripeの画面名は変更されることがあるため、最新の画面操�
 
 | 環境変数 | 設定値 |
 |---|---|
-| `PAYMENT_PROVIDER` | `stripe` または `paypal` |
+| `PAYMENT_PROVIDERS_ENABLED` | `stripe`、`paypal`、または `stripe,paypal`（有効にする方法） |
+| `PAYMENT_PROVIDER` | 旧設定との互換用。`PAYMENT_PROVIDERS_ENABLED` が未設定の場合に `stripe` または `paypal` を指定 |
 | `PAYPAL_ENVIRONMENT` | テスト時は `sandbox`、承認済み本番利用時のみ `live` |
 | `PAYPAL_CLIENT_ID` | PayPal API Client ID |
 | `PAYPAL_CLIENT_SECRET` | PayPal API Secret |
@@ -108,9 +111,9 @@ Stripe Checkout を途中で閉じるなどしてセッションが期限切れ�
 
 | 症状 | 確認箇所 |
 |---|---|
-| 購入開始時に決済プロバイダー未設定のエラー | `PAYMENT_PROVIDER=stripe`、APIサービスの環境変数、再デプロイ状況 |
+| 購入画面に決済方法が表示されない | `PAYMENT_PROVIDERS_ENABLED` の値、選択したサービスの認証情報・Webhook ID・HTTPS成功URL/キャンセルURL、API再起動状況を確認 |
 | Stripe Checkout URLが作成されない | `STRIPE_SECRET_KEY`、`STRIPE_SUCCESS_URL`、`STRIPE_CANCEL_URL` |
-| PayPal Checkout URLが作成されない | `PAYMENT_PROVIDER=paypal`、PayPal Sandbox Client ID/Secret、成功・キャンセルURLを確認 |
+| PayPal Checkout URLが作成されない | `PAYMENT_PROVIDERS_ENABLED` に `paypal` が含まれるか、PayPal Sandbox Client ID/Secret/Webhook ID、成功・キャンセルURLを確認 |
 | PayPal Webhookが401になる | PayPal SandboxのWebhook IDとAPI環境が一致しているか確認 |
 | Webhookが401になる | Stripe Dashboardの署名シークレットと `STRIPE_WEBHOOK_SECRET` が同じモードのものか確認 |
 | Webhookが503になる | `STRIPE_WEBHOOK_SECRET` がAPIサービスに登録されているか確認 |
