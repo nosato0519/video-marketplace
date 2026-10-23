@@ -9,6 +9,13 @@ const deploymentManagedResponse = (_req, res) => {
 };
 
 export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
+  app.get('/api/payment-providers', (_req, res) => {
+    const providers = getConfigurablePaymentProviders()
+      .filter((provider) => provider.enabled && provider.configured)
+      .map(({ id, name }) => ({ id, name }));
+    res.json({ providers });
+  });
+
   const guard = typeof requireAdmin === 'function' ? requireAdmin : (_req, _res, next) => next();
 
   app.get('/api/admin/payment-providers', guard, (_req, res) => {
