@@ -40,7 +40,7 @@ test.describe('seller business browser acceptance', () => {
       expect(route.request().method()).toBe('POST');
       expect(route.request().headers()['x-original-filename']).toBe('demo.webm');
       uploaded = true;
-      await json(route, { mediaAsset: { id: 'media-1' } });
+      await json(route, { mediaAsset: { id: 'media-1', status: 'ready' } });
     });
     await page.route('**/api/seller/products', async (route) => {
       expect(route.request().method()).toBe('POST');
