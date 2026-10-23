@@ -20,7 +20,7 @@ async function waitForProxy() {
 }
 
 test.beforeAll(async () => {
-  proxy = spawn(process.execPath, ['demo/link-fix-proxy.mjs'], {
+  proxy = spawn(process.execPath, ['demo/home-nav-proxy.mjs'], {
     env: { ...process.env, PORT: String(PORT) },
     stdio: 'ignore',
   });
@@ -47,7 +47,7 @@ test('homepage demo and role-login controls navigate by real browser clicks', as
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
   await page.getByText('購入者ログイン', { exact: true }).click();
-  await expect(page).toHaveURL(/\/pages\/buyer-login\.html$/);
+  await expect(page).toHaveURL(/\/pages\/login\.html\?role=buyer$/);
 });
 
 test('homepage video card opens the product detail page by a real browser click', async ({ page }) => {
