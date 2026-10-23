@@ -60,6 +60,11 @@ test.describe('sales showcase navigation', () => {
   });
 
   test('buyer journey connects list, detail, checkout, library and watch', async ({ page }) => {
+    // Checkout requires an authenticated buyer session; create the demo session first.
+    await page.goto(`${demoUrl}pages/login.html?role=buyer`);
+    await page.getByRole('button', { name: 'ログインする →' }).click();
+    await expect(page).toHaveURL(/\/pages\/account\.html$/);
+
     await page.goto(`${demoUrl}pages/video-list.html`);
     await page.locator('.card').first().click();
     await expect(page).toHaveURL(/\/pages\/product-detail\.html(?:\?.*)?$/);
