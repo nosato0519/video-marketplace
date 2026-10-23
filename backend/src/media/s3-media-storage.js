@@ -104,20 +104,31 @@ export function createS3MediaStorage({
 
     const timeoutSignal = AbortSignal.timeout(180000);
     let signal = timeoutSignal;
+    let onBodyError;
+    let onTimeout;
     if (body && typeof body.once === 'function') {
       const bodyErrorController = new AbortController();
-      body.once('error', (error) => bodyErrorController.abort(error));
+      onBodyError = (error) => bodyErrorController.abort(error);
+      onTimeout = () => {
+        if (!body.destroyed) body.destroy();
+      };
+      body.once('error', onBodyError);
+      timeoutSignal.addEventListener('abort', onTimeout, { once: true });
       signal = AbortSignal.any([timeoutSignal, bodyErrorController.signal]);
     }
 
-    const response = await fetchImpl(url, {
-      method,
-      headers,
-      body,
-      signal,
-      ...(body ? { duplex: 'half' } : {}),
-    });
-    return response;
+    try {
+      return await fetchImpl(url, {
+        method,
+        headers,
+        body,
+        signal,
+        ...(body ? { duplex: 'half' } : {}),
+      });
+    } finally {
+      if (body && onBodyError) body.removeListener('error', onBodyError);
+      if (onTimeout) timeoutSignal.removeEventListener('abort', onTimeout);
+    }
   }
 
   return {
