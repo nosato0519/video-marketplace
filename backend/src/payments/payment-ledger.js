@@ -1,4 +1,4 @@
-import { query } from '../db.js';
+import { query, withTransaction } from '../db.js';
 
 export function requirePendingPayment(payment) {
   if (!payment) throw new Error('payment_record_not_found');
@@ -14,20 +14,43 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
     throw new Error('payment_idempotency_key_required');
   }
 
-  const result = await query(
-    `INSERT INTO payments (order_id, user_id, provider, amount, currency, status, idempotency_key)
-     VALUES ($1, $2, $3, $4, $5, 'pending', $6)
-     ON CONFLICT (order_id)
-     DO UPDATE SET idempotency_key = payments.idempotency_key
-       WHERE payments.provider = EXCLUDED.provider
-         AND payments.amount = EXCLUDED.amount
-         AND payments.currency = EXCLUDED.currency
-     RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
-    [order.id, order.buyer_id, provider, order.amount, order.currency, idempotencyKey]
-  );
+  return withTransaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [String(order.id)]);
 
-  if (result.rowCount === 0) throw new Error('payment_order_amount_mismatch');
-  return requirePendingPayment(result.rows[0]);
+    const existing = await client.query(
+      `SELECT id, order_id, user_id, provider, provider_payment_id, amount,
+              currency, status, idempotency_key, created_at
+         FROM payments
+        WHERE order_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+        FOR UPDATE`,
+      [order.id]
+    );
+
+    if (existing.rowCount > 0) {
+      const payment = existing.rows[0];
+      if (
+        payment.provider !== provider ||
+        Number(payment.amount) !== Number(order.amount) ||
+        String(payment.currency).toUpperCase() !== String(order.currency).toUpperCase()
+      ) {
+        throw new Error('payment_order_amount_mismatch');
+      }
+      return requirePendingPayment(payment);
+    }
+
+    const inserted = await client.query(
+      `INSERT INTO payments
+        (order_id, user_id, provider, amount, currency, status, idempotency_key)
+       VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+       RETURNING id, order_id, user_id, provider, provider_payment_id, amount,
+                 currency, status, idempotency_key, created_at`,
+      [order.id, order.buyer_id, provider, order.amount, order.currency, idempotencyKey]
+    );
+
+    return requirePendingPayment(inserted.rows[0]);
+  });
 }
 
 export async function retryFailedPayment({ order, provider, idempotencyKey }) {
