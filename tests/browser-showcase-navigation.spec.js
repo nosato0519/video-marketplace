@@ -82,7 +82,7 @@ test.describe('sales showcase navigation', () => {
     await expect(page).toHaveURL(/\/pages\/register\.html\?returnTo=/);
 
     await page.goto(`${demoUrl}pages/login.html`);
-    await expect(page.getByRole('link', { name: /register|登録/i })).toBeVisible();
+    await expect(page.locator('a[href="/pages/register.html"]')).toBeVisible();
 
     await page.goto(`${demoUrl}pages/login.html`);
     await page.locator('a[href="/pages/register.html"]').click();
