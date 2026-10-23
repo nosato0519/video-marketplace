@@ -126,7 +126,11 @@ export function createS3MediaStorage({
         ...(body ? { duplex: 'half' } : {}),
       });
     } finally {
-      if (body && onBodyError) body.removeListener('error', onBodyError);
+      if (body && onBodyError) {
+        const cleanupBodyErrorListener = () => body.removeListener('error', onBodyError);
+        if (body.closed || body.destroyed && body.readableEnded) cleanupBodyErrorListener();
+        else body.once('close', cleanupBodyErrorListener);
+      }
       if (onTimeout) timeoutSignal.removeEventListener('abort', onTimeout);
     }
   }
