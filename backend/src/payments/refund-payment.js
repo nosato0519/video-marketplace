@@ -178,7 +178,7 @@ export async function refundPayment({
       throw new Error('payment_not_refundable');
     }
 
-    const requestedRefund = Number(refundAmount);
+    const requestedRefund = Number(refundAmount ?? currentPayment.amount);
     const originalAmount = Number(currentPayment.amount);
     const previousRefunded = Number(currentPayment.refunded_amount || 0);
     if (!Number.isFinite(requestedRefund) || requestedRefund <= 0) {
