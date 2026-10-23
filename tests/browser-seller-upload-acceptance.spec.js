@@ -436,6 +436,12 @@ test('disables the save action while a video upload is pending', async ({ page }
       alertMessage = dialog.message();
       await dialog.accept();
     });
+    await page.route('**/api/seller/products?*', async (route) => {
+      await fulfillJson(route, { products: [] });
+    });
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [] });
+    });
 
     await page.goto('/seller/product-editor.html');
     await page.locator('.product-input-card input[type="text"]').first().fill('Rejected draft');
@@ -808,6 +814,9 @@ test('disables the save action while a video upload is pending', async ({ page }
       await route.fulfill({ status: 204, body: '' });
     });
     page.on('dialog', (dialog) => dialog.accept());
+    await page.route('**/api/seller/media/assets', async (route) => {
+      await fulfillJson(route, { mediaAssets: [] });
+    });
     await page.goto('/seller/products.html');
     await expect(page.getByText('Draft to delete')).toBeVisible();
     await expect(page.getByRole('button', { name: '下書きを削除' })).toBeVisible();
