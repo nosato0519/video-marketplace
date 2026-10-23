@@ -102,11 +102,19 @@ export function createS3MediaStorage({
     const signature = crypto.createHmac('sha256', signingKey(secretAccessKey, date, region)).update(stringToSign).digest('hex');
     headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
+    const timeoutSignal = AbortSignal.timeout(180000);
+    let signal = timeoutSignal;
+    if (body && typeof body.once === 'function') {
+      const bodyErrorController = new AbortController();
+      body.once('error', (error) => bodyErrorController.abort(error));
+      signal = AbortSignal.any([timeoutSignal, bodyErrorController.signal]);
+    }
+
     const response = await fetchImpl(url, {
       method,
       headers,
       body,
-      signal: AbortSignal.timeout(180000),
+      signal,
       ...(body ? { duplex: 'half' } : {}),
     });
     return response;
