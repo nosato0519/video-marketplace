@@ -17,9 +17,10 @@ export async function createPendingPayment({ order, provider, idempotencyKey }) 
   const result = await query(
     `INSERT INTO payments (order_id, user_id, provider, amount, currency, status, idempotency_key)
      VALUES ($1, $2, $3, $4, $5, 'pending', $6)
-     ON CONFLICT (order_id, provider)
+     ON CONFLICT (order_id)
      DO UPDATE SET idempotency_key = payments.idempotency_key
-       WHERE payments.amount = EXCLUDED.amount
+       WHERE payments.provider = EXCLUDED.provider
+         AND payments.amount = EXCLUDED.amount
          AND payments.currency = EXCLUDED.currency
      RETURNING id, order_id, user_id, provider, provider_payment_id, amount, currency, status, idempotency_key, created_at`,
     [order.id, order.buyer_id, provider, order.amount, order.currency, idempotencyKey]
