@@ -8,7 +8,7 @@ async function mockSellerSession(page) {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } }),
+      body: JSON.stringify({ user: { id: 'seller-1', email: 'seller@example.test', role: 'seller', status: 'active' } }),
     });
   });
   await page.route('**/api/seller/media/limits', async (route) => {
@@ -29,7 +29,7 @@ test.describe('seller upload browser acceptance', () => {
     const sessionGate = new Promise((resolve) => { releaseSession = resolve; });
     await page.route('**/api/auth/me', async (route) => {
       await sessionGate;
-      await fulfillJson(route, { user: { id: 'seller-1', email: 'seller@example.test', role: 'seller' } });
+      await fulfillJson(route, { user: { id: 'seller-1', email: 'seller@example.test', role: 'seller', status: 'active' } });
     });
     await page.route('**/api/seller/media/limits', async (route) => {
       await fulfillJson(route, {
