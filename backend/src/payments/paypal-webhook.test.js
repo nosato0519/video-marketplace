@@ -109,7 +109,7 @@ test('PayPal approval webhook surfaces capture failures when no completed captur
     let forwardedError = null;
     await handler(requestFor(event), res, (error) => { forwardedError = error; });
 
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.body, null);
     assert.equal(forwardedError?.message, 'paypal_api_request_failed');
   });
 });
