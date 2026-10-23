@@ -36,7 +36,7 @@ export async function getPublicProductDetail({ productId, locale = 'en' }) {
        SELECT title, description, locale
        FROM product_translations
        WHERE product_id = p.id
-       ORDER BY CASE WHEN locale = 'en' THEN 0 ELSE 1 END
+       ORDER BY CASE WHEN locale = $2 THEN 0 WHEN locale = $3 THEN 1 WHEN locale = 'en' THEN 2 ELSE 3 END, locale
        LIMIT 1
      ) fallback ON TRUE
      WHERE p.id = $1
