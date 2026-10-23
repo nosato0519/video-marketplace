@@ -35,6 +35,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     let eventId = null;
 
     try {
+      await page.route('**/api/payment-providers', (route) => route.fulfill({ json: { providers: [{ id: 'stripe', name: 'Stripe' }] } }));
       fs.mkdirSync(mediaDir, { recursive: true });
       fs.writeFileSync(mediaPath, fixture);
 
@@ -191,6 +192,7 @@ test.describe('real backend buyer purchase browser acceptance', () => {
     const adminEmail = `admin-${crypto.randomUUID()}@example.com`;
 
     try {
+      await page.route('**/api/payment-providers', (route) => route.fulfill({ json: { providers: [{ id: 'stripe', name: 'Stripe' }] } }));
       fs.mkdirSync(mediaDir, { recursive: true });
       fs.writeFileSync(mediaPath, fixture);
 
