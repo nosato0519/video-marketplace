@@ -6,6 +6,7 @@ import { validateProductForPublishing, validateProductThumbnailAssets } from '..
 
 const router = express.Router();
 const PRODUCT_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const PRODUCT_VIDEO_MIME_TYPES = new Set(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']);
 router.use(requireAuth, requireRole('seller'));
 
 function isUuid(value) {
@@ -162,6 +163,7 @@ router.post('/products', async (req, res, next) => {
       const mediaAsset = await getSellerMediaAsset(mediaAssetId, req.user.id, client);
       if (!mediaAsset) return { error: 'product_media_asset_not_owned' };
       if (mediaAsset.status !== 'ready') return { error: 'product_media_asset_not_ready' };
+      if (!PRODUCT_VIDEO_MIME_TYPES.has(mediaAsset.mime_type)) return { error: 'product_media_asset_not_video' };
       let categoryId = null;
       if (normalizedCategorySlug) {
         const category = await client.query('SELECT id FROM categories WHERE slug = $1 LIMIT 1', [normalizedCategorySlug]);
@@ -463,7 +465,7 @@ router.post('/products/:productId/publish', async (req, res, next) => {
       let mediaAsset = null;
       if (row.media_asset_id) {
         const mediaResult = await client.query(
-          'SELECT id, owner_user_id, status FROM media_assets WHERE id = $1 FOR UPDATE',
+          'SELECT id, owner_user_id, status, mime_type FROM media_assets WHERE id = $1 FOR UPDATE',
           [row.media_asset_id]
         );
         if (mediaResult.rows.length) mediaAsset = mediaResult.rows[0];
