@@ -98,8 +98,8 @@ for (const [pageName, pageSource] of [
   ['buyer login', buyerLogin],
   ['buyer dashboard', buyerDashboard],
 ]) {
-  const inlineScripts = [...pageSource.matchAll(/<script type="module">([\\s\\S]*?)<\\/script>/g)];
-  const externalScripts = [...pageSource.matchAll(/<script type="module"\\s+src="([^"]+)"/g)];
+  const inlineScripts = [...pageSource.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)];
+  const externalScripts = [...pageSource.matchAll(/<script type="module"\s+src="([^"]+)"/g)];
   assert.ok(inlineScripts.length + externalScripts.length > 0, `${pageName} module script exists`);
   for (const [, script] of inlineScripts) {
     const hash = crypto.createHash('sha256').update(script).digest('base64');
