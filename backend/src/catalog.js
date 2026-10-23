@@ -34,6 +34,7 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
          FROM product_images pi
          JOIN media_assets ma ON ma.id = pi.media_asset_id
         WHERE pi.product_id = p.id
+          AND pi.image_role = 'thumbnail'
           AND ma.status = 'ready'
           AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
         ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END,
