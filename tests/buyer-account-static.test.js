@@ -23,6 +23,7 @@ assert.match(buyerRegister, /window\.location\.assign\('\/pages\/buyer\.html'\)/
 const checkout = fs.readFileSync(path.join(root, 'pages/checkout.html'), 'utf8');
 const checkoutScript = fs.readFileSync(path.join(root, 'app/checkout/checkout-page.js'), 'utf8');
 const productDetail = fs.readFileSync(path.join(root, 'pages/product-detail.html'), 'utf8');
+const productDetailActions = fs.readFileSync(path.join(root, 'app/catalog/product-detail-actions.js'), 'utf8');
 assert.match(checkoutScript, /checkoutApi\.purchaseIntent\(productId, 'ja'\)/);
 assert.match(checkoutScript, /checkoutApi\.createOrder\(productId\)/);
 assert.match(checkoutScript, /checkoutApi\.paymentProviders\(\)/);
@@ -30,7 +31,7 @@ assert.match(checkoutScript, /checkoutApi\.checkout\(order\.order\.id, selectedP
 assert.match(checkout, /id="checkout-submit"/);
 assert.match(checkout, /id="checkout-payment-list"/);
 assert.match(checkout, /\/app\/checkout\/checkout-page\.js/);
-assert.match(productDetail, /\/pages\/checkout\.html\?productId=/);
+assert.match(productDetailActions, /buy\.href = "\/pages\/checkout\.html\?productId=" \+ encodedProductId/);
 const favorites = fs.readFileSync(path.join(root, 'pages/favorites.html'), 'utf8');
 assert.match(favorites, /video-marketplace-favorites/);
 assert.match(favorites, /\/api\/catalog\/products\?locale=ja/);
