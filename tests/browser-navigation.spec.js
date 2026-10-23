@@ -42,11 +42,13 @@ test('homepage demo and role-login controls navigate by real browser clicks', as
   await expect(page).toHaveURL(/\/pages\/register\.html\?returnTo=/);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
-  await page.getByRole('banner').getByText('販売者ログイン', { exact: true }).click({ force: true });
+  await page.locator('.login-menu').hover();
+  await page.locator('.login-dropdown button').filter({ hasText: '販売者ログイン' }).click();
   await expect(page).toHaveURL(/\/pages\/seller-login\.html$/);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
-  await page.getByText('購入者ログイン', { exact: true }).click({ force: true });
+  await page.locator('.login-menu').hover();
+  await page.locator('.login-dropdown button').filter({ hasText: '購入者ログイン' }).click();
   await expect(page).toHaveURL(/\/pages\/login\.html\?role=buyer$/);
 });
 
