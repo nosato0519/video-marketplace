@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
+let cachedTokenKey = null;
 
 export function getPayPalApiBaseUrl(environment = process.env.PAYPAL_ENVIRONMENT) {
   return environment === 'live'
@@ -20,7 +21,9 @@ export function formatPayPalAmount(amount, currency) {
   const numericAmount = Number(amount);
   if (!Number.isFinite(numericAmount) || numericAmount <= 0) throw new Error('checkout_amount_invalid');
   const formatted = numericAmount.toFixed(decimals);
-  if (Number(formatted) <= 0) throw new Error('checkout_amount_precision_invalid');
+  if (Number(formatted) <= 0 || Math.abs(Number(formatted) - numericAmount) > 1e-8) {
+    throw new Error('checkout_amount_precision_invalid');
+  }
   return formatted;
 }
 
@@ -52,7 +55,8 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
 }
 
 async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
-  if (cachedToken && Date.now() < tokenExpiresAt - 30_000) return cachedToken;
+  const tokenKey = createHash('sha256').update(`${getPayPalApiBaseUrl()}|${clientId}|${clientSecret}`).digest('hex');
+  if (cachedToken && cachedTokenKey === tokenKey && Date.now() < tokenExpiresAt - 30_000) return cachedToken;
 
   const response = await fetchImpl(`${getPayPalApiBaseUrl()}/v1/oauth2/token`, {
     method: 'POST',
@@ -66,12 +70,14 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.access_token) {
     cachedToken = null;
+    cachedTokenKey = null;
     tokenExpiresAt = 0;
     const error = new Error('paypal_authentication_failed');
     error.statusCode = response.status >= 500 ? 503 : 502;
     throw error;
   }
   cachedToken = payload.access_token;
+  cachedTokenKey = tokenKey;
   tokenExpiresAt = Date.now() + Math.max(60, Number(payload.expires_in) || 300) * 1000;
   return cachedToken;
 }

@@ -59,7 +59,7 @@ function createPayPalProvider() {
           application_context: {
             brand_name: 'Video Marketplace',
             user_action: 'PAY_NOW',
-            return_url: successUrl,
+            return_url: withPayPalReturnParams(successUrl, orderId),
             cancel_url: cancelUrl,
           },
         },
@@ -79,6 +79,13 @@ function createPayPalProvider() {
       };
     },
   };
+}
+
+function withPayPalReturnParams(url, orderId) {
+  const returnUrl = new URL(url);
+  returnUrl.searchParams.set('orderId', String(orderId));
+  returnUrl.searchParams.set('session_id', 'paypal');
+  return returnUrl.toString();
 }
 
 function createPayPalRequestId(idempotencyKey) {
