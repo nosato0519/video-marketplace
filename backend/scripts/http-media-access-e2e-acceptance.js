@@ -79,7 +79,7 @@ try {
   result = await request(baseUrl, `/api/media/${ids.product}/download`, { headers: { cookie: otherCookie } });
   assert.equal(result.response.status, 404);
 
-  result = await webhook(baseUrl, { eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded', paymentId: providerPaymentId, orderId: ids.order });
+  result = await webhook(baseUrl, { eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded', paymentId: providerPaymentId, orderId: ids.order, status: 'refunded' });
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
 
   result = await request(baseUrl, `/api/media/${ids.product}/stream`, { headers: { cookie: buyerCookie } });
@@ -87,7 +87,7 @@ try {
   result = await request(baseUrl, `/api/media/${ids.product}/download`, { headers: { cookie: buyerCookie } });
   assert.equal(result.response.status, 404);
 
-  result = await webhook(baseUrl, { eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded', paymentId: providerPaymentId, orderId: ids.order });
+  result = await webhook(baseUrl, { eventId: refundEventId, provider: 'mock', eventType: 'payment_refunded', paymentId: providerPaymentId, orderId: ids.order, status: 'refunded' });
   assert.equal(result.response.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.duplicate, true);
 
