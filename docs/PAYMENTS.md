@@ -4,11 +4,21 @@
 
 ## 1. このバージョンで接続できる決済サービス
 
-実決済アダプターが実装されているのは **Stripe** です。PayPal、Adyen、Paddle、PayPay はこのバージョンでは実決済アダプターが用意されていないため、決済手段として有効化しないでください。別の事業者を追加する場合は、その事業者のAPI・Webhook・返金・失敗処理を実装したうえで接続します。
+実決済アダプターが実装されているのは **Stripe と PayPal Checkout** です。Adyen、Paddle、PayPay はこのバージョンでは未実装です。PayPalは運営者アカウントで受け付けるCheckoutであり、販売者ごとの自動分配・送金を行うPayPalマーケットプレイス契約を代替するものではありません。PayPalのマーケットプレイス向け機能を本番で利用するには、PayPalのパートナー承認が必要です。
 
-この構成では、マーケットプレイス運営者のStripeアカウントで決済を受け付けます。販売者の売上はシステム内で記録され、販売者への支払いは運営者が別途定めた精算手順に従います。Stripe Connectによる販売者ごとの直接入金を意味するものではありません。
+この構成では、StripeまたはPayPalの運営者アカウントで決済を受け付けます。販売者の売上はシステム内で記録され、販売者への支払いは運営者が別途定めた精算手順に従います。Stripe ConnectやPayPalのマーケットプレイス機能による販売者ごとの直接入金を意味するものではありません。
 
-## 2. Stripeアカウントの準備
+## 2. PayPal Checkout のテスト設定
+
+1. PayPal Developer DashboardでSandboxアプリを作成し、Client IDとSecretを取得します。
+2. SandboxのWebhook endpointに `https://あなたのドメイン/api/payments/paypal/webhook` を登録し、`CHECKOUT.ORDER.APPROVED`、`PAYMENT.CAPTURE.COMPLETED`、`PAYMENT.CAPTURE.DENIED`、`PAYMENT.CAPTURE.REFUNDED` を購読します。
+3. Webhook IDを取得し、バックエンド環境変数に登録します。
+4. `PAYPAL_ENVIRONMENT=sandbox`、`PAYPAL_CLIENT_ID`、`PAYPAL_CLIENT_SECRET`、`PAYPAL_WEBHOOK_ID`、`PAYPAL_SUCCESS_URL`、`PAYPAL_CANCEL_URL` を設定し、`PAYMENT_PROVIDER=paypal` にします。
+5. サンドボックス購入で、Webhook後に注文が購入済みになり、マイライブラリに反映されることをテスト環境で確認します。
+
+PayPalのWebhook署名はPayPal APIで検証します。購入者が戻り先URLに到達しただけでは購入済みにはなりません。注文承認Webhookを受けた後にサーバー側でCaptureを行い、決済確定を処理します。PayPalのマーケットプレイス向けパートナー機能は別途審査・承認が必要です。
+
+## 3. Stripeアカウントの準備
 
 1. Stripeの公式サイトで運営者のアカウントを作成し、事業者情報や本人確認など必要な審査を完了します。
 2. 最初はテストモードで接続設定を行います。
@@ -18,13 +28,18 @@
 
 Stripeの画面名は変更されることがあるため、最新の画面操作はStripe公式ドキュメントを参照してください。
 
-## 3. APIサービスの環境変数
+## 4. APIサービスの環境変数
 
 ホスティング事業者の**バックエンドAPIサービス**の環境変数・Secrets画面に次の値を登録します。フロントエンドの公開環境変数には登録しないでください。
 
 | 環境変数 | 設定値 |
 |---|---|
-| `PAYMENT_PROVIDER` | `stripe` |
+| `PAYMENT_PROVIDER` | `stripe` または `paypal` |
+| `PAYPAL_ENVIRONMENT` | テスト時は `sandbox`、承認済み本番利用時のみ `live` |
+| `PAYPAL_CLIENT_ID` | PayPal API Client ID |
+| `PAYPAL_CLIENT_SECRET` | PayPal API Secret |
+| `PAYPAL_WEBHOOK_ID` | PayPal Webhook ID |
+| `PAYPAL_SUCCESS_URL` / `PAYPAL_CANCEL_URL` | 公開HTTPSの戻り先URL |
 | `STRIPE_SECRET_KEY` | StripeのSecret key。テスト時は `sk_test_...`、本番は `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Webhook endpointが発行する署名シークレット `whsec_...` |
 | `STRIPE_SUCCESS_URL` | `https://あなたのドメイン/pages/purchase-complete.html` |
@@ -36,7 +51,7 @@ Stripeの画面名は変更されることがあるため、最新の画面操�
 - APIキーや署名シークレットをGitHub、ソースコード、ログ、ブラウザー側のコードに保存しないでください。
 - 環境変数を保存した後、APIサービスを再デプロイまたは再起動します。
 
-## 4. Stripe Webhookを設定する
+## 5. Stripe Webhookを設定する
 
 Stripe DashboardでWebhook endpointを作成し、次のURLを登録します。
 
@@ -59,7 +74,7 @@ Webhook endpointの作成後に表示される署名シークレットを、環�
 
 **重要：** ブラウザーが成功URLへ戻ったことだけでは、購入済みとして扱いません。Stripeから署名検証済みのWebhookを受信し、注文金額・通貨・注文番号と照合して決済成功が確定した後に、注文を購入済みにしてライブラリ権限を発行します。Webhookは外部から到達できるHTTPS URLに設定し、ホスティングやファイアウォールで遮断しないでください。
 
-## 5. 購入者の購入から視聴まで
+## 6. 購入者の購入から視聴まで
 
 1. 購入者がログインし、公開中の作品から購入する作品を選択します。
 2. 購入手続き画面で金額を確認し、「購入手続きへ進む」を押します。
@@ -72,7 +87,7 @@ Webhookの到着には時間差が生じる場合があります。成功URLへ�
 
 Stripe Checkout を途中で閉じるなどしてセッションが期限切れになった場合、PaymentIntent が付いていない期限切れイベントは決済IDとして誤認しないため処理対象から除外されます。このケースでは、そのWebhookだけで保留中の注文がキャンセル扱いになるとは限りません。期限切れ注文を再利用して決済を再開せず、購入者画面から作品を選び直して新しい注文を作成してください。決済結果が不明なまま注文を手動で再開したり、同じ注文に対して別の決済を作成したりしないでください。
 
-## 6. テストモードで確認する項目
+## 7. テストモードで確認する項目
 
 本番キーへ切り替える前に、Stripeテストモードで次を確認します。
 
@@ -89,12 +104,14 @@ Stripe Checkout を途中で閉じるなどしてセッションが期限切れ�
 
 **販売者への精算後に全額返金が発生した場合：** システムは注文を返金済みにし、視聴権限を取り消し、該当する販売者売上を返金済みに更新します。ただし、すでに運営者が販売者へ送金した金額を自動回収したり、販売者残高から自動控除したりはしません。返金イベントの処理後、運営者は該当注文と精算履歴を照合し、契約・法令に沿って販売者との返金額の精算を別途管理してください。返金済み売上を含む未払いの精算申請は、処理中・支払済みに進められない設計です。これは送金済み金額の自動回収機能を意味しません。
 
-## 7. トラブルシューティング
+## 8. トラブルシューティング
 
 | 症状 | 確認箇所 |
 |---|---|
 | 購入開始時に決済プロバイダー未設定のエラー | `PAYMENT_PROVIDER=stripe`、APIサービスの環境変数、再デプロイ状況 |
 | Stripe Checkout URLが作成されない | `STRIPE_SECRET_KEY`、`STRIPE_SUCCESS_URL`、`STRIPE_CANCEL_URL` |
+| PayPal Checkout URLが作成されない | `PAYMENT_PROVIDER=paypal`、PayPal Sandbox Client ID/Secret、成功・キャンセルURLを確認 |
+| PayPal Webhookが401になる | PayPal SandboxのWebhook IDとAPI環境が一致しているか確認 |
 | Webhookが401になる | Stripe Dashboardの署名シークレットと `STRIPE_WEBHOOK_SECRET` が同じモードのものか確認 |
 | Webhookが503になる | `STRIPE_WEBHOOK_SECRET` がAPIサービスに登録されているか確認 |
 | 決済後も注文が確認中のまま | Stripe DashboardのWebhook配信履歴、HTTP応答、APIログ、注文番号・金額・通貨の照合結果を確認 |
@@ -103,7 +120,7 @@ Stripe Checkout を途中で閉じるなどしてセッションが期限切れ�
 
 ログやサポート連絡には、APIキー、Webhook署名シークレット、カード情報、購入者の個人情報を含めないでください。必要な場合は、時刻、注文番号、エラーコード、秘密情報を除いたログを使用します。
 
-## 8. 本番公開へ切り替える
+## 9. 本番公開へ切り替える
 
 1. テストモードで上記チェック項目を確認します。
 2. Stripeの本番アカウント審査と利用条件を確認します。

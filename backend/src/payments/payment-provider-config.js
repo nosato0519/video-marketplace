@@ -2,6 +2,7 @@ import { getPaymentProviderCatalog, getPaymentProviderConfig } from './payment-p
 
 const SECRET_ENV_BY_PROVIDER = Object.freeze({
   stripe: 'STRIPE_SECRET_KEY',
+  paypal: 'PAYPAL_CLIENT_SECRET',
 });
 
 function isSecureHttpsUrl(value) {
@@ -22,12 +23,20 @@ export function getConfigurablePaymentProviders() {
       regions: [...config.regions],
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
       status: config.status,
-      configured: process.env.PAYMENT_PROVIDER === config.id && Boolean(
-        process.env.STRIPE_SECRET_KEY?.trim() &&
-        process.env.STRIPE_WEBHOOK_SECRET?.trim() &&
-        isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL) &&
-        isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)
-      ),
+      configured: process.env.PAYMENT_PROVIDER === config.id && (config.id === 'paypal'
+        ? Boolean(
+          process.env.PAYPAL_CLIENT_ID?.trim() &&
+          process.env.PAYPAL_CLIENT_SECRET?.trim() &&
+          process.env.PAYPAL_WEBHOOK_ID?.trim() &&
+          isSecureHttpsUrl(process.env.PAYPAL_SUCCESS_URL) &&
+          isSecureHttpsUrl(process.env.PAYPAL_CANCEL_URL)
+        )
+        : Boolean(
+          process.env.STRIPE_SECRET_KEY?.trim() &&
+          process.env.STRIPE_WEBHOOK_SECRET?.trim() &&
+          isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL) &&
+          isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)
+        )),
       secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
     }));
 }

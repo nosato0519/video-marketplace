@@ -8,6 +8,7 @@ import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
 import { createStripeWebhookHandler } from './payments/stripe-webhook.js';
+import { createPayPalWebhookHandler } from './payments/paypal-webhook.js';
 import { recordPaymentEvent } from './payments/payment-event-ledger.js';
 import { completePayment } from './payments/complete-payment.js';
 import { failPayment } from './payments/fail-payment.js';
@@ -53,6 +54,11 @@ export function createApp() {
     '/api/payments/stripe/webhook',
     express.raw({ type: 'application/json', limit: '1mb' }),
     createStripeWebhookHandler({ recordPaymentEvent, completePayment, failPayment })
+  );
+  app.post(
+    '/api/payments/paypal/webhook',
+    express.raw({ type: 'application/json', limit: '1mb' }),
+    createPayPalWebhookHandler({ recordPaymentEvent, completePayment, failPayment })
   );
 
   app.use('/api/seller/profile/verification-document', express.raw({ type: ['image/jpeg', 'image/png', 'application/pdf'], limit: '10mb' }));

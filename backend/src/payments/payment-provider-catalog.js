@@ -11,7 +11,7 @@ export const PAYMENT_PROVIDER_CATALOG = Object.freeze([
     name: 'PayPal',
     regions: Object.freeze(['global', 'japan']),
     currencies: 'multi',
-    status: 'not_implemented',
+    status: 'available',
   },
   {
     id: 'adyen',

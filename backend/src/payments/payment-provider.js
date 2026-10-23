@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
+import { createHash } from 'node:crypto';
 import { getPaymentProviderConfig } from './payment-provider-catalog.js';
 import { toStripeMinorUnits } from './stripe-money.js';
+import { paypalApiRequest, formatPayPalAmount } from './paypal-api.js';
 
 export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER } = {}) {
   const selected = provider || 'pending';
@@ -8,6 +10,7 @@ export function createPaymentProvider({ provider = process.env.PAYMENT_PROVIDER 
   const config = getPaymentProviderConfig(selected);
   if (!config) throw new Error(`unsupported_payment_provider:${selected}`);
   if (selected === 'stripe') return createStripeProvider();
+  if (selected === 'paypal') return createPayPalProvider();
   return createUnavailableProvider(config);
 }
 
@@ -20,6 +23,66 @@ function createPendingPaymentProvider() {
 
 function createUnavailableProvider(config) {
   return { name: config.id, configured: false, regions: config.regions, async createCheckout() { throw new Error(`payment_provider_adapter_not_implemented:${config.id}`); } };
+}
+
+function createPayPalProvider() {
+  const clientId = process.env.PAYPAL_CLIENT_ID?.trim();
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET?.trim();
+  const webhookId = process.env.PAYPAL_WEBHOOK_ID?.trim();
+  const successUrl = process.env.PAYPAL_SUCCESS_URL;
+  const cancelUrl = process.env.PAYPAL_CANCEL_URL;
+  if (!clientId || !clientSecret || !webhookId) {
+    throw new Error('payment_provider_not_configured:paypal');
+  }
+  if (!successUrl || !cancelUrl) throw new Error('stripe_redirect_urls_not_configured');
+  validateStripeRedirectUrls(successUrl, cancelUrl);
+  return {
+    name: 'paypal',
+    configured: true,
+    async createCheckout({ orderId, amount, currency, metadata, idempotencyKey }) {
+      validateCheckoutInput({ orderId, amount, currency, metadata, idempotencyKey });
+      const normalizedCurrency = String(currency).toUpperCase();
+      const value = formatPayPalAmount(amount, normalizedCurrency);
+      const requestId = createPayPalRequestId(idempotencyKey);
+      const order = await paypalApiRequest('/v2/checkout/orders', {
+        method: 'POST',
+        requestId,
+        body: {
+          intent: 'CAPTURE',
+          purchase_units: [{
+            reference_id: String(orderId),
+            custom_id: String(orderId),
+            invoice_id: String(metadata.paymentId),
+            description: 'Video Marketplace purchase',
+            amount: { currency_code: normalizedCurrency, value },
+          }],
+          application_context: {
+            brand_name: 'Video Marketplace',
+            user_action: 'PAY_NOW',
+            return_url: successUrl,
+            cancel_url: cancelUrl,
+          },
+        },
+      });
+      const approval = order.links?.find((link) => ['approve', 'payer-action'].includes(link.rel));
+      if (!order.id || !approval?.href) throw new Error('paypal_checkout_response_invalid');
+      return {
+        provider: 'paypal',
+        orderId,
+        amount,
+        currency: normalizedCurrency,
+        idempotencyKey,
+        paymentId: metadata.paymentId,
+        sessionId: order.id,
+        url: approval.href,
+        status: order.status || 'CREATED',
+      };
+    },
+  };
+}
+
+function createPayPalRequestId(idempotencyKey) {
+  return createHash('sha256').update(String(idempotencyKey)).digest('hex').slice(0, 32);
 }
 
 function createStripeProvider() {
