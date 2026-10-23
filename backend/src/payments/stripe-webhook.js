@@ -55,9 +55,6 @@ export function createStripeWebhookHandler({
       }
 
       const payload = await normalizeStripeEvent(event, eventType, verifier);
-      if (eventType === 'payment_refunded' && !payload.fullRefund) {
-        return res.status(200).json({ received: true, ignored: true, reason: 'partial_refund_not_supported' });
-      }
 
       validateWebhookPayload(payload);
       const payloadHash = crypto.createHash('sha256').update(rawBody).digest('hex');
@@ -81,6 +78,11 @@ export function createStripeWebhookHandler({
         orderId: payload.orderId,
         payloadHash,
       };
+      if (eventType === 'payment_refunded') {
+        input.refundAmount = payload.amount;
+        input.refundMode = 'cumulative';
+        input.refundCurrency = payload.currency;
+      }
       if (eventType === 'payment_failed') {
         const result = await failPayment(input);
         return res.status(200).json({ received: true, result });
@@ -143,7 +145,7 @@ async function normalizeStripeEvent(event, eventType, stripe) {
 
   const currency = String(object.currency || '').toUpperCase();
   const amountMinor = eventType === 'payment_refunded'
-    ? object.amount
+    ? object.amount_refunded
     : object.amount_total ?? object.amount_received ?? object.amount;
   const amount = eventType === 'payment_failed'
     ? 0
