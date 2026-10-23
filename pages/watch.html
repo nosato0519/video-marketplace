@@ -84,8 +84,10 @@
     if (!productId) {
       window.location.assign("/pages/library.html");
     } else {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
       try {
-        const result = await libraryApi.list();
+        const result = await libraryApi.list({ signal: controller.signal });
         const item = (result.items || []).find((entry) => String(entry.product_id) === productId);
         if (!item) {
           window.location.assign("/pages/library.html");
@@ -142,9 +144,13 @@
         if (error.status === 401) {
           window.location.assign("/pages/buyer-login.html");
         } else {
-          if (screen) screen.textContent = "購入済み作品を読み込めませんでした。";
+          if (screen) screen.textContent = error.name === "AbortError"
+            ? "作品情報の読み込みがタイムアウトしました。ページを再読み込みしてください。"
+            : "購入済み作品を読み込めませんでした。時間をおいて再度お試しください。";
           if (download) download.hidden = true;
         }
+      } finally {
+        window.clearTimeout(timeoutId);
       }
     }
   </script>
