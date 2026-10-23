@@ -55,7 +55,7 @@ try {
     const orders = ordersResult.items || [];
     order = requestedId
       ? orders.find((item) => String(item.orderId) === requestedId)
-      : orders[0];
+      : null;
 
     if (!waitForWebhook || (order && order.status !== "pending") || attempt === 9) break;
     await new Promise((resolve) => setTimeout(resolve, 1500));
