@@ -91,6 +91,7 @@ assert.match(cartClient, /cart-clear/);
 assert.match(cartClient, /この作品を購入/);
 assert.match(cartClient, /\/pages\/checkout\.html\?productId=/);
 const buyerLogin = fs.readFileSync(path.join(root, 'pages/buyer-login.html'), 'utf8');
+const authView = fs.readFileSync(path.join(root, 'app/auth/auth-view.js'), 'utf8');
 const appSource = fs.readFileSync(path.join(root, 'backend/src/app.js'), 'utf8');
 const allowedInlineScriptHashes = [...appSource.matchAll(/'sha256-([^']+)'/g)].map((match) => match[1]);
 for (const [pageName, pageSource] of [
@@ -109,10 +110,11 @@ for (const [pageName, pageSource] of [
     assert.ok(src.startsWith('/'), `${pageName} external module script is same-origin`);
   }
 }
-assert.match(buyerLogin, /startsWith\('\/pages\/checkout\.html\?productId='/);
-assert.match(buyerLogin, /redirectTo\s*\}/);
+assert.match(authView, /requestedNext\.startsWith\('\/pages\/checkout\.html\?productId='\)/);
+assert.match(authView, /redirectTo,/);
 const accountSettings = fs.readFileSync(path.join(root, 'pages/account-settings.html'), 'utf8');
-assert.match(accountSettings, /authApi\.updateProfile/);
-assert.match(accountSettings, /passwordConfirm/);
+const accountSettingsScript = fs.readFileSync(path.join(root, 'app/buyer/account-settings.js'), 'utf8');
+assert.match(accountSettingsScript, /authApi\.updateProfile/);
+assert.match(accountSettingsScript, /passwordConfirm/);
 assert.match(authApi, /updateProfile: \(profile\)/);
 console.log('Buyer account/order/library and registration static contract checks passed.');
