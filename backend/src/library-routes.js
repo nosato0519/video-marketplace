@@ -19,10 +19,27 @@ export function registerLibraryRoutes(app) {
                 m.status AS media_status,
                 m.mime_type AS media_mime_type,
                 m.byte_size AS media_byte_size,
+                CASE WHEN thumbnail.media_asset_id IS NOT NULL
+                  THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.media_asset_id::text
+                  ELSE NULL
+                END AS thumbnail_url,
                 e.created_at AS purchased_at
            FROM entitlements e
            JOIN products p ON p.id = e.product_id
            LEFT JOIN media_assets m ON m.id = p.media_asset_id
+           LEFT JOIN LATERAL (
+             SELECT pi.media_asset_id
+               FROM product_images pi
+               JOIN media_assets image_asset ON image_asset.id = pi.media_asset_id
+              WHERE pi.product_id = p.id
+                AND pi.image_role IN ('thumbnail', 'gallery')
+                AND image_asset.status = 'ready'
+                AND image_asset.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+              ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END,
+                       pi.sort_order ASC,
+                       pi.id ASC
+              LIMIT 1
+           ) thumbnail ON TRUE
            LEFT JOIN LATERAL (
              SELECT pt.title, pt.description
                FROM product_translations pt
