@@ -14,7 +14,7 @@ try {
   const orderDate = order.paidAt || order.createdAt;
   const date = orderDate ? new Date(orderDate).toLocaleDateString("ja-JP") : "—";
   const status = order.status || "—";
-  const libraryItem = (libraryResult.items || []).find((item) => String(item.order_id) === String(order.orderId));
+  const libraryItem = (libraryResult.items || []).find((item) => String(item.product_id) === String(order.productId));
   const canAccessLibrary = order.status === "paid" && Boolean(libraryItem);
   const title = escapeHtml(order.title || libraryItem?.title || "購入作品");
   const safeOrderId = escapeHtml(order.orderId);
