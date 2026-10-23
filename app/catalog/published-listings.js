@@ -100,7 +100,15 @@ document.querySelectorAll('[data-published-listings="category"]').forEach(render
 
 async function renderProductDetail() {
   const productId = new URLSearchParams(location.search).get('productId');
-  if (!productId || !document.querySelector('.detail-page')) return;
+  const main = document.querySelector('.detail-page');
+  if (!main) return;
+
+  main.hidden = true;
+  if (!productId) {
+    main.innerHTML = '<section class="detail-section"><h1>作品を選択してください</h1><p>動画一覧から作品を選び直してください。</p><a href="/pages/video-list.html">動画一覧へ戻る</a></section>';
+    main.hidden = false;
+    return;
+  }
 
   try {
     const response = await fetch('/api/catalog/products/' + encodeURIComponent(productId) + '?locale=ja', {
@@ -112,6 +120,7 @@ async function renderProductDetail() {
     const payload = await response.json();
     const product = payload.data;
     if (!product) throw new Error('product_not_found');
+    main.hidden = false;
 
     const category = categoryDefinitions[product.category]?.name || product.category || '動画';
     const mediaBadge = document.querySelector('.detail-badge');
@@ -180,8 +189,8 @@ async function renderProductDetail() {
       gallery.style.display = galleryImages.length ? 'grid' : 'none';
     }
   } catch {
-    const main = document.querySelector('.detail-page');
     if (main) {
+      main.hidden = false;
       main.innerHTML = '<section class="detail-section"><h1>作品を表示できませんでした</h1><p>作品が公開されていないか、情報を読み込めませんでした。動画一覧から選び直してください。</p><a href="/pages/video-list.html">動画一覧へ戻る</a></section>';
     }
   }
