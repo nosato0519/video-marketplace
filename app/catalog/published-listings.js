@@ -120,7 +120,6 @@ async function renderProductDetail() {
     const payload = await response.json();
     const product = payload.data;
     if (!product) throw new Error('product_not_found');
-    main.hidden = false;
 
     const category = categoryDefinitions[product.category]?.name || product.category || '動画';
     const mediaBadge = document.querySelector('.detail-badge');
@@ -161,7 +160,7 @@ async function renderProductDetail() {
       : Number(product.price_amount).toLocaleString('ja-JP') + ' ' + (product.price_currency || '');
 
     const images = Array.isArray(product.images) ? product.images : [];
-    const thumbnail = images.find((image) => image.role === 'thumbnail') || images.find((image) => image.role === 'gallery');
+    const thumbnail = images.find((image) => image.role === 'thumbnail');
     const heroImage = document.querySelector('.detail-media-image');
     if (heroImage) {
       heroImage.dataset.galleryImageUrl = thumbnail?.url || '';
@@ -188,6 +187,7 @@ async function renderProductDetail() {
       gallery.hidden = galleryImages.length === 0;
       gallery.style.display = galleryImages.length ? 'grid' : 'none';
     }
+    main.hidden = false;
   } catch {
     if (main) {
       main.hidden = false;
