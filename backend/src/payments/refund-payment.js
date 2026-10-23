@@ -162,7 +162,7 @@ export async function refundPayment({
     const current = order.rows[0];
 
     const paymentRecord = await client.query(
-      `SELECT id, order_id, provider, provider_payment_id, status
+      `SELECT id, order_id, provider, provider_payment_id, amount, currency, refunded_amount, status
          FROM payments
         WHERE order_id = $1 AND provider = $2
         FOR UPDATE`,
