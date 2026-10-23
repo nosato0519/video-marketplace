@@ -41,9 +41,14 @@ test.describe('seller business browser acceptance', () => {
     });
     await page.route('**/api/seller/media/upload', async (route) => {
       expect(route.request().method()).toBe('POST');
-      expect(route.request().headers()['x-original-filename']).toBe('demo.webm');
-      uploaded = true;
-      await json(route, { mediaAsset: { id: 'media-1', status: 'ready' } });
+      const filename = decodeURIComponent(route.request().headers()['x-original-filename'] || '');
+      if (filename === 'demo.webm') {
+        uploaded = true;
+        await json(route, { mediaAsset: { id: 'media-1', status: 'ready' } });
+        return;
+      }
+      expect(filename).toBe('thumbnail.jpg');
+      await json(route, { mediaAsset: { id: 'thumbnail-1', status: 'ready' } });
     });
     await page.route('**/api/seller/products', async (route) => {
       expect(route.request().method()).toBe('POST');
@@ -51,6 +56,7 @@ test.describe('seller business browser acceptance', () => {
       expect(body.title).toBe('Demo Seller Video');
       expect(body.priceAmount).toBe(1500);
       expect(body.mediaAssetId).toBe('media-1');
+      expect(body.images).toEqual([{ mediaAssetId: 'thumbnail-1', role: 'thumbnail', sortOrder: 0 }]);
       created = true;
       await json(route, { product: { id: 'product-1', title: 'Demo Seller Video', status: 'draft' } });
     });
