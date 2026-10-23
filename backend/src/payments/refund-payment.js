@@ -258,21 +258,20 @@ export async function refundPayment({
         productId: current.product_id,
       });
 
-      if (currentPayment.status !== 'refunded') {
-        await client.query(
-          `UPDATE payments
-              SET status = 'refunded', refunded_at = COALESCE(refunded_at, NOW())
-            WHERE id = $1`,
-          [currentPayment.id]
-        );
-      }
+      await client.query(
+        `UPDATE payments
+            SET status = 'refunded', refunded_amount = $2,
+                refunded_at = COALESCE(refunded_at, NOW())
+          WHERE id = $1`,
+        [currentPayment.id, money(cumulativeRefund)]
+      );
       await client.query(
         `UPDATE seller_earnings
             SET status = 'refunded', refunded_amount = LEAST(gross_amount, $3),
               net_amount = 0, refunded_at = COALESCE(refunded_at, NOW())
           WHERE order_id = $1
             AND product_id = $2
-            AND status IN ('pending', 'available', 'paid')`,
+            AND status IN ('pending', 'available', 'paid', 'refunded')`,
         [current.id, current.product_id, money(cumulativeRefund)]
       );
       await client.query(
@@ -309,7 +308,7 @@ export async function refundPayment({
               net_amount = 0, refunded_at = NOW()
         WHERE order_id = $1
           AND product_id = $2
-          AND status IN ('pending', 'available', 'paid')
+          AND status IN ('pending', 'available', 'paid', 'refunded')
         RETURNING id, seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status, refunded_at`,
       [current.id, current.product_id, money(cumulativeRefund)]
     );
