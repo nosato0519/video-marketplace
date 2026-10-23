@@ -1,5 +1,5 @@
 async function request(path) {
-  const response = await fetch(path, { credentials: 'same-origin' });
+  const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
   const text = await response.text();
   let body = null;
   try { body = text ? JSON.parse(text) : null; } catch { body = null; }
