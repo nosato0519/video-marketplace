@@ -75,11 +75,8 @@ test.describe('sales showcase navigation', () => {
     await expect(page).toHaveURL(/\/pages\/checkout\.html(?:\?.*)?$/);
 
     await page.goto(`${demoUrl}pages/library.html`);
-    await page.locator('a[href="/pages/watch.html"]').first().click();
-    await expect(page).toHaveURL(/\/pages\/watch\.html$/);
-
-    await page.getByText('ライブラリへ', { exact: true }).click();
     await expect(page).toHaveURL(/\/pages\/library\.html$/);
+    await expect(page.locator('a[href="/pages/watch.html"]')).toHaveCount(0);
   });
 
   test('account, orders and authentication links connect', async ({ page }) => {
