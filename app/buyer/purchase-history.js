@@ -33,13 +33,16 @@ if (list) {
   try {
     const result = await libraryApi.orders();
     const orders = result.items || [];
+    const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
     list.innerHTML = orders.length ? orders.map((order) => {
       const amount = new Intl.NumberFormat("ja-JP", { style: "currency", currency: order.currency || "JPY" }).format(Number(order.amount || 0));
       const orderDate = order.paidAt || order.createdAt;
       const date = orderDate ? new Date(orderDate).toLocaleDateString("ja-JP") : "—";
-      const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+      const thumbnail = order.thumbnailUrl
+        ? '<img src="' + escape(order.thumbnailUrl) + '" alt="' + escape(order.title || "購入作品") + '" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover">'
+        : '<span>VIDEO</span>';
       return `<article class="buyer-history-card">
-        <div class="library-thumb catalog-t1"></div>
+        <div class="library-thumb" style="overflow:hidden;display:grid;place-items:center">${thumbnail}</div>
         <div class="buyer-history-info">
           <strong>${escape(order.title || "購入作品")}</strong>
           <span>購入日 ${escape(date)}</span>
@@ -48,6 +51,13 @@ if (list) {
         <a href="/pages/order-detail.html?orderId=${encodeURIComponent(order.orderId)}">注文詳細を見る →</a>
       </article>`;
     }).join("") : '<div class="empty-state"><h2>購入履歴はありません</h2><p>動画を購入すると、ここに履歴が表示されます。</p><a class="button" href="/pages/video-list.html">動画を探す</a></div>';
+    list.querySelectorAll(".library-thumb img").forEach((image) => {
+      image.addEventListener("error", () => {
+        const fallback = document.createElement("span");
+        fallback.textContent = "VIDEO";
+        image.replaceWith(fallback);
+      }, { once: true });
+    });
     renderPagination();
   } catch (error) {
     if (error.status === 401) {
