@@ -36,6 +36,9 @@ test.describe('seller business browser acceptance', () => {
     await mockSellerSession(page);
     let uploaded = false;
     let created = false;
+    await page.route('**/api/seller/media/limits', async (route) => {
+      await json(route, { maxUploadBytes: 5368709120, maxImageUploadBytes: 20971520 });
+    });
     await page.route('**/api/seller/media/upload', async (route) => {
       expect(route.request().method()).toBe('POST');
       expect(route.request().headers()['x-original-filename']).toBe('demo.webm');
