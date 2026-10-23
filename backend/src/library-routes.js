@@ -32,7 +32,7 @@ export function registerLibraryRoutes(app) {
                FROM product_images pi
                JOIN media_assets image_asset ON image_asset.id = pi.media_asset_id
               WHERE pi.product_id = p.id
-                AND pi.image_role IN ('thumbnail', 'gallery')
+                AND pi.image_role = 'thumbnail'
                 AND image_asset.status = 'ready'
                 AND image_asset.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
               ORDER BY CASE WHEN pi.image_role = 'thumbnail' THEN 0 ELSE 1 END,
