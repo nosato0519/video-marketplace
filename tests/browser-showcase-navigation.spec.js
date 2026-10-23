@@ -72,7 +72,7 @@ test.describe('sales showcase navigation', () => {
     // Use the semantic purchase CTA instead of its presentation copy so the
     // navigation test remains stable if the sales wording is polished.
     await page.locator('a.buy[href^="/pages/checkout.html"]').click();
-    await expect(page).toHaveURL(/\/pages\/checkout\.html$/);
+    await expect(page).toHaveURL(/\/pages\/checkout\.html(?:\?.*)?$/);
 
     await page.goto(`${demoUrl}pages/library.html`);
     await page.locator('a[href="/pages/watch.html"]').first().click();
