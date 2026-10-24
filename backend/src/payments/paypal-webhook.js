@@ -227,6 +227,7 @@ export function createPayPalReturnHandler({
       return res.redirect(303, '/pages/purchase-history.html?payment=processing');
     }
 
+    let processingStage = 'load_local_payment';
     try {
       const stored = await findPayment(
         `SELECT o.id, o.status AS order_status, p.id AS payment_id,
@@ -257,6 +258,7 @@ export function createPayPalReturnHandler({
       }
 
       let captureRequestError = null;
+      processingStage = 'capture_paypal_order';
       try {
         await apiRequest(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`, {
           method: 'POST',
@@ -268,6 +270,7 @@ export function createPayPalReturnHandler({
         captureRequestError = error;
       }
 
+      processingStage = 'fetch_paypal_order_after_capture';
       const paypalOrder = await apiRequest(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`);
       const unit = paypalOrder.purchase_units?.find((item) =>
         String(item.custom_id || item.reference_id || '') === orderId
@@ -275,6 +278,15 @@ export function createPayPalReturnHandler({
       const capture = unit?.payments?.captures?.find((item) => item.status === 'COMPLETED');
       if (!capture && captureRequestError) throw captureRequestError;
       if (paypalOrder.status !== 'COMPLETED' || !capture || !capture.id) {
+        console.error('PayPal return has no completed capture', {
+          orderId,
+          paypalOrderId,
+          paypalOrderStatus: paypalOrder.status || 'unknown',
+          captureStatuses: Array.isArray(unit?.payments?.captures)
+            ? unit.payments.captures.map((item) => String(item?.status || 'unknown'))
+            : [],
+          captureRequestFailed: Boolean(captureRequestError),
+        });
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
 
@@ -285,6 +297,7 @@ export function createPayPalReturnHandler({
         .update(JSON.stringify({ paypalOrderId, orderId, providerPaymentId, amount, currency }))
         .digest('hex');
       const eventId = `return-${paypalOrderId}`;
+      processingStage = 'record_payment_event';
       await recordPaymentEvent({
         provider: 'paypal',
         eventId,
@@ -293,6 +306,7 @@ export function createPayPalReturnHandler({
         payloadHash,
         orderId,
       });
+      processingStage = 'complete_local_payment';
       await completePayment({
         eventId,
         provider: 'paypal',
@@ -313,10 +327,19 @@ export function createPayPalReturnHandler({
           status: 'succeeded',
         },
       });
+      processingStage = 'ensure_library_access';
       await ensureLibraryAccess(orderId);
       return res.redirect(303, `/pages/library.html`);
     } catch (error) {
-      console.error('PayPal return processing failed', { message: error?.message || 'unknown_error' });
+      console.error('PayPal return processing failed', {
+        stage: processingStage,
+        orderId: requestedOrderId || undefined,
+        paypalOrderId: returnedPayPalOrderId || undefined,
+        message: error?.message || 'unknown_error',
+        code: error?.code || undefined,
+        detail: error?.detail || undefined,
+        constraint: error?.constraint || undefined,
+      });
       return res.redirect(303, '/pages/purchase-history.html?payment=processing');
     }
   };
