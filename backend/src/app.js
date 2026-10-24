@@ -106,10 +106,16 @@ export function createApp() {
   registerProductDetailRoutes(app, { storage: mediaStorage });
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
-  app.get('/pages/purchase-complete.html', createPayPalReturnHandler());
+  const paypalReturnHandler = createPayPalReturnHandler();
+  app.get('/pages/purchase-complete.html', paypalReturnHandler);
 
   const publicRoot = path.resolve(process.cwd());
-  app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
+  app.get('/', (req, res, next) => {
+    if (req.query?.session_id === 'paypal' && req.query?.orderId && req.query?.token) {
+      return paypalReturnHandler(req, res, next);
+    }
+    return res.sendFile(path.join(publicRoot, 'index.html'));
+  });
   app.get('/styles.css', (_req, res) => res.sendFile(path.join(publicRoot, 'styles.css')));
   app.use('/pages', express.static(path.join(publicRoot, 'pages')));
   app.use('/seller', express.static(path.join(publicRoot, 'seller')));
