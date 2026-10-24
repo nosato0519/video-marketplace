@@ -110,6 +110,7 @@ async function recordSellerRefundRecovery(client, earningId) {
         AND paid.total_paid > e.net_amount
      ON CONFLICT (seller_earning_id) DO UPDATE
        SET amount_due = GREATEST(
+             seller_earning_recoveries.amount_due,
              seller_earning_recoveries.amount_recovered,
              EXCLUDED.amount_due
            ),
