@@ -65,6 +65,20 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use(loadSessionUser);
 
+  const paypalReturnHandler = createPayPalReturnHandler();
+  app.use((req, res, next) => {
+    if (
+      req.method === 'GET' &&
+      (
+        (req.query?.session_id === 'paypal' && req.query?.orderId) ||
+        req.query?.token
+      )
+    ) {
+      return paypalReturnHandler(req, res, next);
+    }
+    return next();
+  });
+
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
   });
@@ -105,20 +119,6 @@ export function createApp() {
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerProductDetailRoutes(app, { storage: mediaStorage });
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
-
-  const paypalReturnHandler = createPayPalReturnHandler();
-  app.use((req, res, next) => {
-    if (
-      req.method === 'GET' &&
-      (
-        (req.query?.session_id === 'paypal' && req.query?.orderId) ||
-        req.query?.token
-      )
-    ) {
-      return paypalReturnHandler(req, res, next);
-    }
-    return next();
-  });
 
   const publicRoot = path.resolve(process.cwd());
   app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
