@@ -25,18 +25,25 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
   const allocations = await db.query(
     `SELECT e.id AS seller_earning_id,
             e.net_amount,
-            COALESCE(SUM(a.amount) FILTER (WHERE p.status = 'paid'), 0) AS paid_allocated_amount,
-            COALESCE(SUM(DISTINCT o.amount), 0) AS recovered_offset_amount
+            paid.paid_allocated_amount,
+            offsets.recovered_offset_amount
        FROM seller_earnings e
-       LEFT JOIN payout_earnings_allocations a ON a.seller_earning_id = e.id
-       LEFT JOIN payouts p ON p.id = a.payout_id
-       LEFT JOIN seller_earning_recovery_offsets o ON o.seller_earning_id = e.id
+       CROSS JOIN LATERAL (
+         SELECT COALESCE(SUM(a.amount) FILTER (WHERE p.status = 'paid'), 0) AS paid_allocated_amount
+           FROM payout_earnings_allocations a
+           JOIN payouts p ON p.id = a.payout_id
+          WHERE a.seller_earning_id = e.id
+       ) paid
+       CROSS JOIN LATERAL (
+         SELECT COALESCE(SUM(o.amount), 0) AS recovered_offset_amount
+           FROM seller_earning_recovery_offsets o
+          WHERE o.seller_earning_id = e.id
+       ) offsets
       WHERE e.id IN (
         SELECT seller_earning_id FROM payout_earnings_allocations WHERE payout_id = $1
         UNION
         SELECT seller_earning_id FROM seller_earning_recovery_offsets WHERE payout_id = $1
-      )
-      GROUP BY e.id, e.net_amount`,
+      )`,
     [payoutId]
   );
 
