@@ -245,10 +245,10 @@ export function createPayPalReturnHandler({
       if (!payment || !paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
-      const alreadySettled =
-        payment.order_status === 'paid' &&
-        payment.payment_status === 'succeeded';
-      if (alreadySettled) {
+      const orderAlreadyPaid = payment.order_status === 'paid';
+      if (orderAlreadyPaid) {
+        // The order's paid state is authoritative for access recovery. A stale
+        // payment row must not strand a paid order on the processing page.
         await ensureLibraryAccess(orderId);
         return res.redirect(303, '/pages/library.html');
       }
