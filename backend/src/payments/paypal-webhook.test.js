@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPayPalWebhookHandler } from './paypal-webhook.js';
+import { createPayPalWebhookHandler, createPayPalReturnHandler } from './paypal-webhook.js';
 
 function responseRecorder() {
   return {
@@ -8,6 +8,7 @@ function responseRecorder() {
     body: null,
     status(code) { this.statusCode = code; return this; },
     json(body) { this.body = body; return this; },
+    redirect(status, url) { this.statusCode = status; this.redirectUrl = url; return this; },
   };
 }
 
@@ -182,4 +183,54 @@ test('routes a partial PayPal refund with its incremental amount', async () => {
     assert.equal(refunded.refundMode, 'incremental');
     assert.equal(refunded.refundCurrency, 'USD');
   });
+});
+
+
+test('PayPal return resolves a token-only callback and grants library access', async () => {
+  const calls = [];
+  let settled;
+  const handler = createPayPalReturnHandler({
+    findPayment: async (sql, params) => {
+      calls.push({ sql, params });
+      return { rows: [{
+        id: 'order-1',
+        order_status: 'pending',
+        payment_id: 'payment-1',
+        payment_status: 'pending',
+        amount: '12.50',
+        currency: 'USD',
+        checkout_session_id: 'PAYPAL-ORDER-1',
+      }] };
+    },
+    apiRequest: async (path) => {
+      if (path === '/v2/checkout/orders/PAYPAL-ORDER-1/capture') return { status: 'COMPLETED' };
+      if (path === '/v2/checkout/orders/PAYPAL-ORDER-1') {
+        return {
+          id: 'PAYPAL-ORDER-1',
+          status: 'COMPLETED',
+          purchase_units: [{
+            custom_id: 'order-1',
+            payments: { captures: [{
+              id: 'PAYPAL-CAPTURE-1',
+              status: 'COMPLETED',
+              amount: { value: '12.50', currency_code: 'USD' },
+            }] },
+          }],
+        };
+      }
+      throw new Error('unexpected_api_request');
+    },
+    recordPaymentEvent: async (input) => ({ duplicate: false, input }),
+    completePayment: async (input) => { settled = input; return { paid: true }; },
+  });
+  const res = responseRecorder();
+  await handler({ query: { token: 'PAYPAL-ORDER-1' } }, res);
+
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].params, ['', 'PAYPAL-ORDER-1']);
+  assert.equal(res.statusCode, 303);
+  assert.equal(res.redirectUrl, '/pages/library.html');
+  assert.equal(settled.orderId, 'order-1');
+  assert.equal(settled.checkoutSessionId, 'PAYPAL-ORDER-1');
+  assert.equal(settled.providerPaymentId, 'PAYPAL-CAPTURE-1');
 });
