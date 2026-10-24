@@ -5,11 +5,45 @@ export function registerLibraryRoutes(app) {
   app.get('/api/library', requireAuth, async (req, res, next) => {
     try {
       await query(
+        `UPDATE entitlements e
+            SET status = 'active',
+                revoked_at = NULL
+           FROM orders o
+          WHERE o.id = e.order_id
+            AND o.buyer_id = $1
+            AND o.status = 'paid'
+            AND e.user_id = o.buyer_id
+            AND e.product_id = o.product_id
+            AND e.status = 'revoked'
+            AND NOT EXISTS (
+              SELECT 1
+                FROM entitlements active
+               WHERE active.user_id = e.user_id
+                 AND active.product_id = e.product_id
+                 AND active.status = 'active'
+                 AND active.id <> e.id
+            )`,
+        [req.user.id]
+      );
+
+      await query(
         `INSERT INTO entitlements (user_id, product_id, order_id)
          SELECT o.buyer_id, o.product_id, o.id
            FROM orders o
           WHERE o.buyer_id = $1
             AND o.status = 'paid'
+            AND NOT EXISTS (
+              SELECT 1
+                FROM entitlements existing
+               WHERE existing.order_id = o.id
+            )
+            AND NOT EXISTS (
+              SELECT 1
+                FROM entitlements active
+               WHERE active.user_id = o.buyer_id
+                 AND active.product_id = o.product_id
+                 AND active.status = 'active'
+            )
          ON CONFLICT DO NOTHING`,
         [req.user.id]
       );
