@@ -65,7 +65,17 @@ function createPayPalProvider() {
         },
       });
       const approval = order.links?.find((link) => ['approve', 'payer-action'].includes(link.rel));
-      if (!order.id || !approval?.href) throw new Error('paypal_checkout_response_invalid');
+      if (!order.id || !approval?.href) {
+        console.error('PayPal checkout response missing required fields', {
+          hasOrderId: Boolean(order.id),
+          status: typeof order.status === 'string' ? order.status : undefined,
+          linkRelations: Array.isArray(order.links)
+            ? order.links.map((link) => typeof link?.rel === 'string' ? link.rel : 'unknown')
+            : [],
+          hasLinksArray: Array.isArray(order.links),
+        });
+        throw new Error('paypal_checkout_response_invalid');
+      }
       return {
         provider: 'paypal',
         orderId,
