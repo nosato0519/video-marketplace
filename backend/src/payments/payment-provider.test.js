@@ -289,6 +289,67 @@ test('payment provider catalog preserves planned integrations without enabling u
 });
 
 
+test('PayPal return URL always targets the application root with clean callback parameters', async () => {
+  const names = [
+    'PAYPAL_CLIENT_ID',
+    'PAYPAL_CLIENT_SECRET',
+    'PAYPAL_WEBHOOK_ID',
+    'PAYPAL_SUCCESS_URL',
+    'PAYPAL_CANCEL_URL',
+    'PAYPAL_ENVIRONMENT',
+  ];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  const originalFetch = globalThis.fetch;
+  process.env.PAYPAL_CLIENT_ID = 'test-client';
+  process.env.PAYPAL_CLIENT_SECRET = 'test-secret';
+  process.env.PAYPAL_WEBHOOK_ID = 'test-webhook';
+  process.env.PAYPAL_SUCCESS_URL = 'https://marketplace.example/pages/purchase-history.html?old=1#return';
+  process.env.PAYPAL_CANCEL_URL = 'https://marketplace.example/pages/purchase-history.html?cancelled=1';
+  process.env.PAYPAL_ENVIRONMENT = 'sandbox';
+  const requests = [];
+  globalThis.fetch = async (url, options = {}) => {
+    requests.push({ url: String(url), options });
+    if (String(url).endsWith('/v1/oauth2/token')) {
+      return new Response(JSON.stringify({ access_token: 'test-access-token', expires_in: 300 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+    if (String(url).endsWith('/v2/checkout/orders')) {
+      return new Response(JSON.stringify({
+        id: 'PAYPAL-ORDER-1',
+        status: 'CREATED',
+        links: [{ rel: 'approve', href: 'https://www.sandbox.paypal.com/checkoutnow?token=PAYPAL-ORDER-1' }],
+      }), { status: 201, headers: { 'content-type': 'application/json' } });
+    }
+    throw new Error('unexpected_paypal_request');
+  };
+  try {
+    const provider = createPaymentProvider({ provider: 'paypal' });
+    await provider.createCheckout({
+      orderId: 'app-order-1',
+      amount: 1980,
+      currency: 'JPY',
+      metadata: { orderId: 'app-order-1', paymentId: 'payment-1' },
+      idempotencyKey: 'checkout:app-order-1',
+    });
+    const checkoutRequest = requests.find((request) => request.url.endsWith('/v2/checkout/orders'));
+    const payload = JSON.parse(checkoutRequest.options.body);
+    const returnUrl = new URL(payload.payment_source.paypal.experience_context.return_url);
+    assert.equal(returnUrl.pathname, '/');
+    assert.equal(returnUrl.searchParams.get('orderId'), 'app-order-1');
+    assert.equal(returnUrl.searchParams.get('session_id'), 'paypal');
+    assert.equal(returnUrl.searchParams.has('old'), false);
+    assert.equal(returnUrl.hash, '');
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
 test('PayPal checkout requires server credentials before it can be used', () => {
   const names = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_SUCCESS_URL', 'PAYPAL_CANCEL_URL'];
   const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
