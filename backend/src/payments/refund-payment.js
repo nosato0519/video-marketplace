@@ -100,11 +100,21 @@ async function recordSellerRefundRecovery(client, earningId) {
             GREATEST(0, paid.total_paid - e.net_amount)
        FROM seller_earnings e
        CROSS JOIN LATERAL (
-         SELECT COALESCE(SUM(a.amount), 0) AS total_paid
-           FROM payout_earnings_allocations a
-           JOIN payouts p ON p.id = a.payout_id
-          WHERE a.seller_earning_id = e.id
-            AND p.status = 'paid'
+         SELECT
+           COALESCE((
+             SELECT SUM(a.amount)
+               FROM payout_earnings_allocations a
+               JOIN payouts p ON p.id = a.payout_id
+              WHERE a.seller_earning_id = e.id
+                AND p.status = 'paid'
+           ), 0)
+           + COALESCE((
+             SELECT SUM(o.amount)
+               FROM seller_earning_recovery_offsets o
+               JOIN payouts p ON p.id = o.payout_id
+              WHERE o.seller_earning_id = e.id
+                AND p.status = 'paid'
+           ), 0) AS total_paid
        ) paid
       WHERE e.id = $1
         AND paid.total_paid > e.net_amount
