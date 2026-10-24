@@ -234,7 +234,7 @@ export function createPayPalReturnHandler({
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
       if (payment.order_status === 'paid' && payment.payment_status === 'succeeded') {
-        return res.redirect(303, `/pages/order-detail.html?orderId=${encodeURIComponent(orderId)}`);
+        return res.redirect(303, `/pages/library.html`);
       }
       if (payment.order_status !== 'pending' || payment.payment_status !== 'pending') {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
@@ -297,7 +297,7 @@ export function createPayPalReturnHandler({
           status: 'succeeded',
         },
       });
-      return res.redirect(303, `/pages/order-detail.html?orderId=${encodeURIComponent(orderId)}`);
+      return res.redirect(303, `/pages/library.html`);
     } catch (error) {
       console.error('PayPal return processing failed', { message: error?.message || 'unknown_error' });
       return res.redirect(303, '/pages/purchase-history.html?payment=processing');
