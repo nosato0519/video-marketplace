@@ -37,7 +37,9 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
        CROSS JOIN LATERAL (
          SELECT COALESCE(SUM(o.amount), 0) AS recovered_offset_amount
            FROM seller_earning_recovery_offsets o
+           JOIN payouts op ON op.id = o.payout_id
           WHERE o.seller_earning_id = e.id
+            AND op.status = 'paid'
        ) offsets
       WHERE e.id IN (
         SELECT seller_earning_id FROM payout_earnings_allocations WHERE payout_id = $1
