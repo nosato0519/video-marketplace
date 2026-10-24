@@ -211,6 +211,14 @@ export function createPayPalReturnHandler({
   recordPaymentEvent = defaultRecordPaymentEvent,
   completePayment = defaultCompletePayment,
   findPayment = query,
+  ensureLibraryAccess = async (orderId) => query(
+    `INSERT INTO entitlements (user_id, product_id, order_id)
+     SELECT buyer_id, product_id, id
+       FROM orders
+      WHERE id = $1 AND status = 'paid'
+     ON CONFLICT DO NOTHING`,
+    [orderId]
+  ),
 } = {}) {
   return async function handlePayPalReturn(req, res) {
     const requestedOrderId = String(req.query?.orderId || '');
@@ -301,6 +309,7 @@ export function createPayPalReturnHandler({
           status: 'succeeded',
         },
       });
+      await ensureLibraryAccess(orderId);
       return res.redirect(303, `/pages/library.html`);
     } catch (error) {
       console.error('PayPal return processing failed', { message: error?.message || 'unknown_error' });
