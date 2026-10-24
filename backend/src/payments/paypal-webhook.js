@@ -213,8 +213,7 @@ export function createPayPalReturnHandler({
 } = {}) {
   return async function handlePayPalReturn(req, res) {
     const orderId = String(req.query?.orderId || '');
-    const paypalOrderId = String(req.query?.token || '');
-    if (!orderId || !paypalOrderId) {
+    if (!orderId) {
       return res.redirect(303, '/pages/purchase-history.html?payment=processing');
     }
 
@@ -230,7 +229,8 @@ export function createPayPalReturnHandler({
         [orderId]
       );
       const payment = stored.rows[0];
-      if (!payment || payment.checkout_session_id !== paypalOrderId) {
+      const paypalOrderId = String(req.query?.token || payment?.checkout_session_id || '');
+      if (!payment || !paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
       if (payment.order_status === 'paid' && payment.payment_status === 'succeeded') {
