@@ -222,6 +222,7 @@ test('PayPal return resolves a token-only callback and grants library access', a
     },
     recordPaymentEvent: async (input) => ({ duplicate: false, input }),
     completePayment: async (input) => { settled = input; return { paid: true }; },
+    ensureLibraryAccess: async () => {},
   });
   const res = responseRecorder();
   await handler({ query: { token: 'PAYPAL-ORDER-1' } }, res);
