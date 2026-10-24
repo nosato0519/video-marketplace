@@ -104,11 +104,29 @@ router.post('/payouts/:id/status', async (req, res, next) => {
       );
 
       if (nextStatus === 'cancelled') {
-        // A cancelled payout no longer consumes seller-earning balance. Remove
-        // its allocation so the allocation ledger represents only active/paid
-        // consumption and a later payout can reuse the released amount.
+        // Release earning allocations and recovery offsets so cancelled payouts do not reserve seller funds.
         await db.query(
           `DELETE FROM payout_earnings_allocations WHERE payout_id = $1`,
+          [req.params.id]
+        );
+        const offsets = await db.query(
+          `SELECT recovery_id, SUM(amount) AS amount
+             FROM seller_earning_recovery_offsets
+            WHERE payout_id = $1
+            GROUP BY recovery_id`,
+          [req.params.id]
+        );
+        for (const offset of offsets.rows) {
+          await db.query(
+            `UPDATE seller_earning_recoveries
+                SET amount_recovered = GREATEST(0, amount_recovered - $2),
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [offset.recovery_id, offset.amount]
+          );
+        }
+        await db.query(
+          `DELETE FROM seller_earning_recovery_offsets WHERE payout_id = $1`,
           [req.params.id]
         );
       }
