@@ -237,6 +237,39 @@ test('PayPal return resolves a token-only callback and grants library access', a
 });
 
 
+test('PayPal return prioritizes the returned token when orderId and token are both present', async () => {
+  let receivedSql = '';
+  let receivedParams = null;
+  const handler = createPayPalReturnHandler({
+    findPayment: async (sql, params) => {
+      receivedSql = sql;
+      receivedParams = params;
+      return { rows: [{
+        id: 'order-from-token',
+        order_status: 'paid',
+        payment_id: 'payment-1',
+        payment_status: 'succeeded',
+        amount: '12.50',
+        currency: 'USD',
+        checkout_session_id: 'PAYPAL-ORDER-FROM-TOKEN',
+      }] };
+    },
+    ensureLibraryAccess: async () => {},
+  });
+  const res = responseRecorder();
+  await handler({
+    query: {
+      orderId: 'stale-or-conflicting-order-id',
+      token: 'PAYPAL-ORDER-FROM-TOKEN',
+    },
+  }, res);
+
+  assert.deepEqual(receivedParams, ['stale-or-conflicting-order-id', 'PAYPAL-ORDER-FROM-TOKEN']);
+  assert.match(receivedSql, /WHERE \(\$2 <> '' AND p\.checkout_session_id = \$2\)\s+OR \(\$2 = '' AND \$1 <> '' AND o\.id = \$1\)/);
+  assert.equal(res.statusCode, 303);
+  assert.equal(res.redirectUrl, '/pages/library.html');
+});
+
 test('PayPal return repairs library access when the order is paid but the payment row is stale', async () => {
   let settlementCalled = false;
   let libraryAccessRepaired = false;
