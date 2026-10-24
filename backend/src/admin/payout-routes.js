@@ -109,22 +109,6 @@ router.post('/payouts/:id/status', async (req, res, next) => {
           `DELETE FROM payout_earnings_allocations WHERE payout_id = $1`,
           [req.params.id]
         );
-        const offsets = await db.query(
-          `SELECT recovery_id, SUM(amount) AS amount
-             FROM seller_earning_recovery_offsets
-            WHERE payout_id = $1
-            GROUP BY recovery_id`,
-          [req.params.id]
-        );
-        for (const offset of offsets.rows) {
-          await db.query(
-            `UPDATE seller_earning_recoveries
-                SET amount_recovered = GREATEST(0, amount_recovered - $2),
-                    updated_at = NOW()
-              WHERE id = $1`,
-            [offset.recovery_id, offset.amount]
-          );
-        }
         await db.query(
           `DELETE FROM seller_earning_recovery_offsets WHERE payout_id = $1`,
           [req.params.id]
