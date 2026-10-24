@@ -4,6 +4,16 @@ import { query } from './db.js';
 export function registerLibraryRoutes(app) {
   app.get('/api/library', requireAuth, async (req, res, next) => {
     try {
+      await query(
+        `INSERT INTO entitlements (user_id, product_id, order_id)
+         SELECT o.buyer_id, o.product_id, o.id
+           FROM orders o
+          WHERE o.buyer_id = $1
+            AND o.status = 'paid'
+         ON CONFLICT DO NOTHING`,
+        [req.user.id]
+      );
+
       const result = await query(
         `SELECT e.id AS entitlement_id,
                 o.product_id,
