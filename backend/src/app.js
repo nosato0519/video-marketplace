@@ -8,7 +8,7 @@ import { registerOrderRoutes } from './order-routes.js';
 import { registerCheckoutRoutes } from './checkout-routes.js';
 import { registerPaymentWebhookRoutes } from './payments/webhook-routes.js';
 import { createStripeWebhookHandler } from './payments/stripe-webhook.js';
-import { createPayPalWebhookHandler } from './payments/paypal-webhook.js';
+import { createPayPalWebhookHandler, createPayPalReturnHandler } from './payments/paypal-webhook.js';
 import { recordPaymentEvent } from './payments/payment-event-ledger.js';
 import { completePayment } from './payments/complete-payment.js';
 import { failPayment } from './payments/fail-payment.js';
@@ -105,6 +105,8 @@ export function createApp() {
   const mediaStorage = registerConfiguredMediaStreamRoutes(app);
   registerProductDetailRoutes(app, { storage: mediaStorage });
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
+
+  app.get('/pages/purchase-complete.html', createPayPalReturnHandler());
 
   const publicRoot = path.resolve(process.cwd());
   app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
