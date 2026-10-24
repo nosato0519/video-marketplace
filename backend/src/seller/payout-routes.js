@@ -162,6 +162,16 @@ router.post('/payouts', async (req, res, next) => {
     await client.query('BEGIN');
     await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2))`, [String(req.user.id), currency]);
 
+    // Lock eligible earnings before reading balances so concurrent refunds cannot leave stale payout allocations.
+    await client.query(
+      `SELECT id
+         FROM seller_earnings
+        WHERE seller_id = $1 AND currency = $2 AND status = 'available'
+        ORDER BY created_at ASC, id ASC
+        FOR UPDATE`,
+      [req.user.id, currency]
+    );
+
     const balance = await client.query(
       `SELECT COALESCE(SUM(net_amount), 0) AS available
          FROM seller_earnings
@@ -256,13 +266,7 @@ router.post('/payouts', async (req, res, next) => {
       earning.id,
       Math.max(0, Number(earning.net_amount) - Number(earning.allocated_amount || 0) - Number(earning.offset_amount || 0)),
     ]));
-    // Match refund processing lock order: earning rows before recovery rows.
-    for (const earning of earningRows.rows) {
-      await client.query(
-        `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`,
-        [earning.id]
-      );
-    }
+    // Earnings are already locked before balance and allocation calculations.
 
     const recoveries = await client.query(
       `SELECT r.id, r.amount_due, r.amount_recovered,
