@@ -70,7 +70,7 @@ export function createApp() {
     if (
       req.method === 'GET' &&
       (
-        (req.query?.session_id === 'paypal' && req.query?.orderId) ||
+        req.query?.orderId ||
         req.query?.token
       )
     ) {
