@@ -75,10 +75,17 @@ router.post('/payouts/:id/status', async (req, res, next) => {
       if (nextStatus === 'processing' || nextStatus === 'paid') {
         const refundedAllocation = await db.query(
           `SELECT e.id
-             FROM payout_earnings_allocations a
-             JOIN seller_earnings e ON e.id = a.seller_earning_id
-            WHERE a.payout_id = $1
-              AND e.status = 'refunded'
+             FROM seller_earnings e
+            WHERE e.status = 'refunded'
+              AND e.id IN (
+                SELECT seller_earning_id
+                  FROM payout_earnings_allocations
+                 WHERE payout_id = $1
+                UNION
+                SELECT seller_earning_id
+                  FROM seller_earning_recovery_offsets
+                 WHERE payout_id = $1
+              )
             LIMIT 1
             FOR UPDATE OF e`,
           [req.params.id]
