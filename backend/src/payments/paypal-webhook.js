@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { query } from '../db.js';
 import { paypalApiRequest } from './paypal-api.js';
 import { validateWebhookPayload } from './webhook-payload.js';
 import { recordPaymentEvent as defaultRecordPaymentEvent } from './payment-event-ledger.js';
@@ -202,4 +203,104 @@ async function settleEvent({
   validateWebhookPayload(payload);
   const result = await completePayment({ ...input, payment: payload });
   return res.status(200).json({ received: true, result });
+}
+
+
+export function createPayPalReturnHandler({
+  apiRequest = paypalApiRequest,
+  recordPaymentEvent = defaultRecordPaymentEvent,
+  completePayment = defaultCompletePayment,
+} = {}) {
+  return async function handlePayPalReturn(req, res) {
+    const orderId = String(req.query?.orderId || '');
+    const paypalOrderId = String(req.query?.token || '');
+    if (!orderId || !paypalOrderId) {
+      return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+    }
+
+    try {
+      const stored = await query(
+        `SELECT o.id, o.status AS order_status, p.id AS payment_id,
+                p.status AS payment_status, p.amount, p.currency,
+                p.checkout_session_id
+           FROM orders o
+           JOIN payments p ON p.order_id = o.id AND p.provider = 'paypal'
+          WHERE o.id = $1
+          LIMIT 1`,
+        [orderId]
+      );
+      const payment = stored.rows[0];
+      if (!payment || payment.checkout_session_id !== paypalOrderId) {
+        return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+      }
+      if (payment.order_status === 'paid' && payment.payment_status === 'succeeded') {
+        return res.redirect(303, `/pages/order-detail.html?orderId=${encodeURIComponent(orderId)}`);
+      }
+      if (payment.order_status !== 'pending' || payment.payment_status !== 'pending') {
+        return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+      }
+
+      let captureRequestError = null;
+      try {
+        await apiRequest(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`, {
+          method: 'POST',
+          requestId: `return-${paypalOrderId}`,
+          body: {},
+        });
+      } catch (error) {
+        if (error.message !== 'paypal_api_request_failed') throw error;
+        captureRequestError = error;
+      }
+
+      const paypalOrder = await apiRequest(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`);
+      const unit = paypalOrder.purchase_units?.find((item) =>
+        String(item.custom_id || item.reference_id || '') === orderId
+      );
+      const capture = unit?.payments?.captures?.find((item) => item.status === 'COMPLETED');
+      if (!capture && captureRequestError) throw captureRequestError;
+      if (paypalOrder.status !== 'COMPLETED' || !capture || !capture.id) {
+        return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+      }
+
+      const amount = Number(capture.amount?.value);
+      const currency = String(capture.amount?.currency_code || '').toUpperCase();
+      const providerPaymentId = String(capture.id);
+      const payloadHash = crypto.createHash('sha256')
+        .update(JSON.stringify({ paypalOrderId, orderId, providerPaymentId, amount, currency }))
+        .digest('hex');
+      const eventId = `return-${paypalOrderId}`;
+      await recordPaymentEvent({
+        provider: 'paypal',
+        eventId,
+        eventType: 'payment_succeeded',
+        providerPaymentId,
+        payloadHash,
+        orderId,
+      });
+      await completePayment({
+        eventId,
+        provider: 'paypal',
+        providerPaymentId,
+        checkoutSessionId: paypalOrderId,
+        orderId,
+        payloadHash,
+        payment: {
+          eventId,
+          provider: 'paypal',
+          eventType: 'payment_succeeded',
+          paymentId: providerPaymentId,
+          provider_payment_id: providerPaymentId,
+          orderId,
+          order_id: orderId,
+          amount,
+          currency,
+          status: 'succeeded',
+        },
+      });
+      return res.redirect(303, `/pages/order-detail.html?orderId=${encodeURIComponent(orderId)}`);
+    } catch (error) {
+      console.error('PayPal return processing failed', { message: error?.message || 'unknown_error' });
+      return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+    }
+  };
 }
