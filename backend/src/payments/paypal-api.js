@@ -73,6 +73,13 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
       status: response.status,
       error: typeof payload.error === 'string' ? payload.error : undefined,
       errorDescription: typeof payload.error_description === 'string' ? payload.error_description : undefined,
+      apiBaseUrl: getPayPalApiBaseUrl(),
+      clientIdLength: clientId.length,
+      clientIdFingerprint: createHash('sha256').update(clientId).digest('hex').slice(0, 12),
+      clientSecretLength: clientSecret.length,
+      clientSecretFingerprint: createHash('sha256').update(clientSecret).digest('hex').slice(0, 12),
+      clientIdHasWhitespace: /\\s/.test(clientId),
+      clientSecretHasWhitespace: /\\s/.test(clientSecret),
     });
     cachedToken = null;
     cachedTokenKey = null;
