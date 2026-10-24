@@ -74,6 +74,11 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
     assert.equal(partialRecovery.rowCount, 1);
     assert.equal(Number(partialRecovery.rows[0].amount_due), 180);
     assert.equal(Number(partialRecovery.rows[0].amount_recovered), 0);
+    // Simulate recovery already collected against another earning before the remaining refund arrives.
+    await pool.query(
+      `UPDATE seller_earning_recoveries SET amount_recovered = 100 WHERE seller_earning_id = $1`,
+      [earningId]
+    );
     let activeEntitlement = await pool.query(
       `SELECT order_id, status FROM entitlements WHERE user_id = $1 AND product_id = $2 AND status = 'active'`,
       [userId, productId]
@@ -99,7 +104,7 @@ test('refundPayment is idempotent for an already-processed refund event', { skip
       [earningId]
     );
     assert.equal(Number(fullRecovery.rows[0].amount_due), 900);
-    assert.equal(Number(fullRecovery.rows[0].amount_recovered), 0);
+    assert.equal(Number(fullRecovery.rows[0].amount_recovered), 100);
     activeEntitlement = await pool.query(
       `SELECT order_id, status FROM entitlements WHERE user_id = $1 AND product_id = $2 AND status = 'active'`,
       [userId, productId]
