@@ -210,6 +210,7 @@ export function createPayPalReturnHandler({
   apiRequest = paypalApiRequest,
   recordPaymentEvent = defaultRecordPaymentEvent,
   completePayment = defaultCompletePayment,
+  findPayment = query,
 } = {}) {
   return async function handlePayPalReturn(req, res) {
     const requestedOrderId = String(req.query?.orderId || '');
@@ -219,7 +220,7 @@ export function createPayPalReturnHandler({
     }
 
     try {
-      const stored = await query(
+      const stored = await findPayment(
         `SELECT o.id, o.status AS order_status, p.id AS payment_id,
                 p.status AS payment_status, p.amount, p.currency,
                 p.checkout_session_id
