@@ -28,8 +28,8 @@ export function formatPayPalAmount(amount, currency) {
 }
 
 export async function paypalApiRequest(path, { method = 'GET', body, requestId, fetchImpl = fetch } = {}) {
-  const clientId = process.env.PAYPAL_CLIENT_ID?.trim();
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET?.trim();
+  const clientId = process.env.PAYPAL_CLIENT_ID?.replace(/\s/g, '');
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET?.replace(/\s/g, '');
   if (!clientId || !clientSecret) throw new Error('payment_provider_not_configured:paypal');
 
   const token = await getAccessToken({ clientId, clientSecret, fetchImpl });
