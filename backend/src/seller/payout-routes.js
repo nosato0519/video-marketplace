@@ -265,15 +265,25 @@ router.post('/payouts', async (req, res, next) => {
     }
 
     const recoveries = await client.query(
-      `SELECT id, amount_due, amount_recovered
-         FROM seller_earning_recoveries
-        WHERE seller_id = $1 AND currency = $2 AND amount_due > amount_recovered
-        ORDER BY created_at ASC, id ASC
-        FOR UPDATE`,
+      `SELECT r.id, r.amount_due, r.amount_recovered,
+              COALESCE(reserved.amount, 0) AS amount_reserved
+         FROM seller_earning_recoveries r
+         LEFT JOIN LATERAL (
+           SELECT SUM(o.amount) AS amount
+             FROM seller_earning_recovery_offsets o
+             JOIN payouts p ON p.id = o.payout_id
+            WHERE o.recovery_id = r.id
+              AND p.status IN ('requested','reviewing','approved','processing')
+         ) reserved ON TRUE
+        WHERE r.seller_id = $1 AND r.currency = $2 AND r.amount_due > r.amount_recovered
+        ORDER BY r.created_at ASC, r.id ASC
+        FOR UPDATE OF r`,
       [req.user.id, currency]
     );
     for (const recovery of recoveries.rows) {
-      let debtRemaining = Number(recovery.amount_due) - Number(recovery.amount_recovered);
+      let debtRemaining = Math.max(0,
+        Number(recovery.amount_due) - Number(recovery.amount_recovered) - Number(recovery.amount_reserved || 0)
+      );
       for (const earning of earningRows.rows) {
         if (debtRemaining <= 0) break;
         const availableForOffset = remainingByEarning.get(earning.id) || 0;
