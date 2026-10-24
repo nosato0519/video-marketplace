@@ -76,8 +76,7 @@ router.post('/payouts/:id/status', async (req, res, next) => {
         const refundedAllocation = await db.query(
           `SELECT e.id
              FROM seller_earnings e
-            WHERE e.status = 'refunded'
-              AND e.id IN (
+            WHERE e.id IN (
                 SELECT seller_earning_id
                   FROM payout_earnings_allocations
                  WHERE payout_id = $1
@@ -85,6 +84,25 @@ router.post('/payouts/:id/status', async (req, res, next) => {
                 SELECT seller_earning_id
                   FROM seller_earning_recovery_offsets
                  WHERE payout_id = $1
+              )
+              AND (
+                e.status = 'refunded'
+                OR (
+                  COALESCE((
+                    SELECT SUM(a.amount)
+                      FROM payout_earnings_allocations a
+                      JOIN payouts ap ON ap.id = a.payout_id
+                     WHERE a.seller_earning_id = e.id
+                       AND ap.status <> 'cancelled'
+                  ), 0)
+                  + COALESCE((
+                    SELECT SUM(o.amount)
+                      FROM seller_earning_recovery_offsets o
+                      JOIN payouts op ON op.id = o.payout_id
+                     WHERE o.seller_earning_id = e.id
+                       AND op.status <> 'cancelled'
+                  ), 0)
+                ) > e.net_amount
               )
             LIMIT 1
             FOR UPDATE OF e`,
