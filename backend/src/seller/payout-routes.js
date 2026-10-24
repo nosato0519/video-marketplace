@@ -64,20 +64,37 @@ router.get('/payouts', async (req, res, next) => {
     );
 
     const reserved = await query(
-      `SELECT e.currency,
-              COALESCE(SUM(a.amount), 0) AS reserved_amount
-         FROM payout_earnings_allocations a
-         JOIN payouts p ON p.id = a.payout_id
-         JOIN seller_earnings e ON e.id = a.seller_earning_id
-        WHERE e.seller_id = $1
-          AND e.status = 'available'
-          AND p.status NOT IN ('failed','cancelled')
-        GROUP BY e.currency`,
+      `SELECT currency, SUM(reserved_amount) AS reserved_amount
+         FROM (
+           SELECT e.currency, a.amount AS reserved_amount
+             FROM payout_earnings_allocations a
+             JOIN payouts p ON p.id = a.payout_id
+             JOIN seller_earnings e ON e.id = a.seller_earning_id
+            WHERE e.seller_id = $1
+              AND e.status = 'available'
+              AND p.status NOT IN ('failed','cancelled')
+           UNION ALL
+           SELECT e.currency, o.amount AS reserved_amount
+             FROM seller_earning_recovery_offsets o
+             JOIN seller_earnings e ON e.id = o.seller_earning_id
+            WHERE e.seller_id = $1 AND e.status = 'available'
+         ) reservations
+        GROUP BY currency`,
+      [req.user.id]
+    );
+    const recoveryDebts = await query(
+      `SELECT currency, COALESCE(SUM(amount_due - amount_recovered), 0) AS outstanding
+         FROM seller_earning_recoveries
+        WHERE seller_id = $1 AND amount_due > amount_recovered
+        GROUP BY currency`,
       [req.user.id]
     );
 
     const reservedByCurrency = new Map(
       reserved.rows.map((row) => [row.currency, Number(row.reserved_amount || 0)])
+    );
+    const recoveryByCurrency = new Map(
+      recoveryDebts.rows.map((row) => [row.currency, Number(row.outstanding || 0)])
     );
 
     const summaryByCurrency = Object.fromEntries(
@@ -85,11 +102,13 @@ router.get('/payouts', async (req, res, next) => {
         const earnedAvailable = Number(row.available || 0);
         const pending = Number(row.pending || 0);
         const reservedAmount = reservedByCurrency.get(row.currency) || 0;
+        const outstandingRecovery = recoveryByCurrency.get(row.currency) || 0;
         const available = Math.max(0, earnedAvailable - reservedAmount);
         return [row.currency, {
           available,
           pending,
-          withdrawable: available,
+          withdrawable: Math.max(0, available - outstandingRecovery),
+          recovery_due: outstandingRecovery,
         }];
       })
     );
@@ -140,21 +159,34 @@ router.post('/payouts', async (req, res, next) => {
         WHERE seller_id = $1 AND currency = $2 AND status = 'available'`,
       [req.user.id, currency]
     );
-    const available = Number(balance.rows[0]?.available || 0);
-
-    const reserved = await client.query(
-      `SELECT COALESCE(SUM(a.amount), 0) AS reserved_amount
+    const allocated = await client.query(
+      `SELECT COALESCE(SUM(a.amount), 0) AS allocated_amount
          FROM payout_earnings_allocations a
          JOIN payouts p ON p.id = a.payout_id
          JOIN seller_earnings e ON e.id = a.seller_earning_id
-        WHERE e.seller_id = $1
-          AND e.currency = $2
+        WHERE e.seller_id = $1 AND e.currency = $2
           AND e.status = 'available'
           AND p.status NOT IN ('failed','cancelled')`,
       [req.user.id, currency]
     );
-    const reservedAmount = Number(reserved.rows[0]?.reserved_amount || 0);
-    const withdrawable = Math.max(0, available - reservedAmount);
+    const offsetBalance = await client.query(
+      `SELECT COALESCE(SUM(o.amount), 0) AS offset_amount
+         FROM seller_earning_recovery_offsets o
+         JOIN seller_earnings e ON e.id = o.seller_earning_id
+        WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'`,
+      [req.user.id, currency]
+    );
+    const debtBalance = await client.query(
+      `SELECT COALESCE(SUM(amount_due - amount_recovered), 0) AS outstanding
+         FROM seller_earning_recoveries
+        WHERE seller_id = $1 AND currency = $2 AND amount_due > amount_recovered`,
+      [req.user.id, currency]
+    );
+    const available = Number(balance.rows[0]?.available || 0);
+    const reservedAmount = Number(allocated.rows[0]?.allocated_amount || 0);
+    const offsetsAlreadyApplied = Number(offsetBalance.rows[0]?.offset_amount || 0);
+    const outstandingRecovery = Number(debtBalance.rows[0]?.outstanding || 0);
+    const withdrawable = Math.max(0, available - reservedAmount - offsetsAlreadyApplied - outstandingRecovery);
 
     if (amount < 1000) {
       await client.query('ROLLBACK');
@@ -163,7 +195,12 @@ router.post('/payouts', async (req, res, next) => {
 
     if (amount > withdrawable) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'amount_exceeds_withdrawable_balance', available, reserved: reservedAmount });
+      return res.status(409).json({
+        error: 'amount_exceeds_withdrawable_balance',
+        available: Math.max(0, available - reservedAmount - offsetsAlreadyApplied),
+        reserved: reservedAmount,
+        recovery_due: outstandingRecovery,
+      });
     }
 
     const result = await client.query(
@@ -174,36 +211,68 @@ router.post('/payouts', async (req, res, next) => {
     );
     const payoutId = result.rows[0].id;
 
-    let remaining = amount;
-    // PostgreSQL does not permit FOR UPDATE on a grouped SELECT. Aggregate the
-    // allocation data first, then lock the underlying earning rows in a separate
-    // simple SELECT so the seller/currency advisory lock plus row locks still
-    // provide the intended concurrency protection.
-    const earnings = await client.query(
-      `SELECT e.id,
-              e.net_amount,
-              COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) AS allocated_amount
+    const earningRows = await client.query(
+      `SELECT e.id, e.net_amount, e.created_at,
+              COALESCE(alloc.total, 0) AS allocated_amount,
+              COALESCE(offsets.total, 0) AS offset_amount
          FROM seller_earnings e
-         LEFT JOIN payout_earnings_allocations a ON a.seller_earning_id = e.id
-         LEFT JOIN payouts p ON p.id = a.payout_id
-        WHERE e.seller_id = $1
-          AND e.currency = $2
-          AND e.status = 'available'
-        GROUP BY e.id, e.net_amount, e.created_at
-        HAVING e.net_amount - COALESCE(SUM(CASE WHEN p.status NOT IN ('failed','cancelled') THEN a.amount ELSE 0 END), 0) > 0
+         LEFT JOIN LATERAL (
+           SELECT SUM(a.amount) AS total
+             FROM payout_earnings_allocations a
+             JOIN payouts p ON p.id = a.payout_id
+            WHERE a.seller_earning_id = e.id
+              AND p.status NOT IN ('failed','cancelled')
+         ) alloc ON TRUE
+         LEFT JOIN LATERAL (
+           SELECT SUM(o.amount) AS total
+             FROM seller_earning_recovery_offsets o
+            WHERE o.seller_earning_id = e.id
+         ) offsets ON TRUE
+        WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'
         ORDER BY e.created_at ASC, e.id ASC`,
       [req.user.id, currency]
     );
+    const remainingByEarning = new Map(earningRows.rows.map((earning) => [
+      earning.id,
+      Math.max(0, Number(earning.net_amount) - Number(earning.allocated_amount || 0) - Number(earning.offset_amount || 0)),
+    ]));
 
-    for (const earning of earnings.rows) {
+    const recoveries = await client.query(
+      `SELECT id, amount_due, amount_recovered
+         FROM seller_earning_recoveries
+        WHERE seller_id = $1 AND currency = $2 AND amount_due > amount_recovered
+        ORDER BY created_at ASC, id ASC
+        FOR UPDATE`,
+      [req.user.id, currency]
+    );
+    for (const recovery of recoveries.rows) {
+      let debtRemaining = Number(recovery.amount_due) - Number(recovery.amount_recovered);
+      for (const earning of earningRows.rows) {
+        if (debtRemaining <= 0) break;
+        const availableForOffset = remainingByEarning.get(earning.id) || 0;
+        if (availableForOffset <= 0) continue;
+        const offset = Math.min(debtRemaining, availableForOffset);
+        await client.query(
+          `INSERT INTO seller_earning_recovery_offsets
+             (recovery_id, seller_earning_id, payout_id, amount)
+           VALUES ($1, $2, $3, $4)`,
+          [recovery.id, earning.id, payoutId, offset]
+        );
+        await client.query(
+          `UPDATE seller_earning_recoveries
+              SET amount_recovered = amount_recovered + $2, updated_at = NOW()
+            WHERE id = $1`,
+          [recovery.id, offset]
+        );
+        remainingByEarning.set(earning.id, availableForOffset - offset);
+        debtRemaining -= offset;
+      }
+    }
+
+    let remaining = amount;
+    for (const earning of earningRows.rows) {
       if (remaining <= 0) break;
-      await client.query(
-        `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`,
-        [earning.id]
-      );
-      const netAmount = Number(earning.net_amount);
-      const allocated = Number(earning.allocated_amount || 0);
-      const remainingEarning = Math.max(0, netAmount - allocated);
+      const remainingEarning = remainingByEarning.get(earning.id) || 0;
       const allocation = Math.min(remaining, remainingEarning);
       if (allocation <= 0) continue;
       await client.query(
@@ -211,6 +280,7 @@ router.post('/payouts', async (req, res, next) => {
          VALUES ($1, $2, $3)`,
         [payoutId, earning.id, allocation]
       );
+      remainingByEarning.set(earning.id, remainingEarning - allocation);
       remaining -= allocation;
     }
 
