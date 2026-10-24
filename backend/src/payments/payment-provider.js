@@ -56,11 +56,15 @@ function createPayPalProvider() {
             description: 'Video Marketplace purchase',
             amount: { currency_code: normalizedCurrency, value },
           }],
-          application_context: {
-            brand_name: 'Video Marketplace',
-            user_action: 'PAY_NOW',
-            return_url: withPayPalReturnParams(successUrl, orderId),
-            cancel_url: cancelUrl,
+          payment_source: {
+            paypal: {
+              experience_context: {
+                brand_name: 'Video Marketplace',
+                user_action: 'PAY_NOW',
+                return_url: withPayPalReturnParams(successUrl, orderId),
+                cancel_url: cancelUrl,
+              },
+            },
           },
         },
       });
