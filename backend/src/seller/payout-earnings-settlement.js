@@ -14,9 +14,9 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
     `SELECT id
        FROM seller_earnings
       WHERE id IN (
-        SELECT DISTINCT seller_earning_id
-          FROM payout_earnings_allocations
-         WHERE payout_id = $1
+        SELECT seller_earning_id FROM payout_earnings_allocations WHERE payout_id = $1
+        UNION
+        SELECT seller_earning_id FROM seller_earning_recovery_offsets WHERE payout_id = $1
       )
       FOR UPDATE`,
     [payoutId]
@@ -35,9 +35,9 @@ export async function settlePaidPayoutEarnings(db, payoutId) {
        JOIN seller_earnings e ON e.id = a.seller_earning_id
        JOIN payouts p ON p.id = a.payout_id
       WHERE a.seller_earning_id IN (
-        SELECT DISTINCT seller_earning_id
-          FROM payout_earnings_allocations
-         WHERE payout_id = $1
+        SELECT seller_earning_id FROM payout_earnings_allocations WHERE payout_id = $1
+        UNION
+        SELECT seller_earning_id FROM seller_earning_recovery_offsets WHERE payout_id = $1
       )
       GROUP BY a.seller_earning_id, e.net_amount`,
     [payoutId]
