@@ -237,7 +237,7 @@ test('PayPal return resolves a token-only callback and grants library access', a
 });
 
 
-test('PayPal return repairs library access without another API call when payment is already settled', async () => {
+test('PayPal return repairs library access when the order is paid but the payment row is stale', async () => {
   let settlementCalled = false;
   let libraryAccessRepaired = false;
   let apiCalls = 0;
@@ -246,7 +246,7 @@ test('PayPal return repairs library access without another API call when payment
       id: 'order-1',
       order_status: 'paid',
       payment_id: 'payment-1',
-      payment_status: 'succeeded',
+      payment_status: 'pending',
       amount: '12.50',
       currency: 'USD',
       checkout_session_id: 'PAYPAL-ORDER-1',
