@@ -236,6 +236,13 @@ router.post('/payouts', async (req, res, next) => {
       earning.id,
       Math.max(0, Number(earning.net_amount) - Number(earning.allocated_amount || 0) - Number(earning.offset_amount || 0)),
     ]));
+    // Match refund processing lock order: earning rows before recovery rows.
+    for (const earning of earningRows.rows) {
+      await client.query(
+        `SELECT id FROM seller_earnings WHERE id = $1 FOR UPDATE`,
+        [earning.id]
+      );
+    }
 
     const recoveries = await client.query(
       `SELECT id, amount_due, amount_recovered
