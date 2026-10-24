@@ -92,6 +92,32 @@ async function reconcileRefundedEntitlement(client, { orderId, buyerId, productI
   };
 }
 
+async function recordSellerRefundRecovery(client, earningId) {
+  await client.query(
+    `INSERT INTO seller_earning_recoveries
+       (seller_id, seller_earning_id, currency, amount_due)
+     SELECT e.seller_id, e.id, e.currency,
+            GREATEST(0, paid.total_paid - e.net_amount)
+       FROM seller_earnings e
+       CROSS JOIN LATERAL (
+         SELECT COALESCE(SUM(a.amount), 0) AS total_paid
+           FROM payout_earnings_allocations a
+           JOIN payouts p ON p.id = a.payout_id
+          WHERE a.seller_earning_id = e.id
+            AND p.status = 'paid'
+       ) paid
+      WHERE e.id = $1
+        AND paid.total_paid > e.net_amount
+     ON CONFLICT (seller_earning_id) DO UPDATE
+       SET amount_due = GREATEST(
+             seller_earning_recoveries.amount_recovered,
+             EXCLUDED.amount_due
+           ),
+           updated_at = NOW()`,
+    [earningId]
+  );
+}
+
 export async function refundPayment({
   eventId,
   provider,
@@ -225,7 +251,7 @@ export async function refundPayment({
         `UPDATE payments SET refunded_amount = $1 WHERE id = $2`,
         [money(cumulativeRefund), currentPayment.id]
       );
-      await client.query(
+      const updatedEarnings = await client.query(
         `UPDATE seller_earnings
             SET refunded_amount = LEAST(gross_amount, $2),
                 net_amount = CASE
@@ -235,9 +261,13 @@ export async function refundPayment({
                 END
           WHERE order_id = $1
             AND product_id = $3
-            AND status IN ('pending', 'available', 'paid')`,
+            AND status IN ('pending', 'available', 'paid')
+          RETURNING id`,
         [current.id, money(cumulativeRefund), current.product_id]
       );
+      for (const earning of updatedEarnings.rows) {
+        await recordSellerRefundRecovery(client, earning.id);
+      }
       await client.query(
         `UPDATE payment_events SET status = 'processed', processed_at = NOW() WHERE id = $1`,
         [recordedEvent.id]
@@ -265,15 +295,19 @@ export async function refundPayment({
           WHERE id = $1`,
         [currentPayment.id, money(cumulativeRefund)]
       );
-      await client.query(
+      const refundedEarnings = await client.query(
         `UPDATE seller_earnings
             SET status = 'refunded', refunded_amount = LEAST(gross_amount, $3),
               net_amount = 0, refunded_at = COALESCE(refunded_at, NOW())
           WHERE order_id = $1
             AND product_id = $2
-            AND status IN ('pending', 'available', 'paid', 'refunded')`,
+            AND status IN ('pending', 'available', 'paid', 'refunded')
+          RETURNING id`,
         [current.id, current.product_id, money(cumulativeRefund)]
       );
+      for (const earning of refundedEarnings.rows) {
+        await recordSellerRefundRecovery(client, earning.id);
+      }
       await client.query(
         `UPDATE payment_events
             SET status = 'processed', processed_at = NOW()
@@ -312,6 +346,9 @@ export async function refundPayment({
         RETURNING id, seller_id, order_id, product_id, gross_amount, platform_fee, net_amount, currency, status, refunded_at`,
       [current.id, current.product_id, money(cumulativeRefund)]
     );
+    for (const earning of earnings.rows) {
+      await recordSellerRefundRecovery(client, earning.id);
+    }
 
     const updatedPayment = await client.query(
       `UPDATE payments
