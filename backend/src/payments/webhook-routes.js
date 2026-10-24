@@ -55,7 +55,6 @@ export function registerPaymentWebhookRoutes(
             providerPaymentId: payload.paymentId,
             orderId: payload.orderId,
             payloadHash,
-            refundMode: 'cumulative',
           });
           return res.status(200).json({ received: true, result });
         }
@@ -67,6 +66,7 @@ export function registerPaymentWebhookRoutes(
             providerPaymentId: payload.paymentId,
             orderId: payload.orderId,
             payloadHash,
+            refundMode: 'cumulative',
           });
           return res.status(200).json({ received: true, result });
         }
