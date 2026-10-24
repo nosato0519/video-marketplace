@@ -107,20 +107,19 @@ export function createApp() {
   registerMediaDownloadRoutes(app, { storage: mediaStorage });
 
   const paypalReturnHandler = createPayPalReturnHandler();
-  app.get('/pages/purchase-complete.html', paypalReturnHandler);
-  app.get('/pages/order-detail.html', paypalReturnHandler);
-  app.get('/pages/purchase-history.html', (req, res, next) => {
-    if (req.query?.session_id === 'paypal' && req.query?.orderId) return paypalReturnHandler(req, res, next);
+  app.use((req, res, next) => {
+    if (
+      req.query?.session_id === 'paypal' &&
+      req.query?.orderId &&
+      req.query?.token
+    ) {
+      return paypalReturnHandler(req, res, next);
+    }
     return next();
   });
 
   const publicRoot = path.resolve(process.cwd());
-  app.get('/', (req, res, next) => {
-    if (req.query?.session_id === 'paypal' && req.query?.orderId && req.query?.token) {
-      return paypalReturnHandler(req, res, next);
-    }
-    return res.sendFile(path.join(publicRoot, 'index.html'));
-  });
+  app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
   app.get('/styles.css', (_req, res) => res.sendFile(path.join(publicRoot, 'styles.css')));
   app.use('/pages', express.static(path.join(publicRoot, 'pages')));
   app.use('/seller', express.static(path.join(publicRoot, 'seller')));
