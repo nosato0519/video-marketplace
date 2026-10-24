@@ -47,6 +47,20 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
+    console.error('PayPal API request failed', {
+      path,
+      method,
+      status: response.status,
+      name: typeof payload.name === 'string' ? payload.name : undefined,
+      message: typeof payload.message === 'string' ? payload.message : undefined,
+      debugId: typeof payload.debug_id === 'string' ? payload.debug_id : undefined,
+      details: Array.isArray(payload.details)
+        ? payload.details.map((detail) => ({
+            issue: typeof detail?.issue === 'string' ? detail.issue : undefined,
+            description: typeof detail?.description === 'string' ? detail.description : undefined,
+          }))
+        : undefined,
+    });
     const error = new Error('paypal_api_request_failed');
     error.statusCode = response.status >= 500 ? 503 : 502;
     throw error;
