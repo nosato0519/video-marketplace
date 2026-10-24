@@ -237,10 +237,10 @@ export function createPayPalReturnHandler({
       if (!payment || !paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
-      if (payment.order_status === 'paid' && payment.payment_status === 'succeeded') {
-        return res.redirect(303, `/pages/library.html`);
-      }
-      if (payment.order_status !== 'pending' || payment.payment_status !== 'pending') {
+      const alreadySettled =
+        payment.order_status === 'paid' &&
+        payment.payment_status === 'succeeded';
+      if (!alreadySettled && (payment.order_status !== 'pending' || payment.payment_status !== 'pending')) {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
 
