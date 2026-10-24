@@ -109,6 +109,10 @@ export function createApp() {
   const paypalReturnHandler = createPayPalReturnHandler();
   app.get('/pages/purchase-complete.html', paypalReturnHandler);
   app.get('/pages/order-detail.html', paypalReturnHandler);
+  app.get('/pages/purchase-history.html', (req, res, next) => {
+    if (req.query?.session_id === 'paypal' && req.query?.orderId) return paypalReturnHandler(req, res, next);
+    return next();
+  });
 
   const publicRoot = path.resolve(process.cwd());
   app.get('/', (req, res, next) => {
