@@ -68,7 +68,7 @@ export function createApp() {
   const paypalReturnHandler = createPayPalReturnHandler();
   app.use((req, res, next) => {
     if (req.method !== 'GET') return next();
-    if ((req.query?.session_id === 'paypal' && req.query?.orderId) || req.query?.token) {
+    if (req.query?.session_id === 'paypal' || req.query?.token) {
       return paypalReturnHandler(req, res, next);
     }
     if (!req.query?.orderId) return next();
