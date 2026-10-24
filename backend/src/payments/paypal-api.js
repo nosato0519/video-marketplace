@@ -78,8 +78,8 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
       clientIdFingerprint: createHash('sha256').update(clientId).digest('hex').slice(0, 12),
       clientSecretLength: clientSecret.length,
       clientSecretFingerprint: createHash('sha256').update(clientSecret).digest('hex').slice(0, 12),
-      clientIdHasWhitespace: /\\s/.test(clientId),
-      clientSecretHasWhitespace: /\\s/.test(clientSecret),
+      clientIdHasWhitespace: /\s/.test(clientId),
+      clientSecretHasWhitespace: /\s/.test(clientSecret),
     });
     cachedToken = null;
     cachedTokenKey = null;
