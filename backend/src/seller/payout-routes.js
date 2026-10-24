@@ -85,10 +85,17 @@ router.get('/payouts', async (req, res, next) => {
       [req.user.id]
     );
     const recoveryDebts = await query(
-      `SELECT currency, COALESCE(SUM(amount_due - amount_recovered), 0) AS outstanding
-         FROM seller_earning_recoveries
-        WHERE seller_id = $1 AND amount_due > amount_recovered
-        GROUP BY currency`,
+      `SELECT r.currency, COALESCE(SUM(GREATEST(0, r.amount_due - r.amount_recovered - COALESCE(reserved.amount, 0))), 0) AS outstanding
+         FROM seller_earning_recoveries r
+         LEFT JOIN LATERAL (
+           SELECT SUM(o.amount) AS amount
+             FROM seller_earning_recovery_offsets o
+             JOIN payouts p ON p.id = o.payout_id
+            WHERE o.recovery_id = r.id
+              AND p.status IN ('requested','reviewing','approved','processing')
+         ) reserved ON TRUE
+        WHERE r.seller_id = $1 AND r.amount_due > r.amount_recovered
+        GROUP BY r.currency`,
       [req.user.id]
     );
 
@@ -181,9 +188,16 @@ router.post('/payouts', async (req, res, next) => {
       [req.user.id, currency]
     );
     const debtBalance = await client.query(
-      `SELECT COALESCE(SUM(amount_due - amount_recovered), 0) AS outstanding
-         FROM seller_earning_recoveries
-        WHERE seller_id = $1 AND currency = $2 AND amount_due > amount_recovered`,
+      `SELECT COALESCE(SUM(GREATEST(0, r.amount_due - r.amount_recovered - COALESCE(reserved.amount, 0))), 0) AS outstanding
+         FROM seller_earning_recoveries r
+         LEFT JOIN LATERAL (
+           SELECT SUM(o.amount) AS amount
+             FROM seller_earning_recovery_offsets o
+             JOIN payouts p ON p.id = o.payout_id
+            WHERE o.recovery_id = r.id
+              AND p.status IN ('requested','reviewing','approved','processing')
+         ) reserved ON TRUE
+        WHERE r.seller_id = $1 AND r.currency = $2 AND r.amount_due > r.amount_recovered`,
       [req.user.id, currency]
     );
     const available = Number(balance.rows[0]?.available || 0);
