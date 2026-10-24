@@ -108,6 +108,7 @@ export function createApp() {
 
   const paypalReturnHandler = createPayPalReturnHandler();
   app.get('/pages/purchase-complete.html', paypalReturnHandler);
+  app.get('/pages/order-detail.html', paypalReturnHandler);
 
   const publicRoot = path.resolve(process.cwd());
   app.get('/', (req, res, next) => {
