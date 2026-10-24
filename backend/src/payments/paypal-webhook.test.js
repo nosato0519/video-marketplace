@@ -234,3 +234,51 @@ test('PayPal return resolves a token-only callback and grants library access', a
   assert.equal(settled.checkoutSessionId, 'PAYPAL-ORDER-1');
   assert.equal(settled.providerPaymentId, 'PAYPAL-CAPTURE-1');
 });
+
+
+test('PayPal return repairs library access when payment is already settled', async () => {
+  let settlementCalled = false;
+  const handler = createPayPalReturnHandler({
+    findPayment: async () => ({ rows: [{
+      id: 'order-1',
+      order_status: 'paid',
+      payment_id: 'payment-1',
+      payment_status: 'succeeded',
+      amount: '12.50',
+      currency: 'USD',
+      checkout_session_id: 'PAYPAL-ORDER-1',
+    }] }),
+    apiRequest: async (path) => {
+      if (path === '/v2/checkout/orders/PAYPAL-ORDER-1/capture') {
+        throw new Error('paypal_api_request_failed');
+      }
+      if (path === '/v2/checkout/orders/PAYPAL-ORDER-1') {
+        return {
+          id: 'PAYPAL-ORDER-1',
+          status: 'COMPLETED',
+          purchase_units: [{
+            custom_id: 'order-1',
+            payments: { captures: [{
+              id: 'PAYPAL-CAPTURE-1',
+              status: 'COMPLETED',
+              amount: { value: '12.50', currency_code: 'USD' },
+            }] },
+          }],
+        };
+      }
+      throw new Error('unexpected_api_request');
+    },
+    recordPaymentEvent: async () => ({ duplicate: false }),
+    completePayment: async (input) => {
+      settlementCalled = true;
+      assert.equal(input.orderId, 'order-1');
+      return { duplicate: true, alreadyPaid: true };
+    },
+  });
+  const res = responseRecorder();
+  await handler({ query: { token: 'PAYPAL-ORDER-1' } }, res);
+
+  assert.equal(settlementCalled, true);
+  assert.equal(res.statusCode, 303);
+  assert.equal(res.redirectUrl, '/pages/library.html');
+});
