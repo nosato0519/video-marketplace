@@ -69,6 +69,11 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.access_token) {
+    console.error('PayPal OAuth token request failed', {
+      status: response.status,
+      error: typeof payload.error === 'string' ? payload.error : undefined,
+      errorDescription: typeof payload.error_description === 'string' ? payload.error_description : undefined,
+    });
     cachedToken = null;
     cachedTokenKey = null;
     tokenExpiresAt = 0;
