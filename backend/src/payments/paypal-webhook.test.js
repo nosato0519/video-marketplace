@@ -238,6 +238,7 @@ test('PayPal return resolves a token-only callback and grants library access', a
 
 test('PayPal return repairs library access when payment is already settled', async () => {
   let settlementCalled = false;
+  let libraryAccessRepaired = false;
   const handler = createPayPalReturnHandler({
     findPayment: async () => ({ rows: [{
       id: 'order-1',
@@ -269,6 +270,9 @@ test('PayPal return repairs library access when payment is already settled', asy
       throw new Error('unexpected_api_request');
     },
     recordPaymentEvent: async () => ({ duplicate: false }),
+    ensureLibraryAccess: async (orderId) => {
+      libraryAccessRepaired = orderId === 'order-1';
+    },
     completePayment: async (input) => {
       settlementCalled = true;
       assert.equal(input.orderId, 'order-1');
@@ -279,6 +283,7 @@ test('PayPal return repairs library access when payment is already settled', asy
   await handler({ query: { token: 'PAYPAL-ORDER-1' } }, res);
 
   assert.equal(settlementCalled, true);
+  assert.equal(libraryAccessRepaired, true);
   assert.equal(res.statusCode, 303);
   assert.equal(res.redirectUrl, '/pages/library.html');
 });
