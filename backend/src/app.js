@@ -67,16 +67,19 @@ export function createApp() {
 
   const paypalReturnHandler = createPayPalReturnHandler();
   app.use((req, res, next) => {
-    if (
-      req.method === 'GET' &&
-      (
-        (req.query?.session_id === 'paypal' && req.query?.orderId) ||
-        req.query?.token
-      )
-    ) {
+    if (req.method !== 'GET') return next();
+    if ((req.query?.session_id === 'paypal' && req.query?.orderId) || req.query?.token) {
       return paypalReturnHandler(req, res, next);
     }
-    return next();
+    if (!req.query?.orderId || req.query?.session_id) return next();
+
+    query(
+      "SELECT 1 FROM payments WHERE order_id = $1 AND provider = 'paypal' LIMIT 1",
+      [String(req.query.orderId)]
+    ).then((result) => {
+      if (result.rows.length > 0) return paypalReturnHandler(req, res, next);
+      return next();
+    }).catch(next);
   });
 
   app.get('/api/health', (_req, res) => {
