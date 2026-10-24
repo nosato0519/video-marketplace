@@ -110,7 +110,7 @@ export function createApp() {
   app.use((req, res, next) => {
     if (
       req.method === 'GET' &&
-      req.query?.session_id === 'paypal' &&
+      (req.query?.session_id === 'paypal' || req.query?.token) &&
       req.query?.orderId
     ) {
       return paypalReturnHandler(req, res, next);
