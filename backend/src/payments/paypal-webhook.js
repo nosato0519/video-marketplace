@@ -248,7 +248,11 @@ export function createPayPalReturnHandler({
       const alreadySettled =
         payment.order_status === 'paid' &&
         payment.payment_status === 'succeeded';
-      if (!alreadySettled && (payment.order_status !== 'pending' || payment.payment_status !== 'pending')) {
+      if (alreadySettled) {
+        await ensureLibraryAccess(orderId);
+        return res.redirect(303, '/pages/library.html');
+      }
+      if (payment.order_status !== 'pending' || payment.payment_status !== 'pending') {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
 
