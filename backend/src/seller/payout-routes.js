@@ -72,14 +72,14 @@ router.get('/payouts', async (req, res, next) => {
              JOIN seller_earnings e ON e.id = a.seller_earning_id
             WHERE e.seller_id = $1
               AND e.status = 'available'
-              AND p.status NOT IN ('failed','cancelled')
+              AND p.status <> 'cancelled'
            UNION ALL
            SELECT e.currency, o.amount AS reserved_amount
              FROM seller_earning_recovery_offsets o
              JOIN payouts op ON op.id = o.payout_id
              JOIN seller_earnings e ON e.id = o.seller_earning_id
             WHERE e.seller_id = $1 AND e.status = 'available'
-              AND op.status NOT IN ('failed','cancelled')
+              AND op.status <> 'cancelled'
          ) reservations
         GROUP BY currency`,
       [req.user.id]
@@ -92,7 +92,7 @@ router.get('/payouts', async (req, res, next) => {
              FROM seller_earning_recovery_offsets o
              JOIN payouts p ON p.id = o.payout_id
             WHERE o.recovery_id = r.id
-              AND p.status IN ('requested','reviewing','approved','processing')
+              AND p.status IN ('requested','reviewing','approved','processing','failed')
          ) reserved ON TRUE
         WHERE r.seller_id = $1 AND r.amount_due > r.amount_recovered
         GROUP BY r.currency`,
@@ -175,7 +175,7 @@ router.post('/payouts', async (req, res, next) => {
          JOIN seller_earnings e ON e.id = a.seller_earning_id
         WHERE e.seller_id = $1 AND e.currency = $2
           AND e.status = 'available'
-          AND p.status NOT IN ('failed','cancelled')`,
+          AND p.status <> 'cancelled'`,
       [req.user.id, currency]
     );
     const offsetBalance = await client.query(
@@ -184,7 +184,7 @@ router.post('/payouts', async (req, res, next) => {
          JOIN payouts op ON op.id = o.payout_id
          JOIN seller_earnings e ON e.id = o.seller_earning_id
         WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'
-          AND op.status NOT IN ('failed','cancelled')`,
+          AND op.status <> 'cancelled'`,
       [req.user.id, currency]
     );
     const debtBalance = await client.query(
@@ -195,7 +195,7 @@ router.post('/payouts', async (req, res, next) => {
              FROM seller_earning_recovery_offsets o
              JOIN payouts p ON p.id = o.payout_id
             WHERE o.recovery_id = r.id
-              AND p.status IN ('requested','reviewing','approved','processing')
+              AND p.status IN ('requested','reviewing','approved','processing','failed')
          ) reserved ON TRUE
         WHERE r.seller_id = $1 AND r.currency = $2 AND r.amount_due > r.amount_recovered`,
       [req.user.id, currency]
@@ -239,14 +239,14 @@ router.post('/payouts', async (req, res, next) => {
              FROM payout_earnings_allocations a
              JOIN payouts p ON p.id = a.payout_id
             WHERE a.seller_earning_id = e.id
-              AND p.status NOT IN ('failed','cancelled')
+              AND p.status <> 'cancelled'
          ) alloc ON TRUE
          LEFT JOIN LATERAL (
            SELECT SUM(o.amount) AS total
              FROM seller_earning_recovery_offsets o
              JOIN payouts op ON op.id = o.payout_id
             WHERE o.seller_earning_id = e.id
-              AND op.status NOT IN ('failed','cancelled')
+              AND op.status <> 'cancelled'
          ) offsets ON TRUE
         WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'
         ORDER BY e.created_at ASC, e.id ASC`,
@@ -273,7 +273,7 @@ router.post('/payouts', async (req, res, next) => {
              FROM seller_earning_recovery_offsets o
              JOIN payouts p ON p.id = o.payout_id
             WHERE o.recovery_id = r.id
-              AND p.status IN ('requested','reviewing','approved','processing')
+              AND p.status IN ('requested','reviewing','approved','processing','failed')
          ) reserved ON TRUE
         WHERE r.seller_id = $1 AND r.currency = $2 AND r.amount_due > r.amount_recovered
         ORDER BY r.created_at ASC, r.id ASC
