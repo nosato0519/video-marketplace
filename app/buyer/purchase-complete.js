@@ -50,14 +50,27 @@ try {
   let libraryResult;
   let order;
 
-  for (let attempt = 0; attempt < (waitForWebhook ? 10 : 1); attempt += 1) {
+  const maxAttempts = waitForWebhook ? 30 : 1;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     [ordersResult, libraryResult] = await Promise.all([libraryApi.orders(), libraryApi.list()]);
     const orders = ordersResult.items || [];
     order = requestedId
       ? orders.find((item) => String(item.orderId) === requestedId)
       : null;
+    const libraryItems = libraryResult.items || [];
+    const hasLibraryAccess = Boolean(order && libraryItems.some(
+      (item) => String(item.product_id) === String(order.productId)
+    ));
 
-    if (!waitForWebhook || (order && order.status !== "pending") || attempt === 9) break;
+    // The order and library requests can observe different sides of the
+    // payment transaction. Keep polling until the paid order's entitlement
+    // is visible too, rather than stopping as soon as the order says "paid".
+    if (
+      !waitForWebhook ||
+      (order && ["cancelled", "failed", "refunded"].includes(order.status)) ||
+      (order && order.status === "paid" && hasLibraryAccess) ||
+      attempt === maxAttempts - 1
+    ) break;
     await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 
