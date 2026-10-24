@@ -71,7 +71,7 @@ export function createApp() {
     if ((req.query?.session_id === 'paypal' && req.query?.orderId) || req.query?.token) {
       return paypalReturnHandler(req, res, next);
     }
-    if (!req.query?.orderId || req.query?.session_id) return next();
+    if (!req.query?.orderId) return next();
 
     query(
       "SELECT 1 FROM payments WHERE order_id = $1 AND provider = 'paypal' LIMIT 1",
