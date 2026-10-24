@@ -76,8 +76,10 @@ router.get('/payouts', async (req, res, next) => {
            UNION ALL
            SELECT e.currency, o.amount AS reserved_amount
              FROM seller_earning_recovery_offsets o
+             JOIN payouts op ON op.id = o.payout_id
              JOIN seller_earnings e ON e.id = o.seller_earning_id
             WHERE e.seller_id = $1 AND e.status = 'available'
+              AND op.status NOT IN ('failed','cancelled')
          ) reservations
         GROUP BY currency`,
       [req.user.id]
@@ -172,8 +174,10 @@ router.post('/payouts', async (req, res, next) => {
     const offsetBalance = await client.query(
       `SELECT COALESCE(SUM(o.amount), 0) AS offset_amount
          FROM seller_earning_recovery_offsets o
+         JOIN payouts op ON op.id = o.payout_id
          JOIN seller_earnings e ON e.id = o.seller_earning_id
-        WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'`,
+        WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'
+          AND op.status NOT IN ('failed','cancelled')`,
       [req.user.id, currency]
     );
     const debtBalance = await client.query(
@@ -226,7 +230,9 @@ router.post('/payouts', async (req, res, next) => {
          LEFT JOIN LATERAL (
            SELECT SUM(o.amount) AS total
              FROM seller_earning_recovery_offsets o
+             JOIN payouts op ON op.id = o.payout_id
             WHERE o.seller_earning_id = e.id
+              AND op.status NOT IN ('failed','cancelled')
          ) offsets ON TRUE
         WHERE e.seller_id = $1 AND e.currency = $2 AND e.status = 'available'
         ORDER BY e.created_at ASC, e.id ASC`,
@@ -264,12 +270,6 @@ router.post('/payouts', async (req, res, next) => {
              (recovery_id, seller_earning_id, payout_id, amount)
            VALUES ($1, $2, $3, $4)`,
           [recovery.id, earning.id, payoutId, offset]
-        );
-        await client.query(
-          `UPDATE seller_earning_recoveries
-              SET amount_recovered = amount_recovered + $2, updated_at = NOW()
-            WHERE id = $1`,
-          [recovery.id, offset]
         );
         remainingByEarning.set(earning.id, availableForOffset - offset);
         debtRemaining -= offset;
