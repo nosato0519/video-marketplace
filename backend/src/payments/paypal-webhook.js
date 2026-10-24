@@ -212,8 +212,9 @@ export function createPayPalReturnHandler({
   completePayment = defaultCompletePayment,
 } = {}) {
   return async function handlePayPalReturn(req, res) {
-    const orderId = String(req.query?.orderId || '');
-    if (!orderId) {
+    const requestedOrderId = String(req.query?.orderId || '');
+    const returnedPayPalOrderId = String(req.query?.token || '');
+    if (!requestedOrderId && !returnedPayPalOrderId) {
       return res.redirect(303, '/pages/purchase-history.html?payment=processing');
     }
 
@@ -224,12 +225,14 @@ export function createPayPalReturnHandler({
                 p.checkout_session_id
            FROM orders o
            JOIN payments p ON p.order_id = o.id AND p.provider = 'paypal'
-          WHERE o.id = $1
+          WHERE ($1 <> '' AND o.id = $1)
+             OR ($2 <> '' AND p.checkout_session_id = $2)
           LIMIT 1`,
-        [orderId]
+        [requestedOrderId, returnedPayPalOrderId]
       );
       const payment = stored.rows[0];
-      const paypalOrderId = String(req.query?.token || payment?.checkout_session_id || '');
+      const orderId = String(payment?.id || requestedOrderId);
+      const paypalOrderId = String(returnedPayPalOrderId || payment?.checkout_session_id || '');
       if (!payment || !paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
