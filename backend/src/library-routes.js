@@ -4,6 +4,49 @@ import { query } from './db.js';
 export function registerLibraryRoutes(app) {
   app.get('/api/library', requireAuth, async (req, res, next) => {
     try {
+      // Remove stale active grants left attached to orders that are no longer paid.
+      // Otherwise the partial unique user/product index can block a new paid order's grant.
+      await query(
+        `UPDATE entitlements e
+            SET status = 'revoked', revoked_at = COALESCE(e.revoked_at, NOW())
+          WHERE e.user_id = $1
+            AND e.status = 'active'
+            AND NOT EXISTS (
+              SELECT 1
+                FROM orders o
+               WHERE o.id = e.order_id
+                 AND o.buyer_id = e.user_id
+                 AND o.product_id = e.product_id
+                 AND o.status = 'paid'
+            )`,
+        [req.user.id]
+      );
+
+      // Restore a missing/revoked grant for a paid order if no valid grant exists.
+      await query(
+        `UPDATE entitlements e
+            SET status = 'active', revoked_at = NULL
+          WHERE e.user_id = $1
+            AND e.status = 'revoked'
+            AND EXISTS (
+              SELECT 1
+                FROM orders o
+               WHERE o.id = e.order_id
+                 AND o.buyer_id = e.user_id
+                 AND o.product_id = e.product_id
+                 AND o.status = 'paid'
+            )
+            AND NOT EXISTS (
+              SELECT 1
+                FROM entitlements active
+               WHERE active.user_id = e.user_id
+                 AND active.product_id = e.product_id
+                 AND active.status = 'active'
+            )`,
+        [req.user.id]
+      );
+
+      // Backfill grants only when the paid order has no entitlement row yet.
       await query(
         `INSERT INTO entitlements (user_id, product_id, order_id)
          SELECT o.buyer_id, o.product_id, o.id
