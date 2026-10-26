@@ -42,7 +42,7 @@ export function checkoutError(error) {
   if (error.message.startsWith('payment_provider_not_configured:')) {
     return { status: 503, body: { error: { code: 'PAYMENT_PROVIDER_NOT_CONFIGURED', message: 'The payment provider credentials are not configured on the server' } } };
   }
-  if (error.message === 'stripe_redirect_urls_not_configured') {
+  if (['stripe_redirect_urls_not_configured', 'paypal_redirect_urls_not_configured'].includes(error.message)) {
     return { status: 503, body: { error: { code: 'PAYMENT_REDIRECT_URLS_NOT_CONFIGURED', message: 'The payment success and cancel URLs are not configured' } } };
   }
   if (['stripe_redirect_url_invalid', 'stripe_redirect_url_must_be_https', 'stripe_success_url_must_not_include_checkout_parameters'].includes(error.message)) {
