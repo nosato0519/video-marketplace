@@ -5,10 +5,12 @@ const SECRET_ENV_BY_PROVIDER = Object.freeze({
   paypal: 'PAYPAL_CLIENT_SECRET',
 });
 
-function isSecureHttpsUrl(value) {
+function isSecureHttpsUrl(value, { success = false } = {}) {
   try {
     const url = new URL(String(value || ''));
-    return url.protocol === 'https:' && !url.username && !url.password;
+    if (url.protocol !== 'https:' || url.username || url.password) return false;
+    if (success && (url.searchParams.has('orderId') || url.searchParams.has('session_id'))) return false;
+    return true;
   } catch {
     return false;
   }
@@ -47,14 +49,14 @@ export function getMissingPaymentProviderEnvironmentVariables(providerId) {
         ['PAYPAL_CLIENT_ID', Boolean(process.env.PAYPAL_CLIENT_ID?.trim())],
         ['PAYPAL_CLIENT_SECRET', Boolean(process.env.PAYPAL_CLIENT_SECRET?.trim())],
         ['PAYPAL_WEBHOOK_ID', Boolean(process.env.PAYPAL_WEBHOOK_ID?.trim())],
-        ['PAYPAL_SUCCESS_URL', isSecureHttpsUrl(process.env.PAYPAL_SUCCESS_URL)],
+        ['PAYPAL_SUCCESS_URL', isSecureHttpsUrl(process.env.PAYPAL_SUCCESS_URL, { success: true })],
         ['PAYPAL_CANCEL_URL', isSecureHttpsUrl(process.env.PAYPAL_CANCEL_URL)],
       ]
     : providerId === 'stripe'
       ? [
           ['STRIPE_SECRET_KEY', Boolean(process.env.STRIPE_SECRET_KEY?.trim())],
           ['STRIPE_WEBHOOK_SECRET', Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim())],
-          ['STRIPE_SUCCESS_URL', isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL)],
+          ['STRIPE_SUCCESS_URL', isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL, { success: true })],
           ['STRIPE_CANCEL_URL', isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)],
         ]
       : [];
