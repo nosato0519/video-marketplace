@@ -80,7 +80,7 @@ S3 access key はサーバー側専用で、Storage の操作権限が広く RLS
 
 ## 4. 決済サービスを接続する
 
-実決済を有効にするには、運営者が決済事業者と契約し、バックエンドAPIの環境変数とWebhookを設定します。このバージョンで実決済接続に対応しているのはStripeです。
+実決済を有効にするには、運営者が決済事業者と契約し、バックエンドAPIの環境変数とWebhookを設定します。このバージョンはStripeとPayPal Checkoutに対応しています。運営者は「運営設定 → 販売・決済設定」で利用する決済方法を切り替えられます。APIキーやWebhookなどの接続情報はバックエンド環境変数に設定してください。
 
 1. Stripeアカウントを作成し、まずテストモードのAPIキーを取得します。
 2. APIサービスの環境変数に `PAYMENT_PROVIDER=stripe`、`STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`STRIPE_SUCCESS_URL`、`STRIPE_CANCEL_URL` を登録します。
