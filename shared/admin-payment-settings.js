@@ -30,7 +30,7 @@
       const checkbox = checks.find((input) => input.value === provider.id);
       if (checkbox) {
         checkbox.checked = Boolean(provider.enabled);
-        checkbox.disabled = !provider.configured;
+        checkbox.disabled = !provider.configured && !provider.enabled;
       }
     }
   }
@@ -52,6 +52,15 @@
       saveButton.disabled = false;
     }
   }
+
+  checks.forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.dataset.configured !== 'true' && input.checked) {
+        input.checked = false;
+      }
+      input.disabled = input.dataset.configured !== 'true' && !input.checked;
+    });
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -84,7 +93,7 @@
       checks.forEach((input) => {
         const provider = input.value;
         const target = providerStatus[provider];
-        input.disabled = target?.dataset.configured !== 'true';
+        input.disabled = target?.dataset.configured !== 'true' && !input.checked;
       });
       saveButton.disabled = false;
     }
