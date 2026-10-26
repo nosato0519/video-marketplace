@@ -8,6 +8,43 @@ router.use(requireAuth, requireRole('admin'));
 
 const ALLOWED_METHODS = new Set(['none', 'email', 'document']);
 
+const HOMEPAGE_SECTIONS_KEY = 'homepage_sections';
+
+router.get('/settings/homepage', async (_req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+      [HOMEPAGE_SECTIONS_KEY]
+    );
+    return res.json({ sections: result.rows[0]?.setting_value?.value ?? null });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.put('/settings/homepage', async (req, res, next) => {
+  try {
+    const sections = req.body?.sections;
+    if (!Array.isArray(sections) || sections.length > 100 ||
+        sections.some((item) => !item || typeof item !== 'object' ||
+          typeof item.id !== 'string' || typeof item.type !== 'string' ||
+          typeof item.label !== 'string' || typeof item.hidden !== 'boolean')) {
+      return res.status(400).json({ error: 'invalid_homepage_sections' });
+    }
+    await query(
+      `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (setting_key)
+       DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+      [HOMEPAGE_SECTIONS_KEY, JSON.stringify({ value: sections })]
+    );
+    return res.json({ sections });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+
 router.get('/settings/seller-verification', async (_req, res, next) => {
   try {
     const result = await query(
