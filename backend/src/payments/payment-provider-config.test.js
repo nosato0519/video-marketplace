@@ -30,6 +30,12 @@ test('reports provider credential readiness separately from enabled selection', 
     delete process.env.PAYMENT_PROVIDER;
     delete process.env.PAYMENT_PROVIDERS_ENABLED;
     assert.equal(getConfigurablePaymentProviders()[0].configured, true);
+    process.env.STRIPE_SUCCESS_URL = 'https://example.com/success?session_id=placeholder';
+    assert.ok(getConfigurablePaymentProviders().find((provider) => provider.id === 'stripe').missingEnvironmentVariables.includes('STRIPE_SUCCESS_URL'));
+    process.env.STRIPE_SUCCESS_URL = 'https://example.com/success';
+    process.env.PAYPAL_SUCCESS_URL = 'https://example.com/success?orderId=placeholder';
+    assert.ok(getConfigurablePaymentProviders().find((provider) => provider.id === 'paypal').missingEnvironmentVariables.includes('PAYPAL_SUCCESS_URL'));
+    process.env.PAYPAL_SUCCESS_URL = 'https://example.com/success';
     process.env.PAYMENT_PROVIDER = 'stripe';
     assert.equal(getConfigurablePaymentProviders()[0].configured, true);
     process.env.PAYMENT_PROVIDERS_ENABLED = 'paypal';
