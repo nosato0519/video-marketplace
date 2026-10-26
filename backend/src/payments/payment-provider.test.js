@@ -336,9 +336,9 @@ test('PayPal return URL always targets the application root with clean callback 
     const checkoutRequest = requests.find((request) => request.url.endsWith('/v2/checkout/orders'));
     const payload = JSON.parse(checkoutRequest.options.body);
     const returnUrl = new URL(payload.payment_source.paypal.experience_context.return_url);
-    assert.equal(returnUrl.pathname, '/');
+    assert.equal(returnUrl.pathname, '/api/payments/paypal/return');
     assert.equal(returnUrl.searchParams.get('orderId'), 'app-order-1');
-    assert.equal(returnUrl.searchParams.get('session_id'), 'paypal');
+    assert.equal(returnUrl.searchParams.has('session_id'), false);
     assert.equal(returnUrl.searchParams.has('old'), false);
     assert.equal(returnUrl.hash, '');
   } finally {
