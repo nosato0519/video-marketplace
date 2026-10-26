@@ -270,6 +270,54 @@
           originals[item.id] = section;
         }
         section.hidden = item.hidden === true;
+        const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
+        if (typeof sectionContent.title === "string" && sectionContent.title.trim()) {
+          const heading = section.querySelector(".section-head h2, .hero-copy h1, .spotlight-copy h2, .finder h2, .library-copy h2, .creator-copy h2, .cta h2, h1, h2");
+          if (heading) {
+            heading.textContent = sectionContent.title.trim();
+            heading.style.whiteSpace = "pre-line";
+          }
+        }
+        if (typeof sectionContent.subtitle === "string" && sectionContent.subtitle.trim()) {
+          const description = section.querySelector(".section-head p, .hero-copy > p, .video-showcase-copy, .collection-copy, .spotlight-copy > p, .finder > div > p, .library-copy > p, .creator-copy > p, .cta > p");
+          if (description) description.textContent = sectionContent.subtitle.trim();
+        }
+        if (typeof sectionContent.button === "string" && sectionContent.button.trim()) {
+          const button = section.querySelector(".actions a.primary, .section-head > a, .spotlight-copy > a, .find-row a, .library-copy > a, .creator-copy > a, .cta a.primary");
+          if (button) button.textContent = sectionContent.button.trim();
+        }
+        if (typeof sectionContent.link === "string" && sectionContent.link.trim()) {
+          const button = section.querySelector(".actions a.primary, .section-head > a, .spotlight-copy > a, .find-row a, .library-copy > a, .creator-copy > a, .cta a.primary");
+          if (button) {
+            try {
+              const target = new URL(sectionContent.link.trim(), window.location.origin);
+              if (target.origin === window.location.origin) button.href = target.pathname + target.search + target.hash;
+            } catch (_) {}
+          }
+        }
+        if (typeof sectionContent.image === "string" && sectionContent.image.trim() && item.type === "hero") {
+          const background = section.querySelector(".hero-bg");
+          if (background) {
+            try {
+              const target = new URL(sectionContent.image.trim(), window.location.origin);
+              if (target.origin === window.location.origin || ["https:", "http:"].includes(target.protocol)) {
+                background.style.backgroundImage = 'url("' + target.href.replace(/["\\\\]/g, "") + '")';
+              }
+            } catch (_) {}
+          }
+        }
+        const theme = data.themes && data.themes[item.id];
+        if (theme && typeof theme === "object") {
+          if (typeof theme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(theme.bg)) section.style.backgroundColor = theme.bg;
+          if (typeof theme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(theme.text)) section.style.color = theme.text;
+          if (typeof theme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(theme.accent)) section.style.setProperty("--section-accent", theme.accent);
+          if (typeof theme.radius === "string") section.style.borderRadius = theme.radius === "square" ? "0" : "16px";
+          if (typeof theme.spacing === "string") section.style.paddingBlock = theme.spacing === "compact" ? "18px" : theme.spacing === "large" ? "64px" : "36px";
+          if (typeof theme.width === "string") {
+            section.style.maxWidth = theme.width === "narrow" ? "900px" : theme.width === "wide" ? "none" : "";
+            if (theme.width === "narrow") section.style.marginInline = "auto";
+          }
+        }
         ordered.push(section);
       });
       ordered.forEach(function (section) { main.appendChild(section); });
