@@ -66,21 +66,7 @@ export function createApp() {
   app.use(loadSessionUser);
 
   const paypalReturnHandler = createPayPalReturnHandler();
-  app.use((req, res, next) => {
-    if (req.method !== 'GET') return next();
-    if (req.query?.session_id === 'paypal' || req.query?.token) {
-      return paypalReturnHandler(req, res, next);
-    }
-    if (!req.query?.orderId) return next();
-
-    query(
-      "SELECT 1 FROM payments WHERE order_id = $1 AND provider = 'paypal' LIMIT 1",
-      [String(req.query.orderId)]
-    ).then((result) => {
-      if (result.rows.length > 0) return paypalReturnHandler(req, res, next);
-      return next();
-    }).catch(next);
-  });
+  app.get('/api/payments/paypal/return', paypalReturnHandler);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
