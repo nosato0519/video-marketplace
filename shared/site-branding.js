@@ -219,31 +219,6 @@
         // Keep the save handler available so it can show a useful error if the API is unavailable.
       }
 
-      document.addEventListener("click", function (event) {
-        const button = event.target.closest("#landing-save-page, #landing-add-section, #landing-section-list button");
-        if (!button) return;
-        Promise.resolve().then(async function () {
-          try {
-            const sections = JSON.parse(localStorage.getItem("vm-demo-homepage-sections") || "null");
-            if (!Array.isArray(sections)) return;
-            const response = await fetch("/api/admin/settings/homepage", {
-              method: "PUT",
-              credentials: "same-origin",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ sections: sections })
-            });
-            const status = document.getElementById("landing-status");
-            if (!response.ok) {
-              if (status) status.textContent = "本番サイトへの保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
-              return;
-            }
-            if (status) status.textContent = "ページ設定を保存し、本番サイトに反映しました。";
-          } catch (_) {
-            const status = document.getElementById("landing-status");
-            if (status) status.textContent = "本番サイトへの保存に失敗しました。通信状態を確認してください。";
-          }
-        });
-      });
       return;
     }
 
