@@ -14,6 +14,18 @@ function isSecureHttpsUrl(value) {
   }
 }
 
+import { query } from '../db.js';
+
+export async function loadStoredPaymentProviderSelection() {
+  const result = await query(
+    "SELECT setting_value FROM platform_settings WHERE setting_key = 'payment_providers_enabled' LIMIT 1"
+  );
+  const stored = result.rows[0]?.setting_value?.value;
+  if (typeof stored === 'string' && stored.trim()) {
+    process.env.PAYMENT_PROVIDERS_ENABLED = stored;
+  }
+}
+
 export function getEnabledPaymentProviderIds() {
   const configured = process.env.PAYMENT_PROVIDERS_ENABLED;
   const providerIds = (configured ? configured.split(',') : [process.env.PAYMENT_PROVIDER || ''])
@@ -61,7 +73,7 @@ export function getConfigurablePaymentProviders() {
       currencies: Array.isArray(config.currencies) ? [...config.currencies] : config.currencies,
       status: config.status,
       enabled: enabledIds.includes(config.id),
-      configured: enabledIds.includes(config.id) && hasProviderCredentials(config.id),
+      configured: hasProviderCredentials(config.id),
       secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
     }));
 }
