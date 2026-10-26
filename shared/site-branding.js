@@ -252,6 +252,11 @@
       if (!response.ok) return;
       const data = await response.json();
       if (!Array.isArray(data.sections)) return;
+      const main = document.querySelector("main");
+      main.querySelectorAll("[data-vm-section-id][data-vm-section-type]").forEach(function (element) {
+        if (element.dataset.vmSectionId !== element.dataset.vmSectionType) element.remove();
+        else element.hidden = false;
+      });
       const definitions = [
         { key: "hero", selector: ".hero" },
         { key: "video-showcase", selector: ".video-showcase" },
@@ -269,7 +274,6 @@
         { key: "creators", selector: "#creators" },
         { key: "cta", selector: ".cta" }
       ];
-      const main = document.querySelector("main");
       const originals = {};
       definitions.forEach(function (definition) {
         const element = document.querySelector(definition.selector);
