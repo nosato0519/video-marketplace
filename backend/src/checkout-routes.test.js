@@ -50,6 +50,19 @@ test('rejects a payment method that is not enabled for the site', () => {
   });
 });
 
+
+test('maps missing PayPal redirect URLs to a configuration response', () => {
+  assert.deepEqual(checkoutError(new Error('paypal_redirect_urls_not_configured')), {
+    status: 503,
+    body: {
+      error: {
+        code: 'PAYMENT_REDIRECT_URLS_NOT_CONFIGURED',
+        message: 'The payment success and cancel URLs are not configured',
+      },
+    },
+  });
+});
+
 test('leaves unknown checkout errors to the shared error handler', () => {
   assert.equal(checkoutError(new Error('unexpected_database_error')), null);
 });
