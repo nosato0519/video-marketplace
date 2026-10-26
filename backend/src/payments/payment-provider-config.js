@@ -41,25 +41,29 @@ export function isPaymentProviderEnabled(providerId) {
   return getEnabledPaymentProviderIds().includes(providerId);
 }
 
+export function getMissingPaymentProviderEnvironmentVariables(providerId) {
+  const required = providerId === 'paypal'
+    ? [
+        ['PAYPAL_CLIENT_ID', Boolean(process.env.PAYPAL_CLIENT_ID?.trim())],
+        ['PAYPAL_CLIENT_SECRET', Boolean(process.env.PAYPAL_CLIENT_SECRET?.trim())],
+        ['PAYPAL_WEBHOOK_ID', Boolean(process.env.PAYPAL_WEBHOOK_ID?.trim())],
+        ['PAYPAL_SUCCESS_URL', isSecureHttpsUrl(process.env.PAYPAL_SUCCESS_URL)],
+        ['PAYPAL_CANCEL_URL', isSecureHttpsUrl(process.env.PAYPAL_CANCEL_URL)],
+      ]
+    : providerId === 'stripe'
+      ? [
+          ['STRIPE_SECRET_KEY', Boolean(process.env.STRIPE_SECRET_KEY?.trim())],
+          ['STRIPE_WEBHOOK_SECRET', Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim())],
+          ['STRIPE_SUCCESS_URL', isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL)],
+          ['STRIPE_CANCEL_URL', isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)],
+        ]
+      : [];
+
+  return required.filter(([, configured]) => !configured).map(([name]) => name);
+}
+
 function hasProviderCredentials(providerId) {
-  if (providerId === 'paypal') {
-    return Boolean(
-      process.env.PAYPAL_CLIENT_ID?.trim() &&
-      process.env.PAYPAL_CLIENT_SECRET?.trim() &&
-      process.env.PAYPAL_WEBHOOK_ID?.trim() &&
-      isSecureHttpsUrl(process.env.PAYPAL_SUCCESS_URL) &&
-      isSecureHttpsUrl(process.env.PAYPAL_CANCEL_URL)
-    );
-  }
-  if (providerId === 'stripe') {
-    return Boolean(
-      process.env.STRIPE_SECRET_KEY?.trim() &&
-      process.env.STRIPE_WEBHOOK_SECRET?.trim() &&
-      isSecureHttpsUrl(process.env.STRIPE_SUCCESS_URL) &&
-      isSecureHttpsUrl(process.env.STRIPE_CANCEL_URL)
-    );
-  }
-  return false;
+  return getMissingPaymentProviderEnvironmentVariables(providerId).length === 0;
 }
 
 export function getConfigurablePaymentProviders() {
