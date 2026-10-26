@@ -72,10 +72,21 @@ export function createApp() {
   app.get('/api/site/homepage-settings', async (_req, res) => {
     try {
       const result = await query(
-        "SELECT setting_value FROM platform_settings WHERE setting_key = 'homepage_sections' LIMIT 1"
+        "SELECT setting_key, setting_value FROM platform_settings WHERE setting_key IN ('homepage_sections', 'page_editor_config')"
       );
+      const settings = Object.fromEntries(result.rows.map((row) => [row.setting_key, row.setting_value]));
+      const editorEntries = settings.page_editor_config?.value?.entries;
+      let editorSections = null;
+      try {
+        const raw = editorEntries?.['vm-demo-page-sections-top'] || editorEntries?.['vm-demo-homepage-sections'];
+        if (typeof raw === 'string') editorSections = JSON.parse(raw);
+      } catch (_) {}
       res.set('Cache-Control', 'no-store');
-      return res.json({ sections: result.rows[0]?.setting_value?.value ?? null });
+      return res.json({
+        sections: Array.isArray(editorSections) && editorSections.length
+          ? editorSections
+          : settings.homepage_sections?.value ?? null
+      });
     } catch (error) {
       console.error('Loading homepage settings failed', error);
       return res.status(500).json({ error: 'homepage_settings_unavailable' });
