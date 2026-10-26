@@ -222,6 +222,28 @@ const sectionOptions={
 };
 let editingSectionIndex=null;
 let pages=[],editingId=null,sectionState=[];
+async function persistEditorSettings(){
+const entries={};
+for(let i=0;i<localStorage.length;i++){
+const key=localStorage.key(i);
+if(key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||/^vm-demo-page-(sections|theme|meta|design)-[a-zA-Z0-9_-]+$/.test(key)){
+const value=localStorage.getItem(key);
+if(value!==null)entries[key]=value;
+}
+}
+const response=await fetch('/api/admin/settings/page-editor',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({entries})});
+if(!response.ok)throw new Error('page_editor_save_failed');
+return true;
+}
+async function loadServerEditorSettings(){
+try{
+const response=await fetch('/api/admin/settings/page-editor',{credentials:'same-origin',cache:'no-store'});
+if(!response.ok)return;
+const data=await response.json();
+if(!data.entries||typeof data.entries!=='object')return;
+Object.entries(data.entries).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});
+}catch(error){console.error('Loading page editor settings failed',error);}
+}
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
 function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();render();}
@@ -472,7 +494,7 @@ const data={name,url,status:statusInput.value,parent:parentInput.value};const wa
 if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
 sectionState.forEach((item,i)=>item.order=i);
 try{if(wasNew){sectionState.forEach(item=>{const draftThemeKey=THEME_PREFIX+'new-'+item.id;const draftTheme=localStorage.getItem(draftThemeKey);if(draftTheme){localStorage.setItem(THEME_PREFIX+pageId+'-'+item.id,draftTheme);localStorage.removeItem(draftThemeKey);}});}localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}savePageEditorMetadata(pageId);}catch(e){editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';return;}
-const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
+const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='サーバーに保存しています…';persistEditorSettings().then(()=>{if(pageId==='top'){return fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections:sectionState})}).then(response=>{if(!response.ok)throw new Error('homepage_save_failed');});}}).then(()=>{editorStatus.textContent='ページ設定をサーバーに保存しました。公開ページの設定に反映されます。';}).catch(()=>{editorStatus.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';});}
 document.getElementById('new-page').addEventListener('click',newPage);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').textContent='下書き保存';
@@ -488,7 +510,7 @@ document.getElementById('homepage-add-section').addEventListener('click',()=>{co
 function saveLandingSections(nextItems){
 const target=document.getElementById('landing-status');
 const items=Array.isArray(nextItems)?nextItems:readLandingSections();items.forEach((item,i)=>item.order=i);
-try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));if(target)target.textContent='ページ設定を保存しました。';renderLandingSections();return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
+try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));if(target)target.textContent='サーバーに保存しています…';renderLandingSections();persistEditorSettings().then(()=>fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections:items})})).then(response=>{if(!response.ok)throw new Error('homepage_save_failed');if(target)target.textContent='ページ設定をサーバーに保存し、公開ページの設定に反映しました。';}).catch(()=>{if(target)target.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';});return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
 }
 function readLandingSections(){try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');return normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);}catch(e){return defaultSections();}}
 document.getElementById('landing-add-section').addEventListener('click',()=>{
@@ -500,7 +522,7 @@ saveLandingSections(items);const status=document.getElementById('landing-status'
 document.getElementById('landing-save-page').addEventListener('click',saveLandingSections);
 document.getElementById('landing-cancel-page').addEventListener('click',()=>{renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='保存済みの設定を再読み込みしました。';});
 function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
-load();renderLandingSections();
+loadServerEditorSettings().finally(()=>{load();renderLandingSections();});
 })();
 </script>
 <script>
