@@ -42,6 +42,7 @@ export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
         name: provider.name,
         enabled: enabledIds.includes(provider.id),
         configured: provider.configured,
+        missingEnvironmentVariables: provider.missingEnvironmentVariables,
       }));
       res.json({ providers });
     } catch (error) {
@@ -76,7 +77,10 @@ export function registerPaymentProviderRoutes(app, { requireAdmin } = {}) {
         return res.status(409).json({
           error: 'payment_provider_credentials_missing',
           providers: unavailable,
-          message: 'Configure the provider credentials and webhook URLs in the server environment before enabling it.',
+          message: `有効化できません。サーバー環境変数を設定してください：${unavailable.map((id) => {
+            const provider = providerStatus.find((item) => item.id === id);
+            return `${id}: ${provider?.missingEnvironmentVariables?.join(', ') || '設定を確認してください'}`;
+          }).join(' / ')}`,
         });
       }
 
