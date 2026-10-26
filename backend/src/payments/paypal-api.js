@@ -48,7 +48,7 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
   };
   if (requestId) headers['PayPal-Request-Id'] = createHash('sha256').update(String(requestId)).digest('hex').slice(0, 32);
 
-  const response = await fetchImpl(`${getPayPalApiBaseUrl()}${path}`, {
+  const response = await fetchPayPalWithTimeout(fetchImpl, `${getPayPalApiBaseUrl()}${path}`, {
     method,
     headers,
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -76,11 +76,22 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
   return payload;
 }
 
+async function fetchPayPalWithTimeout(fetchImpl, url, options) {
+  try {
+    return await fetchImpl(url, { ...options, signal: AbortSignal.timeout(20_000) });
+  } catch (cause) {
+    if (cause?.name !== 'TimeoutError' && cause?.name !== 'AbortError') throw cause;
+    const error = new Error('paypal_api_timeout', { cause });
+    error.statusCode = 503;
+    throw error;
+  }
+}
+
 async function getAccessToken({ clientId, clientSecret, fetchImpl, clientIdHadWhitespace, clientSecretHadWhitespace }) {
   const tokenKey = createHash('sha256').update(`${getPayPalApiBaseUrl()}|${clientId}|${clientSecret}`).digest('hex');
   if (cachedToken && cachedTokenKey === tokenKey && Date.now() < tokenExpiresAt - 30_000) return cachedToken;
 
-  const response = await fetchImpl(`${getPayPalApiBaseUrl()}/v1/oauth2/token`, {
+  const response = await fetchPayPalWithTimeout(fetchImpl, `${getPayPalApiBaseUrl()}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
