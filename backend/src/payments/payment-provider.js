@@ -34,7 +34,7 @@ function createPayPalProvider() {
   if (!clientId || !clientSecret || !webhookId) {
     throw new Error('payment_provider_not_configured:paypal');
   }
-  if (!successUrl || !cancelUrl) throw new Error('stripe_redirect_urls_not_configured');
+  if (!successUrl || !cancelUrl) throw new Error('paypal_redirect_urls_not_configured');
   validateStripeRedirectUrls(successUrl, cancelUrl);
   return {
     name: 'paypal',
