@@ -228,7 +228,54 @@
       if (!response.ok) return;
       const data = await response.json();
       if (!Array.isArray(data.sections)) return;
+      const pageSettings = data.pageSettings || {};
+      const heroSettings = pageSettings.meta && pageSettings.meta.hero;
+      if (heroSettings && typeof heroSettings === "object") {
+        const hero = document.querySelector(".hero");
+        const kicker = hero && hero.querySelector(".eyebrow");
+        const heading = hero && hero.querySelector("h1");
+        const copy = hero && hero.querySelector(".hero-copy > p");
+        const button = hero && hero.querySelector(".actions a.primary");
+        const background = hero && hero.querySelector(".hero-bg");
+        if (kicker && typeof heroSettings.kicker === "string" && heroSettings.kicker.trim()) kicker.textContent = heroSettings.kicker;
+        if (heading && typeof heroSettings.headline === "string" && heroSettings.headline.trim()) {
+          heading.textContent = heroSettings.headline;
+          heading.style.whiteSpace = "pre-line";
+        }
+        if (copy && typeof heroSettings.copy === "string" && heroSettings.copy.trim()) copy.textContent = heroSettings.copy;
+        if (button && typeof heroSettings.buttonLabel === "string" && heroSettings.buttonLabel.trim()) button.textContent = heroSettings.buttonLabel;
+        if (button && typeof heroSettings.buttonUrl === "string" && heroSettings.buttonUrl.startsWith("/")) button.href = heroSettings.buttonUrl;
+        if (background && typeof heroSettings.backgroundImage === "string" && heroSettings.backgroundImage.trim()) {
+          try {
+            const target = new URL(heroSettings.backgroundImage, window.location.origin);
+            if (target.origin === window.location.origin || ["https:", "http:"].includes(target.protocol)) {
+              background.style.backgroundImage = 'url("' + target.href.replace(/["\\\\]/g, "") + '")';
+              background.style.backgroundPosition = ["center", "left", "right", "top", "bottom"].includes(heroSettings.imagePosition) ? heroSettings.imagePosition : "center";
+              background.style.backgroundSize = ["cover", "contain"].includes(heroSettings.imageFit) ? heroSettings.imageFit : "cover";
+            }
+          } catch (_) {}
+        }
+      }
+      const design = pageSettings.design || {};
       const main = document.querySelector("main");
+      if (main) {
+        if (typeof design.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(design.bg)) main.style.backgroundColor = design.bg;
+        if (typeof design.text === "string" && /^#[0-9a-f]{3,8}$/i.test(design.text)) main.style.color = design.text;
+        if (typeof design.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(design.accent)) main.style.setProperty("--preview-accent", design.accent);
+        if (typeof design.contentWidth === "string") {
+          main.style.maxWidth = design.contentWidth === "narrow" ? "1100px" : design.contentWidth === "wide" ? "none" : "";
+          if (design.contentWidth === "narrow") main.style.marginInline = "auto";
+        }
+      }
+      const chrome = pageSettings.chrome || {};
+      if (chrome.footerDescription) {
+        const footerDescription = document.getElementById("site-footer-description");
+        if (footerDescription) footerDescription.textContent = String(chrome.footerDescription);
+      }
+      if (chrome.showPurchase === false) document.querySelectorAll('header a[href*="library"], header a[href*="video-list"]').forEach(el => { el.hidden = true; });
+      if (chrome.showSell === false) document.querySelectorAll('header a[href*="seller"], header a[href*="creator"]').forEach(el => { el.hidden = true; });
+      if (chrome.showAccount === false) document.querySelectorAll('header a[href*="login"], header a[href*="account"]').forEach(el => { el.hidden = true; });
+      if (chrome.showCart === false) document.querySelectorAll('header a[href*="cart"]').forEach(el => { el.hidden = true; });
       main.querySelectorAll("[data-vm-section-id][data-vm-section-type]").forEach(function (element) {
         if (element.dataset.vmSectionId !== element.dataset.vmSectionType) element.remove();
         else element.hidden = false;
