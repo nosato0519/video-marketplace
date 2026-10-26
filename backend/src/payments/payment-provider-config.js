@@ -78,6 +78,7 @@ export function getConfigurablePaymentProviders() {
       status: config.status,
       enabled: enabledIds.includes(config.id),
       configured: hasProviderCredentials(config.id),
+      missingEnvironmentVariables: getMissingPaymentProviderEnvironmentVariables(config.id),
       secretEnv: SECRET_ENV_BY_PROVIDER[config.id],
     }));
 }
