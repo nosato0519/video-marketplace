@@ -522,7 +522,18 @@ saveLandingSections(items);const status=document.getElementById('landing-status'
 document.getElementById('landing-save-page').addEventListener('click',saveLandingSections);
 document.getElementById('landing-cancel-page').addEventListener('click',()=>{renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='保存済みの設定を再読み込みしました。';});
 function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
-loadServerEditorSettings().finally(()=>{load();renderLandingSections();});
+async function loadServerHomepageSections(){
+try{
+const response=await fetch('/api/admin/settings/homepage',{credentials:'same-origin',cache:'no-store'});
+if(!response.ok)return;
+const data=await response.json();
+if(!Array.isArray(data.sections)||data.sections.length===0)return;
+const sections=normalizeTopSections(data.sections);
+localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(sections));
+localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sections));
+}catch(error){console.error('Loading live homepage sections failed',error);}
+}
+loadServerEditorSettings().finally(async()=>{load();await loadServerHomepageSections();renderLandingSections();});
 })();
 </script>
 <script>
