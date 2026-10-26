@@ -68,6 +68,20 @@ export function createApp() {
   const paypalReturnHandler = createPayPalReturnHandler();
   app.get('/api/payments/paypal/return', paypalReturnHandler);
 
+
+  app.get('/api/site/homepage-settings', async (_req, res) => {
+    try {
+      const result = await query(
+        "SELECT setting_value FROM platform_settings WHERE setting_key = 'homepage_sections' LIMIT 1"
+      );
+      res.set('Cache-Control', 'no-store');
+      return res.json({ sections: result.rows[0]?.setting_value?.value ?? null });
+    } catch (error) {
+      console.error('Loading homepage settings failed', error);
+      return res.status(500).json({ error: 'homepage_settings_unavailable' });
+    }
+  });
+
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0', revision: 'paypal-return-route-f47ad9a' });
   });
