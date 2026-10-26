@@ -270,14 +270,14 @@ let rowTheme={};
 try{rowTheme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'{}')||{};}catch(e){}
 row.dataset.themeBg=rowTheme.bg||'';row.dataset.themeText=rowTheme.text||'';row.dataset.themeAccent=rowTheme.accent||'';row.dataset.themeButtonText=rowTheme.buttonText||'#101010';row.dataset.themeRadius=rowTheme.radius||'rounded';row.dataset.themeWidth=rowTheme.width||'standard';row.dataset.themeSpacing=rowTheme.spacing||'standard';row.dataset.themeImageFit=rowTheme.imageFit||'cover';
 const validItems=Array.isArray(item.items)?item.items.filter(entry=>entry&&typeof entry==='object'&&Object.values(entry).some(value=>value)):[];row.dataset.previewItems=JSON.stringify(validItems);
-const title=document.createElement('div');title.className='homepage-section-title';const strong=document.createElement('strong');strong.textContent=item.label||definitions.find(d=>d.key===item.type)?.label||item.type||'セクション';const meta=document.createElement('small');meta.textContent='TOPの標準セクション';title.append(strong,meta);
+const title=document.createElement('div');title.className='homepage-section-title';const strong=document.createElement('strong');strong.textContent=item.label||definitions.find(d=>d.key===item.type)?.label||item.type||'セクション';const meta=document.createElement('small');meta.textContent=item.added?'追加したセクション':'TOPの標準セクション';title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 const up=document.createElement('button');up.type='button';up.className='btn';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>moveSection(index,-1));
 const down=document.createElement('button');down.type='button';down.className='btn';down.textContent='↓';down.disabled=index===sectionState.length-1;down.addEventListener('click',()=>moveSection(index,1));
 const toggle=document.createElement('button');toggle.type='button';toggle.className='btn'+(item.hidden?'':' primary');toggle.textContent=item.hidden?'非表示':'表示';toggle.addEventListener('click',()=>{item.hidden=!item.hidden;renderSections();});
 const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
 const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='btn duplicate-section';duplicate.textContent='複製';duplicate.title='このセクションの設定を複製';duplicate.addEventListener('click',()=>duplicateSection(index));
-const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=definitions.some(d=>d.key===item.type);remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x&&x.id!==item.id);renderSections();});
+const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=!item.added;remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x&&x.id!==item.id);renderSections();});
 actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);
 });
 }
@@ -300,7 +300,7 @@ row.append(title,actions);target.append(row);
 });
 }
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
-function duplicateSection(index){const source=sectionState[index];if(!source)return;const copy=JSON.parse(JSON.stringify(source));copy.id=source.type+'-copy-'+Date.now();copy.label=source.label+'（複製）';copy.order=index+1;sectionState.splice(index+1,0,copy);sectionState.forEach((item,i)=>item.order=i);renderSections();}
+function duplicateSection(index){const source=sectionState[index];if(!source)return;const copy=JSON.parse(JSON.stringify(source));copy.id=source.type+'-copy-'+Date.now();copy.label=source.label+'（複製）';copy.added=true;copy.order=index+1;sectionState.splice(index+1,0,copy);sectionState.forEach((item,i)=>item.order=i);renderSections();}
 function openSectionEditor(index){
 const item=sectionState[index];if(!item)return;
 editingSectionIndex=index;
@@ -484,7 +484,7 @@ document.getElementById('close-section-editor').addEventListener('click',closeSe
 document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('add-section-item').addEventListener('click',()=>{if(editingSectionIndex===null)return;appendSectionItem({},sectionItemsEditor.querySelectorAll('.section-item-card').length);});
-document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
+document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,added:true,order:sectionState.length});renderSections();});
 function saveLandingSections(nextItems){
 const target=document.getElementById('landing-status');
 const items=Array.isArray(nextItems)?nextItems:readLandingSections();items.forEach((item,i)=>item.order=i);
