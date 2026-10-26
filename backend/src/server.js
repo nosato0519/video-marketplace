@@ -1,11 +1,13 @@
 import { createApp } from './app.js';
 import { closePool } from './db.js';
 import { runMigrations } from '../scripts/migrate.js';
+import { loadStoredPaymentProviderSelection } from './payments/payment-provider-config.js';
 
 const port = Number(process.env.PORT || 3000);
 
 async function start() {
   await runMigrations();
+  await loadStoredPaymentProviderSelection();
 
   const app = createApp();
 
