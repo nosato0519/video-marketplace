@@ -28,11 +28,19 @@ export function formatPayPalAmount(amount, currency) {
 }
 
 export async function paypalApiRequest(path, { method = 'GET', body, requestId, fetchImpl = fetch } = {}) {
-  const clientId = process.env.PAYPAL_CLIENT_ID?.replace(/\s/g, '');
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET?.replace(/\s/g, '');
+  const rawClientId = process.env.PAYPAL_CLIENT_ID || '';
+  const rawClientSecret = process.env.PAYPAL_CLIENT_SECRET || '';
+  const clientId = rawClientId.replace(/\s/g, '');
+  const clientSecret = rawClientSecret.replace(/\s/g, '');
   if (!clientId || !clientSecret) throw new Error('payment_provider_not_configured:paypal');
 
-  const token = await getAccessToken({ clientId, clientSecret, fetchImpl });
+  const token = await getAccessToken({
+    clientId,
+    clientSecret,
+    fetchImpl,
+    clientIdHadWhitespace: /\s/.test(rawClientId),
+    clientSecretHadWhitespace: /\s/.test(rawClientSecret),
+  });
   const headers = {
     authorization: `Bearer ${token}`,
     accept: 'application/json',
@@ -68,7 +76,7 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
   return payload;
 }
 
-async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
+async function getAccessToken({ clientId, clientSecret, fetchImpl, clientIdHadWhitespace, clientSecretHadWhitespace }) {
   const tokenKey = createHash('sha256').update(`${getPayPalApiBaseUrl()}|${clientId}|${clientSecret}`).digest('hex');
   if (cachedToken && cachedTokenKey === tokenKey && Date.now() < tokenExpiresAt - 30_000) return cachedToken;
 
@@ -92,8 +100,8 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl }) {
       clientIdFingerprint: createHash('sha256').update(clientId).digest('hex').slice(0, 12),
       clientSecretLength: clientSecret.length,
       clientSecretFingerprint: createHash('sha256').update(clientSecret).digest('hex').slice(0, 12),
-      clientIdHasWhitespace: /\s/.test(clientId),
-      clientSecretHasWhitespace: /\s/.test(clientSecret),
+      clientIdHadWhitespace,
+      clientSecretHadWhitespace,
     });
     cachedToken = null;
     cachedTokenKey = null;
