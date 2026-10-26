@@ -6,7 +6,7 @@
 
 実決済アダプターが実装されているのは **Stripe と PayPal Checkout** です。Adyen、Paddle、PayPay はこのバージョンでは未実装です。PayPalは運営者アカウントで受け付けるCheckoutであり、販売者ごとの自動分配・送金を行うPayPalマーケットプレイス契約を代替するものではありません。PayPalのマーケットプレイス向け機能を本番で利用するには、PayPalのパートナー承認が必要です。
 
-運営者は環境変数 `PAYMENT_PROVIDERS_ENABLED` で `stripe`、`paypal`、または `stripe,paypal` を指定できます。両方を指定し、両サービスの認証情報とURLが正しく設定されている場合、購入画面にStripeとPayPalの両方が表示され、購入者が決済方法を選べます。1つだけ指定した場合は、その決済方法だけが表示されます。未設定・認証情報不足の方法は購入画面に表示されません。既存の単一プロバイダー設定 `PAYMENT_PROVIDER` は、`PAYMENT_PROVIDERS_ENABLED` が未設定の場合の後方互換用です。
+運営者は運営設定 → 販売・決済設定から、Stripeのみ、PayPalのみ、または両方を有効にできます。選択内容は `platform_settings` に保存され、サーバー起動時に読み込まれます。初回設定や保存値がない場合は、環境変数 `PAYMENT_PROVIDERS_ENABLED`（`stripe`、`paypal`、`stripe,paypal`）を使用し、さらに未設定の場合は旧設定 `PAYMENT_PROVIDER` にフォールバックします。APIキー・Webhook ID・成功／キャンセルURLなどの秘密情報と接続設定は引き続きサーバー環境変数で管理します。認証情報が不足している方法は有効化できず、購入画面にも表示されません。
 
 この構成では、StripeまたはPayPalの運営者アカウントで決済を受け付けます。販売者の売上はシステム内で記録され、販売者への支払いは運営者が別途定めた精算手順に従います。Stripe ConnectやPayPalのマーケットプレイス機能による販売者ごとの直接入金を意味するものではありません。
 
@@ -36,8 +36,8 @@ Stripeの画面名は変更されることがあるため、最新の画面操�
 
 | 環境変数 | 設定値 |
 |---|---|
-| `PAYMENT_PROVIDERS_ENABLED` | `stripe`、`paypal`、または `stripe,paypal`（有効にする方法） |
-| `PAYMENT_PROVIDER` | 旧設定との互換用。`PAYMENT_PROVIDERS_ENABLED` が未設定の場合に `stripe` または `paypal` を指定 |
+| `PAYMENT_PROVIDERS_ENABLED` | 初期値／DB保存設定がない場合のフォールバック。`stripe`、`paypal`、または `stripe,paypal` |
+| `PAYMENT_PROVIDER` | 旧設定との互換用。DB保存設定と `PAYMENT_PROVIDERS_ENABLED` がない場合に使用 |
 | `PAYPAL_ENVIRONMENT` | テスト時は `sandbox`、承認済み本番利用時のみ `live` |
 | `PAYPAL_CLIENT_ID` | PayPal API Client ID |
 | `PAYPAL_CLIENT_SECRET` | PayPal API Secret |
