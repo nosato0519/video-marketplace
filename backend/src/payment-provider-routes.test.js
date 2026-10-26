@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { registerPaymentProviderRoutes } from './payment-provider-routes.js';
 
 function createFakeApp() {
-  const routes = { get: [], post: [], delete: [] };
+  const routes = { get: [], post: [], put: [], delete: [] };
   return {
     routes,
     get(path, ...handlers) { routes.get.push({ path, handlers }); },
     post(path, ...handlers) { routes.post.push({ path, handlers }); },
+    put(path, ...handlers) { routes.put.push({ path, handlers }); },
     delete(path, ...handlers) { routes.delete.push({ path, handlers }); },
   };
 }
@@ -24,6 +25,9 @@ test('registers public buyer options separately from admin-guarded configuration
   ]);
   assert.equal(app.routes.get[0].handlers.length, 1);
   assert.equal(app.routes.get[0].handlers[0] === guard, false);
+  assert.deepEqual(app.routes.put.map((route) => route.path), [
+    '/api/admin/payment-providers/settings',
+  ]);
   assert.deepEqual(app.routes.post.map((route) => route.path), [
     '/api/admin/payment-providers/validate',
     '/api/admin/payment-providers/configure',
@@ -54,5 +58,5 @@ test('legacy payment write endpoints explain that configuration is deployment-ma
   configure.handlers.at(-1)({}, response);
 
   assert.equal(response.statusCode, 409);
-  assert.equal(response.payload.error, 'payment_configuration_managed_by_environment');
+  assert.equal(response.payload.error, 'payment_credentials_managed_by_environment');
 });
