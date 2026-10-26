@@ -202,20 +202,21 @@
     if (editor) {
       try {
         const response = await fetch("/api/admin/settings/homepage", { credentials: "same-origin" });
-        if (!response.ok) return;
-        const data = await response.json();
-        if (Array.isArray(data.sections)) {
-          const key = "vm-demo-homepage-sections";
-          const current = JSON.parse(localStorage.getItem(key) || "null");
-          if (JSON.stringify(current) !== JSON.stringify(data.sections)) {
-            localStorage.setItem("vm-demo-page-sections-top", JSON.stringify(data.sections));
-            localStorage.setItem(key, JSON.stringify(data.sections));
-            window.location.reload();
-            return;
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.sections)) {
+            const key = "vm-demo-homepage-sections";
+            const current = JSON.parse(localStorage.getItem(key) || "null");
+            if (JSON.stringify(current) !== JSON.stringify(data.sections)) {
+              localStorage.setItem("vm-demo-page-sections-top", JSON.stringify(data.sections));
+              localStorage.setItem(key, JSON.stringify(data.sections));
+              window.location.reload();
+              return;
+            }
           }
         }
       } catch (_) {
-        return;
+        // Keep the save handler available so it can show a useful error if the API is unavailable.
       }
 
       document.addEventListener("click", function (event) {
