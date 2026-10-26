@@ -492,9 +492,9 @@ document.getElementById('cancel-section').addEventListener('click',closeSectionE
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('add-section-item').addEventListener('click',()=>{if(editingSectionIndex===null)return;appendSectionItem({},sectionItemsEditor.querySelectorAll('.section-item-card').length);});
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,order:sectionState.length});renderSections();});
-function saveLandingSections(){
+function saveLandingSections(nextItems){
 const target=document.getElementById('landing-status');
-const items=readLandingSections();items.forEach((item,i)=>item.order=i);
+const items=Array.isArray(nextItems)?nextItems:readLandingSections();items.forEach((item,i)=>item.order=i);
 try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));if(target)target.textContent='ページ設定を保存しました。';renderLandingSections();return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
 }
 function readLandingSections(){try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');return normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);}catch(e){return defaultSections();}}
@@ -502,7 +502,7 @@ document.getElementById('landing-add-section').addEventListener('click',()=>{
 const d=definitions.find(x=>x.key===document.getElementById('landing-add-type').value);if(!d)return;
 const items=readLandingSections();const n=items.filter(item=>item.type===d.key).length+1;
 items.push({id:d.key+'-added-'+Date.now(),type:d.key,label:d.label+'（追加 '+n+'）',hidden:false,order:items.length,added:true});
-saveLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='セクションを追加しました。';
+saveLandingSections(items);const status=document.getElementById('landing-status');if(status)status.textContent='セクションを追加しました。';
 });
 document.getElementById('landing-save-page').addEventListener('click',saveLandingSections);
 document.getElementById('landing-cancel-page').addEventListener('click',()=>{renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='保存済みの設定を再読み込みしました。';});
