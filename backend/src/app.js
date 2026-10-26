@@ -77,15 +77,22 @@ export function createApp() {
       const settings = Object.fromEntries(result.rows.map((row) => [row.setting_key, row.setting_value]));
       const editorEntries = settings.page_editor_config?.value?.entries;
       let editorSections = null;
+      const themes = {};
       try {
         const raw = editorEntries?.['vm-demo-page-sections-top'] || editorEntries?.['vm-demo-homepage-sections'];
         if (typeof raw === 'string') editorSections = JSON.parse(raw);
+        Object.entries(editorEntries || {}).forEach(([key, value]) => {
+          const prefix = 'vm-demo-page-theme-top-';
+          if (!key.startsWith(prefix) || typeof value !== 'string') return;
+          try { themes[key.slice(prefix.length)] = JSON.parse(value); } catch (_) {}
+        });
       } catch (_) {}
       res.set('Cache-Control', 'no-store');
       return res.json({
         sections: Array.isArray(editorSections) && editorSections.length
           ? editorSections
-          : settings.homepage_sections?.value ?? null
+          : settings.homepage_sections?.value ?? null,
+        themes
       });
     } catch (error) {
       console.error('Loading homepage settings failed', error);
