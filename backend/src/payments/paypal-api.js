@@ -53,7 +53,7 @@ export async function paypalApiRequest(path, { method = 'GET', body, requestId, 
     headers,
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readPayPalJson(response);
   if (!response.ok) {
     console.error('PayPal API request failed', {
       path,
@@ -80,11 +80,26 @@ async function fetchPayPalWithTimeout(fetchImpl, url, options) {
   try {
     return await fetchImpl(url, { ...options, signal: AbortSignal.timeout(20_000) });
   } catch (cause) {
-    if (cause?.name !== 'TimeoutError' && cause?.name !== 'AbortError') throw cause;
-    const error = new Error('paypal_api_timeout', { cause });
-    error.statusCode = 503;
-    throw error;
+    throw normalizePayPalTimeout(cause);
   }
+}
+
+async function readPayPalJson(response) {
+  try {
+    return await response.json();
+  } catch (cause) {
+    if (cause?.name === 'TimeoutError' || cause?.name === 'AbortError') {
+      throw normalizePayPalTimeout(cause);
+    }
+    return {};
+  }
+}
+
+function normalizePayPalTimeout(cause) {
+  if (cause?.name !== 'TimeoutError' && cause?.name !== 'AbortError') throw cause;
+  const error = new Error('paypal_api_timeout', { cause });
+  error.statusCode = 503;
+  return error;
 }
 
 async function getAccessToken({ clientId, clientSecret, fetchImpl, clientIdHadWhitespace, clientSecretHadWhitespace }) {
