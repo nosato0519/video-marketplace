@@ -308,7 +308,7 @@ editingSectionIndex=index;
 sectionEditorTitle.textContent=item.label+'を編集';
 sectionName.value=item.label;
 sectionStatus.value=item.hidden?'非表示':'表示';
-const theme=JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'null');
+const theme=(editingId==='top'&&landingDraftThemes&&landingDraftThemes[item.id])||JSON.parse(localStorage.getItem(THEME_PREFIX+(editingId||'new')+'-'+item.id)||'null');
 sectionBg.value=theme?.bg||'#07090d';sectionAccent.value=theme?.accent||'#d9b45f';sectionRadius.value=theme?.radius||'rounded';sectionThemeText.value=theme?.text||'#f4f4f5';sectionThemeButtonText.value=theme?.buttonText||'#101010';sectionThemeWidth.value=theme?.width||'standard';sectionThemeSpacing.value=theme?.spacing||'standard';sectionThemeImageFit.value=theme?.imageFit||'cover';
 const content=item.content||{};contentTitle.value=content.title||item.label;contentSubtitle.value=content.subtitle||'';contentButton.value=content.button||'';contentLink.value=content.link||'';contentImage.value=content.image||'';const contentImagePreview=document.getElementById('section-content-image-preview');contentImagePreview.src=content.image||'';contentImagePreview.hidden=!content.image;
 renderSectionItems(item);renderSpecificSettings(item);renderSectionEditorPreview();
