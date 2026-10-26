@@ -195,6 +195,7 @@ const defaults=[
 ];
 const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
 const sectionList=document.getElementById('landing-section-list'),addType=document.getElementById('landing-add-type');
+ let landingDraftSections=null;
 const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionThemeText=document.getElementById('section-theme-text'),sectionThemeButtonText=document.getElementById('section-theme-button-text'),sectionThemeWidth=document.getElementById('section-theme-width'),sectionThemeSpacing=document.getElementById('section-theme-spacing'),sectionThemeImageFit=document.getElementById('section-theme-image-fit'),sectionEditorStatus=document.getElementById('section-editor-status');
 const META_PREFIX='vm-demo-page-meta-',DESIGN_PREFIX='vm-demo-page-design-',CHROME_KEY='vm-demo-site-chrome';
 const heroDefaults={kicker:'DISCOVER SOMETHING NEW',headline:'見つける。\n買う。\n楽しむ。',copy:'',backgroundImage:'',buttonLabel:'詳しく見る',buttonUrl:'/pages/video-list.html',imagePosition:'center',imageFit:'cover'};
@@ -291,11 +292,11 @@ const strong=document.createElement('strong');strong.textContent=item.label;
 const meta=document.createElement('small');meta.textContent=item.hidden?'非表示':(item.added?'追加したセクション':'TOPの標準セクション');title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 const makeButton=(label,disabled,handler,primary=false)=>{const b=document.createElement('button');b.type='button';b.className='btn'+(primary?' primary':'');b.textContent=label;b.disabled=disabled;if(handler)b.addEventListener('click',handler);actions.append(b);};
-makeButton('↑',index===0,()=>{const next=items.slice();[next[index-1],next[index]]=[next[index],next[index-1]];saveLandingSections(next);});
-makeButton('↓',index===items.length-1,()=>{const next=items.slice();[next[index+1],next[index]]=[next[index],next[index+1]];saveLandingSections(next);});
-makeButton(item.hidden?'表示':'非表示',false,()=>{const next=items.map((entry,i)=>i===index?{...entry,hidden:!entry.hidden}:entry);saveLandingSections(next);});
+makeButton('↑',index===0,()=>{const next=items.slice();[next[index-1],next[index]]=[next[index],next[index-1]];stageLandingSections(next);});
+makeButton('↓',index===items.length-1,()=>{const next=items.slice();[next[index+1],next[index]]=[next[index],next[index+1]];stageLandingSections(next);});
+makeButton(item.hidden?'表示':'非表示',false,()=>{const next=items.map((entry,i)=>i===index?{...entry,hidden:!entry.hidden}:entry);stageLandingSections(next);});
 makeButton('編集',false,()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index),true);
-makeButton('削除',!item.added,()=>{const next=items.filter((entry,i)=>i!==index);saveLandingSections(next);});
+makeButton('削除',!item.added,()=>{const next=items.filter((entry,i)=>i!==index);stageLandingSections(next);});
 row.append(title,actions);target.append(row);
 });
 }
@@ -464,7 +465,7 @@ item.settings=item.settings||{};specificSettings.querySelectorAll('[data-setting
 try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value,text:sectionThemeText.value,buttonText:sectionThemeButtonText.value,width:sectionThemeWidth.value,spacing:sectionThemeSpacing.value,imageFit:sectionThemeImageFit.value}));}catch(e){}
 renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId,JSON.stringify(sectionState));if(editingId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}catch(e){sectionEditorStatus.textContent='このブラウザに保存できませんでした。';return;}}sectionEditorStatus.textContent='編集内容を反映しました。ページ編集画面で下書き保存すると確定します。';
 }
-function openEditor(page,sectionIndex=null){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
+function openEditor(page,sectionIndex=null){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';if(page.id==='top'&&Array.isArray(landingDraftSections)){sectionState=landingDraftSections.map(item=>({...item}));sectionState.forEach((item,i)=>item.order=i);renderSections();}else loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
@@ -472,7 +473,7 @@ const data={name,url,status:statusInput.value,parent:parentInput.value};const wa
 if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
 sectionState.forEach((item,i)=>item.order=i);
 try{if(wasNew){sectionState.forEach(item=>{const draftThemeKey=THEME_PREFIX+'new-'+item.id;const draftTheme=localStorage.getItem(draftThemeKey);if(draftTheme){localStorage.setItem(THEME_PREFIX+pageId+'-'+item.id,draftTheme);localStorage.removeItem(draftThemeKey);}});}localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}savePageEditorMetadata(pageId);}catch(e){editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';return;}
-const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
+const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}if(pageId==='top')landingDraftSections=null;openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='ページ設定をこのブラウザに保存しました。';}
 document.getElementById('new-page').addEventListener('click',newPage);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').textContent='下書き保存';
@@ -485,20 +486,21 @@ document.getElementById('cancel-section').addEventListener('click',closeSectionE
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('add-section-item').addEventListener('click',()=>{if(editingSectionIndex===null)return;appendSectionItem({},sectionItemsEditor.querySelectorAll('.section-item-card').length);});
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,added:true,order:sectionState.length});renderSections();});
-function saveLandingSections(nextItems){
+function stageLandingSections(nextItems){landingDraftSections=normalizeTopSections(nextItems).map((item,i)=>({...item,order:i}));const status=document.getElementById('landing-status');if(status)status.textContent='変更があります。ページを保存すると確定します。';renderLandingSections();}
+function saveLandingSections(){
 const target=document.getElementById('landing-status');
-const items=Array.isArray(nextItems)?nextItems:readLandingSections();items.forEach((item,i)=>item.order=i);
-try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));if(target)target.textContent='ページ設定を保存しました。';renderLandingSections();return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
+const items=readLandingSections();items.forEach((item,i)=>item.order=i);
+try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));landingDraftSections=null;if(target)target.textContent='ページ設定を保存しました。';renderLandingSections();return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
 }
-function readLandingSections(){try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');return normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);}catch(e){return defaultSections();}}
+function readLandingSections(){if(Array.isArray(landingDraftSections))return landingDraftSections.map(item=>({...item}));try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');return normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);}catch(e){return defaultSections();}}
 document.getElementById('landing-add-section').addEventListener('click',()=>{
 const d=definitions.find(x=>x.key===document.getElementById('landing-add-type').value);if(!d)return;
 const items=readLandingSections();const n=items.filter(item=>item.type===d.key).length+1;
 items.push({id:d.key+'-added-'+Date.now(),type:d.key,label:d.label+'（追加 '+n+'）',hidden:false,order:items.length,added:true});
-saveLandingSections(items);const status=document.getElementById('landing-status');if(status)status.textContent='セクションを追加しました。';
+stageLandingSections(items);const status=document.getElementById('landing-status');if(status)status.textContent='セクションを追加しました。保存すると変更が確定します。';
 });
 document.getElementById('landing-save-page').addEventListener('click',saveLandingSections);
-document.getElementById('landing-cancel-page').addEventListener('click',()=>{renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='保存済みの設定を再読み込みしました。';});
+document.getElementById('landing-cancel-page').addEventListener('click',()=>{landingDraftSections=null;renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='未保存の変更を破棄しました。';});
 function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
 load();renderLandingSections();
 })();
