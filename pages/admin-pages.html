@@ -283,26 +283,19 @@ actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);s
 }
 function renderLandingSections(){
 const target=document.getElementById('landing-section-list');if(!target)return;target.replaceChildren();
-let items=defaultSections();
-try{
-const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');
-const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');
-items=normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);
-}catch(e){}
+const items=readLandingSections();
 items.forEach((item,index)=>{
 const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');
 const title=document.createElement('div');title.className='homepage-section-title';
 const strong=document.createElement('strong');strong.textContent=item.label;
-const meta=document.createElement('small');meta.textContent=item.hidden?'非表示':(definitions.some(d=>d.key===item.type)?'TOPの標準セクション':'追加したセクション');
-title.append(strong,meta);
+const meta=document.createElement('small');meta.textContent=item.hidden?'非表示':(item.added?'追加したセクション':'TOPの標準セクション');title.append(strong,meta);
 const actions=document.createElement('div');actions.className='homepage-section-actions';
 const makeButton=(label,disabled,handler,primary=false)=>{const b=document.createElement('button');b.type='button';b.className='btn'+(primary?' primary':'');b.textContent=label;b.disabled=disabled;if(handler)b.addEventListener('click',handler);actions.append(b);};
-const persist=next=>{next.forEach((entry,i)=>entry.order=i);try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(next));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(next));renderLandingSections();}catch(e){window.alert('ページの設定を保存できませんでした。');}};
-makeButton('↑',index===0,()=>{const next=items.slice();[next[index-1],next[index]]=[next[index],next[index-1]];persist(next);});
-makeButton('↓',index===items.length-1,()=>{const next=items.slice();[next[index+1],next[index]]=[next[index],next[index+1]];persist(next);});
-makeButton(item.hidden?'表示':'非表示',false,()=>{const next=items.map((entry,i)=>i===index?{...entry,hidden:!entry.hidden}:entry);persist(next);});
+makeButton('↑',index===0,()=>{const next=items.slice();[next[index-1],next[index]]=[next[index],next[index-1]];saveLandingSections(next);});
+makeButton('↓',index===items.length-1,()=>{const next=items.slice();[next[index+1],next[index]]=[next[index],next[index+1]];saveLandingSections(next);});
+makeButton(item.hidden?'表示':'非表示',false,()=>{const next=items.map((entry,i)=>i===index?{...entry,hidden:!entry.hidden}:entry);saveLandingSections(next);});
 makeButton('編集',false,()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index),true);
-makeButton('削除',!item.added,()=>{const next=items.filter((entry,i)=>i!==index);persist(next);});
+makeButton('削除',!item.added,()=>{const next=items.filter((entry,i)=>i!==index);saveLandingSections(next);});
 row.append(title,actions);target.append(row);
 });
 }
