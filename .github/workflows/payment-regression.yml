@@ -36,6 +36,8 @@ jobs:
           src/payments/payment-verification.test.js
           src/payments/payment-success-guard.test.js
           src/payments/checkout-contract.test.js
+          src/payments/payment-provider-config.test.js
+          src/payment-provider-routes.test.js
       - name: Run webhook regression tests
         run: >-
           node --test
