@@ -21,6 +21,27 @@ test('defaults to PayPal sandbox and only uses live API when explicitly selected
 });
 
 
+test('normalizes PayPal request timeouts into a retryable service error', async () => {
+  const names = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_ENVIRONMENT'];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.PAYPAL_CLIENT_ID = 'sandbox-client';
+  process.env.PAYPAL_CLIENT_SECRET = 'sandbox-secret';
+  process.env.PAYPAL_ENVIRONMENT = 'sandbox';
+  try {
+    await assert.rejects(
+      () => paypalApiRequest('/v2/checkout/orders', {
+        fetchImpl: async () => { throw new DOMException('request timed out', 'TimeoutError'); },
+      }),
+      (error) => error.message === 'paypal_api_timeout' && error.statusCode === 503
+    );
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
 test('PayPal OAuth diagnostics report whitespace from the original environment values', async () => {
   const names = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_ENVIRONMENT'];
   const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
