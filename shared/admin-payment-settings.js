@@ -23,14 +23,21 @@
     for (const provider of providers) {
       const target = providerStatus[provider.id];
       if (!target) continue;
+
+      const missing = Array.isArray(provider.missingEnvironmentVariables)
+        ? provider.missingEnvironmentVariables
+        : [];
       target.textContent = provider.configured
         ? '認証情報：設定済み'
-        : '認証情報：未設定（サーバー環境変数で設定してください）';
+        : `認証情報：未設定（必要な環境変数：${missing.join('、') || 'サーバー設定を確認してください'}）`;
       target.dataset.configured = provider.configured ? 'true' : 'false';
+
       const checkbox = checks.find((input) => input.value === provider.id);
       if (checkbox) {
         checkbox.checked = Boolean(provider.enabled);
-        checkbox.disabled = !provider.configured && !provider.enabled;
+        // Keep the option selectable so the operator can see the save-time
+        // validation message; the server still rejects unconfigured providers.
+        checkbox.disabled = false;
       }
     }
   }
@@ -41,7 +48,7 @@
       const response = await fetch('/api/admin/payment-providers', { credentials: 'same-origin' });
       const body = await response.json();
       if (!response.ok || !Array.isArray(body.providers)) {
-        throw new Error(body.error || '決済設定を取得できませんでした。運営者としてログインしてください。');
+        throw new Error(body.message || body.error || '決済設定を取得できませんでした。運営者としてログインしてください。');
       }
       updateProviderStatus(body.providers);
       setStatus('現在の決済設定を読み込みました。');
@@ -52,15 +59,6 @@
       saveButton.disabled = false;
     }
   }
-
-  checks.forEach((input) => {
-    input.addEventListener('change', () => {
-      if (input.dataset.configured !== 'true' && input.checked) {
-        input.checked = false;
-      }
-      input.disabled = input.dataset.configured !== 'true' && !input.checked;
-    });
-  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -82,19 +80,15 @@
       });
       const body = await response.json();
       if (!response.ok) {
-        const missing = Array.isArray(body.providers) ? body.providers.join(', ') : '';
-        throw new Error(body.message || (missing ? '認証情報が未設定です: ' + missing : body.error) || '設定を保存できませんでした。');
+        const missing = Array.isArray(body.providers) ? body.providers.join('、') : '';
+        throw new Error(body.message || (missing ? '認証情報が未設定です：' + missing : body.error) || '設定を保存できませんでした。');
       }
-      setStatus('決済設定を保存しました。購入画面に反映されます。');
+      setStatus('決済設定を保存しました。購入画面と決済処理に反映されました。');
       await loadSettings();
     } catch (error) {
       setStatus(error.message || '設定を保存できませんでした。', true);
     } finally {
-      checks.forEach((input) => {
-        const provider = input.value;
-        const target = providerStatus[provider];
-        input.disabled = target?.dataset.configured !== 'true' && !input.checked;
-      });
+      checks.forEach((input) => { input.disabled = false; });
       saveButton.disabled = false;
     }
   });
