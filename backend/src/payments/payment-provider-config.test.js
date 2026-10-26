@@ -14,7 +14,7 @@ test('exposes only implemented payment providers for configuration', () => {
 });
 
 
-test('reports Stripe configured when enabled and all secrets and URLs exist', () => {
+test('reports provider credential readiness separately from enabled selection', () => {
   const names = ['PAYMENT_PROVIDER', 'PAYMENT_PROVIDERS_ENABLED', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_CANCEL_URL', 'PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_SUCCESS_URL', 'PAYPAL_CANCEL_URL'];
   const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
   try {
@@ -29,11 +29,12 @@ test('reports Stripe configured when enabled and all secrets and URLs exist', ()
     process.env.PAYPAL_CANCEL_URL = 'https://example.com/cancel';
     delete process.env.PAYMENT_PROVIDER;
     delete process.env.PAYMENT_PROVIDERS_ENABLED;
-    assert.equal(getConfigurablePaymentProviders()[0].configured, false);
+    assert.equal(getConfigurablePaymentProviders()[0].configured, true);
     process.env.PAYMENT_PROVIDER = 'stripe';
     assert.equal(getConfigurablePaymentProviders()[0].configured, true);
     process.env.PAYMENT_PROVIDERS_ENABLED = 'paypal';
-    assert.equal(getConfigurablePaymentProviders()[0].configured, false);
+    assert.equal(getConfigurablePaymentProviders()[0].enabled, false);
+    assert.equal(getConfigurablePaymentProviders()[0].configured, true);
     process.env.PAYMENT_PROVIDERS_ENABLED = 'stripe,paypal';
     const providers = getConfigurablePaymentProviders();
     assert.equal(providers.find((provider) => provider.id === 'stripe').enabled, true);
