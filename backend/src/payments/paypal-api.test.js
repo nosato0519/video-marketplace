@@ -34,6 +34,16 @@ test('normalizes PayPal request timeouts into a retryable service error', async 
       }),
       (error) => error.message === 'paypal_api_timeout' && error.statusCode === 503
     );
+    await assert.rejects(
+      () => paypalApiRequest('/v2/checkout/orders', {
+        fetchImpl: async () => ({
+          ok: true,
+          status: 200,
+          json: async () => { throw new DOMException('response body timed out', 'TimeoutError'); },
+        }),
+      }),
+      (error) => error.message === 'paypal_api_timeout' && error.statusCode === 503
+    );
   } finally {
     for (const name of names) {
       if (previous[name] === undefined) delete process.env[name];
