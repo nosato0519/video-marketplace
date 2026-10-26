@@ -115,7 +115,7 @@ async function getAccessToken({ clientId, clientSecret, fetchImpl, clientIdHadWh
     },
     body: 'grant_type=client_credentials',
   });
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readPayPalJson(response);
   if (!response.ok || !payload.access_token) {
     console.error('PayPal OAuth token request failed', {
       status: response.status,
