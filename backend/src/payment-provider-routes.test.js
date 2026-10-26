@@ -45,7 +45,7 @@ test('registers public buyer options separately from admin-guarded configuration
   }
 });
 
-test('legacy payment write endpoints explain that configuration is deployment-managed', () => {
+test('legacy credential write endpoints explain that secrets remain server-environment-managed', () => {
   const app = createFakeApp();
   registerPaymentProviderRoutes(app, { requireAdmin: (_req, _res, next) => next() });
   const configure = app.routes.post.find((route) => route.path.endsWith('/configure'));
