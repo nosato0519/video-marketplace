@@ -235,15 +235,33 @@ export function createPayPalReturnHandler({
                 p.checkout_session_id
            FROM orders o
            JOIN payments p ON p.order_id = o.id AND p.provider = 'paypal'
-          WHERE ($2 <> '' AND p.checkout_session_id = $2)
-             OR ($2 = '' AND $1 <> '' AND o.id = $1)
+          WHERE ($1 <> '' AND o.id = $1)
+             OR ($2 <> '' AND p.checkout_session_id = $2)
+          ORDER BY CASE WHEN ($1 <> '' AND o.id = $1) THEN 0 ELSE 1 END
           LIMIT 1`,
         [requestedOrderId, returnedPayPalOrderId]
       );
       const payment = stored.rows[0];
       const orderId = String(payment?.id || requestedOrderId);
       const paypalOrderId = String(returnedPayPalOrderId || payment?.checkout_session_id || '');
-      if (!payment || !paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
+      if (!payment) {
+        console.error('PayPal return could not match a local payment', {
+          stage: processingStage,
+          requestedOrderId: requestedOrderId || undefined,
+          paypalOrderId: returnedPayPalOrderId || undefined,
+        });
+        return res.redirect(303, '/pages/purchase-history.html?payment=processing');
+      }
+      if (!paypalOrderId || payment.checkout_session_id !== paypalOrderId) {
+        console.error('PayPal return identifiers do not match local payment', {
+          stage: processingStage,
+          orderId,
+          requestedOrderId: requestedOrderId || undefined,
+          returnedPayPalOrderId: returnedPayPalOrderId || undefined,
+          storedPayPalOrderId: payment.checkout_session_id || undefined,
+          orderStatus: payment.order_status,
+          paymentStatus: payment.payment_status,
+        });
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
       const orderAlreadyPaid = payment.order_status === 'paid';
@@ -254,6 +272,13 @@ export function createPayPalReturnHandler({
         return res.redirect(303, '/pages/library.html');
       }
       if (payment.order_status !== 'pending' || payment.payment_status !== 'pending') {
+        console.error('PayPal return found a payment that is not pending', {
+          stage: processingStage,
+          orderId,
+          paypalOrderId,
+          orderStatus: payment.order_status,
+          paymentStatus: payment.payment_status,
+        });
         return res.redirect(303, '/pages/purchase-history.html?payment=processing');
       }
 
