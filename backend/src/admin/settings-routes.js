@@ -9,6 +9,7 @@ router.use(requireAuth, requireRole('admin'));
 const ALLOWED_METHODS = new Set(['none', 'email', 'document']);
 
 const HOMEPAGE_SECTIONS_KEY = 'homepage_sections';
+const PAGE_EDITOR_CONFIG_KEY = 'page_editor_config';
 
 router.get('/settings/homepage', async (_req, res, next) => {
   try {
@@ -44,6 +45,46 @@ router.put('/settings/homepage', async (req, res, next) => {
   }
 });
 
+
+router.get('/settings/page-editor', async (_req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+      [PAGE_EDITOR_CONFIG_KEY]
+    );
+    return res.json({ entries: result.rows[0]?.setting_value?.value?.entries ?? null });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.put('/settings/page-editor', async (req, res, next) => {
+  try {
+    const entries = req.body?.entries;
+    if (!entries || typeof entries !== 'object' || Array.isArray(entries) ||
+        Object.keys(entries).length > 250 ||
+        Object.entries(entries).some(([key, value]) =>
+          (!['vm-demo-pages', 'vm-demo-homepage-sections', 'vm-demo-site-chrome'].includes(key) &&
+           !/^vm-demo-page-(sections|theme|meta|design)-[a-zA-Z0-9_-]+$/.test(key)) ||
+          typeof value !== 'string' || value.length > 1000000)) {
+      return res.status(400).json({ error: 'invalid_page_editor_config' });
+    }
+    const serialized = JSON.stringify({ entries });
+    if (Buffer.byteLength(serialized, 'utf8') > 900000) {
+      return res.status(413).json({ error: 'page_editor_config_too_large' });
+    }
+    await query(
+      `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (setting_key)
+       DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+      [PAGE_EDITOR_CONFIG_KEY, JSON.stringify({ value: { entries } })]
+    );
+    return res.json({ saved: true });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.get('/settings/seller-verification', async (_req, res, next) => {
   try {
