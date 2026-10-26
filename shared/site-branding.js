@@ -196,9 +196,109 @@
     } catch (_) {}
   }
 
+
+  async function syncHomepageSections() {
+    const editor = document.getElementById("landing-section-list");
+    if (editor) {
+      try {
+        const response = await fetch("/api/admin/settings/homepage", { credentials: "same-origin" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!Array.isArray(data.sections)) return;
+        const key = "vm-demo-homepage-sections";
+        const current = JSON.parse(localStorage.getItem(key) || "null");
+        if (JSON.stringify(current) !== JSON.stringify(data.sections)) {
+          localStorage.setItem("vm-demo-page-sections-top", JSON.stringify(data.sections));
+          localStorage.setItem(key, JSON.stringify(data.sections));
+          window.location.reload();
+          return;
+        }
+      } catch (_) {
+        return;
+      }
+
+      document.addEventListener("click", function (event) {
+        const button = event.target.closest("#landing-save-page, #landing-add-section, #landing-section-list button");
+        if (!button) return;
+        Promise.resolve().then(async function () {
+          try {
+            const sections = JSON.parse(localStorage.getItem("vm-demo-homepage-sections") || "null");
+            if (!Array.isArray(sections)) return;
+            const response = await fetch("/api/admin/settings/homepage", {
+              method: "PUT",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sections: sections })
+            });
+            const status = document.getElementById("landing-status");
+            if (!response.ok) {
+              if (status) status.textContent = "本番サイトへの保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
+              return;
+            }
+            if (status) status.textContent = "ページ設定を保存し、本番サイトに反映しました。";
+          } catch (_) {
+            const status = document.getElementById("landing-status");
+            if (status) status.textContent = "本番サイトへの保存に失敗しました。通信状態を確認してください。";
+          }
+        });
+      });
+      return;
+    }
+
+    if (!document.querySelector("main") || !document.querySelector(".hero")) return;
+    try {
+      const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data.sections)) return;
+      const definitions = [
+        { key: "hero", selector: ".hero" },
+        { key: "video-showcase", selector: ".video-showcase" },
+        { key: "trustbar", selector: ".trustbar" },
+        { key: "collection", selector: "#collection" },
+        { key: "popular", selector: "#popular" },
+        { key: "new-releases", selector: "#new-releases" },
+        { key: "genre-rail", selector: ".genre-rail" },
+        { key: "genre-recommendations", selector: ".genre-recommendations" },
+        { key: "spotlight", selector: ".spotlight" },
+        { key: "finder", selector: "#search" },
+        { key: "categories", selector: "#categories" },
+        { key: "library", selector: "#library" },
+        { key: "creator", selector: "#creator" },
+        { key: "creators", selector: "#creators" },
+        { key: "cta", selector: ".cta" }
+      ];
+      const main = document.querySelector("main");
+      const originals = {};
+      definitions.forEach(function (definition) {
+        const element = document.querySelector(definition.selector);
+        if (element) originals[definition.key] = element;
+      });
+      const ordered = [];
+      data.sections.forEach(function (item) {
+        if (!item || typeof item !== "object") return;
+        let section = originals[item.id] || null;
+        if (!section) {
+          const source = originals[item.type];
+          if (!source) return;
+          section = source.cloneNode(true);
+          section.removeAttribute("id");
+          section.querySelectorAll("[id]").forEach(function (node) { node.removeAttribute("id"); });
+          const heading = section.querySelector(".section-head h2, h2");
+          if (heading && item.label) heading.textContent = item.label;
+          originals[item.id] = section;
+        }
+        section.hidden = item.hidden === true;
+        ordered.push(section);
+      });
+      ordered.forEach(function (section) { main.appendChild(section); });
+    } catch (_) {}
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     applyBranding(readSettings());
     installSettingsForm();
     installSessionNavigation();
+    syncHomepageSections();
   });
 })();
