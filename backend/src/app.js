@@ -69,7 +69,7 @@ export function createApp() {
   app.get('/api/payments/paypal/return', paypalReturnHandler);
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0' });
+    res.json({ status: 'ok', service: 'video-marketplace-api', version: '0.1.0', revision: 'paypal-return-route-f47ad9a' });
   });
 
   app.get('/api/ready', async (_req, res) => {
