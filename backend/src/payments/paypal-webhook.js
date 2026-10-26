@@ -235,9 +235,14 @@ export function createPayPalReturnHandler({
                 p.checkout_session_id
            FROM orders o
            JOIN payments p ON p.order_id = o.id AND p.provider = 'paypal'
-          WHERE ($1 <> '' AND o.id = $1)
-             OR ($2 <> '' AND p.checkout_session_id = $2)
-          ORDER BY CASE WHEN ($1 <> '' AND o.id = $1) THEN 0 ELSE 1 END
+          WHERE (
+                  ($2 <> '' AND p.checkout_session_id = $2)
+                  OR ($1 <> '' AND o.id = $1)
+                )
+            AND ($1 = '' OR o.id = $1)
+          ORDER BY
+            CASE WHEN ($2 <> '' AND p.checkout_session_id = $2) THEN 0 ELSE 1 END,
+            p.created_at DESC, p.id DESC
           LIMIT 1`,
         [requestedOrderId, returnedPayPalOrderId]
       );
