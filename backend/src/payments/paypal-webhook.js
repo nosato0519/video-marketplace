@@ -236,7 +236,7 @@ export function createPayPalReturnHandler({
            FROM orders o
            JOIN payments p ON p.order_id = o.id AND p.provider = 'paypal'
           WHERE ($2 <> '' AND p.checkout_session_id = $2)
-             OR ($2 = '' AND $1 <> '' AND o.id = $1)
+             OR ($2 = '' AND o.id = NULLIF($1, '')::uuid)
           ORDER BY
             CASE WHEN ($2 <> '' AND p.checkout_session_id = $2) THEN 0 ELSE 1 END,
             p.created_at DESC, p.id DESC
