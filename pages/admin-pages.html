@@ -532,6 +532,8 @@ if(Array.isArray(parsed)&&parsed.length){
 const sections=normalizeTopSections(parsed);
 localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(sections));
 localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sections));
+const syncResponse=await fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections})});
+if(!syncResponse.ok)throw new Error('homepage_settings_sync_failed');
 return;
 }
 }
