@@ -265,7 +265,7 @@ test('PayPal return prioritizes the returned token when orderId and token are bo
   }, res);
 
   assert.deepEqual(receivedParams, ['stale-or-conflicting-order-id', 'PAYPAL-ORDER-FROM-TOKEN']);
-  assert.match(receivedSql, /WHERE \(\$2 <> '' AND p\.checkout_session_id = \$2\)\s+OR \(\$2 = '' AND \$1 <> '' AND o\.id = \$1\)/);
+  assert.match(receivedSql, /WHERE \(\$2 <> '' AND p\.checkout_session_id = \$2\)\s+OR \(\$2 = '' AND o\.id = NULLIF\(\$1, ''\)::uuid\)/);
   assert.equal(res.statusCode, 303);
   assert.equal(res.redirectUrl, '/pages/library.html');
 });
