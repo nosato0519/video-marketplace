@@ -97,11 +97,10 @@ function createPayPalProvider() {
 
 function withPayPalReturnParams(url, orderId) {
   const returnUrl = new URL(url);
-  returnUrl.pathname = '/';
+  returnUrl.pathname = '/api/payments/paypal/return';
   returnUrl.search = '';
   returnUrl.hash = '';
   returnUrl.searchParams.set('orderId', String(orderId));
-  returnUrl.searchParams.set('session_id', 'paypal');
   return returnUrl.toString();
 }
 
