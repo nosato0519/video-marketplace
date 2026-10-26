@@ -37,6 +37,9 @@ jobs:
           src/payments/payment-success-guard.test.js
           src/payments/checkout-contract.test.js
       - name: Run webhook regression tests
-        run: node --test src/payments/stripe-webhook.test.js
+        run: >-
+          node --test
+          src/payments/stripe-webhook.test.js
+          src/payments/paypal-webhook.test.js
       - name: Run protected S3 media adapter regression tests
         run: node --test src/media/s3-media-storage.test.js
