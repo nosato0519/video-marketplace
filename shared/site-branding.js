@@ -249,6 +249,148 @@
     } catch (_) {}
   }
 
+  function installTopSettingsEditor() {
+    const root = document.getElementById("top-settings-list");
+    if (!root) return;
+    const status = document.getElementById("top-settings-status");
+    const select = document.getElementById("top-add-type");
+    const definitions = [
+      ["hero","メインビジュアル"],["announcements","お知らせ"],["video-showcase","作品紹介"],
+      ["trustbar","安心・購入ガイド"],["collection","動画コレクション"],["popular","人気の動画"],
+      ["new-releases","新着動画"],["genre-rail","カテゴリー・ジャンル"],
+      ["genre-recommendations","ジャンル別おすすめ"],["spotlight","おすすめ特集"],
+      ["finder","動画を探す"],["categories","カテゴリー一覧"],["library","ライブラリ紹介"],
+      ["creator","クリエイター向け案内"],["creators","注目のクリエイター"],["cta","最後の案内"]
+    ].map(function (item) { return { type: item[0], label: item[1] }; });
+    let sections = [];
+    const defaults = function () {
+      return definitions.map(function (item, index) {
+        return { id: item.type, type: item.type, label: item.label, hidden: false, order: index, content: {} };
+      });
+    };
+    function normalize(items) {
+      const source = Array.isArray(items) && items.length ? items : defaults();
+      const seen = new Set();
+      return source.filter(function (item) {
+        if (!item || typeof item !== "object" || !definitions.some(function (def) { return def.type === item.type; })) return false;
+        const id = typeof item.id === "string" && item.id ? item.id : item.type;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      }).map(function (item, index) {
+        const def = definitions.find(function (entry) { return entry.type === item.type; });
+        return Object.assign({}, item, { id: item.id || item.type, label: item.label || def.label, hidden: item.hidden === true, order: index, content: item.content && typeof item.content === "object" ? item.content : {} });
+      });
+    }
+    function field(labelText, key, value, item, multiline) {
+      const label = document.createElement("label");
+      label.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
+      label.appendChild(document.createTextNode(labelText));
+      const input = document.createElement(multiline ? "textarea" : "input");
+      if (!multiline) input.type = "text";
+      if (multiline) input.rows = 2;
+      input.value = value || "";
+      input.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+      input.addEventListener("input", function () { item.content[key] = input.value; });
+      label.appendChild(input);
+      return label;
+    }
+    function render() {
+      root.replaceChildren();
+      sections.forEach(function (item, index) {
+        const row = document.createElement("div");
+        row.className = "homepage-section-row" + (item.hidden ? " is-hidden" : "");
+        row.style.cssText = "display:grid;gap:12px;padding:14px;margin-bottom:10px;border:1px solid var(--line,#333);border-radius:10px;";
+        const head = document.createElement("div");
+        head.style.cssText = "display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;";
+        const title = document.createElement("strong");
+        title.textContent = item.label || (definitions.find(function (def) { return def.type === item.type; }) || {}).label || item.type;
+        head.appendChild(title);
+        const actions = document.createElement("div");
+        actions.className = "policy-actions";
+        function button(label, disabled, callback, primary) {
+          const element = document.createElement("button");
+          element.type = "button";
+          element.className = "btn" + (primary ? " primary" : "");
+          element.textContent = label;
+          element.disabled = disabled;
+          element.addEventListener("click", callback);
+          actions.appendChild(element);
+        }
+        button("↑", index === 0, function () { [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; render(); });
+        button("↓", index === sections.length - 1, function () { [sections[index + 1], sections[index]] = [sections[index], sections[index + 1]]; render(); });
+        button(item.hidden ? "表示する" : "非表示にする", false, function () { item.hidden = !item.hidden; render(); });
+        button("削除", item.added !== true, function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
+        head.appendChild(actions);
+        row.appendChild(head);
+        const fields = document.createElement("div");
+        fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;";
+        fields.append(
+          field("見出し", "title", item.content.title || item.label, item, false),
+          field("説明", "subtitle", item.content.subtitle, item, true),
+          field("ボタン表示", "button", item.content.button, item, false),
+          field("リンク先", "link", item.content.link, item, false),
+          field("画像URL", "image", item.content.image, item, false)
+        );
+        row.appendChild(fields);
+        root.appendChild(row);
+      });
+    }
+    async function load() {
+      status.textContent = "サーバーからTOP設定を読み込んでいます…";
+      try {
+        const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
+        if (!response.ok) throw new Error("load_failed");
+        const data = await response.json();
+        sections = normalize(data.sections);
+        render();
+        status.textContent = "TOP設定を読み込みました。";
+      } catch (_) {
+        sections = normalize([]);
+        render();
+        status.textContent = "サーバーから読み込めませんでした。運営者ログイン状態を確認してください。";
+      }
+    }
+    const add = document.getElementById("top-add-section");
+    if (add) add.addEventListener("click", function () {
+      const def = definitions.find(function (item) { return item.type === select.value; });
+      if (!def) return;
+      const id = def.type + "-added-" + Date.now();
+      sections.push({ id: id, type: def.type, label: def.label, hidden: false, added: true, order: sections.length, content: {} });
+      render();
+    });
+    const save = document.getElementById("top-save-settings");
+    if (save) save.addEventListener("click", async function () {
+      sections = sections.map(function (item, index) { return Object.assign({}, item, { order: index }); });
+      const serialized = JSON.stringify(sections);
+      status.textContent = "TOP設定をサーバーに保存しています…";
+      save.disabled = true;
+      try {
+        const editorResponse = await fetch("/api/admin/settings/page-editor", {
+          method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ merge: true, entries: {
+            "vm-demo-page-sections-top": serialized,
+            "vm-demo-homepage-sections": serialized
+          } })
+        });
+        if (!editorResponse.ok) throw new Error("page_editor_save_failed");
+        const homepageResponse = await fetch("/api/admin/settings/homepage", {
+          method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sections: sections })
+        });
+        if (!homepageResponse.ok) throw new Error("homepage_save_failed");
+        localStorage.setItem("vm-demo-page-sections-top", serialized);
+        localStorage.setItem("vm-demo-homepage-sections", serialized);
+        status.textContent = "TOP設定を保存しました。公開TOPに反映されます。";
+      } catch (_) {
+        status.textContent = "保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
+      } finally {
+        save.disabled = false;
+      }
+    });
+    load();
+  }
+
   async function installSessionNavigation() {
     const menus = document.querySelectorAll(".login-menu");
     if (!menus.length) return;
@@ -506,6 +648,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     applyBranding(readSettings());
     installSettingsForm();
+    installTopSettingsEditor();
     installSessionNavigation();
     syncHomepageSections();
     syncPublicSettings();
