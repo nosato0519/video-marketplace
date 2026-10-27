@@ -358,19 +358,49 @@
       });
     };
     function normalize(items) {
-      const source = Array.isArray(items) && items.length ? items : defaults();
-      const seen = new Set();
+      const source = Array.isArray(items) ? items : [];
+      const seenIds = new Set();
+      const seenTypes = new Set();
       const normalized = source.filter(function (item) {
         if (!item || typeof item !== "object" || !definitions.some(function (def) { return def.type === item.type; })) return false;
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
-        if (seen.has(id)) return false;
-        seen.add(id);
+        if (seenIds.has(id)) return false;
+        seenIds.add(id);
+        if (item.added !== true) {
+          if (seenTypes.has(item.type)) return false;
+          seenTypes.add(item.type);
+        }
         return true;
       }).map(function (item, index) {
         const def = definitions.find(function (entry) { return entry.type === item.type; });
-        return Object.assign({}, item, { id: item.id || item.type, label: item.label || def.label, hidden: item.hidden === true, order: index, content: item.content && typeof item.content === "object" ? item.content : {} });
+        return Object.assign({}, item, {
+          id: item.id || item.type,
+          label: item.label || def.label,
+          hidden: item.hidden === true,
+          order: index,
+          content: item.content && typeof item.content === "object" ? item.content : {}
+        });
       });
-      return normalized.length ? normalized : defaults();
+
+      // Older saved configurations can contain only newly added sections.
+      // Restore any missing standard sections so they remain reorderable.
+      definitions.forEach(function (def) {
+        if (seenTypes.has(def.type)) return;
+        normalized.push({
+          id: def.type,
+          type: def.type,
+          label: def.label,
+          hidden: false,
+          added: false,
+          order: normalized.length,
+          content: {}
+        });
+        seenTypes.add(def.type);
+      });
+
+      return normalized.map(function (item, index) {
+        return Object.assign({}, item, { order: index });
+      });
     }
     function field(labelText, key, value, item, multiline) {
       const label = document.createElement("label");
