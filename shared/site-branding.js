@@ -278,6 +278,51 @@
     } catch (_) {}
   }
 
+  function installGlobalChromeForm() {
+    const form = document.getElementById("site-chrome-form");
+    if (!form) return;
+    const status = document.getElementById("site-chrome-status");
+    const fields = Array.from(form.elements).filter(function (field) { return field.name; });
+    function apply(values) {
+      fields.forEach(function (field) {
+        if (!(field.name in values)) return;
+        if (field.type === "checkbox") field.checked = values[field.name] !== false;
+        else field.value = values[field.name];
+      });
+    }
+    fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        const chrome = data && data.pageSettings && data.pageSettings.chrome;
+        if (chrome && typeof chrome === "object") apply(chrome);
+        status.textContent = "共通表示設定を読み込みました。";
+      })
+      .catch(function () { status.textContent = "共通表示設定を読み込めませんでした。"; });
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const values = {};
+      fields.forEach(function (field) {
+        values[field.name] = field.type === "checkbox" ? field.checked : field.value;
+      });
+      status.textContent = "共通表示設定をサーバーに保存しています…";
+      const button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      try {
+        const response = await fetch("/api/admin/settings/page-editor", {
+          method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ merge: true, entries: { "vm-demo-site-chrome": JSON.stringify(values) } })
+        });
+        if (!response.ok) throw new Error("site_chrome_save_failed");
+        localStorage.setItem("vm-demo-site-chrome", JSON.stringify(values));
+        status.textContent = "共通表示設定を保存しました。公開サイトに反映されます。";
+      } catch (_) {
+        status.textContent = "保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
   function installTopSettingsEditor() {
     const root = document.getElementById("top-settings-list");
     if (!root) return;
@@ -688,6 +733,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     applyBranding(document.getElementById("settings-form") ? readSettings() : {});
     installSettingsForm();
+    installGlobalChromeForm();
     installTopSettingsEditor();
     installSessionNavigation();
     syncHomepageSections();
