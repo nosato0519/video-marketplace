@@ -352,7 +352,7 @@ export function createApp() {
            GROUP BY p.id, thumbnail.image_id, c.slug, sp.display_name,
                     pt.title, fallback.title, p.title, pt.description, fallback.description, p.description
            ORDER BY ${orderBy}
-           LIMIT $3`,
+           LIMIT $2`,
           [period, videoCount]
         );
         dynamicSectionData.set(key, { products: result.rows });
