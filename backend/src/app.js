@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { query } from './db.js';
 import { registerCatalogRoutes } from './catalog-routes.js';
 import { registerProductDetailRoutes } from './catalog/product-detail-routes.js';
@@ -84,7 +85,7 @@ export function createApp() {
             .filter((page) => page && page.status === '公開' &&
               typeof page.name === 'string' && typeof page.url === 'string' && page.url !== '/' && !['/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'].includes(page.url) &&
               /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
-              !page.url.split('/').includes('..'))
+              !page.url.split('/').includes('..') && !existsSync(path.resolve(process.cwd(), '.' + page.url)))
             .map(({ name, url }) => ({ name, url }));
         }
       } catch (_) {}
