@@ -76,6 +76,18 @@ export function createApp() {
       );
       const settings = Object.fromEntries(result.rows.map((row) => [row.setting_key, row.setting_value]));
       const editorEntries = settings.page_editor_config?.value?.entries;
+      let publishedPages = [];
+      try {
+        const savedPages = JSON.parse(editorEntries?.['vm-demo-pages'] || '[]');
+        if (Array.isArray(savedPages)) {
+          publishedPages = savedPages
+            .filter((page) => page && page.status === '公開' &&
+              typeof page.name === 'string' && typeof page.url === 'string' &&
+              /^\/(?!\/)[a-zA-Z0-9/_-]*$/.test(page.url) &&
+              !page.url.split('/').includes('..'))
+            .map(({ name, url }) => ({ name, url }));
+        }
+      } catch (_) {}
       let editorSections = null;
       let pageSettings = {};
       const themes = {};
@@ -104,6 +116,7 @@ export function createApp() {
         sections: Array.isArray(editorSections) && editorSections.length
           ? editorSections
           : settings.homepage_sections?.value ?? null,
+        publishedPages,
         themes,
         pageSettings
       });
