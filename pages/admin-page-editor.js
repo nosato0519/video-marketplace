@@ -403,6 +403,10 @@ function applyPageTemplate(template){
   };
   const preset=presets[template];
   if(!preset)return;
+  for(let index=localStorage.length-1;index>=0;index--){
+    const key=localStorage.key(index);
+    if(key && key.startsWith(THEME_PREFIX+'new-'))localStorage.removeItem(key);
+  }
   nameInput.value=preset.name;
   urlInput.value=preset.url;
   statusInput.value='下書き';
