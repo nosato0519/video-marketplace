@@ -272,7 +272,7 @@ export function createApp() {
     const headingSize = design.headingSize === 'large' ? 'large' : design.headingSize === 'compact' ? 'compact' : 'standard';
     const contentWidth = ['wide', 'narrow'].includes(design.contentWidth) ? design.contentWidth : 'standard';
     const cardShape = design.cardShape === 'square' ? 'square' : 'rounded';
-    const chrome = parseJson(entries['vm-demo-site-chrome']);
+    const chrome = parseJson(entries['vm-demo-page-chrome-' + id] || entries['vm-demo-site-chrome']);
     const footerDescription = chrome.footerDescription || '見つける。買う。楽しむ。';
     const navItems = [
       ['cart', chrome.showCart !== false, 'カート', '/cart'],
