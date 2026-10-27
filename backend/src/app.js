@@ -94,13 +94,16 @@ export function createApp() {
       let siteBranding = {};
       let siteSettings = {};
       let announcements = [];
+      let homepageTheme = {};
       const themes = {};
       try {
         const rawBranding = editorEntries?.['vm-demo-site-branding'];
         const rawSiteSettings = editorEntries?.['vm-demo-admin-setting-general'];
         const rawAnnouncements = editorEntries?.['vm-demo-announcements'];
+        const rawHomepageTheme = editorEntries?.['vm-demo-homepage-theme'];
         if (typeof rawBranding === 'string') siteBranding = JSON.parse(rawBranding) || {};
         if (typeof rawSiteSettings === 'string') siteSettings = JSON.parse(rawSiteSettings) || {};
+        if (typeof rawHomepageTheme === 'string') homepageTheme = JSON.parse(rawHomepageTheme) || {};
         if (typeof rawAnnouncements === 'string') {
           const parsed = JSON.parse(rawAnnouncements);
           if (Array.isArray(parsed)) announcements = parsed.filter(item => item && item.status === 'published' && typeof item.title === 'string').sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
@@ -136,7 +139,8 @@ export function createApp() {
         pageSettings,
         siteBranding,
         siteSettings,
-        announcements
+        announcements,
+        homepageTheme
       });
     } catch (error) {
       console.error('Loading homepage settings failed', error);
