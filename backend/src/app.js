@@ -228,8 +228,24 @@ export function createApp() {
     const heroCopy = hero.copy || meta.description || '';
     const heroHeadline = hero.headline || page.name || '';
     const heroButtonUrl = safeUrl(hero.buttonUrl);
-    const footer = parseJson(entries['vm-demo-site-chrome']);
-    const footerDescription = footer.footerDescription || '見つける。買う。楽しむ。';
+    const heroPosition = ['center', 'top', 'bottom', 'left', 'right'].includes(hero.imagePosition) ? hero.imagePosition : 'center';
+    const heroFit = ['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover';
+    const headingSize = design.headingSize === 'large' ? 'large' : design.headingSize === 'compact' ? 'compact' : 'standard';
+    const contentWidth = ['wide', 'narrow'].includes(design.contentWidth) ? design.contentWidth : 'standard';
+    const cardShape = design.cardShape === 'square' ? 'square' : 'rounded';
+    const chrome = parseJson(entries['vm-demo-site-chrome']);
+    const footerDescription = chrome.footerDescription || '見つける。買う。楽しむ。';
+    const navItems = [
+      ['cart', chrome.showCart !== false, 'カート', '/cart'],
+      ['purchase', chrome.showPurchase !== false, '動画を購入する', '/pages/browse.html'],
+      ['sell', chrome.showSell !== false, '動画を販売する', '/pages/seller-register.html'],
+      ['account', chrome.showAccount !== false, 'ログイン', '/pages/login.html']
+    ];
+    const navOrder = String(chrome.menuOrder || 'cart,purchase,sell').split(',');
+    const navHtml = navOrder.concat(navItems.map(item => item[0])).filter((key, index, all) => all.indexOf(key) === index)
+      .map(key => navItems.find(item => item[0] === key))
+      .filter(item => item && item[1])
+      .map(item => `<a href="${escapeHtml(item[3])}">${escapeHtml(item[2])}</a>`).join('');
 
     res.set('Cache-Control', 'no-store');
     return res.type('html').send(`<!doctype html>
@@ -240,10 +256,15 @@ export function createApp() {
 :root{color-scheme:dark;--page-bg:${background};--page-text:${textColor};--page-accent:${accent}}
 body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 .page-published-header,.page-published-footer{padding:20px max(5vw,20px);border-bottom:1px solid #ffffff20}
+.page-published-header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .page-published-header a{color:var(--page-text);text-decoration:none;font-weight:700;letter-spacing:.08em}
-.page-hero{padding:clamp(64px,10vw,140px) max(5vw,20px);background:${heroImage ? `linear-gradient(#0008,#0008),url("${escapeHtml(heroImage)}") center/cover` : 'linear-gradient(135deg,#17191f,#090a0d)'};text-align:center}
+.page-published-nav{display:flex;gap:16px;flex-wrap:wrap}
+.page-published-nav a{font-size:.9rem;font-weight:500;letter-spacing:0}
+.page-hero{padding:clamp(64px,10vw,140px) max(5vw,20px);background:${heroImage ? `linear-gradient(#0008,#0008),url("${escapeHtml(heroImage)}") ${heroPosition}/${heroFit}` : 'linear-gradient(135deg,#17191f,#090a0d)'};text-align:center}
 .page-hero .eyebrow{color:var(--page-accent);letter-spacing:.14em}
-.page-hero h1{font-size:clamp(2rem,5vw,4rem);white-space:pre-line;margin:14px auto;max-width:900px}
+.page-hero h1{font-size:${headingSize === 'large' ? 'clamp(2.4rem,6vw,4.5rem)' : headingSize === 'compact' ? 'clamp(1.6rem,4vw,2.8rem)' : 'clamp(2rem,5vw,4rem)'};white-space:pre-line;margin:14px auto;max-width:900px}
+.page-section-inner{max-width:${contentWidth === 'wide' ? '1440px' : contentWidth === 'narrow' ? '780px' : '1160px'};margin:auto}
+.page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:${cardShape === 'square' ? '0' : '12px'};background:#ffffff08}
 .page-hero p{max-width:760px;margin:0 auto 24px;line-height:1.8}
 .page-button{display:inline-block;background:var(--page-accent);color:#101010;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:18px}
 .page-section{padding:clamp(34px,6vw,76px) max(5vw,20px);border-bottom:1px solid #ffffff14}
@@ -259,7 +280,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}}
 </style></head><body>
-<header class="page-published-header"><a href="/">VIDEO MARKETPLACE</a></header>
+<header class="page-published-header"><a href="/">VIDEO MARKETPLACE</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
 <main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
 <footer class="page-published-footer">${escapeHtml(footerDescription)}<div>${escapeHtml(footer.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
 </body></html>`);
