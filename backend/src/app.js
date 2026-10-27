@@ -403,7 +403,7 @@ export function createApp() {
         const heroButtonUrl = safeUrl(content.link || hero.buttonUrl);
         const heroButtonLabel = content.button || hero.buttonLabel || '';
         const heroPosition = ['center', 'top', 'bottom', 'left', 'right'].includes(settings.imagePosition) ? settings.imagePosition : (['center', 'top', 'bottom', 'left', 'right'].includes(hero.imagePosition) ? hero.imagePosition : 'center');
-        const heroFit = ['cover', 'contain', 'auto'].includes(themeImageFit) ? themeImageFit : (['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover');
+        const heroFit = ['cover', 'contain', 'auto'].includes(theme.imageFit) ? theme.imageFit : (['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover');
         const heroLayout = ['left', 'right'].includes(settings.imagePosition) ? settings.imagePosition : 'background';
         const heroHeight = ({ compact: '280px', standard: '400px', large: '560px' })[settings.height] || '400px';
         const heroStyle = [
