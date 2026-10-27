@@ -363,8 +363,11 @@
       }
 
       if (!node || usedNodes.has(node)) return;
-      node.hidden = item.hidden === true;
-      node.setAttribute("aria-hidden", String(item.hidden === true));
+      const isHidden = item.hidden === true;
+      node.hidden = isHidden;
+      if (isHidden) node.style.setProperty("display", "none", "important");
+      else node.style.removeProperty("display");
+      node.setAttribute("aria-hidden", String(isHidden));
       usedNodes.add(node);
       orderedNodes.push(node);
     });
