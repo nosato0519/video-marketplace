@@ -143,6 +143,11 @@ export function createApp() {
         : Array.isArray(settings.homepage_sections?.value)
           ? settings.homepage_sections.value.slice()
           : [];
+      homepageSections.sort((left, right) => {
+        const leftOrder = Number.isFinite(Number(left?.order)) ? Number(left.order) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = Number.isFinite(Number(right?.order)) ? Number(right.order) : Number.MAX_SAFE_INTEGER;
+        return leftOrder - rightOrder;
+      });
       publishedPages.forEach((page) => {
         if (!homepageSections.some((section) => section && section.type === 'custom-page' && section.pageId === page.id)) {
           homepageSections.push({
@@ -157,7 +162,7 @@ export function createApp() {
           });
         }
       });
-      homepageSections.forEach((section, index) => { section.order = index; });
+      homepageSections.forEach((section, index) => { if (section && typeof section === 'object') section.order = index; });
       res.set('Cache-Control', 'no-store');
       return res.json({
         sections: homepageSections,
