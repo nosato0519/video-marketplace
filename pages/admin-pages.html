@@ -44,6 +44,9 @@
     <div class="policy-actions">
       <button class="btn primary" type="button" id="new-page">新しいページを作成</button>
     </div>
+    <div class="panel-head"><strong>作成済みページ・表示順</strong><span>PAGES</span></div>
+    <p class="muted homepage-editor-help">ここではTOP以外の独立ページを管理します。公開状態・URL・表示順はサーバーに保存されます。</p>
+    <div id="managed-pages-list" class="homepage-section-list"></div>
 
     <div class="panel-head"><strong>公開文書の管理</strong><span>PUBLIC DOCUMENTS</span></div>
     <div class="cards admin-cards-spaced">
@@ -63,37 +66,9 @@
       </a>
     </div>
 
-    <div class="panel-head"><strong>ページのセクション</strong><span>PAGE CONTENT</span></div>
-    <p class="muted homepage-editor-help">TOPページで使用しているセクションをすべて一覧にしています。表示・非表示と順番をこの画面だけで管理できます。</p>
-    <div id="landing-section-list" class="homepage-section-list"></div>
-    <div class="homepage-add-row">
-      <label for="landing-add-type">追加するセクション</label>
-      <select id="landing-add-type">
-        <option value="hero">メインビジュアル</option>
-        <option value="announcements">お知らせ</option>
-        <option value="video-showcase">作品紹介</option>
-        <option value="trustbar">安心・購入ガイド</option>
-        <option value="collection">動画コレクション</option>
-        <option value="popular">人気の動画</option>
-        <option value="new-releases">新着動画</option>
-        <option value="genre-rail">カテゴリー・ジャンル</option>
-        <option value="genre-recommendations">ジャンル別おすすめ</option>
-        <option value="spotlight">おすすめ特集</option>
-        <option value="finder">動画を探す</option>
-        <option value="categories">カテゴリー一覧</option>
-        <option value="library">ライブラリ紹介</option>
-        <option value="creator">クリエイター向け案内</option>
-        <option value="creators">注目のクリエイター</option>
-        <option value="cta">最後の案内</option>
-      </select>
-      <button class="btn primary" type="button" id="landing-add-section">セクションを追加</button>
-    </div>
-
-    <div class="policy-actions">
-      <button class="btn primary" type="button" id="landing-save-page">ページを保存</button>
-      <button class="btn" type="button" id="landing-cancel-page">キャンセル</button>
-      <span class="muted" id="landing-status" role="status">ページ設定の読み込み・保存状況をここに表示します。</span>
-    </div>
+    <div class="panel-head"><strong>TOPページ設定</strong><span>HOMEPAGE</span></div>
+    <p class="muted homepage-editor-help">TOPページのセクション順・表示設定・内容は「運営設定 → サイト基本設定」で編集します。</p>
+    <div class="policy-actions"><a class="btn primary" href="/pages/admin-setting-general.html">TOPページ設定を開く</a></div>
   </div>
 </section>
 
@@ -198,14 +173,13 @@ const definitions=[
  {key:'cta',label:'まだ知らない映像と、出会う'}
 ];
 const defaults=[
-{id:'top',name:'TOP',url:'/',status:'公開',parent:'',locked:true},
 {id:'videos',name:'動画一覧',url:'/pages/video-list.html',status:'公開',parent:'',locked:false},
 {id:'categories',name:'カテゴリー',url:'/pages/categories.html',status:'公開',parent:'',locked:false},
 {id:'about',name:'サイトについて',url:'/pages/about.html',status:'公開',parent:'',locked:false},
 {id:'contact',name:'お問い合わせ',url:'/pages/contact.html',status:'下書き',parent:'',locked:false}
 ];
 const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
-const sectionList=document.getElementById('homepage-section-list'),addType=document.getElementById('landing-add-type');
+const sectionList=document.getElementById('homepage-section-list');
 const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionThemeText=document.getElementById('section-theme-text'),sectionThemeButtonText=document.getElementById('section-theme-button-text'),sectionThemeWidth=document.getElementById('section-theme-width'),sectionThemeSpacing=document.getElementById('section-theme-spacing'),sectionThemeImageFit=document.getElementById('section-theme-image-fit'),sectionEditorStatus=document.getElementById('section-editor-status');
 const META_PREFIX='vm-demo-page-meta-',DESIGN_PREFIX='vm-demo-page-design-',CHROME_KEY='vm-demo-site-chrome';
 const heroDefaults={kicker:'DISCOVER SOMETHING NEW',headline:'見つける。\n買う。\n楽しむ。',copy:'',backgroundImage:'',buttonLabel:'詳しく見る',buttonUrl:'/pages/video-list.html',imagePosition:'center',imageFit:'cover'};
@@ -264,58 +238,19 @@ Object.entries(data.entries).forEach(([key,value])=>{if(typeof value==='string')
 return data.entries;
 }catch(error){console.error('Loading page editor settings failed',error);return null;}
 }
-function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved:defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
-async function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();render();try{await persistEditorSettings();}catch(error){editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
-async function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を削除しますか？'))return;const previous=pages.slice();pages=pages.filter(p=>p.id!==page.id);save();if(editingId===page.id)closeEditor();render();try{await persistEditorSettings();}catch(error){pages=previous;save();render();editorStatus.textContent=error.message||'ページ削除のサーバー保存に失敗しました。';}}
+async function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();renderPageList();try{await persistEditorSettings();}catch(error){editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
+async function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を削除しますか？'))return;const previous=pages.slice();pages=pages.filter(p=>p.id!==page.id);save();if(editingId===page.id)closeEditor();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ削除のサーバー保存に失敗しました。';}}
 function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
-function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,label:d.label,hidden:false,order:i}));}
-function normalizeTopSections(value){
-const base=defaultSections();
-if(!Array.isArray(value)||value.length===0)return base;
-const normalized=[];
-const standardTypes=new Set();
-const presentTypes=new Set();
-const seenIds=new Set();
-value.forEach(item=>{
-if(!item||typeof item!=='object')return;
-const type=item.type||item.key||item.id;
-const definition=definitions.find(entry=>entry.key===type);
-if(!definition)return;
-const added=item.added===true;
-const id=added?(typeof item.id==='string'&&item.id?item.id:definition.key+'-added-'+normalized.length):definition.key;
-if(seenIds.has(id))return;
-if(!added&&standardTypes.has(definition.key))return;
-normalized.push({
-...item,
-id,
-type:definition.key,
-label:typeof item.label==='string'&&item.label?item.label:definition.label,
-hidden:item.hidden===true,
-added,
-order:normalized.length
-});
-seenIds.add(id);
-presentTypes.add(definition.key);
-if(!added)standardTypes.add(definition.key);
-});
-base.forEach(item=>{
-if(presentTypes.has(item.type))return;
-normalized.push({...item,order:normalized.length});
-});
-return normalized.length?normalized:base;
-}
 function loadPageSettings(id){
-try{
-const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+id)||'null');
-const legacy=id==='top'?JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null'):null;
-const source=Array.isArray(saved)?saved:legacy;
-sectionState=id==='top'
-?normalizeTopSections(source)
-:(Array.isArray(saved)?saved:[]);
-}catch(e){sectionState=id==='top'?defaultSections():[];}
-if(!Array.isArray(sectionState)||(id==='top'&&sectionState.length===0))sectionState=id==='top'?defaultSections():[];
-renderSections();
+  try {
+    const saved = JSON.parse(localStorage.getItem(SECTION_PREFIX + id) || 'null');
+    sectionState = Array.isArray(saved) ? saved : [];
+  } catch (_) {
+    sectionState = [];
+  }
+  renderSections();
 }
 function renderSections(){
 sectionList.replaceChildren();
@@ -341,24 +276,6 @@ const edit=document.createElement('button');edit.type='button';edit.className='b
 const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='btn duplicate-section';duplicate.textContent='複製';duplicate.title='このセクションの設定を複製';duplicate.addEventListener('click',()=>duplicateSection(index));
 const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=!item.added;remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x&&x.id!==item.id);renderSections();});
 actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);
-});
-}
-function renderLandingSections(){
-const target=document.getElementById('landing-section-list');if(!target)return;target.replaceChildren();
-const items=readLandingSections();
-items.forEach((item,index)=>{
-const row=document.createElement('div');row.className='homepage-section-row'+(item.hidden?' is-hidden':'');
-const title=document.createElement('div');title.className='homepage-section-title';
-const strong=document.createElement('strong');strong.textContent=item.label;
-const meta=document.createElement('small');meta.textContent=item.hidden?'非表示':(item.added?'追加したセクション':'TOPの標準セクション');title.append(strong,meta);
-const actions=document.createElement('div');actions.className='homepage-section-actions';
-const makeButton=(label,disabled,handler,primary=false)=>{const b=document.createElement('button');b.type='button';b.className='btn'+(primary?' primary':'');b.textContent=label;b.disabled=disabled;if(handler)b.addEventListener('click',handler);actions.append(b);};
-makeButton('↑',index===0,()=>{const next=items.slice();[next[index-1],next[index]]=[next[index],next[index-1]];saveLandingSections(next);});
-makeButton('↓',index===items.length-1,()=>{const next=items.slice();[next[index+1],next[index]]=[next[index],next[index+1]];saveLandingSections(next);});
-makeButton(item.hidden?'表示':'非表示',false,()=>{const next=items.map((entry,i)=>i===index?{...entry,hidden:!entry.hidden}:entry);saveLandingSections(next);});
-makeButton('編集',false,()=>openEditor(pages.find(page=>page.id==='top')||defaults[0],index),true);
-makeButton('削除',!item.added,()=>{const next=items.filter((entry,i)=>i!==index);saveLandingSections(next);});
-row.append(title,actions);target.append(row);
 });
 }
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
@@ -526,7 +443,7 @@ item.settings=item.settings||{};specificSettings.querySelectorAll('[data-setting
 try{localStorage.setItem(THEME_PREFIX+(editingId||'new')+'-'+item.id,JSON.stringify({bg:sectionBg.value,accent:sectionAccent.value,radius:sectionRadius.value,text:sectionThemeText.value,buttonText:sectionThemeButtonText.value,width:sectionThemeWidth.value,spacing:sectionThemeSpacing.value,imageFit:sectionThemeImageFit.value}));}catch(e){}
 renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId,JSON.stringify(sectionState));if(editingId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}catch(e){sectionEditorStatus.textContent='このブラウザに保存できませんでした。';return;}}sectionEditorStatus.textContent='編集内容を反映しました。ページ編集画面で下書き保存すると確定します。';
 }
-function openEditor(page,sectionIndex=null){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
+function openEditor(page,sectionIndex=null){if(page.id==='top'){window.location.href='/pages/admin-setting-general.html';return;}editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=[];renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 async function savePage(){
@@ -583,6 +500,7 @@ if(!response.ok)throw new Error('homepage_save_failed');
 editorStatus.textContent=statusInput.value==='公開'
 ? '公開しました: '+url
 : '下書きを保存しました。';
+renderPageList();
 return true;
 }catch(error){
 editorStatus.textContent=error instanceof Error&&error.message
@@ -603,45 +521,58 @@ document.getElementById('cancel-section').addEventListener('click',closeSectionE
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('add-section-item').addEventListener('click',()=>{if(editingSectionIndex===null)return;appendSectionItem({},sectionItemsEditor.querySelectorAll('.section-item-card').length);});
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,added:true,order:sectionState.length});renderSections();});
-function saveLandingSections(nextItems){
-const target=document.getElementById('landing-status');
-const items=Array.isArray(nextItems)?nextItems:readLandingSections();items.forEach((item,i)=>item.order=i);
-try{localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(items));localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(items));if(target)target.textContent='サーバーに保存しています…';renderLandingSections();persistEditorSettings().then(()=>fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections:items})})).then(response=>{if(!response.ok)throw new Error('homepage_save_failed');if(target)target.textContent='ページ設定をサーバーに保存し、公開ページの設定に反映しました。';}).catch(()=>{if(target)target.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';});return true;}catch(e){if(target)target.textContent='保存できませんでした。ブラウザの保存容量を確認してください。';return false;}
-}
-function readLandingSections(){try{const saved=JSON.parse(localStorage.getItem(SECTION_PREFIX+'top')||'null');const legacy=JSON.parse(localStorage.getItem('vm-demo-homepage-sections')||'null');return normalizeTopSections(Array.isArray(saved)&&saved.length?saved:legacy);}catch(e){return defaultSections();}}
-document.getElementById('landing-add-section').addEventListener('click',()=>{
-const d=definitions.find(x=>x.key===document.getElementById('landing-add-type').value);if(!d)return;
-const items=readLandingSections();const n=items.filter(item=>item.type===d.key).length+1;
-items.push({id:d.key+'-added-'+Date.now(),type:d.key,label:d.label+'（追加 '+n+'）',hidden:false,order:items.length,added:true});
-saveLandingSections(items);const status=document.getElementById('landing-status');if(status)status.textContent='セクションを追加しました。';
-});
-document.getElementById('landing-save-page').addEventListener('click',saveLandingSections);
-document.getElementById('landing-cancel-page').addEventListener('click',()=>{renderLandingSections();const status=document.getElementById('landing-status');if(status)status.textContent='保存済みの設定を再読み込みしました。';});
 function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
-async function loadServerHomepageSections(serverEntries){
-try{
-const saved=serverEntries?.[SECTION_PREFIX+'top']||serverEntries?.['vm-demo-homepage-sections'];
-if(typeof saved==='string'){
-const parsed=JSON.parse(saved);
-if(Array.isArray(parsed)&&parsed.length){
-const sections=normalizeTopSections(parsed);
-localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(sections));
-localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sections));
-const syncResponse=await fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections})});
-if(!syncResponse.ok)throw new Error('homepage_settings_sync_failed');
-return;
+function renderPageList() {
+  const root = document.getElementById('managed-pages-list');
+  if (!root) return;
+  root.replaceChildren();
+  pages.forEach((page, index) => {
+    const row = document.createElement('div');
+    row.className = 'homepage-section-row';
+    const title = document.createElement('div');
+    title.className = 'homepage-section-title';
+    const name = document.createElement('strong');
+    name.textContent = page.name;
+    const meta = document.createElement('small');
+    meta.textContent = (page.status === '公開' ? '公開' : '下書き') + ' ・ ' + page.url;
+    title.append(name, meta);
+    const actions = document.createElement('div');
+    actions.className = 'homepage-section-actions';
+    const addButton = (label, disabled, handler, primary) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn' + (primary ? ' primary' : '');
+      button.textContent = label;
+      button.disabled = disabled;
+      button.addEventListener('click', handler);
+      actions.appendChild(button);
+    };
+    addButton('↑', index === 0, () => move(index, -1));
+    addButton('↓', index === pages.length - 1, () => move(index, 1));
+    addButton('編集', false, () => openEditor(page), true);
+    addButton('削除', false, () => removePage(page));
+    row.append(title, actions);
+    root.appendChild(row);
+  });
 }
-}
-const response=await fetch('/api/admin/settings/homepage',{credentials:'same-origin',cache:'no-store'});
-if(!response.ok)return;
-const data=await response.json();
-if(!Array.isArray(data.sections)||data.sections.length===0)return;
-const sections=normalizeTopSections(data.sections);
-localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(sections));
-localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sections));
-}catch(error){console.error('Loading live homepage sections failed',error);}
-}
-load();renderLandingSections();loadServerEditorSettings().then(async(entries)=>{load();await loadServerHomepageSections(entries);renderLandingSections();});
+document.getElementById('homepage-add-section').addEventListener('click',()=>{
+  const type = document.getElementById('homepage-add-type').value;
+  const definition = definitions.find(item => item.key === type);
+  if (!definition) return;
+  sectionState.push({id:type+'-'+Date.now(),type,label:definition.label,hidden:false,added:true,order:sectionState.length,content:{}});
+  renderSections();
+});
+function runPublishCheck(){loadServerEditorSettings().then(() => {
+  load();
+  pages = pages.filter(page => page && page.id !== 'top');
+  save();
+  renderPageList();
+}).catch(() => {
+  load();
+  pages = pages.filter(page => page && page.id !== 'top');
+  renderPageList();
+});
+
 })();
 </script>
 <script>
