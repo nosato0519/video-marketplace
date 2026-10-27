@@ -380,6 +380,50 @@ renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId
 }
 function openEditor(page,sectionIndex=null){if(page.id==='top'){window.location.href='/pages/admin-setting-general.html';return;}editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=[];renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function applyPageTemplate(template){
+  if(!editor || editor.hidden || editingId){
+    const status=document.getElementById('page-template-status');
+    if(status)status.textContent='テンプレートは「新しいページを作成」から開いた新規ページに適用できます。';
+    return;
+  }
+  const presets={
+    blank:{name:'',url:'',sections:[]},
+    popular:{name:'人気の動画',url:'/pages/popular-videos',sections:[
+      {type:'popular',label:'人気の動画',content:{title:'人気の動画',subtitle:'多くの方に選ばれている動画をご紹介します。',button:'すべての動画を見る',link:'/pages/video-list.html'},settings:{videoCount:'12',columns:'4',period:'all'}},
+      {type:'custom-text',label:'ページ紹介',content:{title:'お気に入りの一本を見つける',subtitle:'幅広いジャンルの動画から、気になる作品をお探しください。'}}
+    ]},
+    'new-releases':{name:'新着動画',url:'/pages/new-releases',sections:[
+      {type:'new-releases',label:'新着動画',content:{title:'新着動画',subtitle:'新しく公開された動画をチェックできます。',button:'すべての動画を見る',link:'/pages/video-list.html'},settings:{videoCount:'12',columns:'4'}},
+      {type:'custom-text',label:'ページ紹介',content:{title:'新しい作品との出会い',subtitle:'新着作品は公開中の動画データから自動で更新されます。'}}
+    ]},
+    categories:{name:'カテゴリー一覧',url:'/pages/video-categories',sections:[
+      {type:'categories',label:'カテゴリー一覧',content:{title:'カテゴリーから探す',subtitle:'興味のあるカテゴリーから動画を探せます。'},settings:{categoryCount:'12',columns:'3'}},
+      {type:'custom-text',label:'ページ紹介',content:{title:'自分に合った動画を探す',subtitle:'カテゴリーを選んで、気になる作品を見つけてください。'}}
+    ]}
+  };
+  const preset=presets[template];
+  if(!preset)return;
+  nameInput.value=preset.name;
+  urlInput.value=preset.url;
+  statusInput.value='下書き';
+  sectionState=preset.sections.map((section,index)=>({
+    id:section.type+'-template-'+(index+1)+'-'+Date.now(),
+    type:section.type,
+    label:section.label,
+    hidden:false,
+    added:true,
+    order:index,
+    content:section.content||{},
+    settings:section.settings||{},
+    items:[]
+  }));
+  renderSections();
+  const status=document.getElementById('page-template-status');
+  if(status)status.textContent=template==='blank'
+    ? '空白ページにしました。必要なセクションを自由に追加してください。'
+    : 'テンプレートを適用しました。セクションを編集し、下書き保存または公開してください。';
+}
+
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 async function savePage(){
 const name=nameInput.value.trim();
@@ -439,6 +483,9 @@ return false;
 }
 }
 document.getElementById('new-page').addEventListener('click',newPage);
+document.querySelectorAll('[data-page-template]').forEach(button=>{
+  button.addEventListener('click',()=>applyPageTemplate(button.dataset.pageTemplate));
+});
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').textContent='下書き保存';
 document.getElementById('save-page').addEventListener('click',()=>{statusInput.value='下書き';savePage();});
