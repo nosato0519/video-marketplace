@@ -340,9 +340,9 @@ export function createApp() {
            LEFT JOIN orders o
              ON o.product_id = p.id
             AND o.status = 'paid'
-            AND ($2::text = 'all'
-              OR ($2::text = 'month' AND o.paid_at >= NOW() - INTERVAL '30 days')
-              OR ($2::text = 'week' AND o.paid_at >= NOW() - INTERVAL '7 days'))
+            AND ($1::text = 'all'
+              OR ($1::text = 'month' AND o.paid_at >= NOW() - INTERVAL '30 days')
+              OR ($1::text = 'week' AND o.paid_at >= NOW() - INTERVAL '7 days'))
            WHERE p.status = 'published'
              AND su.status = 'active'
              AND NOT EXISTS (
@@ -353,7 +353,7 @@ export function createApp() {
                     pt.title, fallback.title, p.title, pt.description, fallback.description, p.description
            ORDER BY ${orderBy}
            LIMIT $3`,
-          [period, period, videoCount]
+          [period, videoCount]
         );
         dynamicSectionData.set(key, { products: result.rows });
       } catch (error) {
