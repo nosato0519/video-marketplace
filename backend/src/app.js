@@ -210,13 +210,22 @@ export function createApp() {
     const sectionHtml = visibleSections.map(section => {
       const content = section.content && typeof section.content === 'object' ? section.content : {};
       const image = safeUrl(content.image);
+      const theme = parseJson(entries['vm-demo-page-theme-' + id + '-' + String(section.id || section.type || '')]);
+      const themeBg = /^#[0-9a-fA-F]{3,8}$/.test(theme.bg || '') ? theme.bg : '';
+      const themeText = /^#[0-9a-fA-F]{3,8}$/.test(theme.text || '') ? theme.text : '';
+      const themeAccent = /^#[0-9a-fA-F]{3,8}$/.test(theme.accent || '') ? theme.accent : '';
+      const themeRadius = theme.radius === 'square' ? '0' : '12px';
+      const themeWidth = theme.width === 'wide' ? '1440px' : theme.width === 'narrow' ? '780px' : '1160px';
+      const themeSpacing = theme.spacing === 'compact' ? '28px' : theme.spacing === 'spacious' ? '84px' : '56px';
+      const themeImageFit = ['cover', 'contain', 'fill'].includes(theme.imageFit) ? theme.imageFit : 'cover';
+      const themeStyle = [themeBg && 'background-color:' + themeBg, themeText && 'color:' + themeText, themeAccent && '--section-accent:' + themeAccent].filter(Boolean).join(';');
       const items = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
       const cards = items.map(item => {
         const itemImage = safeUrl(item.image);
-        return `<article class="page-card">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="">` : ''}<div><h3>${escapeHtml(item.title || '')}</h3><p>${escapeHtml(item.description || '')}</p>${item.button ? `<span class="page-card-label">${escapeHtml(item.button)}</span>` : ''}</div></article>`;
+        return `<article class="page-card" style="border-radius:${themeRadius}">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="" style="object-fit:${themeImageFit}">` : ''}<div><h3>${escapeHtml(item.title || '')}</h3><p>${escapeHtml(item.description || '')}</p>${item.button ? `<span class="page-card-label">${escapeHtml(item.button)}</span>` : ''}</div></article>`;
       }).join('');
       const buttonUrl = safeUrl(content.link);
-      return `<section class="page-section"><div class="page-section-inner"><h2>${escapeHtml(content.title || section.label || 'セクション')}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}">${escapeHtml(content.button)}</a>` : ''}</div></section>`;
+      return `<section class="page-section" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}"><h2>${escapeHtml(content.title || section.label || 'セクション')}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}</div></section>`;
     }).join('');
 
     const pageTitle = String(meta.seoTitle || page.name || 'ページ').trim();
