@@ -580,6 +580,7 @@ function runPublishCheck(){
   const name=nameInput.value.trim();
   let url=urlInput.value.trim();
   if(name&&!url){url='/pages/page-'+Date.now();urlInput.value=url;}
+  const validUrl=!!url&&url===urlInput.value&&/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url)&&url!=='/'&&url!=='/api'&&!url.startsWith('/api/')&&!url.split('/').includes('..');
   const visibleSections=sectionState.filter(item=>item&&!item.hidden).length;
   const heroHasContent=['hero-kicker','hero-headline','hero-copy','hero-background-image'].some(id=>{
     const field=document.getElementById(id);
@@ -589,9 +590,9 @@ function runPublishCheck(){
   const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
   const checks=[
     {label:'ページ名が入力されている',ok:!!name},
-    {label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},
-    {label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},
-    {label:'既存の固定ページとURLが重複していない',ok:!!url&&!RESERVED_PAGE_URLS.has(url)},
+    {label:'URLが公開可能なパス形式になっている',ok:validUrl},
+    {label:'URLが他のページと重複していない',ok:validUrl&&!duplicateUrl},
+    {label:'既存の固定ページとURLが重複していない',ok:validUrl&&!RESERVED_PAGE_URLS.has(url)},
     {label:'表示するセクションがある',ok:hasVisibleContent},
     {label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},
     {label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}
