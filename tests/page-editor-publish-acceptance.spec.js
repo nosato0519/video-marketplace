@@ -60,4 +60,28 @@ test('admin page editor persists a newly published page and restores it from ser
   await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
   await expect(page.getByText('公開 ・ /pages/acceptance-custom-page', { exact: true })).toBeVisible();
   expect(saveCount).toBe(1);
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    const pages = JSON.parse(savedEntries['vm-demo-pages'])
+      .filter((item) => item.status === '公開')
+      .map(({ id, name, url }) => ({ id, name, url, image: '' }));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: [],
+        publishedPages: pages,
+        themes: {},
+        pageSettings: {},
+        siteBranding: { siteName: 'VIDEO MARKETPLACE' },
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto('/');
+  await expect(page.locator('a[href="/pages/acceptance-custom-page"]')).toBeVisible();
+  await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
 });
