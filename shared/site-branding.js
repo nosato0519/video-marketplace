@@ -78,6 +78,9 @@
     const status = document.getElementById("save-status");
     const reset = document.getElementById("reset-settings");
     const initialName = nameInput.value;
+    const defaultFormValues = Array.from(form.elements).filter(function (field) { return field.name; }).map(function (field) {
+      return { name: field.name, value: field.value, checked: field.checked, type: field.type };
+    });
     let logoDataUrl = readSettings().logoDataUrl || "";
 
     function renderPreview() {
@@ -148,7 +151,13 @@
     });
 
     reset.addEventListener("click", function () {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("vm-demo-admin-setting-general"); } catch (_) {}
+      defaultFormValues.forEach(function (saved) {
+        const field = Array.from(form.elements).find(function (item) { return item.name === saved.name && item.type !== "radio"; });
+        if (!field) return;
+        if (field.type === "checkbox") field.checked = saved.checked;
+        else field.value = saved.value;
+      });
       logoDataUrl = "";
       nameInput.value = initialName;
       fileInput.value = "";
@@ -346,7 +355,7 @@
         const fields = document.createElement("div");
         fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;";
         fields.append(
-          field("見出し", "title", item.content.title || item.label, item, false),
+          field("見出し", "title", item.content.title, item, false),
           field("説明", "subtitle", item.content.subtitle, item, true),
           field("ボタン表示", "button", item.content.button, item, false),
           field("リンク先", "link", item.content.link, item, false),
