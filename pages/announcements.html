@@ -17,24 +17,5 @@
 <div id="list-view"><span class="news-kicker">NEWS</span><h1>お知らせ</h1><div id="news-list" class="news-list"></div></div>
 <article id="detail-view" class="news-detail"><span class="news-kicker">NEWS</span><h1 id="detail-title"></h1><div class="news-meta" id="detail-meta"></div><div class="news-body" id="detail-body"></div><a class="back-link" href="/pages/announcements.html">← お知らせ一覧へ戻る</a></article>
 </main>
-<script>
-(function(){
-const KEY='vm-demo-announcements';
-const seed=[
-{id:'a1',title:'VIDEO MARKETPLACEへようこそ',category:'お知らせ',status:'published',date:'2026-10-01',body:'VIDEO MARKETPLACEのサービスを開始しました。\n\n新しい映像作品との出会いをお楽しみください。'},
-{id:'a2',title:'新しい作品を追加しました',category:'サービス',status:'published',date:'2026-09-28',body:'新しいクリエイターの作品を追加しました。\n\nぜひ作品一覧からチェックしてください。'}
-];
-let data=seed;try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x))data=x;}catch(e){}
-data=data.filter(x=>x.status==='published').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-const params=new URLSearchParams(location.search),id=params.get('id');
-const list=document.getElementById('news-list');
-if(id){
-const x=data.find(v=>v.id===id);
-if(x){document.getElementById('list-view').style.display='none';document.getElementById('detail-view').style.display='block';document.getElementById('detail-title').textContent=x.title;document.getElementById('detail-meta').textContent=x.category+'　•　'+(x.date||'');document.getElementById('detail-body').textContent=x.body;}
-}
-if(document.getElementById('list-view').style.display!=='none'){
-if(!data.length){list.innerHTML='<p>現在、お知らせはありません。</p>';}else data.forEach(x=>{const a=document.createElement('a');a.className='news-card';a.href='?id='+encodeURIComponent(x.id);a.innerHTML='<div class="news-meta"><time></time><span></span></div><strong></strong><p></p>';a.querySelector('time').textContent=x.date||'';a.querySelector('span').textContent=x.category;a.querySelector('strong').textContent=x.title;a.querySelector('p').textContent=x.body.slice(0,100)+(x.body.length>100?'…':'');list.append(a);});
-}
-})();
-</script>
+
 <script src="/shared/site-branding.js"></script></body></html>
