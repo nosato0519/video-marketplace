@@ -370,7 +370,7 @@ export function createApp() {
       const themeBg = /^#[0-9a-fA-F]{3,8}$/.test(theme.bg || '') ? theme.bg : '';
       const themeText = /^#[0-9a-fA-F]{3,8}$/.test(theme.text || '') ? theme.text : '';
       const themeAccent = /^#[0-9a-fA-F]{3,8}$/.test(theme.accent || '') ? theme.accent : '';
-      const themeRadius = theme.radius === 'square' ? '0' : '12px';
+      const themeRadius = theme.radius === 'square' ? '0' : theme.radius === 'rounded' ? '12px' : design.cardShape === 'square' ? '0' : '12px';
       const themeWidth = theme.width === 'wide' ? '1440px' : theme.width === 'narrow' ? '780px' : design.contentWidth === 'wide' ? '1440px' : design.contentWidth === 'narrow' ? '780px' : '1160px';
       const themeSpacing = theme.spacing === 'compact' ? '28px' : ['large', 'spacious'].includes(theme.spacing) ? '84px' : '56px';
       const themeImageFit = ['cover', 'contain', 'fill'].includes(theme.imageFit) ? theme.imageFit : 'cover';
