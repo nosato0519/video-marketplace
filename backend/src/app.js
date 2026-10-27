@@ -392,6 +392,7 @@ export function createApp() {
       else if (isSpacer) body = '<div class="page-spacer" aria-hidden="true"></div>';
       else if (section.type === 'popular' || section.type === 'new-releases') {
         const products = dynamicSectionData.get(String(section.id || section.type))?.products || [];
+        const videoColumns = Math.min(5, Math.max(2, Number.parseInt(settings.columns, 10) || 4));
         const productCards = products.map(product => {
           const productImage = safeImageUrl(product.thumbnail_url);
           const productTitle = escapeHtml(product.title || '動画');
@@ -406,15 +407,16 @@ export function createApp() {
         const moreLink = buttonUrl && content.button
           ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''}">${escapeHtml(content.button)}</a>`
           : '<a class="page-button" href="/pages/video-list.html">すべての動画を見る</a>';
-        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-video-grid">${productCards || `<p>${emptyMessage}</p>`}</div>${moreLink}`;
+        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-video-grid" style="--page-video-columns:${videoColumns}">${productCards || `<p>${emptyMessage}</p>`}</div>${moreLink}`;
       } else if (section.type === 'categories') {
         const categories = dynamicSectionData.get(String(section.id || section.type))?.categories || [];
+        const categoryColumns = Math.min(4, Math.max(2, Number.parseInt(settings.columns, 10) || 3));
         const categoryCards = categories.map(category => {
           const categoryUrl = '/pages/category.html?category=' + encodeURIComponent(String(category.slug || ''));
           const count = Number(category.product_count) || 0;
           return `<a class="page-card page-live-category-card" href="${escapeHtml(categoryUrl)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit"><div><h3>${escapeHtml(category.name || category.slug || 'カテゴリー')}</h3><p>${count.toLocaleString('ja-JP')}件の動画</p><span class="page-card-label">カテゴリーを見る →</span></div></a>`;
         }).join('');
-        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-category-grid">${categoryCards || '<p>カテゴリーはまだ登録されていません。</p>'}</div>`;
+        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-category-grid" style="--page-category-columns:${categoryColumns}">${categoryCards || '<p>カテゴリーはまだ登録されていません。</p>'}</div>`;
       } else if (section.type === 'custom-image-text') {
         const copy = `<div class="page-image-text-copy">${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}</div>`;
         body = `<h2>${escapeHtml(sectionTitle)}</h2><div class="page-image-text-layout">${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${copy}</div>`;
@@ -485,7 +487,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
-.page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
+.page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-live-video-grid{grid-template-columns:repeat(var(--page-video-columns,4),minmax(0,1fr))}.page-live-category-grid{grid-template-columns:repeat(var(--page-category-columns,3),minmax(0,1fr))}@media(max-width:900px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:1fr}}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}}
 </style></head><body>
