@@ -163,6 +163,111 @@ export function createApp() {
   app.use('/shared', express.static(path.join(publicRoot, 'shared')));
   app.use('/locales', express.static(path.join(publicRoot, 'locales')));
 
+  app.use(async function publishedPageMiddleware(req, res, next) {
+  if (req.method !== 'GET' || req.path === '/' || req.path.startsWith('/api/')) return next();
+
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+  const safeUrl = value => {
+    const url = String(value || '').trim();
+    return /^(https?:\/\/|\/(?!\/))/.test(url) ? url : '';
+  };
+  const parseJson = value => {
+    if (typeof value !== 'string') return {};
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  };
+
+  try {
+    const result = await query(
+      'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+      ['page_editor_config']
+    );
+    const entries = result.rows[0]?.setting_value?.value?.entries;
+    if (!entries || typeof entries !== 'object') return next();
+
+    const pages = parseJson(entries['vm-demo-pages']);
+    if (!Array.isArray(pages)) return next();
+    const page = pages.find(item => item && item.status === '公開' && item.url === req.path);
+    if (!page) return next();
+
+    const id = String(page.id || '');
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) return next();
+
+    const sections = parseJson(entries['vm-demo-page-sections-' + id]);
+    const meta = parseJson(entries['vm-demo-page-meta-' + id]);
+    const design = parseJson(entries['vm-demo-page-design-' + id]);
+    const hero = meta.hero && typeof meta.hero === 'object' ? meta.hero : {};
+    const visibleSections = (Array.isArray(sections) ? sections : [])
+      .filter(section => section && typeof section === 'object' && section.hidden !== true)
+      .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+    const sectionHtml = visibleSections.map(section => {
+      const content = section.content && typeof section.content === 'object' ? section.content : {};
+      const image = safeUrl(content.image);
+      const items = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
+      const cards = items.map(item => {
+        const itemImage = safeUrl(item.image);
+        return `<article class="page-card">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="">` : ''}<div><h3>${escapeHtml(item.title || '')}</h3><p>${escapeHtml(item.description || '')}</p>${item.button ? `<span class="page-card-label">${escapeHtml(item.button)}</span>` : ''}</div></article>`;
+      }).join('');
+      const buttonUrl = safeUrl(content.link);
+      return `<section class="page-section"><div class="page-section-inner"><h2>${escapeHtml(content.title || section.label || 'セクション')}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}">${escapeHtml(content.button)}</a>` : ''}</div></section>`;
+    }).join('');
+
+    const pageTitle = String(meta.seoTitle || page.name || 'ページ').trim();
+    const description = String(meta.seoDescription || meta.description || '').trim();
+    const background = /^#[0-9a-fA-F]{3,8}$/.test(design.bg || '') ? design.bg : '#07090d';
+    const textColor = /^#[0-9a-fA-F]{3,8}$/.test(design.text || '') ? design.text : '#f4f4f5';
+    const accent = /^#[0-9a-fA-F]{3,8}$/.test(design.accent || '') ? design.accent : '#d9b45f';
+    const heroImage = safeUrl(hero.backgroundImage);
+    const heroCopy = hero.copy || meta.description || '';
+    const heroHeadline = hero.headline || page.name || '';
+    const heroButtonUrl = safeUrl(hero.buttonUrl);
+    const footer = parseJson(entries['vm-demo-site-chrome']);
+    const footerDescription = footer.footerDescription || '見つける。買う。楽しむ。';
+
+    res.set('Cache-Control', 'no-store');
+    return res.type('html').send(`<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(pageTitle)}</title>${description ? `<meta name="description" content="${escapeHtml(description)}">` : ''}
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root{color-scheme:dark;--page-bg:${background};--page-text:${textColor};--page-accent:${accent}}
+body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.page-published-header,.page-published-footer{padding:20px max(5vw,20px);border-bottom:1px solid #ffffff20}
+.page-published-header a{color:var(--page-text);text-decoration:none;font-weight:700;letter-spacing:.08em}
+.page-hero{padding:clamp(64px,10vw,140px) max(5vw,20px);background:${heroImage ? `linear-gradient(#0008,#0008),url("${escapeHtml(heroImage)}") center/cover` : 'linear-gradient(135deg,#17191f,#090a0d)'};text-align:center}
+.page-hero .eyebrow{color:var(--page-accent);letter-spacing:.14em}
+.page-hero h1{font-size:clamp(2rem,5vw,4rem);white-space:pre-line;margin:14px auto;max-width:900px}
+.page-hero p{max-width:760px;margin:0 auto 24px;line-height:1.8}
+.page-button{display:inline-block;background:var(--page-accent);color:#101010;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:18px}
+.page-section{padding:clamp(34px,6vw,76px) max(5vw,20px);border-bottom:1px solid #ffffff14}
+.page-section-inner{max-width:1160px;margin:auto}
+.page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
+.page-subtitle{line-height:1.8;white-space:pre-line}
+.page-section-image{display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:24px 0}
+.page-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}
+.page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
+.page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
+.page-card-label{color:var(--page-accent);font-weight:700}
+.page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
+@media(max-width:600px){.page-card-grid{grid-template-columns:1fr}}
+</style></head><body>
+<header class="page-published-header"><a href="/">VIDEO MARKETPLACE</a></header>
+<main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
+<footer class="page-published-footer">${escapeHtml(footerDescription)}<div>${escapeHtml(footer.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
+</body></html>`);
+  } catch (error) {
+    return next(error);
+  }
+});
+
   app.use((error, _req, res, _next) => {
     console.error(error);
     const status = Number(error?.statusCode) || 500;
