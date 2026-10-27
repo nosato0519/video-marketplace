@@ -376,7 +376,7 @@ export function createApp() {
       const themeImageFit = ['cover', 'contain', 'fill'].includes(theme.imageFit) ? theme.imageFit : 'cover';
       const themeStyle = [themeBg && 'background-color:' + themeBg, themeText && 'color:' + themeText, themeAccent && '--section-accent:' + themeAccent].filter(Boolean).join(';');
       const sectionItems = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
-      const itemLimitKey = ({ 'video-showcase': 'videoCount', collection: 'videoCount', spotlight: 'featureCount', creators: 'creatorCount', trustbar: 'itemCount' })[section.type];
+      const itemLimitKey = ({ 'video-showcase': 'videoCount', 'genre-rail': 'genreCount', 'genre-recommendations': 'genreCount', collection: 'videoCount', spotlight: 'featureCount', creators: 'creatorCount', trustbar: 'itemCount' })[section.type];
       const itemLimit = itemLimitKey ? Number.parseInt(settings[itemLimitKey], 10) : NaN;
       const items = Number.isInteger(itemLimit) && itemLimit > 0 ? sectionItems.slice(0, itemLimit) : sectionItems;
       const cards = items.map(item => {
