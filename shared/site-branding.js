@@ -352,12 +352,16 @@
       ["creator","クリエイター向け案内"],["creators","注目のクリエイター"],["cta","最後の案内"]
     ].map(function (item) { return { type: item[0], label: item[1] }; });
     let sections = [];
-    function normalize(items) {
+    function normalize(items, publishedPages) {
       const source = Array.isArray(items) ? items : [];
       const seenIds = new Set();
       const seenTypes = new Set();
       const normalized = source.filter(function (item) {
-        if (!item || typeof item !== "object" || !definitions.some(function (def) { return def.type === item.type; })) return false;
+        if (!item || typeof item !== "object") return false;
+        if (item.type === "custom-page") {
+          return publishedPages.some(function (page) { return page.id === item.pageId; });
+        }
+        if (!definitions.some(function (def) { return def.type === item.type; })) return false;
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
         if (seenIds.has(id)) return false;
         seenIds.add(id);
@@ -391,6 +395,21 @@
           content: {}
         });
         seenTypes.add(def.type);
+      });
+
+      (Array.isArray(publishedPages) ? publishedPages : []).forEach(function (page) {
+        if (!page || typeof page.id !== "string" || typeof page.name !== "string" || typeof page.url !== "string") return;
+        if (normalized.some(function (item) { return item.type === "custom-page" && item.pageId === page.id; })) return;
+        normalized.push({
+          id: "custom-page-" + page.id,
+          type: "custom-page",
+          pageId: page.id,
+          label: page.name,
+          hidden: false,
+          added: false,
+          order: normalized.length,
+          content: { title: page.name, link: page.url }
+        });
       });
 
       return normalized.map(function (item, index) {
@@ -435,7 +454,7 @@
         button("↑", index === 0, function () { [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; render(); });
         button("↓", index === sections.length - 1, function () { [sections[index + 1], sections[index]] = [sections[index], sections[index + 1]]; render(); });
         button(item.hidden ? "表示する" : "非表示にする", false, function () { item.hidden = !item.hidden; render(); });
-        button("削除", item.added !== true, function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
+        button("削除", item.added !== true || item.type === "custom-page", function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
         head.appendChild(actions);
         row.appendChild(head);
         const fields = document.createElement("div");
@@ -455,11 +474,11 @@
       status.textContent = "サーバーからTOP設定を読み込んでいます…";
       try {
         const data = await getPublicSettings();
-        sections = normalize(data.sections);
+        sections = normalize(data.sections, data.publishedPages);
         render();
-        status.textContent = "TOP設定を読み込みました。";
+        status.textContent = "TOP設定を読み込みました。公開済みの独立ページも一覧に含めています。";
       } catch (_) {
-        sections = normalize([]);
+        sections = normalize([], []);
         render();
         status.textContent = "サーバーから読み込めませんでした。運営者ログイン状態を確認してください。";
       }
