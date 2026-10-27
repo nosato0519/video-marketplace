@@ -81,7 +81,7 @@ router.put('/settings/page-editor', async (req, res, next) => {
       for (const page of savedPages) {
         if (!page || page.status !== '公開' || typeof page.url !== 'string') continue;
         const url = page.url.trim();
-        if (!/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url) || url === '/' || url.startsWith('/api/') || url.split('/').includes('..')) {
+        if (!/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url) || url === '/' || url === '/api' || url.startsWith('/api/') || url.split('/').includes('..')) {
           return res.status(400).json({ error: 'invalid_published_page_url' });
         }
         const filePath = path.resolve(publicRoot, '.' + url);
