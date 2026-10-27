@@ -64,23 +64,22 @@ router.put('/settings/page-editor', async (req, res, next) => {
     if (!entries || typeof entries !== 'object' || Array.isArray(entries) ||
         Object.keys(entries).length > 250 ||
         Object.entries(entries).some(([key, value]) =>
-          (!['vm-demo-pages', 'vm-demo-homepage-sections', 'vm-demo-site-chrome'].includes(key) &&
+          (!['vm-demo-pages', 'vm-demo-homepage-sections', 'vm-demo-site-chrome', 'vm-demo-site-branding', 'vm-demo-admin-setting-general', 'vm-demo-announcements', 'vm-demo-homepage-theme'].includes(key) &&
            !/^vm-demo-page-(sections|theme|meta|design)-[a-zA-Z0-9_-]+$/.test(key)) ||
           typeof value !== 'string' || value.length > 1000000)) {
       return res.status(400).json({ error: 'invalid_page_editor_config' });
     }
-    const serialized = JSON.stringify({ entries });
-    if (Buffer.byteLength(serialized, 'utf8') > 900000) {
-      return res.status(413).json({ error: 'page_editor_config_too_large' });
+    let persistedEntries = entries;
+    if (req.body?.merge === true) {
+      const current = await query('SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1', [PAGE_EDITOR_CONFIG_KEY]);
+      const existingEntries = current.rows[0]?.setting_value?.value?.entries;
+      persistedEntries = { ...(existingEntries && typeof existingEntries === 'object' ? existingEntries : {}), ...entries };
     }
-    await query(
-      `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
-       VALUES ($1, $2::jsonb, NOW())
-       ON CONFLICT (setting_key)
-       DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
-      [PAGE_EDITOR_CONFIG_KEY, JSON.stringify({ value: { entries } })]
-    );
-    return res.json({ saved: true });
+    const serialized = JSON.stringify({ entries: persistedEntries });
+    if (Buffer.byteLength(serialized, 'utf8') > 900000) return res.status(413).json({ error: 'page_editor_config_too_large' });
+    await query(`INSERT INTO platform_settings (setting_key, setting_value, updated_at) VALUES ($1, $2::jsonb, NOW()) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+      [PAGE_EDITOR_CONFIG_KEY, JSON.stringify({ value: { entries: persistedEntries } })]);
+    return res.json({ saved: true, keys: Object.keys(entries) });
   } catch (error) {
     return next(error);
   }
