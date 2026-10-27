@@ -459,7 +459,7 @@ export function createApp() {
         }
         if (content.button && buttonUrl && section.type === 'custom-button') body += `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>`;
       }
-      if (!isCustom && !['popular', 'new-releases', 'categories'].includes(section.type)) {
+      if (!isCustom && !['hero', 'popular', 'new-releases', 'categories'].includes(section.type)) {
         const configuredColumns = Number.parseInt(settings.columns, 10);
         const cardColumns = Number.isInteger(configuredColumns) ? Math.min(5, Math.max(2, configuredColumns)) : 0;
         const cardGridStyle = cardColumns ? ` style="--page-custom-columns:${cardColumns}"` : '';
