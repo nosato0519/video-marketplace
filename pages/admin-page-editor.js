@@ -16,7 +16,15 @@ const definitions=[
  {key:'library',label:'買ったあとも、迷わない'},
  {key:'creator',label:'あなたの動画を販売しませんか？'},
  {key:'creators',label:'注目のクリエイター'},
- {key:'cta',label:'まだ知らない映像と、出会う'}
+ {key:'cta',label:'まだ知らない映像と、出会う'},
+ {key:'custom-text',label:'自由ブロック：文章'},
+ {key:'custom-image',label:'自由ブロック：画像'},
+ {key:'custom-image-text',label:'自由ブロック：画像＋文章'},
+ {key:'custom-gallery',label:'自由ブロック：画像ギャラリー'},
+ {key:'custom-cards',label:'自由ブロック：カード一覧'},
+ {key:'custom-button',label:'自由ブロック：ボタン'},
+ {key:'custom-divider',label:'自由ブロック：区切り線'},
+ {key:'custom-spacer',label:'自由ブロック：余白'}
 ];
 const RESERVED_PAGE_URLS = new Set([
   '/', '/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'
@@ -173,7 +181,7 @@ const title=document.createElement('strong');title.textContent='項目 '+(index+
 const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';
 remove.addEventListener('click',()=>{card.remove();Array.from(sectionItemsEditor.querySelectorAll('.section-item-card')).forEach((item,i)=>{const label=item.querySelector('.section-item-head strong');if(label)label.textContent='項目 '+(i+1);});renderSectionEditorPreview();});
 head.append(title,remove);card.append(head);
-[['title','項目名','タイトル'],['description','説明文','説明文'],['image','画像URL','画像URL'],['button','ボタン名','ボタン名']].forEach(([key,label,placeholder])=>{
+[['title','項目名','タイトル'],['description','説明文','説明文'],['image','画像URL','画像URL（任意）'],['button','ボタン名','ボタン名'],['link','リンク先','/pages/video-list.html（任意）']].forEach(([key,label,placeholder])=>{
 const wrap=document.createElement('label');wrap.textContent=label;
 const input=document.createElement('input');input.type='text';input.dataset.itemKey=key;input.placeholder=placeholder;input.value=entry&&entry[key]||'';
 input.addEventListener('input',renderSectionEditorPreview);wrap.append(input);card.append(wrap);
@@ -320,8 +328,11 @@ function openEditor(page,sectionIndex=null){if(page.id==='top'){window.location.
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=[];renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
 async function savePage(){
-const name=nameInput.value.trim(),url=urlInput.value.trim();
-if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return false;}
+const name=nameInput.value.trim();
+let url=urlInput.value.trim();
+if(!name){editorStatus.textContent='ページ名を入力してください。';return false;}
+if(!url){url='/pages/page-'+Date.now();urlInput.value=url;}
+if(!url.startsWith('/')){editorStatus.textContent='URLは / から始まるパスを入力してください。';return false;}
 const data={name,url,status:statusInput.value,parent:parentInput.value};
 const wasNew=!editingId;
 let pageId=editingId;
@@ -432,7 +443,9 @@ document.getElementById('homepage-add-section').addEventListener('click',()=>{
   renderSections();
 });
 function runPublishCheck(){
-  const name=nameInput.value.trim(),url=urlInput.value.trim();
+  const name=nameInput.value.trim();
+  let url=urlInput.value.trim();
+  if(name&&!url){url='/pages/page-'+Date.now();urlInput.value=url;}
   const visible=sectionState.filter(item=>!item.hidden).length;
   const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
   const checks=[
