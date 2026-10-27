@@ -86,7 +86,7 @@ export function createApp() {
               typeof page.name === 'string' && typeof page.url === 'string' && page.url !== '/' && !['/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'].includes(page.url) &&
               /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
               !page.url.split('/').includes('..') && !existsSync(path.resolve(process.cwd(), '.' + page.url)))
-            .map(({ name, url }) => ({ name, url }));
+            .map(({ id, name, url }) => ({ id, name, url }));
         }
       } catch (_) {}
       let editorSections = null;
