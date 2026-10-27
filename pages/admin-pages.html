@@ -283,7 +283,7 @@ const type=item.type||item.key||item.id;
 const definition=definitions.find(entry=>entry.key===type);
 if(!definition)return;
 const added=item.added===true;
-const id=typeof item.id==='string'&&item.id?item.id:definition.key;
+const id=added?(typeof item.id==='string'&&item.id?item.id:definition.key+'-added-'+normalized.length):definition.key;
 if(seenIds.has(id))return;
 if(!added&&standardTypes.has(definition.key))return;
 normalized.push({
