@@ -65,7 +65,7 @@ router.put('/settings/page-editor', async (req, res, next) => {
         Object.keys(entries).length > 250 ||
         Object.entries(entries).some(([key, value]) =>
           (!['vm-demo-pages', 'vm-demo-homepage-sections', 'vm-demo-site-chrome', 'vm-demo-site-branding', 'vm-demo-admin-setting-general', 'vm-demo-announcements', 'vm-demo-homepage-theme'].includes(key) &&
-           !/^vm-demo-page-(sections|theme|meta|design)-[a-zA-Z0-9_-]+$/.test(key)) ||
+           !/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key)) ||
           typeof value !== 'string' || value.length > 1000000)) {
       return res.status(400).json({ error: 'invalid_page_editor_config' });
     }
