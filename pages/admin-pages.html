@@ -45,9 +45,18 @@
     <div class="policy-actions">
       <button class="btn primary" type="button" id="new-page">新しいページを作成</button>
     </div>
-    <div class="panel-head"><strong>作成済みページ・表示順</strong><span>PAGES</span></div>
-    <p class="muted homepage-editor-help">ここではTOP以外の独立ページを管理します。公開状態・URL・表示順はサーバーに保存されます。</p>
-    <div id="managed-pages-list" class="homepage-section-list"></div>
+    <div class="panel-head"><strong>ページのセクション</strong><span>PAGE CONTENT</span></div>
+    <p class="muted homepage-editor-help">TOPページで使用しているセクションと公開済みの独立ページを一覧にしています。表示・非表示と順番をこの画面だけで管理できます。</p>
+    <div id="top-settings-list" class="homepage-section-list"></div>
+    <div class="homepage-add-row">
+      <label for="top-add-type">追加するセクション</label>
+      <select id="top-add-type">
+        <option value="hero">メインビジュアル</option><option value="announcements">お知らせ</option><option value="video-showcase">作品紹介</option><option value="trustbar">安心・購入ガイド</option><option value="collection">動画コレクション</option><option value="popular">人気の動画</option><option value="new-releases">新着動画</option><option value="genre-rail">カテゴリー・ジャンル</option><option value="genre-recommendations">ジャンル別おすすめ</option><option value="spotlight">おすすめ特集</option><option value="finder">動画を探す</option><option value="categories">カテゴリー一覧</option><option value="library">ライブラリ紹介</option><option value="creator">クリエイター向け案内</option><option value="creators">注目のクリエイター</option><option value="cta">最後の案内</option>
+      </select>
+      <button class="btn primary" type="button" id="top-add-section">セクションを追加</button>
+      <button class="btn primary" type="button" id="top-save-settings">ページを保存</button>
+      <span class="muted" id="top-settings-status">ページ設定の読み込み・保存状況をここに表示します。</span>
+    </div>
 
     <div class="panel-head"><strong>公開文書の管理</strong><span>PUBLIC DOCUMENTS</span></div>
     <div class="cards admin-cards-spaced">
@@ -67,9 +76,7 @@
       </a>
     </div>
 
-    <div class="panel-head"><strong>TOPページ設定</strong><span>HOMEPAGE</span></div>
-    <p class="muted homepage-editor-help">TOPページのセクション順・表示設定・内容は「運営設定 → サイト基本設定」で編集します。</p>
-    <div class="policy-actions"><a class="btn primary" href="/pages/admin-setting-general.html">TOPページ設定を開く</a></div>
+
   </div>
 </section>
 
