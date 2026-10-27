@@ -490,19 +490,73 @@ renderSections();if(editingId){try{localStorage.setItem(SECTION_PREFIX+editingId
 function openEditor(page,sectionIndex=null){editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
 function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=defaultSections();renderSections();resetPageMetadata();editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function closeEditor(){editor.hidden=true;editingId=null;document.getElementById('page-management').hidden=false;}
-function savePage(){const name=nameInput.value.trim(),url=urlInput.value.trim();if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return;}
-const data={name,url,status:statusInput.value,parent:parentInput.value};const wasNew=!editingId;let pageId=editingId;
-if(editingId){const page=pages.find(p=>p.id===editingId);if(!page)return;Object.assign(page,data);}else{pageId='page-'+Date.now();pages.push({id:pageId,...data,locked:false});editingId=pageId;}
+async function savePage(){
+const name=nameInput.value.trim(),url=urlInput.value.trim();
+if(!name||!url){editorStatus.textContent='ページ名とURLを入力してください。';return false;}
+const data={name,url,status:statusInput.value,parent:parentInput.value};
+const wasNew=!editingId;
+let pageId=editingId;
+if(editingId){
+const page=pages.find(p=>p.id===editingId);
+if(!page)return false;
+Object.assign(page,data);
+}else{
+pageId='page-'+Date.now();
+pages.push({id:pageId,...data,locked:false});
+editingId=pageId;
+}
 sectionState.forEach((item,i)=>item.order=i);
-try{if(wasNew){sectionState.forEach(item=>{const draftThemeKey=THEME_PREFIX+'new-'+item.id;const draftTheme=localStorage.getItem(draftThemeKey);if(draftTheme){localStorage.setItem(THEME_PREFIX+pageId+'-'+item.id,draftTheme);localStorage.removeItem(draftThemeKey);}});}localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));if(pageId==='top'){localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));}savePageEditorMetadata(pageId);}catch(e){editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';return;}
-const saved=save();if(!saved){editorStatus.textContent='保存できませんでした。';return;}openEditor(pages.find(p=>p.id===pageId));editorStatus.textContent='サーバーに保存しています…';persistEditorSettings().then(()=>{if(pageId==='top'){return fetch('/api/admin/settings/homepage',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({sections:sectionState})}).then(response=>{if(!response.ok)throw new Error('homepage_save_failed');});}}).then(()=>{editorStatus.textContent=pageId==='top'?'トップページの設定をサーバーに保存しました。公開ページに反映されます。':'ページ設定をサーバーに保存しました。独自URLの公開反映は別途対応が必要です。';}).catch(()=>{editorStatus.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';});}
+try{
+if(wasNew){
+sectionState.forEach(item=>{
+const draftThemeKey=THEME_PREFIX+'new-'+item.id;
+const draftTheme=localStorage.getItem(draftThemeKey);
+if(draftTheme){
+localStorage.setItem(THEME_PREFIX+pageId+'-'+item.id,draftTheme);
+localStorage.removeItem(draftThemeKey);
+}
+});
+}
+localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));
+if(pageId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));
+savePageEditorMetadata(pageId);
+}catch(e){
+editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';
+return false;
+}
+if(!save()){
+editorStatus.textContent='保存できませんでした。';
+return false;
+}
+editorTitle.textContent=name+'を編集';
+editorStatus.textContent='サーバーに保存しています…';
+try{
+await persistEditorSettings();
+if(pageId==='top'){
+const response=await fetch('/api/admin/settings/homepage',{
+method:'PUT',
+credentials:'same-origin',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({sections:sectionState})
+});
+if(!response.ok)throw new Error('homepage_save_failed');
+}
+editorStatus.textContent=statusInput.value==='公開'
+? '公開しました: '+url
+: '下書きを保存しました。';
+return true;
+}catch(error){
+editorStatus.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';
+return false;
+}
+}
 document.getElementById('new-page').addEventListener('click',newPage);
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
 document.getElementById('save-page').textContent='下書き保存';
 document.getElementById('save-page').addEventListener('click',()=>{statusInput.value='下書き';savePage();});
 document.getElementById('save-page-bottom').addEventListener('click',()=>{statusInput.value='下書き';savePage();});
 document.getElementById('run-publish-check').addEventListener('click',runPublishCheck);
-document.getElementById('publish-page').addEventListener('click',()=>{const result=runPublishCheck();if(!result.ok){editorStatus.textContent='公開前チェックで未完了の項目があります。';return;}statusInput.value='公開';savePage();editorStatus.textContent='公開状態で保存しました。実際のサイト公開反映はシステム連携時に行います。';});
+document.getElementById('publish-page').addEventListener('click',async()=>{const result=runPublishCheck();if(!result.ok){editorStatus.textContent='公開前チェックで未完了の項目があります。';return;}statusInput.value='公開';await savePage();});
 document.getElementById('close-section-editor').addEventListener('click',closeSectionEditor);
 document.getElementById('cancel-section').addEventListener('click',closeSectionEditor);
 document.getElementById('save-section').addEventListener('click',saveSection);
