@@ -198,29 +198,9 @@
 
 
   async function syncHomepageSections() {
-    const editor = document.getElementById("landing-section-list");
-    if (editor) {
-      try {
-        const response = await fetch("/api/admin/settings/homepage", { credentials: "same-origin" });
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data.sections)) {
-            const key = "vm-demo-homepage-sections";
-            const current = JSON.parse(localStorage.getItem(key) || "null");
-            if (JSON.stringify(current) !== JSON.stringify(data.sections)) {
-              localStorage.setItem("vm-demo-page-sections-top", JSON.stringify(data.sections));
-              localStorage.setItem(key, JSON.stringify(data.sections));
-              window.location.reload();
-              return;
-            }
-          }
-        }
-      } catch (_) {
-        // Keep the save handler available so it can show a useful error if the API is unavailable.
-      }
-
-      return;
-    }
+    // The admin editor owns loading and saving homepage sections. Avoid a second
+    // asynchronous sync here, which can overwrite editor state or reload mid-save.
+    if (document.getElementById("landing-section-list")) return;
 
     if (!document.querySelector("main") || !document.querySelector(".hero")) return;
     try {
