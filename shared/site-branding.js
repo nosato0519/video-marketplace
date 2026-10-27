@@ -459,7 +459,7 @@
         head.appendChild(actions);
         row.appendChild(head);
         const contentDetails = document.createElement("details");
-        contentDetails.style.cssText = "border-top:1px solid var(--line,#333);padding-top:10px;";
+        contentDetails.style.cssText = "display:none;border-top:1px solid var(--line,#333);padding-top:10px;";
         const editButton = document.createElement("button");
         editButton.type = "button";
         editButton.className = "btn";
@@ -467,6 +467,7 @@
         editButton.setAttribute("aria-expanded", "false");
         editButton.addEventListener("click", function () {
           contentDetails.open = !contentDetails.open;
+          contentDetails.style.display = contentDetails.open ? "block" : "none";
           editButton.textContent = contentDetails.open ? "閉じる" : "編集";
           editButton.setAttribute("aria-expanded", String(contentDetails.open));
         });
