@@ -352,11 +352,6 @@
       ["creator","クリエイター向け案内"],["creators","注目のクリエイター"],["cta","最後の案内"]
     ].map(function (item) { return { type: item[0], label: item[1] }; });
     let sections = [];
-    const defaults = function () {
-      return definitions.map(function (item, index) {
-        return { id: item.type, type: item.type, label: item.label, hidden: false, order: index, content: {} };
-      });
-    };
     function normalize(items) {
       const source = Array.isArray(items) ? items : [];
       const seenIds = new Set();
