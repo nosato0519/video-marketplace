@@ -544,6 +544,13 @@ function renderPageList() {
   const root = document.getElementById('managed-pages-list');
   if (!root) return;
   root.replaceChildren();
+  if (!pages.length) {
+    const empty = document.createElement('p');
+    empty.className = 'muted';
+    empty.textContent = 'まだ独立ページがありません。「新しいページを作成」から追加してください。';
+    root.appendChild(empty);
+    return;
+  }
   pages.forEach((page, index) => {
     const row = document.createElement('div');
     row.className = 'homepage-section-row';
