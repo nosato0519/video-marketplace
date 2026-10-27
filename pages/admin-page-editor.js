@@ -54,6 +54,8 @@ const sectionOptions={
 'creator':[{key:'layout',label:'案内のレイアウト',options:[['split','画像と文章'],['centered','中央揃え']]}],
 'creators':[{key:'creatorCount',label:'表示するクリエイター数',options:[['3','3人'],['4','4人'],['6','6人'],['8','8人'],['12','12人']]},{key:'source',label:'クリエイターの選び方',options:[['featured','運営おすすめ'],['popular','人気順'],['manual','選んだ人を表示']]},{key:'columns',label:'1行の表示数',options:[['2','2列'],['3','3列'],['4','4列']]}],
 'collection':[{key:'layout',label:'作品の見せ方',options:[['cards','カード一覧'],['editorial','大きな画像と文章']]},{key:'videoCount',label:'表示する作品数',options:[['3','3件'],['4','4件'],['6','6件'],['8','8件']]}],
+'custom-gallery':[{key:'columns',label:'1行の画像数',options:[['2','2列'],['3','3列'],['4','4列'],['5','5列']]}],
+'custom-cards':[{key:'columns',label:'1行のカード数',options:[['2','2列'],['3','3列'],['4','4列'],['5','5列']]}],
 'trustbar':[{key:'itemCount',label:'案内項目数',options:[['2','2項目'],['3','3項目'],['4','4項目']]}],
 'cta':[{key:'layout',label:'レイアウト',options:[['banner','横長バナー'],['centered','中央揃え']]}]
 };
