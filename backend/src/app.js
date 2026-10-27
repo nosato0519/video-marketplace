@@ -275,72 +275,10 @@ export function createApp() {
 
     const dynamicSectionData = new Map();
     for (const section of visibleSections) {
-      if (!['popular', 'new-releases', 'categories', 'genre-recommendations'].includes(section.type)) continue;
+      if (!['popular', 'new-releases', 'categories'].includes(section.type)) continue;
       const key = String(section.id || section.type);
       const settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
       try {
-        if (section.type === 'genre-recommendations') {
-          const genreCount = Math.min(6, Math.max(2, Number.parseInt(settings.genreCount, 10) || 3));
-          const videoCount = Math.min(8, Math.max(3, Number.parseInt(settings.videoCount, 10) || 4));
-          const result = await query(
-            `WITH selected_categories AS (
-               SELECT c.id, c.slug, c.name
-                 FROM categories c
-                WHERE EXISTS (SELECT 1 FROM products p WHERE p.category_id = c.id AND p.status = 'published')
-                ORDER BY c.name ASC
-                LIMIT $1
-             ), ranked_products AS (
-               SELECT c.id AS category_id, c.slug AS category_slug, c.name AS category_name,
-                      p.id, p.price_amount, p.price_currency, p.published_at,
-                      CASE WHEN thumbnail.image_id IS NOT NULL
-                        THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.image_id::text
-                        ELSE NULL
-                      END AS thumbnail_url,
-                      sp.display_name AS seller,
-                      COALESCE(pt.title, fallback.title, p.title) AS title,
-                      ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY p.published_at DESC NULLS LAST, p.id DESC) AS category_rank
-                 FROM selected_categories c
-                 JOIN products p ON p.category_id = c.id AND p.status = 'published'
-                 JOIN seller_profiles sp ON sp.id = p.seller_id
-                 JOIN users su ON su.id = sp.user_id AND su.status = 'active'
-                 LEFT JOIN product_translations pt ON pt.product_id = p.id AND pt.locale = 'ja'
-                 LEFT JOIN LATERAL (
-                   SELECT title FROM product_translations
-                    WHERE product_id = p.id
-                    ORDER BY CASE WHEN locale = 'ja' THEN 0 WHEN locale LIKE 'ja-%' THEN 1 WHEN locale = 'en' THEN 2 ELSE 3 END, locale
-                    LIMIT 1
-                 ) fallback ON TRUE
-                 LEFT JOIN LATERAL (
-                   SELECT pi.media_asset_id AS image_id
-                     FROM product_images pi
-                     JOIN media_assets ma ON ma.id = pi.media_asset_id
-                    WHERE pi.product_id = p.id AND pi.image_role = 'thumbnail'
-                      AND ma.status = 'ready'
-                      AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
-                    ORDER BY pi.sort_order ASC, pi.id ASC
-                    LIMIT 1
-                 ) thumbnail ON TRUE
-                WHERE NOT EXISTS (
-                  SELECT 1 FROM content_reviews cr
-                   WHERE cr.product_id = p.id AND cr.status = 'blocked'
-                )
-             )
-             SELECT * FROM ranked_products WHERE category_rank <= $2
-              ORDER BY category_name ASC, category_rank ASC`,
-            [genreCount, videoCount]
-          );
-          const genreGroups = [];
-          for (const row of result.rows) {
-            let group = genreGroups.find(item => item.slug === row.category_slug);
-            if (!group) {
-              group = { slug: row.category_slug, name: row.category_name, products: [] };
-              genreGroups.push(group);
-            }
-            group.products.push(row);
-          }
-          dynamicSectionData.set(key, { genreGroups });
-          continue;
-        }
         if (section.type === 'categories') {
           const categoryCount = Math.min(20, Math.max(1, Number.parseInt(settings.categoryCount, 10) || 12));
           const result = await query(
@@ -504,18 +442,6 @@ export function createApp() {
           ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''}">${escapeHtml(content.button)}</a>`
           : '<a class="page-button" href="/pages/video-list.html">すべての動画を見る</a>';
         body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-video-grid" style="--page-video-columns:${videoColumns}">${productCards || `<p>${emptyMessage}</p>`}</div>${moreLink}`;
-      } else if (section.type === 'genre-recommendations') {
-        const groups = dynamicSectionData.get(String(section.id || section.type))?.genreGroups || [];
-        const genreCards = groups.map(group => {
-          const groupCards = group.products.map(product => {
-            const productImage = safeImageUrl(product.thumbnail_url);
-            const productTitle = escapeHtml(product.title || '動画');
-            const productUrl = '/pages/product-detail.html?productId=' + encodeURIComponent(String(product.id || ''));
-            return `<a class="page-card page-live-video-card" href="${escapeHtml(productUrl)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit">${productImage ? `<img src="${escapeHtml(productImage)}" alt="" loading="lazy" style="object-fit:${themeImageFit}">` : '<div class="page-live-video-placeholder">VIDEO</div>'}<div><h3>${productTitle}</h3><p>${escapeHtml(product.seller || '')}</p></div></a>`;
-          }).join('');
-          return `<div class="page-genre-group"><h3><a href="/pages/category.html?category=${encodeURIComponent(String(group.slug || ''))}">${escapeHtml(group.name || 'カテゴリー')} →</a></h3><div class="page-card-grid page-live-video-grid" style="--page-video-columns:3">${groupCards}</div></div>`;
-        }).join('');
-        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${genreCards || '<p>ジャンル別の動画はまだありません。</p>'}`;
       } else if (section.type === 'categories') {
         const categories = dynamicSectionData.get(String(section.id || section.type))?.categories || [];
         const categoryColumns = Math.min(4, Math.max(2, Number.parseInt(settings.columns, 10) || 3));
@@ -525,9 +451,6 @@ export function createApp() {
           return `<a class="page-card page-live-category-card" href="${escapeHtml(categoryUrl)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit"><div><h3>${escapeHtml(category.name || category.slug || 'カテゴリー')}</h3><p>${count.toLocaleString('ja-JP')}件の動画</p><span class="page-card-label">カテゴリーを見る →</span></div></a>`;
         }).join('');
         body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-category-grid" style="--page-category-columns:${categoryColumns}">${categoryCards || '<p>カテゴリーはまだ登録されていません。</p>'}</div>`;
-      } else if (section.type === 'finder') {
-        const extendedSearch = settings.searchFields === 'extended';
-        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<form class="page-finder-form" action="/pages/video-list.html" method="get"><label>キーワード<input type="search" name="q" placeholder="作品名・クリエイター・キーワード"></label><label>カテゴリー<select name="category"><option value="">すべて</option><option value="movie">映画・映像</option><option value="learning">学び</option><option value="documentary">ドキュメンタリー</option><option value="creative">クリエイティブ</option></select></label>${extendedSearch ? '<label>最低価格<input type="number" name="minPrice" min="0" step="1" placeholder="指定なし"></label><label>最高価格<input type="number" name="maxPrice" min="0" step="1" placeholder="指定なし"></label>' : ''}<button class="page-button" type="submit">${escapeHtml(content.button || '動画を検索する')}</button></form>`;
       } else if (section.type === 'custom-image-text') {
         const copy = `<div class="page-image-text-copy">${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}</div>`;
         body = `<h2>${escapeHtml(sectionTitle)}</h2><div class="page-image-text-layout">${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${copy}</div>`;
@@ -613,7 +536,7 @@ body.page-style-editorial .page-hero{background:linear-gradient(135deg,color-mix
 .page-card{overflow:hidden;border:1px solid #ffffff20;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
-.page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-finder-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;margin-top:24px}.page-finder-form label{display:grid;gap:7px;font-size:.9rem}.page-finder-form input,.page-finder-form select{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid #ffffff30;border-radius:8px;background:#111821;color:inherit}.page-finder-form .page-button{border:0;cursor:pointer;min-height:44px}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-genre-group{margin-top:28px}.page-genre-group h3{margin:0 0 12px}.page-genre-group h3 a{color:inherit;text-decoration:none}.page-live-category-card h3{color:var(--page-accent)}.page-live-video-grid{grid-template-columns:repeat(var(--page-video-columns,4),minmax(0,1fr))}.page-live-category-grid{grid-template-columns:repeat(var(--page-category-columns,3),minmax(0,1fr))}@media(max-width:900px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:1fr}}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{grid-template-columns:repeat(var(--page-custom-columns,3),minmax(0,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
+.page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-live-video-grid{grid-template-columns:repeat(var(--page-video-columns,4),minmax(0,1fr))}.page-live-category-grid{grid-template-columns:repeat(var(--page-category-columns,3),minmax(0,1fr))}@media(max-width:900px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:1fr}}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{grid-template-columns:repeat(var(--page-custom-columns,3),minmax(0,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}.page-layout-feature .page-card:first-child,.page-layout-editorial .page-card:first-child{grid-column:auto;grid-row:auto}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{--page-custom-columns:1}}
 </style></head><body class="page-style-${designStyle}">
