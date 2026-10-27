@@ -155,12 +155,32 @@ const down=document.createElement('button');down.type='button';down.className='b
 const toggle=document.createElement('button');toggle.type='button';toggle.className='btn'+(item.hidden?'':' primary');toggle.textContent=item.hidden?'非表示':'表示';toggle.addEventListener('click',()=>{item.hidden=!item.hidden;renderSections();});
 const edit=document.createElement('button');edit.type='button';edit.className='btn primary';edit.textContent='編集';edit.addEventListener('click',()=>openSectionEditor(index));
 const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='btn duplicate-section';duplicate.textContent='複製';duplicate.title='このセクションの設定を複製';duplicate.addEventListener('click',()=>duplicateSection(index));
-const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=!item.added;remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{sectionState=sectionState.filter(x=>x&&x.id!==item.id);renderSections();});
+const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';remove.disabled=!item.added;remove.title=remove.disabled?'TOP標準セクションは削除できません。非表示にできます。':'追加したセクションを削除';remove.addEventListener('click',()=>{
+  sectionState=sectionState.filter(section=>section&&section.id!==item.id);
+  try{localStorage.removeItem(THEME_PREFIX+(editingId||'new')+'-'+item.id);}catch(_){}
+  renderSections();
+});
 actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);
 });
 }
 function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
-function duplicateSection(index){const source=sectionState[index];if(!source)return;const copy=JSON.parse(JSON.stringify(source));copy.id=source.type+'-copy-'+Date.now();copy.label=source.label+'（複製）';copy.added=true;copy.order=index+1;sectionState.splice(index+1,0,copy);sectionState.forEach((item,i)=>item.order=i);renderSections();}
+function duplicateSection(index){
+  const source=sectionState[index];
+  if(!source)return;
+  const copy=JSON.parse(JSON.stringify(source));
+  copy.id=source.type+'-copy-'+Date.now();
+  copy.label=(source.label||'セクション')+'（複製）';
+  copy.added=true;
+  sectionState.splice(index+1,0,copy);
+  sectionState.forEach((item,i)=>{item.order=i;});
+  try{
+    const sourceThemeKey=THEME_PREFIX+(editingId||'new')+'-'+source.id;
+    const copyThemeKey=THEME_PREFIX+(editingId||'new')+'-'+copy.id;
+    const theme=localStorage.getItem(sourceThemeKey);
+    if(theme!==null)localStorage.setItem(copyThemeKey,theme);
+  }catch(_){}
+  renderSections();
+}
 function openSectionEditor(index){
 const item=sectionState[index];if(!item)return;
 editingSectionIndex=index;
