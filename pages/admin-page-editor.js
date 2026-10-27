@@ -172,7 +172,7 @@ const remove=document.createElement('button');remove.type='button';remove.classN
 actions.append(up,down,toggle,edit,duplicate,remove);row.append(title,actions);sectionList.append(row);
 });
 }
-function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];renderSections();}
+function moveSection(index,delta){const target=index+delta;if(target<0||target>=sectionState.length)return;[sectionState[index],sectionState[target]]=[sectionState[target],sectionState[index]];sectionState.forEach((item,order)=>{if(item&&typeof item==='object')item.order=order;});renderSections();}
 function duplicateSection(index){
   const source=sectionState[index];
   if(!source)return;
