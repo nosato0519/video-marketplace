@@ -522,6 +522,21 @@
         }
       }
       const chrome = pageSettings.chrome || {};
+      if (typeof chrome.menuOrder === "string") {
+        const nav = document.querySelector(".nav-right nav");
+        if (nav) chrome.menuOrder.split(",").forEach(function (name) {
+          const link = nav.querySelector('[data-site-nav="' + name + '"]');
+          if (link) nav.appendChild(link);
+        });
+      }
+      if (chrome.footerShowLinks === "hide") {
+        const footerLinks = document.querySelector(".footer-cols");
+        if (footerLinks) footerLinks.hidden = true;
+      }
+      if (chrome.footerCopyright) {
+        const copyright = document.getElementById("site-footer-copyright");
+        if (copyright) copyright.textContent = String(chrome.footerCopyright);
+      }
       if (chrome.footerDescription) {
         const footerDescription = document.getElementById("site-footer-description");
         if (footerDescription) footerDescription.textContent = String(chrome.footerDescription);
