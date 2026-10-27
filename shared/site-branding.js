@@ -721,11 +721,23 @@
           const link = document.createElement("a");
           link.href = page.url;
           link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
+          const previewImage = item.content && typeof item.content.image === "string" && item.content.image ? item.content.image : page.image;
+          if (previewImage && /^(https?:\\/\\/|\\/(?!\\/))/.test(previewImage)) {
+            const image = document.createElement("img");
+            image.src = previewImage;
+            image.alt = "";
+            image.loading = "lazy";
+            image.style.cssText = "width:clamp(90px,18vw,180px);height:clamp(64px,10vw,110px);object-fit:cover;border-radius:8px;flex:0 0 auto;";
+            link.appendChild(image);
+          }
+          const copy = document.createElement("span");
+          copy.style.cssText = "display:grid;gap:8px;min-width:0;flex:1;";
           const heading = document.createElement("strong");
           heading.textContent = item.content && item.content.title || page.name;
           const action = document.createElement("span");
           action.textContent = item.content && item.content.button || "ページを見る →";
-          link.append(heading, action);
+          copy.append(heading, action);
+          link.appendChild(copy);
           customSection.appendChild(link);
           ordered.push(customSection);
           return;
