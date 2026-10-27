@@ -273,6 +273,95 @@ export function createApp() {
       .filter(section => section && typeof section === 'object' && section.hidden !== true)
       .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
+    const dynamicSectionData = new Map();
+    for (const section of visibleSections) {
+      if (!['popular', 'new-releases', 'categories'].includes(section.type)) continue;
+      const key = String(section.id || section.type);
+      const settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
+      try {
+        if (section.type === 'categories') {
+          const categoryCount = Math.min(20, Math.max(1, Number.parseInt(settings.categoryCount, 10) || 12));
+          const result = await query(
+            `SELECT c.slug, c.name, COUNT(p.id)::int AS product_count
+               FROM categories c
+               LEFT JOIN products p ON p.category_id = c.id AND p.status = 'published'
+              GROUP BY c.id, c.slug, c.name
+              ORDER BY c.name ASC
+              LIMIT $1`,
+            [categoryCount]
+          );
+          dynamicSectionData.set(key, { categories: result.rows });
+          continue;
+        }
+
+        const videoCount = Math.min(48, Math.max(1, Number.parseInt(settings.videoCount, 10) || 8));
+        const period = section.type === 'popular' && ['week', 'month'].includes(settings.period) ? settings.period : 'all';
+        const orderBy = section.type === 'popular'
+          ? 'sales_count DESC, p.published_at DESC NULLS LAST, p.id DESC'
+          : 'p.published_at DESC NULLS LAST, p.id DESC';
+        const result = await query(
+          `SELECT
+             p.id,
+             p.price_amount,
+             p.price_currency,
+             p.published_at,
+             CASE WHEN thumbnail.image_id IS NOT NULL
+               THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.image_id::text
+               ELSE NULL
+             END AS thumbnail_url,
+             c.slug AS category,
+             sp.display_name AS seller,
+             COALESCE(pt.title, fallback.title, p.title) AS title,
+             COALESCE(pt.description, fallback.description, p.description) AS description,
+             COUNT(o.id)::int AS sales_count
+           FROM products p
+           JOIN seller_profiles sp ON sp.user_id = p.seller_id
+           JOIN users su ON su.id = p.seller_id
+           LEFT JOIN categories c ON c.id = p.category_id
+           LEFT JOIN LATERAL (
+             SELECT pi.media_asset_id AS image_id
+               FROM product_images pi
+               JOIN media_assets ma ON ma.id = pi.media_asset_id
+              WHERE pi.product_id = p.id
+                AND pi.image_role = 'thumbnail'
+                AND ma.status = 'ready'
+                AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+              ORDER BY pi.sort_order ASC, pi.id ASC
+              LIMIT 1
+           ) thumbnail ON TRUE
+           LEFT JOIN product_translations pt ON pt.product_id = p.id AND pt.locale = 'ja'
+           LEFT JOIN LATERAL (
+             SELECT title, description
+               FROM product_translations
+              WHERE product_id = p.id
+              ORDER BY CASE WHEN locale = 'ja' THEN 0 WHEN locale LIKE 'ja-%' THEN 1 WHEN locale = 'en' THEN 2 ELSE 3 END, locale
+              LIMIT 1
+           ) fallback ON TRUE
+           LEFT JOIN orders o
+             ON o.product_id = p.id
+            AND o.status = 'paid'
+            AND ($2::text = 'all'
+              OR ($2::text = 'month' AND o.paid_at >= NOW() - INTERVAL '30 days')
+              OR ($2::text = 'week' AND o.paid_at >= NOW() - INTERVAL '7 days'))
+           WHERE p.status = 'published'
+             AND su.status = 'active'
+             AND NOT EXISTS (
+               SELECT 1 FROM content_reviews cr
+                WHERE cr.product_id = p.id AND cr.status = 'blocked'
+             )
+           GROUP BY p.id, thumbnail.image_id, c.slug, sp.display_name,
+                    pt.title, fallback.title, p.title, pt.description, fallback.description, p.description
+           ORDER BY ${orderBy}
+           LIMIT $3`,
+          [period, period, videoCount]
+        );
+        dynamicSectionData.set(key, { products: result.rows });
+      } catch (error) {
+        console.error('Loading published page section failed', { type: section.type, error });
+        dynamicSectionData.set(key, section.type === 'categories' ? { categories: [] } : { products: [] });
+      }
+    }
+
     const sectionHtml = visibleSections.map(section => {
       const content = section.content && typeof section.content === 'object' ? section.content : {};
       const image = safeImageUrl(content.image);
@@ -301,7 +390,32 @@ export function createApp() {
       let body = '';
       if (isDivider) body = '<hr class="page-divider">';
       else if (isSpacer) body = '<div class="page-spacer" aria-hidden="true"></div>';
-      else if (section.type === 'custom-image-text') {
+      else if (section.type === 'popular' || section.type === 'new-releases') {
+        const products = dynamicSectionData.get(String(section.id || section.type))?.products || [];
+        const productCards = products.map(product => {
+          const productImage = safeImageUrl(product.thumbnail_url);
+          const productTitle = escapeHtml(product.title || '動画');
+          const productUrl = '/pages/product-detail.html?productId=' + encodeURIComponent(String(product.id || ''));
+          const priceAmount = Number(product.price_amount);
+          const price = Number.isFinite(priceAmount)
+            ? (String(product.price_currency || '').trim() === 'JPY' ? '¥' + priceAmount.toLocaleString('ja-JP') : priceAmount.toLocaleString('ja-JP') + ' ' + escapeHtml(product.price_currency || ''))
+            : '';
+          return `<a class="page-card page-live-video-card" href="${escapeHtml(productUrl)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit">${productImage ? `<img src="${escapeHtml(productImage)}" alt="" loading="lazy" style="object-fit:${themeImageFit}">` : '<div class="page-live-video-placeholder">VIDEO</div>'}<div><small>${escapeHtml(product.category || 'VIDEO').toUpperCase()}</small><h3>${productTitle}</h3><p>${escapeHtml(product.seller || '')}</p><strong>${escapeHtml(price)}</strong></div></a>`;
+        }).join('');
+        const emptyMessage = section.type === 'popular' ? '人気の動画はまだありません。' : '公開中の動画はまだありません。';
+        const moreLink = buttonUrl && content.button
+          ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''}">${escapeHtml(content.button)}</a>`
+          : '<a class="page-button" href="/pages/video-list.html">すべての動画を見る</a>';
+        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-video-grid">${productCards || `<p>${emptyMessage}</p>`}</div>${moreLink}`;
+      } else if (section.type === 'categories') {
+        const categories = dynamicSectionData.get(String(section.id || section.type))?.categories || [];
+        const categoryCards = categories.map(category => {
+          const categoryUrl = '/pages/category.html?category=' + encodeURIComponent(String(category.slug || ''));
+          const count = Number(category.product_count) || 0;
+          return `<a class="page-card page-live-category-card" href="${escapeHtml(categoryUrl)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit"><div><h3>${escapeHtml(category.name || category.slug || 'カテゴリー')}</h3><p>${count.toLocaleString('ja-JP')}件の動画</p><span class="page-card-label">カテゴリーを見る →</span></div></a>`;
+        }).join('');
+        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}<div class="page-card-grid page-live-category-grid">${categoryCards || '<p>カテゴリーはまだ登録されていません。</p>'}</div>`;
+      } else if (section.type === 'custom-image-text') {
         const copy = `<div class="page-image-text-copy">${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}</div>`;
         body = `<h2>${escapeHtml(sectionTitle)}</h2><div class="page-image-text-layout">${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${copy}</div>`;
       } else {
@@ -310,7 +424,7 @@ export function createApp() {
         if (cards && ['custom-gallery','custom-cards'].includes(section.type)) body += `<div class="page-card-grid">${cards}</div>`;
         if (content.button && buttonUrl && section.type === 'custom-button') body += `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>`;
       }
-      if (!isCustom) body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
+      if (!isCustom && !['popular', 'new-releases', 'categories'].includes(section.type)) body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
       return `<section class="page-section${customClass}" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}">${body}</div></section>`;
     }).join('');
 
@@ -371,7 +485,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
-.page-card-label{color:var(--page-accent);font-weight:700}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
+.page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}}
 </style></head><body>
