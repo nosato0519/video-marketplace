@@ -83,7 +83,7 @@ export function createApp() {
           publishedPages = savedPages
             .filter((page) => page && page.status === '公開' &&
               typeof page.name === 'string' && typeof page.url === 'string' &&
-              /^\/(?!\/)[a-zA-Z0-9/_-]*$/.test(page.url) &&
+              /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
               !page.url.split('/').includes('..'))
             .map(({ name, url }) => ({ name, url }));
         }
