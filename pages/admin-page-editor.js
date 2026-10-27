@@ -499,14 +499,19 @@ function runPublishCheck(){
   const name=nameInput.value.trim();
   let url=urlInput.value.trim();
   if(name&&!url){url='/pages/page-'+Date.now();urlInput.value=url;}
-  const visible=sectionState.filter(item=>!item.hidden).length;
+  const visibleSections=sectionState.filter(item=>item&&!item.hidden).length;
+  const heroHasContent=['hero-kicker','hero-headline','hero-copy','hero-background-image'].some(id=>{
+    const field=document.getElementById(id);
+    return !!field&&field.value.trim()!=='';
+  });
+  const hasVisibleContent=visibleSections>0||heroHasContent;
   const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
   const checks=[
     {label:'ページ名が入力されている',ok:!!name},
     {label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},
     {label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},
     {label:'既存の固定ページとURLが重複していない',ok:!!url&&!RESERVED_PAGE_URLS.has(url)},
-    {label:'表示するセクションがある',ok:visible>0},
+    {label:'表示するセクションがある',ok:hasVisibleContent},
     {label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},
     {label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}
   ];
