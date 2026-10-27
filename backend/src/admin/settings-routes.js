@@ -78,12 +78,25 @@ router.put('/settings/page-editor', async (req, res, next) => {
       }
       if (!Array.isArray(savedPages)) return res.status(400).json({ error: 'invalid_page_list' });
       const publicRoot = path.resolve(process.cwd());
+      const publishedUrls = new Set();
+      const publishedIds = new Set();
       for (const page of savedPages) {
         if (!page || page.status !== '公開' || typeof page.url !== 'string') continue;
+        if (typeof page.id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(page.id)) {
+          return res.status(400).json({ error: 'invalid_published_page_id' });
+        }
+        if (publishedIds.has(page.id)) {
+          return res.status(409).json({ error: 'duplicate_published_page_id', id: page.id });
+        }
+        publishedIds.add(page.id);
         const url = page.url.trim();
-        if (!/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url) || url === '/' || url === '/api' || url.startsWith('/api/') || url.split('/').includes('..')) {
+        if (url !== page.url || !/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url) || url === '/' || url === '/api' || url.startsWith('/api/') || url.split('/').includes('..')) {
           return res.status(400).json({ error: 'invalid_published_page_url' });
         }
+        if (publishedUrls.has(url)) {
+          return res.status(409).json({ error: 'duplicate_published_page_url', url });
+        }
+        publishedUrls.add(url);
         const filePath = path.resolve(publicRoot, '.' + url);
         if (!filePath.startsWith(publicRoot + path.sep) || existsSync(filePath)) {
           return res.status(409).json({ error: 'page_url_conflicts_with_existing_file', url });
