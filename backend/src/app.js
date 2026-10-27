@@ -93,7 +93,7 @@ export function createApp() {
               const heroImage = typeof meta.hero?.backgroundImage === 'string' ? meta.hero.backgroundImage : '';
               const sectionImage = Array.isArray(pageSections) ? pageSections.find((section) => section && section.hidden !== true && typeof section.content?.image === 'string' && section.content.image.trim())?.content.image : '';
               const itemImage = Array.isArray(pageSections) ? pageSections.flatMap((section) => Array.isArray(section?.items) ? section.items : []).find((item) => typeof item?.image === 'string' && item.image.trim())?.image : '';
-              const image = [heroImage, sectionImage, itemImage].find((value) => /^(https?:\/\/|\/(?!\/))/.test(value || '')) || '';
+              const image = [heroImage, sectionImage, itemImage].find((value) => /^(https?:\/\/|\/(?!\/)|data:image\/webp;base64,[A-Za-z0-9+/=]+$)/.test(value || '')) || '';
               return { id: page.id, name: page.name, url: page.url, image };
             });
         }
@@ -235,6 +235,10 @@ export function createApp() {
     const url = String(value || '').trim();
     return /^(https?:\/\/|\/(?!\/))/.test(url) ? url : '';
   };
+  const safeImageUrl = value => {
+    const url = String(value || '').trim();
+    return safeUrl(url) || (/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(url) ? url : '');
+  };
   const parseJson = value => {
     if (typeof value !== 'string') return {};
     try {
@@ -271,7 +275,7 @@ export function createApp() {
 
     const sectionHtml = visibleSections.map(section => {
       const content = section.content && typeof section.content === 'object' ? section.content : {};
-      const image = safeUrl(content.image);
+      const image = safeImageUrl(content.image);
       const theme = parseJson(entries['vm-demo-page-theme-' + id + '-' + String(section.id || section.type || '')]);
       const themeBg = /^#[0-9a-fA-F]{3,8}$/.test(theme.bg || '') ? theme.bg : '';
       const themeText = /^#[0-9a-fA-F]{3,8}$/.test(theme.text || '') ? theme.text : '';
@@ -283,7 +287,7 @@ export function createApp() {
       const themeStyle = [themeBg && 'background-color:' + themeBg, themeText && 'color:' + themeText, themeAccent && '--section-accent:' + themeAccent].filter(Boolean).join(';');
       const items = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
       const cards = items.map(item => {
-        const itemImage = safeUrl(item.image);
+        const itemImage = safeImageUrl(item.image);
         const itemLink = safeUrl(item.link);
         const cardContent = `${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="" style="object-fit:${themeImageFit}">` : ''}<div><h3>${escapeHtml(item.title || '')}</h3><p>${escapeHtml(item.description || '')}</p>${item.button ? `<span class="page-card-label">${escapeHtml(item.button)}</span>` : ''}</div>`;
         return itemLink ? `<a class="page-card" href="${escapeHtml(itemLink)}" style="border-radius:${themeRadius};text-decoration:none;color:inherit">${cardContent}</a>` : `<article class="page-card" style="border-radius:${themeRadius}">${cardContent}</article>`;
@@ -313,7 +317,7 @@ export function createApp() {
     const background = /^#[0-9a-fA-F]{3,8}$/.test(design.bg || '') ? design.bg : '#07090d';
     const textColor = /^#[0-9a-fA-F]{3,8}$/.test(design.text || '') ? design.text : '#f4f4f5';
     const accent = /^#[0-9a-fA-F]{3,8}$/.test(design.accent || '') ? design.accent : '#d9b45f';
-    const heroImage = safeUrl(hero.backgroundImage);
+    const heroImage = safeImageUrl(hero.backgroundImage);
     const heroCopy = hero.copy || meta.description || '';
     const heroHeadline = hero.headline || page.name || '';
     const heroButtonUrl = safeUrl(hero.buttonUrl);
