@@ -352,6 +352,19 @@
         }
         ordered.push(section);
       });
+      // Keep standard homepage sections available when older saved settings omit an entry.
+      // An explicit saved item (including hidden:true) remains authoritative.
+      const configuredTypes = new Set(sections
+        .filter(function (item) { return item && typeof item === "object"; })
+        .map(function (item) { return item.type || item.key || item.id; }));
+      definitions.forEach(function (definition) {
+        if (configuredTypes.has(definition.key)) return;
+        const missingSection = originals[definition.key];
+        if (missingSection && !ordered.includes(missingSection)) {
+          missingSection.hidden = false;
+          ordered.push(missingSection);
+        }
+      });
       ordered.forEach(function (section) { main.appendChild(section); });
       main.querySelectorAll(".vm-published-pages").forEach(function (section) { section.remove(); });
       if (Array.isArray(data.publishedPages) && data.publishedPages.length) {
