@@ -279,112 +279,9 @@
     });
   }
 
-  function applyHomepageSections(data) {
-    if (window.location.pathname !== "/" && window.location.pathname !== "/index.html") return;
-    const main = document.querySelector("main");
-    if (!main || !data || !Array.isArray(data.sections)) return;
-
-    const selectors = {
-      hero: ".hero",
-      announcements: "#announcements",
-      "video-showcase": ".video-showcase",
-      trustbar: ".trustbar",
-      collection: "#collection",
-      popular: "#popular",
-      "new-releases": "#new-releases",
-      "genre-rail": ".genre-rail",
-      "genre-recommendations": ".genre-recommendations",
-      spotlight: ".spotlight",
-      finder: "#search",
-      categories: "#categories",
-      library: "#library",
-      creator: "#creator",
-      creators: "#creators",
-      cta: ".cta"
-    };
-    const publishedPages = Array.isArray(data.publishedPages) ? data.publishedPages : [];
-    const existingCustomPages = new Map();
-    main.querySelectorAll("[data-published-custom-page]").forEach(function (node) {
-      existingCustomPages.set(node.dataset.publishedCustomPage, node);
-    });
-
-    const orderedNodes = [];
-    const usedNodes = new Set();
-    const sections = data.sections.slice().sort(function (left, right) {
-      return (Number(left && left.order) || 0) - (Number(right && right.order) || 0);
-    });
-    const configuredTypes = new Set(sections.map(function (item) {
-      return item && item.type;
-    }));
-    Object.keys(selectors).forEach(function (type) {
-      if (configuredTypes.has(type)) return;
-      sections.push({ type: type, hidden: false, order: sections.length, content: {} });
-    });
-
-    sections.forEach(function (item) {
-      if (!item || typeof item !== "object") return;
-      let node = null;
-
-      if (item.type === "custom-page") {
-        const page = publishedPages.find(function (entry) {
-          return entry && entry.id === item.pageId;
-        });
-        if (!page || typeof page.name !== "string" || typeof page.url !== "string") return;
-
-        const pageUrl = page.url.trim();
-        if (!/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(pageUrl) || pageUrl.split("/").includes("..")) return;
-
-        node = existingCustomPages.get(String(page.id));
-        if (!node) {
-          node = document.createElement("section");
-          node.className = "section custom-page-teaser";
-          node.dataset.publishedCustomPage = String(page.id);
-
-          const inner = document.createElement("div");
-          inner.className = "section-head";
-          const heading = document.createElement("h2");
-          const link = document.createElement("a");
-          link.className = "page-button";
-          inner.append(heading, link);
-          node.appendChild(inner);
-        }
-
-        const heading = node.querySelector("h2");
-        const link = node.querySelector("a");
-        if (heading) heading.textContent = item.content && item.content.title || page.name;
-        if (link) {
-          link.href = pageUrl;
-          link.textContent = item.content && item.content.button || "ページを見る →";
-        }
-      } else {
-        const selector = selectors[item.type];
-        if (!selector) return;
-        node = main.querySelector(selector);
-      }
-
-      if (!node || usedNodes.has(node)) return;
-      const isHidden = item.hidden === true;
-      node.hidden = isHidden;
-      if (isHidden) node.style.setProperty("display", "none", "important");
-      else node.style.removeProperty("display");
-      node.setAttribute("aria-hidden", String(isHidden));
-      usedNodes.add(node);
-      orderedNodes.push(node);
-    });
-
-    existingCustomPages.forEach(function (node, id) {
-      if (!publishedPages.some(function (page) { return page && String(page.id) === id; })) node.remove();
-    });
-
-    orderedNodes.forEach(function (node) {
-      main.appendChild(node);
-    });
-  }
-
   async function syncPublicSettings() {
     try {
       const data = await getPublicSettings();
-      applyHomepageSections(data);
       applySiteChrome(data.pageSettings && data.pageSettings.chrome);
       if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
       const siteDescription = data.siteSettings && String(data.siteSettings.f1 || "").trim();
@@ -779,7 +676,11 @@
       }
       main.querySelectorAll("[data-vm-section-id][data-vm-section-type]").forEach(function (element) {
         if (element.dataset.vmSectionId !== element.dataset.vmSectionType) element.remove();
-        else element.hidden = false;
+        else {
+          element.hidden = false;
+          element.style.removeProperty("display");
+          element.setAttribute("aria-hidden", "false");
+        }
       });
       const definitions = [
         { key: "hero", selector: ".hero" },
@@ -819,8 +720,11 @@
           customSection.className = "section vm-published-page";
           customSection.dataset.vmSectionId = item.id;
           customSection.dataset.vmSectionType = "custom-page";
-          customSection.hidden = item.hidden === true;
+          const customPageHidden = item.hidden === true;
+          customSection.hidden = customPageHidden;
           customSection.style.cssText = "padding:24px 5%;";
+          if (customPageHidden) customSection.style.setProperty("display", "none", "important");
+          customSection.setAttribute("aria-hidden", String(customPageHidden));
           const link = document.createElement("a");
           link.href = page.url;
           link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
@@ -857,7 +761,11 @@
           if (heading && item.label) heading.textContent = item.label;
           originals[item.id] = section;
         }
-        section.hidden = item.hidden === true;
+        const sectionHidden = item.hidden === true;
+        section.hidden = sectionHidden;
+        if (sectionHidden) section.style.setProperty("display", "none", "important");
+        else section.style.removeProperty("display");
+        section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
         if (typeof sectionContent.title === "string" && sectionContent.title.trim()) {
           const heading = section.querySelector(".section-head h2, .hero-copy h1, .spotlight-copy h2, .finder h2, .library-copy h2, .creator-copy h2, .cta h2, h1, h2");
@@ -918,6 +826,8 @@
         const missingSection = originals[definition.key];
         if (!missingSection || ordered.includes(missingSection)) return;
         missingSection.hidden = false;
+        missingSection.style.removeProperty("display");
+        missingSection.setAttribute("aria-hidden", "false");
         // Restore omitted standard sections near their default position without
         // changing the relative order of sections that were explicitly saved.
         const nextDefinition = definitions.slice(definitionIndex + 1).find(function (candidate) {
