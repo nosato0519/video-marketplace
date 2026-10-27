@@ -181,6 +181,8 @@
       Array.from(form.elements).filter(function (field) { return field.name; }).forEach(function (field) {
         defaultSettings[field.name] = field.type === "checkbox" ? field.checked : field.value;
       });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ siteName: initialName, logoDataUrl: "" }));
+      localStorage.setItem("vm-demo-admin-setting-general", JSON.stringify(defaultSettings));
       applyBranding({ siteName: initialName, logoDataUrl: "" });
       renderPreview();
       status.textContent = "初期設定をサーバーに保存しています…";
