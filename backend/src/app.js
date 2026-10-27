@@ -86,7 +86,16 @@ export function createApp() {
               typeof page.name === 'string' && typeof page.url === 'string' && page.url !== '/' && !['/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'].includes(page.url) &&
               /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
               !page.url.split('/').includes('..') && !existsSync(path.resolve(process.cwd(), '.' + page.url)))
-            .map(({ id, name, url }) => ({ id, name, url }));
+            .map((page) => {
+              let meta = {}, pageSections = [];
+              try { meta = JSON.parse(editorEntries?.['vm-demo-page-meta-' + page.id] || '{}') || {}; } catch (_) {}
+              try { pageSections = JSON.parse(editorEntries?.['vm-demo-page-sections-' + page.id] || '[]') || []; } catch (_) {}
+              const heroImage = typeof meta.hero?.backgroundImage === 'string' ? meta.hero.backgroundImage : '';
+              const sectionImage = Array.isArray(pageSections) ? pageSections.find((section) => section && section.hidden !== true && typeof section.content?.image === 'string' && section.content.image.trim())?.content.image : '';
+              const itemImage = Array.isArray(pageSections) ? pageSections.flatMap((section) => Array.isArray(section?.items) ? section.items : []).find((item) => typeof item?.image === 'string' && item.image.trim())?.image : '';
+              const image = [heroImage, sectionImage, itemImage].find((value) => /^(https?:\/\/|\/(?!\/))/.test(value || '')) || '';
+              return { id: page.id, name: page.name, url: page.url, image };
+            });
         }
       } catch (_) {}
       let editorSections = null;
