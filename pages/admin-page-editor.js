@@ -87,9 +87,16 @@ try{
 const response=await fetch('/api/admin/settings/page-editor',{credentials:'same-origin',cache:'no-store'});
 if(!response.ok)return null;
 const data=await response.json();
-if(!data.entries||typeof data.entries!=='object')return null;
-Object.entries(data.entries).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});
-return data.entries;
+const entries=data.entries===null?{}:data.entries;
+if(!entries||typeof entries!=='object'||Array.isArray(entries))return null;
+const isManagedKey=key=>key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||key==='vm-demo-site-branding'||key==='vm-demo-admin-setting-general'||key==='vm-demo-announcements'||key==='vm-demo-homepage-theme'||/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key);
+const serverKeys=new Set(Object.keys(entries));
+for(let index=localStorage.length-1;index>=0;index--){
+const key=localStorage.key(index);
+if(key&&isManagedKey(key)&&!serverKeys.has(key))localStorage.removeItem(key);
+}
+Object.entries(entries).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});
+return entries;
 }catch(error){console.error('Loading page editor settings failed',error);return null;}
 }
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'&&!RESERVED_PAGE_URLS.has(page.url)):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
