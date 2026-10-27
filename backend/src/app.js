@@ -375,7 +375,10 @@ export function createApp() {
       const themeSpacing = theme.spacing === 'compact' ? '28px' : ['large', 'spacious'].includes(theme.spacing) ? '84px' : '56px';
       const themeImageFit = ['cover', 'contain', 'fill'].includes(theme.imageFit) ? theme.imageFit : 'cover';
       const themeStyle = [themeBg && 'background-color:' + themeBg, themeText && 'color:' + themeText, themeAccent && '--section-accent:' + themeAccent].filter(Boolean).join(';');
-      const items = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
+      const sectionItems = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
+      const itemLimitKey = ({ 'video-showcase': 'videoCount', collection: 'videoCount', spotlight: 'featureCount', creators: 'creatorCount', trustbar: 'itemCount' })[section.type];
+      const itemLimit = itemLimitKey ? Number.parseInt(settings[itemLimitKey], 10) : NaN;
+      const items = Number.isInteger(itemLimit) && itemLimit > 0 ? sectionItems.slice(0, itemLimit) : sectionItems;
       const cards = items.map(item => {
         const itemImage = safeImageUrl(item.image);
         const itemLink = safeUrl(item.link);
@@ -456,7 +459,12 @@ export function createApp() {
         }
         if (content.button && buttonUrl && section.type === 'custom-button') body += `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>`;
       }
-      if (!isCustom && !['popular', 'new-releases', 'categories'].includes(section.type)) body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
+      if (!isCustom && !['popular', 'new-releases', 'categories'].includes(section.type)) {
+        const configuredColumns = Number.parseInt(settings.columns, 10);
+        const cardColumns = Number.isInteger(configuredColumns) ? Math.min(5, Math.max(2, configuredColumns)) : 0;
+        const cardGridStyle = cardColumns ? ` style="--page-custom-columns:${cardColumns}"` : '';
+        body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid"${cardGridStyle}>${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
+      }
       return `<section class="page-section${customClass}" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}">${body}</div></section>`;
     }).join('');
 
@@ -520,7 +528,7 @@ body.page-style-editorial .page-hero{background:linear-gradient(135deg,color-mix
 .page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
 .page-subtitle{line-height:1.8;white-space:pre-line}
 .page-section-image{display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:24px 0}
-.page-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}
+.page-card-grid{display:grid;grid-template-columns:repeat(var(--page-custom-columns,auto-fit),minmax(0,1fr));gap:18px;margin-top:24px}
 .page-card{overflow:hidden;border:1px solid #ffffff20;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
