@@ -372,7 +372,7 @@ export function createApp() {
       const themeAccent = /^#[0-9a-fA-F]{3,8}$/.test(theme.accent || '') ? theme.accent : '';
       const themeRadius = theme.radius === 'square' ? '0' : '12px';
       const themeWidth = theme.width === 'wide' ? '1440px' : theme.width === 'narrow' ? '780px' : '1160px';
-      const themeSpacing = theme.spacing === 'compact' ? '28px' : theme.spacing === 'spacious' ? '84px' : '56px';
+      const themeSpacing = theme.spacing === 'compact' ? '28px' : ['large', 'spacious'].includes(theme.spacing) ? '84px' : '56px';
       const themeImageFit = ['cover', 'contain', 'fill'].includes(theme.imageFit) ? theme.imageFit : 'cover';
       const themeStyle = [themeBg && 'background-color:' + themeBg, themeText && 'color:' + themeText, themeAccent && '--section-accent:' + themeAccent].filter(Boolean).join(';');
       const items = Array.isArray(section.items) ? section.items.filter(item => item && typeof item === 'object') : [];
