@@ -240,7 +240,7 @@ return data.entries;
 }
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
-async function move(index,delta){const visible=filtered(),target=index+delta;if(target<0||target>=visible.length)return;const a=pages.indexOf(visible[index]),b=pages.indexOf(visible[target]);[pages[a],pages[b]]=[pages[b],pages[a]];save();renderPageList();try{await persistEditorSettings();}catch(error){editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
+async function move(index,delta){const target=index+delta;if(target<0||target>=pages.length)return;[pages[index],pages[target]]=[pages[target],pages[index]];save();renderPageList();try{await persistEditorSettings();}catch(error){editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
 async function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を削除しますか？'))return;const previous=pages.slice();pages=pages.filter(p=>p.id!==page.id);save();if(editingId===page.id)closeEditor();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ削除のサーバー保存に失敗しました。';}}
 function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
 function loadPageSettings(id){
@@ -562,7 +562,32 @@ document.getElementById('homepage-add-section').addEventListener('click',()=>{
   sectionState.push({id:type+'-'+Date.now(),type,label:definition.label,hidden:false,added:true,order:sectionState.length,content:{}});
   renderSections();
 });
-function runPublishCheck(){loadServerEditorSettings().then(() => {
+function runPublishCheck(){
+  const name=nameInput.value.trim(),url=urlInput.value.trim();
+  const visible=sectionState.filter(item=>!item.hidden).length;
+  const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
+  const checks=[
+    {label:'ページ名が入力されている',ok:!!name},
+    {label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},
+    {label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},
+    {label:'表示するセクションがある',ok:visible>0},
+    {label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},
+    {label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}
+  ];
+  const box=document.getElementById('publish-checklist');
+  box.replaceChildren();
+  checks.forEach(item=>{
+    const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');
+    const label=document.createElement('span');label.textContent=item.label;
+    const state=document.createElement('span');state.className='check-state';
+    state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';
+    row.append(label,state);box.append(row);
+  });
+  const ok=checks.filter(item=>!item.optional).every(item=>item.ok);
+  editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';
+  return {ok};
+}
+loadServerEditorSettings().then(() => {
   load();
   pages = pages.filter(page => page && page.id !== 'top');
   save();
