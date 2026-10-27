@@ -449,6 +449,8 @@ export function createApp() {
     const contentWidth = ['wide', 'narrow'].includes(design.contentWidth) ? design.contentWidth : 'standard';
     const cardShape = design.cardShape === 'square' ? 'square' : 'rounded';
     const chrome = parseJson(entries['vm-demo-page-chrome-' + id] || entries['vm-demo-site-chrome']);
+    const branding = parseJson(entries['vm-demo-site-branding']);
+    const siteName = String(branding.siteName || 'VIDEO MARKETPLACE').trim() || 'VIDEO MARKETPLACE';
     const footerDescription = chrome.footerDescription || '見つける。買う。楽しむ。';
     const navItems = [
       ['cart', chrome.showCart !== false, 'カート', '/cart'],
@@ -495,7 +497,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{--page-custom-columns:1}}
 </style></head><body>
-<header class="page-published-header"><a href="/">VIDEO MARKETPLACE</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
+<header class="page-published-header"><a href="/">${escapeHtml(siteName)}</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
 <main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
 <footer class="page-published-footer"><div>${escapeHtml(footerDescription)}</div>${chrome.footerShowLinks !== 'hide' ? `<nav class="page-published-footer-links" aria-label="フッターリンク">${navHtml}</nav>` : ''}<div>${escapeHtml(chrome.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
 </body></html>`);
