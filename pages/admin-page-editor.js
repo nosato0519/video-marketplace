@@ -360,6 +360,7 @@ if(!fields.length){const note=document.createElement('p');note.className='sectio
 fields.forEach(field=>{const label=document.createElement('label');label.textContent=field.label;const select=document.createElement('select');select.dataset.settingKey=field.key;
 field.options.forEach(([value,text])=>{const option=document.createElement('option');option.value=value;option.textContent=text;select.append(option);});
 select.value=(item.settings&&item.settings[field.key])||field.options[0][0];label.append(select);specificSettings.append(label);});
+if(['popular','new-releases','categories'].includes(item.type)){const note=document.createElement('p');note.className='section-setting-note';note.textContent='公開ページでは登録済みの動画・カテゴリーを自動表示します。編集画面のプレビューは配置イメージです。';specificSettings.append(note);}
 }
 contentImage.addEventListener('input',()=>{const preview=document.getElementById('section-content-image-preview');preview.src=contentImage.value.trim();preview.hidden=!contentImage.value.trim();});
 bindPageImageUpload(document.getElementById('section-content-image-file'),contentImage,document.getElementById('section-content-image-preview'));
