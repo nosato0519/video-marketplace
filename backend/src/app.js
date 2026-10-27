@@ -301,12 +301,14 @@ export function createApp() {
       let body = '';
       if (isDivider) body = '<hr class="page-divider">';
       else if (isSpacer) body = '<div class="page-spacer" aria-hidden="true"></div>';
-      else {
+      else if (section.type === 'custom-image-text') {
+        const copy = `<div class="page-image-text-copy">${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}</div>`;
+        body = `<h2>${escapeHtml(sectionTitle)}</h2><div class="page-image-text-layout">${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${copy}</div>`;
+      } else {
         body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}`;
-        if (image && ['custom-image','custom-image-text'].includes(section.type)) body += `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">`;
+        if (image && section.type === 'custom-image') body += `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">`;
         if (cards && ['custom-gallery','custom-cards'].includes(section.type)) body += `<div class="page-card-grid">${cards}</div>`;
         if (content.button && buttonUrl && section.type === 'custom-button') body += `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>`;
-        if (section.type === 'custom-image-text' && image && content.button && buttonUrl) body += `<div class="page-image-text-copy"><a class="page-button" href="${escapeHtml(buttonUrl)}">${escapeHtml(content.button)}</a></div>`;
       }
       if (!isCustom) body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid">${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
       return `<section class="page-section${customClass}" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}">${body}</div></section>`;
@@ -369,7 +371,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
-.page-card-label{color:var(--page-accent);font-weight:700}.page-section-image{height:auto}.page-image-text-copy{max-width:760px}.page-section-image-text .page-section-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-section-image-text .page-section-inner>h2{grid-column:1/-1}.page-section-image-text .page-section-image{width:100%;margin:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-section-image-text .page-section-inner{grid-template-columns:1fr}}
+.page-card-label{color:var(--page-accent);font-weight:700}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}}
 </style></head><body>
