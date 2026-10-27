@@ -129,11 +129,29 @@ export function createApp() {
           }
         }
       } catch (_) {}
+      const homepageSections = Array.isArray(editorSections) && editorSections.length
+        ? editorSections.slice()
+        : Array.isArray(settings.homepage_sections?.value)
+          ? settings.homepage_sections.value.slice()
+          : [];
+      publishedPages.forEach((page) => {
+        if (!homepageSections.some((section) => section && section.type === 'custom-page' && section.pageId === page.id)) {
+          homepageSections.push({
+            id: 'custom-page-' + page.id,
+            type: 'custom-page',
+            pageId: page.id,
+            label: page.name,
+            hidden: false,
+            added: false,
+            order: homepageSections.length,
+            content: { title: page.name, link: page.url, button: 'ページを見る →' },
+          });
+        }
+      });
+      homepageSections.forEach((section, index) => { section.order = index; });
       res.set('Cache-Control', 'no-store');
       return res.json({
-        sections: Array.isArray(editorSections) && editorSections.length
-          ? editorSections
-          : settings.homepage_sections?.value ?? null,
+        sections: homepageSections,
         publishedPages,
         themes,
         pageSettings,
