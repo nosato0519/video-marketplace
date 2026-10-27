@@ -282,6 +282,7 @@
   async function syncPublicSettings() {
     try {
       const data = await getPublicSettings();
+      applySiteChrome(data.pageSettings && data.pageSettings.chrome);
       if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
       const siteDescription = data.siteSettings && String(data.siteSettings.f1 || "").trim();
       if (siteDescription) {
@@ -529,10 +530,43 @@
   }
 
 
+  function applySiteChrome(chrome) {
+    if (!chrome || typeof chrome !== "object") return;
+    const navs = document.querySelectorAll(".nav-right nav, .page-published-nav");
+    const selectors = {
+      cart: 'a[href*="cart"]',
+      purchase: 'a[href*="video-list"], a[href*="browse"], a[href*="library"]',
+      sell: 'a[href*="seller"], a[href*="creator"]',
+      account: 'a[href*="login"], a[href*="account"]'
+    };
+    navs.forEach(function (nav) {
+      if (typeof chrome.menuOrder === "string") {
+        chrome.menuOrder.split(",").forEach(function (name) {
+          const link = nav.querySelector('[data-site-nav="' + name + '"]') || nav.querySelector(selectors[name] || ".__missing-nav-link__");
+          if (link) nav.appendChild(link);
+        });
+      }
+      Object.keys(selectors).forEach(function (name) {
+        const link = nav.querySelector('[data-site-nav="' + name + '"]') || nav.querySelector(selectors[name]);
+        if (link) link.hidden = chrome[({cart:"showCart",purchase:"showPurchase",sell:"showSell",account:"showAccount"})[name]] === false;
+      });
+    });
+    if (chrome.showAccount === false) {
+      document.querySelectorAll(".login-menu, .login-dropdown").forEach(function (element) { element.hidden = true; });
+    }
+    const footerLinks = document.querySelector(".footer-cols");
+    if (footerLinks) footerLinks.hidden = chrome.footerShowLinks === "hide";
+    const copyright = document.getElementById("site-footer-copyright");
+    if (copyright && typeof chrome.footerCopyright === "string") copyright.textContent = chrome.footerCopyright;
+    const description = document.getElementById("site-footer-description");
+    if (description && typeof chrome.footerDescription === "string") description.textContent = chrome.footerDescription;
+  }
+
   async function syncHomepageSections() {
     if (!document.querySelector("main") || !document.querySelector(".hero")) return;
     try {
       const data = await getPublicSettings();
+      applySiteChrome(data.pageSettings && data.pageSettings.chrome);
       const sections = Array.isArray(data.sections) ? data.sections : [];
       const pageSettings = data.pageSettings || {};
       const homepageTheme = data.homepageTheme || {};
@@ -578,30 +612,6 @@
           if (design.contentWidth === "narrow") main.style.marginInline = "auto";
         }
       }
-      const chrome = pageSettings.chrome || {};
-      if (typeof chrome.menuOrder === "string") {
-        const nav = document.querySelector(".nav-right nav");
-        if (nav) chrome.menuOrder.split(",").forEach(function (name) {
-          const link = nav.querySelector('[data-site-nav="' + name + '"]');
-          if (link) nav.appendChild(link);
-        });
-      }
-      if (chrome.footerShowLinks === "hide") {
-        const footerLinks = document.querySelector(".footer-cols");
-        if (footerLinks) footerLinks.hidden = true;
-      }
-      if (chrome.footerCopyright) {
-        const copyright = document.getElementById("site-footer-copyright");
-        if (copyright) copyright.textContent = String(chrome.footerCopyright);
-      }
-      if (chrome.footerDescription) {
-        const footerDescription = document.getElementById("site-footer-description");
-        if (footerDescription) footerDescription.textContent = String(chrome.footerDescription);
-      }
-      if (chrome.showPurchase === false) document.querySelectorAll('header a[href*="library"], header a[href*="video-list"]').forEach(el => { el.hidden = true; });
-      if (chrome.showSell === false) document.querySelectorAll('header a[href*="seller"], header a[href*="creator"]').forEach(el => { el.hidden = true; });
-      if (chrome.showAccount === false) document.querySelectorAll('header a[href*="login"], header a[href*="account"]').forEach(el => { el.hidden = true; });
-      if (chrome.showCart === false) document.querySelectorAll('header a[href*="cart"]').forEach(el => { el.hidden = true; });
       main.querySelectorAll("[data-vm-section-id][data-vm-section-type]").forEach(function (element) {
         if (element.dataset.vmSectionId !== element.dataset.vmSectionType) element.remove();
         else element.hidden = false;
