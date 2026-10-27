@@ -94,7 +94,37 @@
     const response = await fetch('/api/catalog/products?limit=24', { credentials: 'same-origin' });
     if (!response.ok) throw new Error('catalog_load_failed');
     const result = await response.json();
-    const products = Array.isArray(result.data) ? result.data : [];
+    const searchParams = new URLSearchParams(window.location.search);
+    const keyword = (searchParams.get('q') || '').trim().toLocaleLowerCase('ja-JP');
+    const selectedCategory = (searchParams.get('category') || '').trim().toLocaleLowerCase('ja-JP');
+    const minPriceRaw = searchParams.get('minPrice');
+    const maxPriceRaw = searchParams.get('maxPrice');
+    const minPrice = minPriceRaw !== null && minPriceRaw !== '' ? Number(minPriceRaw) : null;
+    const maxPrice = maxPriceRaw !== null && maxPriceRaw !== '' ? Number(maxPriceRaw) : null;
+    const categoryAliases = {
+      movie: ['movie', '映画・映像', '映画', '映像'],
+      learning: ['learning', '学び'],
+      documentary: ['documentary', 'ドキュメンタリー'],
+      creative: ['creative', 'クリエイティブ']
+    };
+    const products = (Array.isArray(result.data) ? result.data : []).filter(product => {
+      const searchable = [product.title, product.seller, product.category, product.description]
+        .filter(Boolean).join(' ').toLocaleLowerCase('ja-JP');
+      if (keyword && !searchable.includes(keyword)) return false;
+      if (selectedCategory) {
+        const aliases = categoryAliases[selectedCategory] || [selectedCategory];
+        const productCategory = String(product.category || '').toLocaleLowerCase('ja-JP');
+        if (!aliases.some(alias => productCategory === alias.toLocaleLowerCase('ja-JP'))) return false;
+      }
+      const price = Number(product.price_amount);
+      if (minPrice !== null && Number.isFinite(minPrice) && (!Number.isFinite(price) || price < minPrice)) return false;
+      if (maxPrice !== null && Number.isFinite(maxPrice) && (!Number.isFinite(price) || price > maxPrice)) return false;
+      return true;
+    });
+    const heading = document.querySelector('.catalog-results-head h2');
+    if (heading && (keyword || selectedCategory || minPriceRaw !== null || maxPriceRaw !== null)) {
+      heading.textContent = '検索結果（' + products.length + '件）';
+    }
 
     grid.innerHTML = products.map((product, index) => {
       const thumbnail = product.thumbnail_url
@@ -111,6 +141,10 @@
         </div>
       </a>`;
     }).join('');
+
+    if (products.length === 0) {
+      grid.innerHTML = '<p class="announcement-empty">条件に一致する動画はありません。検索条件を変更してください。</p>';
+    }
 
     grid.querySelectorAll('.catalog-thumbnail').forEach((image) => {
       image.addEventListener('error', () => {
