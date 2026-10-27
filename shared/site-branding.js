@@ -357,13 +357,20 @@
       const configuredTypes = new Set(sections
         .filter(function (item) { return item && typeof item === "object"; })
         .map(function (item) { return item.type || item.key || item.id; }));
-      definitions.forEach(function (definition) {
+      definitions.forEach(function (definition, definitionIndex) {
         if (configuredTypes.has(definition.key)) return;
         const missingSection = originals[definition.key];
-        if (missingSection && !ordered.includes(missingSection)) {
-          missingSection.hidden = false;
-          ordered.push(missingSection);
-        }
+        if (!missingSection || ordered.includes(missingSection)) return;
+        missingSection.hidden = false;
+        // Restore omitted standard sections near their default position without
+        // changing the relative order of sections that were explicitly saved.
+        const nextDefinition = definitions.slice(definitionIndex + 1).find(function (candidate) {
+          const nextSection = originals[candidate.key];
+          return nextSection && ordered.includes(nextSection);
+        });
+        const nextSection = nextDefinition && originals[nextDefinition.key];
+        if (nextSection) ordered.splice(ordered.indexOf(nextSection), 0, missingSection);
+        else ordered.push(missingSection);
       });
       ordered.forEach(function (section) { main.appendChild(section); });
       main.querySelectorAll(".vm-published-pages").forEach(function (section) { section.remove(); });
