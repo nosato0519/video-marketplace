@@ -546,7 +546,7 @@ localStorage.setItem(SECTION_PREFIX+'top',JSON.stringify(sections));
 localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sections));
 }catch(error){console.error('Loading live homepage sections failed',error);}
 }
-loadServerEditorSettings().then(async(entries)=>{load();await loadServerHomepageSections(entries);renderLandingSections();});
+load();renderLandingSections();loadServerEditorSettings().then(async(entries)=>{load();await loadServerHomepageSections(entries);renderLandingSections();});
 })();
 </script>
 <script>
