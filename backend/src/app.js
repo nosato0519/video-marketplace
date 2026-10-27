@@ -119,7 +119,7 @@ export function createApp() {
         }
       } catch (_) {}
       try {
-        const raw = editorEntries?.['vm-demo-page-sections-top'] || editorEntries?.['vm-demo-homepage-sections'];
+        const raw = editorEntries?.['vm-demo-homepage-sections'] || editorEntries?.['vm-demo-page-sections-top'];
         if (typeof raw === 'string') editorSections = JSON.parse(raw);
         Object.entries(editorEntries || {}).forEach(([key, value]) => {
           const prefix = 'vm-demo-page-theme-top-';
