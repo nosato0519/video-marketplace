@@ -262,6 +262,7 @@
       });
       const definitions = [
         { key: "hero", selector: ".hero" },
+        { key: "announcements", selector: "#announcements" },
         { key: "video-showcase", selector: ".video-showcase" },
         { key: "trustbar", selector: ".trustbar" },
         { key: "collection", selector: "#collection" },
