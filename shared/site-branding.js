@@ -207,7 +207,7 @@
       const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
       if (!response.ok) return;
       const data = await response.json();
-      if (!Array.isArray(data.sections)) return;
+      const sections = Array.isArray(data.sections) ? data.sections : [];
       const pageSettings = data.pageSettings || {};
       const heroSettings = pageSettings.meta && pageSettings.meta.hero;
       if (heroSettings && typeof heroSettings === "object") {
@@ -284,8 +284,12 @@
         if (element) originals[definition.key] = element;
       });
       const ordered = [];
-      data.sections.forEach(function (item) {
+      const orderedIds = new Set();
+      sections.forEach(function (item) {
         if (!item || typeof item !== "object") return;
+        const itemId = typeof item.id === "string" ? item.id : "";
+        if (itemId && orderedIds.has(itemId)) return;
+        if (itemId) orderedIds.add(itemId);
         let section = originals[item.id] || null;
         if (!section) {
           const source = originals[item.type];
@@ -349,6 +353,7 @@
         ordered.push(section);
       });
       ordered.forEach(function (section) { main.appendChild(section); });
+      main.querySelectorAll(".vm-published-pages").forEach(function (section) { section.remove(); });
       if (Array.isArray(data.publishedPages) && data.publishedPages.length) {
         const publishedSection = document.createElement("section");
         publishedSection.className = "section vm-published-pages";
