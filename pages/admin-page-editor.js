@@ -253,7 +253,16 @@ const sectionWrap=html=>{root.replaceChildren();root.className='vm-top-preview '
 const head=(k,t,p='',more='')=>'<div class="vm-pv-head"><div><span class="vm-pv-kicker">'+esc(k)+'</span><h3 class="vm-pv-title">'+esc(t)+'</h3>'+(p?'<p class="vm-pv-copy">'+esc(p)+'</p>':'')+'</div>'+(more?'<a href="#">'+esc(more)+' <b>→</b></a>':'')+'</div>';
 const card=(image,k,t,p,by,price)=>'<article class="vm-pv-card">'+img(image,'',t)+'<div class="vm-pv-card-info"><small>'+esc(k)+'</small><strong>'+esc(t)+'</strong><span>'+esc(p)+'</span><span>by '+esc(by)+' ★</span><b>'+esc(price)+'</b></div></article>';
 let html='';
-if(type==='hero'){
+if(type.startsWith('custom-')){
+  const customItems=Array.from(sectionItemsEditor.querySelectorAll('.section-item-card')).map(card=>{
+    const value=key=>card.querySelector('[data-item-key="'+key+'"]')?.value||'';
+    return {title:value('title'),description:value('description'),image:value('image'),button:value('button'),link:value('link')};
+  }).filter(item=>Object.values(item).some(Boolean));
+  const itemCards=customItems.map(item=>'<article class="vm-pv-card">'+(item.image?img(esc(item.image),'',item.title):'')+'<div class="vm-pv-card-info"><strong>'+esc(item.title)+'</strong><span>'+esc(item.description)+'</span>'+(item.button?'<b>'+esc(item.button)+'</b>':'')+'</div></article>').join('');
+  if(type==='custom-divider') html='<section class="vm-pv-section"><hr style="border:0;border-top:1px solid #ffffff30"></section>';
+  else if(type==='custom-spacer') html='<section class="vm-pv-section"><div style="height:64px"></div></section>';
+  else html='<section class="vm-pv-section">'+(title?'<h3 class="vm-pv-title">'+title+'</h3>':'')+(subtitle?'<p class="vm-pv-copy">'+subtitle+'</p>':'')+(['custom-image','custom-image-text'].includes(type)&&content.image?img(esc(content.image),'page-section-image',title):'')+(['custom-gallery','custom-cards'].includes(type)&&itemCards?'<div class="vm-pv-grid">'+itemCards+'</div>':'')+(type==='custom-button'&&content.button?'<a class="vm-pv-primary" href="'+esc(link)+'">'+button+'</a>':'')+'</section>';
+}else if(type==='hero'){
 html='<section class="vm-pv-hero">'+img(asset.hero,'vm-pv-hero-bg','hero')+'<div class="vm-pv-hero-copy"><span class="vm-pv-kicker">'+d.k+'</span><h3>見つける。<br>買う。<em>楽しむ。</em></h3><p>'+esc(content.subtitle||d.p)+'</p><div class="vm-pv-meta"><span>複数クリエイター</span><span>4K / HD</span><span>購入後すぐ視聴</span><span>ダウンロード対応</span></div><div class="vm-pv-actions"><a class="vm-pv-primary" href="'+esc(link)+'">'+esc(content.button||'動画を探す')+' →</a><a class="vm-pv-secondary" href="#">クリエイターになる</a></div></div><div class="vm-pv-mosaic"><div class="vm-pv-mosaic-card vm-pv-m1">'+img(asset.p1,'','')+'</div><div class="vm-pv-mosaic-card vm-pv-m2">'+img(asset.p2,'','')+'</div><div class="vm-pv-mosaic-card vm-pv-m3">'+img(asset.p3,'','')+'</div></div></section>';
 }else if(type==='video-showcase'){
 html='<section class="vm-pv-section">'+head(d.k,d.t,d.p)+'<div class="vm-pv-showcase">'+[['s1','01 THE LAST SIGNAL'],['s2','02 Tokyo After Hours'],['s3','03 Build Your Brand'],['s4','04 BLUE HORIZON'],['s5','05 Mastering Motion']].map(x=>'<div class="vm-pv-showcase-card">'+img(asset[x[0]],'',x[1])+'<div><b>'+x[1].slice(0,2)+'</b><span>'+esc(x[1].slice(3))+'</span></div></div>').join('')+'</div><div class="vm-pv-dark-link">DISCOVER / WATCH / PURCHASE</div></section>';
