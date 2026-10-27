@@ -349,6 +349,29 @@
         ordered.push(section);
       });
       ordered.forEach(function (section) { main.appendChild(section); });
+      if (Array.isArray(data.publishedPages) && data.publishedPages.length) {
+        const publishedSection = document.createElement("section");
+        publishedSection.className = "section vm-published-pages";
+        publishedSection.id = "published-pages";
+        publishedSection.dataset.vmSectionType = "published-pages";
+        publishedSection.dataset.vmSectionId = "published-pages";
+        const heading = document.createElement("h2");
+        heading.textContent = "公開ページ";
+        const links = document.createElement("div");
+        links.className = "vm-published-page-links";
+        data.publishedPages.forEach(function (page) {
+          if (!page || typeof page.name !== "string" || typeof page.url !== "string" ||
+              !/^\/(?!\/)[a-zA-Z0-9/_-]*$/.test(page.url) || page.url.split("/").includes("..")) return;
+          const link = document.createElement("a");
+          link.href = page.url;
+          link.textContent = page.name;
+          links.appendChild(link);
+        });
+        if (links.children.length) {
+          publishedSection.append(heading, links);
+          main.appendChild(publishedSection);
+        }
+      }
     } catch (_) {}
   }
 
