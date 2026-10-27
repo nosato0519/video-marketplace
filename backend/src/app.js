@@ -439,6 +439,7 @@ export function createApp() {
     const background = /^#[0-9a-fA-F]{3,8}$/.test(design.bg || '') ? design.bg : '#07090d';
     const textColor = /^#[0-9a-fA-F]{3,8}$/.test(design.text || '') ? design.text : '#f4f4f5';
     const accent = /^#[0-9a-fA-F]{3,8}$/.test(design.accent || '') ? design.accent : '#d9b45f';
+    const buttonTextColor = /^#[0-9a-fA-F]{3,8}$/.test(design.buttonText || '') ? design.buttonText : '#101010';
     const heroImage = safeImageUrl(hero.backgroundImage);
     const heroCopy = hero.copy || meta.description || '';
     const heroHeadline = hero.headline || page.name || '';
@@ -484,6 +485,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:${cardShape === 'square' ? '0' : '12px'};background:#ffffff08}
 .page-hero p{max-width:760px;margin:0 auto 24px;line-height:1.8}
 .page-button{display:inline-block;background:var(--page-accent);color:#101010;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:18px}
+.page-hero .page-button{color:${buttonTextColor}}
 .page-section{padding:clamp(34px,6vw,76px) max(5vw,20px);border-bottom:1px solid #ffffff14}
 .page-section-inner{max-width:1160px;margin:auto}
 .page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
