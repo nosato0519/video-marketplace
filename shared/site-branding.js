@@ -16,6 +16,22 @@
     }
   }
 
+  let publicSettingsPromise = null;
+  function getPublicSettings() {
+    if (!publicSettingsPromise) {
+      publicSettingsPromise = fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" })
+        .then(function (response) {
+          if (!response.ok) throw new Error("public_settings_unavailable");
+          return response.json();
+        })
+        .catch(function (error) {
+          publicSettingsPromise = null;
+          throw error;
+        });
+    }
+    return publicSettingsPromise;
+  }
+
   function splitName(name) {
     const clean = String(name || "").trim();
     const firstSpace = clean.indexOf(" ");
@@ -184,8 +200,7 @@
     if (saved.siteName) nameInput.value = saved.siteName;
     logoDataUrl = saved.logoDataUrl || "";
     renderPreview();
-    fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" })
-      .then(function (response) { return response.ok ? response.json() : null; })
+    getPublicSettings()
       .then(function (data) {
         if (!data) return;
         const serverBranding = data.siteBranding || {};
@@ -264,9 +279,7 @@
 
   async function syncPublicSettings() {
     try {
-      const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await getPublicSettings();
       if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
       const siteDescription = data.siteSettings && String(data.siteSettings.f1 || "").trim();
       if (siteDescription) {
@@ -290,8 +303,7 @@
         else field.value = values[field.name];
       });
     }
-    fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" })
-      .then(function (response) { return response.ok ? response.json() : null; })
+    getPublicSettings()
       .then(function (data) {
         const chrome = data && data.pageSettings && data.pageSettings.chrome;
         if (chrome && typeof chrome === "object") apply(chrome);
@@ -413,9 +425,7 @@
     async function load() {
       status.textContent = "サーバーからTOP設定を読み込んでいます…";
       try {
-        const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
-        if (!response.ok) throw new Error("load_failed");
-        const data = await response.json();
+        const data = await getPublicSettings();
         sections = normalize(data.sections);
         render();
         status.textContent = "TOP設定を読み込みました。";
@@ -519,9 +529,7 @@
   async function syncHomepageSections() {
     if (!document.querySelector("main") || !document.querySelector(".hero")) return;
     try {
-      const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await getPublicSettings();
       const sections = Array.isArray(data.sections) ? data.sections : [];
       const pageSettings = data.pageSettings || {};
       const heroSettings = pageSettings.meta && pageSettings.meta.hero;
