@@ -138,7 +138,7 @@ export function createApp() {
           }
         }
       } catch (_) {}
-      const homepageSections = Array.isArray(editorSections) && editorSections.length
+      const homepageSections = Array.isArray(editorSections)
         ? editorSections.slice()
         : Array.isArray(settings.homepage_sections?.value)
           ? settings.homepage_sections.value.slice()
