@@ -232,7 +232,15 @@ if(value!==null)entries[key]=value;
 }
 }
 const response=await fetch('/api/admin/settings/page-editor',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({entries})});
-if(!response.ok)throw new Error('page_editor_save_failed');
+if(!response.ok){
+let reason='';
+try{
+const result=await response.json();
+reason=typeof result.error==='string'?result.error:result.error?.code||'';
+}catch(e){}
+const details=reason||('HTTP '+response.status);
+throw new Error('ページ設定のサーバー保存に失敗しました（'+details+'）。');
+}
 return true;
 }
 async function loadServerEditorSettings(){
@@ -546,7 +554,9 @@ editorStatus.textContent=statusInput.value==='公開'
 : '下書きを保存しました。';
 return true;
 }catch(error){
-editorStatus.textContent='サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';
+editorStatus.textContent=error instanceof Error&&error.message
+? error.message
+: 'ページ設定のサーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';
 return false;
 }
 }
