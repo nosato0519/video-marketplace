@@ -365,8 +365,8 @@
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
         if (seenIds.has(id)) return false;
         seenIds.add(id);
-        if (item.added !== true && item.type !== "custom-page") {
-          if (seenTypes.has(item.type)) return false;
+        if (item.type !== "custom-page") {
+          if (item.added !== true && seenTypes.has(item.type)) return false;
           seenTypes.add(item.type);
         }
         return true;
