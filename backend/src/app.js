@@ -315,8 +315,8 @@ export function createApp() {
              COALESCE(pt.description, fallback.description, p.description) AS description,
              COUNT(o.id)::int AS sales_count
            FROM products p
-           JOIN seller_profiles sp ON sp.user_id = p.seller_id
-           JOIN users su ON su.id = p.seller_id
+           JOIN seller_profiles sp ON sp.id = p.seller_id
+           JOIN users su ON su.id = sp.user_id
            LEFT JOIN categories c ON c.id = p.category_id
            LEFT JOIN LATERAL (
              SELECT pi.media_asset_id AS image_id
@@ -363,6 +363,7 @@ export function createApp() {
     }
 
     const sectionHtml = visibleSections.map(section => {
+      const settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
       const content = section.content && typeof section.content === 'object' ? section.content : {};
       const image = safeImageUrl(content.image);
       const theme = parseJson(entries['vm-demo-page-theme-' + id + '-' + String(section.id || section.type || '')]);
