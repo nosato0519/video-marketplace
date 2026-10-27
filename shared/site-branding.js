@@ -365,7 +365,7 @@
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
         if (seenIds.has(id)) return false;
         seenIds.add(id);
-        if (item.added !== true) {
+        if (item.added !== true && item.type !== "custom-page") {
           if (seenTypes.has(item.type)) return false;
           seenTypes.add(item.type);
         }
@@ -374,7 +374,7 @@
         const def = definitions.find(function (entry) { return entry.type === item.type; });
         return Object.assign({}, item, {
           id: item.id || item.type,
-          label: item.label || def.label,
+          label: item.label || (def && def.label) || item.type,
           hidden: item.hidden === true,
           order: index,
           content: item.content && typeof item.content === "object" ? item.content : {}
@@ -692,6 +692,28 @@
         const itemId = typeof item.id === "string" ? item.id : "";
         if (itemId && orderedIds.has(itemId)) return;
         if (itemId) orderedIds.add(itemId);
+        if (item.type === "custom-page") {
+          const page = (Array.isArray(data.publishedPages) ? data.publishedPages : [])
+            .find(function (candidate) { return candidate.id === item.pageId; });
+          if (!page || !page.url || !page.name) return;
+          const customSection = document.createElement("section");
+          customSection.className = "section vm-published-page";
+          customSection.dataset.vmSectionId = item.id;
+          customSection.dataset.vmSectionType = "custom-page";
+          customSection.hidden = item.hidden === true;
+          customSection.style.cssText = "padding:24px 5%;";
+          const link = document.createElement("a");
+          link.href = page.url;
+          link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
+          const heading = document.createElement("strong");
+          heading.textContent = item.content && item.content.title || page.name;
+          const action = document.createElement("span");
+          action.textContent = item.content && item.content.button || "ページを見る →";
+          link.append(heading, action);
+          customSection.appendChild(link);
+          ordered.push(customSection);
+          return;
+        }
         let section = originals[item.id] || null;
         if (!section) {
           const source = originals[item.type];
@@ -776,29 +798,6 @@
       });
       ordered.forEach(function (section) { main.appendChild(section); });
       main.querySelectorAll(".vm-published-pages").forEach(function (section) { section.remove(); });
-      if (Array.isArray(data.publishedPages) && data.publishedPages.length) {
-        const publishedSection = document.createElement("section");
-        publishedSection.className = "section vm-published-pages";
-        publishedSection.id = "published-pages";
-        publishedSection.dataset.vmSectionType = "published-pages";
-        publishedSection.dataset.vmSectionId = "published-pages";
-        const heading = document.createElement("h2");
-        heading.textContent = "公開ページ";
-        const links = document.createElement("div");
-        links.className = "vm-published-page-links";
-        data.publishedPages.forEach(function (page) {
-          if (!page || typeof page.name !== "string" || typeof page.url !== "string" ||
-              !/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) || page.url.split("/").includes("..")) return;
-          const link = document.createElement("a");
-          link.href = page.url;
-          link.textContent = page.name;
-          links.appendChild(link);
-        });
-        if (links.children.length) {
-          publishedSection.append(heading, links);
-          main.appendChild(publishedSection);
-        }
-      }
     } catch (_) {}
   }
 
