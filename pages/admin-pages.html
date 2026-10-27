@@ -273,19 +273,37 @@ function defaultSections(){return definitions.map((d,i)=>({id:d.key,type:d.key,l
 function normalizeTopSections(value){
 const base=defaultSections();
 if(!Array.isArray(value)||value.length===0)return base;
-const normalized=[];const used=new Set();
+const normalized=[];
+const standardTypes=new Set();
+const presentTypes=new Set();
+const seenIds=new Set();
 value.forEach(item=>{
 if(!item||typeof item!=='object')return;
 const type=item.type||item.key||item.id;
-const d=definitions.find(x=>x.key===type);
-if(!d)return;
-if(item.added!==true&&used.has(d.key))return;
-const id=item.id||d.key;
-normalized.push({...item,id,type:d.key,label:item.label||d.label,hidden:item.hidden===true,added:item.added===true,order:normalized.length});
-if(item.added!==true)used.add(d.key);
+const definition=definitions.find(entry=>entry.key===type);
+if(!definition)return;
+const added=item.added===true;
+const id=typeof item.id==='string'&&item.id?item.id:definition.key;
+if(seenIds.has(id))return;
+if(!added&&standardTypes.has(definition.key))return;
+normalized.push({
+...item,
+id,
+type:definition.key,
+label:typeof item.label==='string'&&item.label?item.label:definition.label,
+hidden:item.hidden===true,
+added,
+order:normalized.length
 });
-base.forEach(item=>{if(used.has(item.type))return;normalized.push(item);});
-return normalized;
+seenIds.add(id);
+presentTypes.add(definition.key);
+if(!added)standardTypes.add(definition.key);
+});
+base.forEach(item=>{
+if(presentTypes.has(item.type))return;
+normalized.push({...item,order:normalized.length});
+});
+return normalized.length?normalized:base;
 }
 function loadPageSettings(id){
 try{
