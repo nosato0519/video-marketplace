@@ -172,12 +172,10 @@ const definitions=[
  {key:'creators',label:'注目のクリエイター'},
  {key:'cta',label:'まだ知らない映像と、出会う'}
 ];
-const defaults=[
-{id:'videos',name:'動画一覧',url:'/pages/video-list.html',status:'公開',parent:'',locked:false},
-{id:'categories',name:'カテゴリー',url:'/pages/categories.html',status:'公開',parent:'',locked:false},
-{id:'about',name:'サイトについて',url:'/pages/about.html',status:'公開',parent:'',locked:false},
-{id:'contact',name:'お問い合わせ',url:'/pages/contact.html',status:'下書き',parent:'',locked:false}
-];
+const RESERVED_PAGE_URLS = new Set([
+  '/', '/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'
+]);
+const defaults=[];
 const editor=document.getElementById('page-editor'),editorTitle=document.getElementById('editor-title'),nameInput=document.getElementById('page-name'),urlInput=document.getElementById('page-url'),statusInput=document.getElementById('page-edit-status'),parentInput=document.getElementById('page-parent'),editorStatus=document.getElementById('editor-status');
 const sectionList=document.getElementById('homepage-section-list');
 const sectionEditor=document.getElementById('section-editor'),sectionEditorTitle=document.getElementById('section-editor-title'),sectionName=document.getElementById('section-edit-name'),sectionStatus=document.getElementById('section-edit-status'),sectionBg=document.getElementById('section-theme-bg'),sectionAccent=document.getElementById('section-theme-accent'),sectionRadius=document.getElementById('section-theme-radius'),sectionThemeText=document.getElementById('section-theme-text'),sectionThemeButtonText=document.getElementById('section-theme-button-text'),sectionThemeWidth=document.getElementById('section-theme-width'),sectionThemeSpacing=document.getElementById('section-theme-spacing'),sectionThemeImageFit=document.getElementById('section-theme-image-fit'),sectionEditorStatus=document.getElementById('section-editor-status');
@@ -238,7 +236,7 @@ Object.entries(data.entries).forEach(([key,value])=>{if(typeof value==='string')
 return data.entries;
 }catch(error){console.error('Loading page editor settings failed',error);return null;}
 }
-function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'&&!RESERVED_PAGE_URLS.has(page.url)):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
 async function move(index,delta){const target=index+delta;if(target<0||target>=pages.length)return;const previous=pages.slice();[pages[index],pages[target]]=[pages[target],pages[index]];save();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
 async function removePage(page){
@@ -487,7 +485,7 @@ if(!page)return false;
 Object.assign(page,data);
 }else{
 pageId='page-'+Date.now();
-pages.push({id:pageId,...data,locked:false});
+pages.push({id:pageId,...data,locked:false,createdByEditor:true});
 editingId=pageId;
 }
 sectionState.forEach((item,i)=>item.order=i);
@@ -541,7 +539,7 @@ document.getElementById('cancel-section').addEventListener('click',closeSectionE
 document.getElementById('save-section').addEventListener('click',saveSection);
 document.getElementById('add-section-item').addEventListener('click',()=>{if(editingSectionIndex===null)return;appendSectionItem({},sectionItemsEditor.querySelectorAll('.section-item-card').length);});
 document.getElementById('homepage-add-section').addEventListener('click',()=>{const d=definitions.find(x=>x.key===addType.value);if(!d)return;const n=sectionState.filter(x=>x.type===d.key).length+1;sectionState.push({id:d.key+'-'+Date.now(),type:d.key,label:d.label+(n>1?' ('+n+')':''),hidden:false,added:true,order:sectionState.length});renderSections();});
-function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
+function runPublishCheck(){const name=nameInput.value.trim(),url=urlInput.value.trim(),visible=sectionState.filter(item=>!item.hidden).length;const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);const reservedUrl=RESERVED_PAGE_URLS.has(url);const checks=[{label:'ページ名が入力されている',ok:!!name},{label:'URLが / から始まっている',ok:!!url&&url.startsWith('/')},{label:'URLが他のページと重複していない',ok:!!url&&!duplicateUrl},{label:'既存の固定ページとURLが重複していない',ok:!!url&&!reservedUrl},{label:'表示するセクションがある',ok:visible>0},{label:'ページの説明が入力されている',ok:!!document.getElementById('page-description').value.trim(),optional:true},{label:'検索タイトルが入力されている',ok:!!document.getElementById('page-seo-title').value.trim(),optional:true}];const box=document.getElementById('publish-checklist');box.replaceChildren();checks.forEach(item=>{const row=document.createElement('div');row.className='publish-check '+(item.ok?'is-ok':'is-warn');const label=document.createElement('span');label.textContent=item.label;const state=document.createElement('span');state.className='check-state';state.textContent=item.ok?'確認済み':item.optional?'任意・未入力':'要確認';row.append(label,state);box.append(row);});const ok=checks.filter(x=>!x.optional).every(x=>x.ok);editorStatus.textContent=ok?'必須項目を確認しました。':'必須項目を確認してください。';return {ok};}
 function renderPageList() {
   const root = document.getElementById('managed-pages-list');
   if (!root) return;
@@ -609,7 +607,7 @@ function runPublishCheck(){
 }
 loadServerEditorSettings().then(() => {
   load();
-  pages = pages.filter(page => page && page.id !== 'top');
+  pages = pages.filter(page => page && page.id !== 'top' && !RESERVED_PAGE_URLS.has(page.url));
   save();
   renderPageList();
 }).catch(() => {
