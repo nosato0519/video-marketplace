@@ -190,9 +190,9 @@ function compressPageImage(file){
     if(!context){reject(new Error('画像を処理できませんでした。'));return;}
     context.drawImage(image,0,0,width,height);
     let quality=.78,data=canvas.toDataURL('image/webp',quality);
-    while(data.length>180000&&quality>.42){quality=Math.max(.42,quality-.08);data=canvas.toDataURL('image/webp',quality);}
-    while(data.length>180000&&canvas.width>480){const nextWidth=Math.max(480,Math.round(canvas.width*.8)),nextHeight=Math.max(1,Math.round(canvas.height*nextWidth/canvas.width));canvas.width=nextWidth;canvas.height=nextHeight;context.drawImage(image,0,0,nextWidth,nextHeight);data=canvas.toDataURL('image/webp',quality);}
-    if(data.length>220000){reject(new Error('画像サイズが大きすぎます。小さい画像を選択してください。'));return;}
+    while(data.length>100000&&quality>.42){quality=Math.max(.42,quality-.08);data=canvas.toDataURL('image/webp',quality);}
+    while(data.length>100000&&canvas.width>480){const nextWidth=Math.max(480,Math.round(canvas.width*.8)),nextHeight=Math.max(1,Math.round(canvas.height*nextWidth/canvas.width));canvas.width=nextWidth;canvas.height=nextHeight;context.drawImage(image,0,0,nextWidth,nextHeight);data=canvas.toDataURL('image/webp',quality);}
+    if(data.length>120000){reject(new Error('画像サイズが大きすぎます。小さい画像を選択してください。'));return;}
     resolve(data);
    };
    image.src=String(reader.result||'');
