@@ -82,7 +82,7 @@ export function createApp() {
         if (Array.isArray(savedPages)) {
           publishedPages = savedPages
             .filter((page) => page && page.status === '公開' &&
-              typeof page.name === 'string' && typeof page.url === 'string' &&
+              typeof page.name === 'string' && typeof page.url === 'string' && page.url !== '/' &&
               /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
               !page.url.split('/').includes('..'))
             .map(({ name, url }) => ({ name, url }));
