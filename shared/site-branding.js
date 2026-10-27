@@ -313,6 +313,13 @@
     const sections = data.sections.slice().sort(function (left, right) {
       return (Number(left && left.order) || 0) - (Number(right && right.order) || 0);
     });
+    const configuredTypes = new Set(sections.map(function (item) {
+      return item && item.type;
+    }));
+    Object.keys(selectors).forEach(function (type) {
+      if (configuredTypes.has(type)) return;
+      sections.push({ type: type, hidden: false, order: sections.length, content: {} });
+    });
 
     sections.forEach(function (item) {
       if (!item || typeof item !== "object") return;
