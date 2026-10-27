@@ -119,10 +119,29 @@
       }
       try {
         const settings = { siteName: siteName, logoDataUrl: logoDataUrl };
+        const siteFormSettings = {};
+        Array.from(form.elements).filter(function (field) { return field.name; }).forEach(function (field) {
+          siteFormSettings[field.name] = field.type === "checkbox" ? field.checked : field.value;
+        });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        localStorage.setItem("vm-demo-admin-setting-general", JSON.stringify(siteFormSettings));
         applyBranding(settings);
         renderPreview();
-        status.textContent = "保存しました。このブラウザ内のデモ表示に反映されています。";
+        status.textContent = "サーバーに保存しています…";
+        fetch("/api/admin/settings/page-editor", {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ merge: true, entries: {
+            "vm-demo-site-branding": JSON.stringify(settings),
+            "vm-demo-admin-setting-general": JSON.stringify(siteFormSettings)
+          } })
+        }).then(function (response) {
+          if (!response.ok) throw new Error("site_settings_save_failed");
+          status.textContent = "サイト基本設定を保存し、公開サイトに反映しました。";
+        }).catch(function () {
+          status.textContent = "サーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
+        });
       } catch (_) {
         status.textContent = "保存できませんでした。画像サイズを小さくしてお試しください。";
       }
@@ -142,9 +161,93 @@
     if (saved.siteName) nameInput.value = saved.siteName;
     logoDataUrl = saved.logoDataUrl || "";
     renderPreview();
+    fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        const serverBranding = data.siteBranding || {};
+        const serverSettings = data.siteSettings || {};
+        if (serverBranding.siteName) nameInput.value = serverBranding.siteName;
+        if (Object.keys(serverSettings).length) {
+          Array.from(form.elements).filter(function (field) { return field.name && field.name in serverSettings; }).forEach(function (field) {
+            if (field.type === "checkbox") field.checked = !!serverSettings[field.name];
+            else field.value = serverSettings[field.name];
+          });
+        }
+        if (serverBranding.siteName || serverBranding.logoDataUrl) {
+          logoDataUrl = serverBranding.logoDataUrl || "";
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverBranding));
+          applyBranding(serverBranding);
+        }
+        renderPreview();
+      }).catch(function () {});
   }
 
 
+
+  function renderPublicAnnouncements(items) {
+    const published = (Array.isArray(items) ? items : [])
+      .filter(function (item) { return item && item.status === "published" && typeof item.title === "string"; })
+      .sort(function (left, right) { return String(right.date || "").localeCompare(String(left.date || "")); });
+    const homeList = document.getElementById("vm-announcement-list");
+    if (homeList) {
+      homeList.replaceChildren();
+      published.slice(0, 3).forEach(function (item) {
+        const link = document.createElement("a");
+        link.className = "vm-announcement-item";
+        link.href = "/pages/announcements.html?id=" + encodeURIComponent(item.id || "");
+        link.innerHTML = '<time class="vm-announcement-date"></time><div class="vm-announcement-main"><strong></strong><span></span></div><b class="vm-announcement-arrow">→</b>';
+        link.querySelector("time").textContent = item.date || "";
+        link.querySelector("strong").textContent = item.title;
+        link.querySelector("span").textContent = item.category || "お知らせ";
+        homeList.appendChild(link);
+      });
+      if (!homeList.children.length) homeList.innerHTML = '<p class="announcement-empty">現在、お知らせはありません。</p>';
+    }
+    const newsList = document.getElementById("news-list");
+    const detailView = document.getElementById("detail-view");
+    const listView = document.getElementById("list-view");
+    if (!newsList || !listView || !detailView) return;
+    const id = new URLSearchParams(window.location.search).get("id");
+    const selected = published.find(function (item) { return item.id === id; });
+    newsList.replaceChildren();
+    if (id && selected) {
+      listView.style.display = "none";
+      detailView.style.display = "block";
+      document.getElementById("detail-title").textContent = selected.title;
+      document.getElementById("detail-meta").textContent = (selected.category || "お知らせ") + "　•　" + (selected.date || "");
+      document.getElementById("detail-body").textContent = selected.body || "";
+      return;
+    }
+    listView.style.display = "";
+    detailView.style.display = "none";
+    if (!published.length) {
+      newsList.innerHTML = "<p>現在、お知らせはありません。</p>";
+      return;
+    }
+    published.forEach(function (item) {
+      const link = document.createElement("a");
+      link.className = "news-card";
+      link.href = "?id=" + encodeURIComponent(item.id || "");
+      link.innerHTML = '<div class="news-meta"><time></time><span></span></div><strong></strong><p></p>';
+      link.querySelector("time").textContent = item.date || "";
+      link.querySelector("span").textContent = item.category || "お知らせ";
+      link.querySelector("strong").textContent = item.title;
+      const body = String(item.body || "");
+      link.querySelector("p").textContent = body.slice(0, 100) + (body.length > 100 ? "…" : "");
+      newsList.appendChild(link);
+    });
+  }
+
+  async function syncPublicSettings() {
+    try {
+      const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
+      renderPublicAnnouncements(data.announcements);
+    } catch (_) {}
+  }
 
   async function installSessionNavigation() {
     const menus = document.querySelectorAll(".login-menu");
@@ -405,5 +508,6 @@
     installSettingsForm();
     installSessionNavigation();
     syncHomepageSections();
+    syncPublicSettings();
   });
 })();
