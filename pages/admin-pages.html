@@ -474,7 +474,6 @@ localStorage.removeItem(draftThemeKey);
 });
 }
 localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));
-if(pageId==='top')localStorage.setItem('vm-demo-homepage-sections',JSON.stringify(sectionState));
 savePageEditorMetadata(pageId);
 }catch(e){
 editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';
@@ -488,15 +487,7 @@ editorTitle.textContent=name+'を編集';
 editorStatus.textContent='サーバーに保存しています…';
 try{
 await persistEditorSettings();
-if(pageId==='top'){
-const response=await fetch('/api/admin/settings/homepage',{
-method:'PUT',
-credentials:'same-origin',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({sections:sectionState})
-});
-if(!response.ok)throw new Error('homepage_save_failed');
-}
+
 editorStatus.textContent=statusInput.value==='公開'
 ? '公開しました: '+url
 : '下書きを保存しました。';
