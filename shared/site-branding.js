@@ -361,7 +361,7 @@
         links.className = "vm-published-page-links";
         data.publishedPages.forEach(function (page) {
           if (!page || typeof page.name !== "string" || typeof page.url !== "string" ||
-              !/^\/(?!\/)[a-zA-Z0-9/_-]*$/.test(page.url) || page.url.split("/").includes("..")) return;
+              !/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) || page.url.split("/").includes("..")) return;
           const link = document.createElement("a");
           link.href = page.url;
           link.textContent = page.name;
