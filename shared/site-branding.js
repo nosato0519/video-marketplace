@@ -358,17 +358,17 @@
       const seenTypes = new Set();
       const normalized = source.filter(function (item) {
         if (!item || typeof item !== "object") return false;
+        const id = typeof item.id === "string" && item.id ? item.id : item.type;
+        if (typeof id !== "string" || !id || seenIds.has(id)) return false;
         if (item.type === "custom-page") {
-          return publishedPages.some(function (page) { return page.id === item.pageId; });
+          if (!publishedPages.some(function (page) { return page.id === item.pageId; })) return false;
+          seenIds.add(id);
+          return true;
         }
         if (!definitions.some(function (def) { return def.type === item.type; })) return false;
-        const id = typeof item.id === "string" && item.id ? item.id : item.type;
-        if (seenIds.has(id)) return false;
         seenIds.add(id);
-        if (item.type !== "custom-page") {
-          if (item.added !== true && seenTypes.has(item.type)) return false;
-          seenTypes.add(item.type);
-        }
+        if (item.added !== true && seenTypes.has(item.type)) return false;
+        seenTypes.add(item.type);
         return true;
       }).map(function (item, index) {
         const def = definitions.find(function (entry) { return entry.type === item.type; });
