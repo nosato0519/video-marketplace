@@ -722,7 +722,7 @@
           link.href = page.url;
           link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
           const previewImage = item.content && typeof item.content.image === "string" && item.content.image ? item.content.image : page.image;
-          const safePreviewImage = previewImage && (previewImage.startsWith("https://") || previewImage.startsWith("http://") || (previewImage.startsWith("/") && !previewImage.startsWith("//")));
+          const safePreviewImage = previewImage && (previewImage.startsWith("https://") || previewImage.startsWith("http://") || (previewImage.startsWith("/") && !previewImage.startsWith("//")) || previewImage.startsWith("data:image/webp;base64,"));
           if (safePreviewImage) {
             const image = document.createElement("img");
             image.src = previewImage;
