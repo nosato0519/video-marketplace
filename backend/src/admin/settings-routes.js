@@ -1,4 +1,6 @@
 import express from 'express';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../auth/require-auth.js';
 import { requireRole } from '../auth/authorize.js';
@@ -68,6 +70,25 @@ router.put('/settings/page-editor', async (req, res, next) => {
            !/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key)) ||
           typeof value !== 'string' || value.length > 1000000)) {
       return res.status(400).json({ error: 'invalid_page_editor_config' });
+    }
+    if (typeof entries['vm-demo-pages'] === 'string') {
+      let savedPages;
+      try { savedPages = JSON.parse(entries['vm-demo-pages']); } catch (_) {
+        return res.status(400).json({ error: 'invalid_page_list' });
+      }
+      if (!Array.isArray(savedPages)) return res.status(400).json({ error: 'invalid_page_list' });
+      const publicRoot = path.resolve(process.cwd());
+      for (const page of savedPages) {
+        if (!page || page.status !== '公開' || typeof page.url !== 'string') continue;
+        const url = page.url.trim();
+        if (!/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url) || url === '/' || url.startsWith('/api/') || url.split('/').includes('..')) {
+          return res.status(400).json({ error: 'invalid_published_page_url' });
+        }
+        const filePath = path.resolve(publicRoot, '.' + url);
+        if (!filePath.startsWith(publicRoot + path.sep) || existsSync(filePath)) {
+          return res.status(409).json({ error: 'page_url_conflicts_with_existing_file', url });
+        }
+      }
     }
     let persistedEntries = entries;
     if (req.body?.merge === true) {
