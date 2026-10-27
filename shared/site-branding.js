@@ -190,7 +190,7 @@
         if (!data) return;
         const serverBranding = data.siteBranding || {};
         const serverSettings = data.siteSettings || {};
-        if (serverBranding.siteName) nameInput.value = serverBranding.siteName;
+        if (serverBranding.siteName || serverSettings.siteName) nameInput.value = serverBranding.siteName || serverSettings.siteName;
         if (Object.keys(serverSettings).length) {
           Array.from(form.elements).filter(function (field) { return field.name && field.name in serverSettings; }).forEach(function (field) {
             if (field.type === "checkbox") field.checked = !!serverSettings[field.name];
@@ -472,10 +472,6 @@
 
 
   async function syncHomepageSections() {
-    // The admin editor owns loading and saving homepage sections. Avoid a second
-    // asynchronous sync here, which can overwrite editor state or reload mid-save.
-    if (document.getElementById("landing-section-list")) return;
-
     if (!document.querySelector("main") || !document.querySelector(".hero")) return;
     try {
       const response = await fetch("/api/site/homepage-settings", { credentials: "same-origin", cache: "no-store" });
@@ -690,7 +686,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    applyBranding(readSettings());
+    applyBranding(document.getElementById("settings-form") ? readSettings() : {});
     installSettingsForm();
     installTopSettingsEditor();
     installSessionNavigation();
