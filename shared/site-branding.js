@@ -1,4 +1,4 @@
-/* Site branding controls for the static UI demo. Actual site-wide persistence requires backend integration. */
+/* Shared site branding, homepage settings, and public announcement rendering. */
 (function () {
   "use strict";
 
@@ -542,7 +542,9 @@
     navs.forEach(function (nav) {
       if (typeof chrome.menuOrder === "string") {
         chrome.menuOrder.split(",").forEach(function (name) {
-          const link = nav.querySelector('[data-site-nav="' + name + '"]') || nav.querySelector(selectors[name] || ".__missing-nav-link__");
+          if (!Object.prototype.hasOwnProperty.call(selectors, name)) return;
+          const link = Array.from(nav.querySelectorAll("[data-site-nav]"))
+            .find(function (item) { return item.dataset.siteNav === name; }) || nav.querySelector(selectors[name]);
           if (link) nav.appendChild(link);
         });
       }
