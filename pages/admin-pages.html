@@ -240,7 +240,7 @@ return data.entries;
 }
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
-async function move(index,delta){const target=index+delta;if(target<0||target>=pages.length)return;[pages[index],pages[target]]=[pages[target],pages[index]];save();renderPageList();try{await persistEditorSettings();}catch(error){editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
+async function move(index,delta){const target=index+delta;if(target<0||target>=pages.length)return;const previous=pages.slice();[pages[index],pages[target]]=[pages[target],pages[index]];save();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
 async function removePage(page){if(page.locked)return;if(!confirm('「'+page.name+'」を削除しますか？'))return;const previous=pages.slice();pages=pages.filter(p=>p.id!==page.id);save();if(editingId===page.id)closeEditor();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ削除のサーバー保存に失敗しました。';}}
 function fillParents(currentId){parentInput.replaceChildren();const none=document.createElement('option');none.value='';none.textContent='親ページなし';parentInput.append(none);pages.filter(p=>p.id!==currentId).forEach(p=>{const option=document.createElement('option');option.value=p.name;option.textContent=p.name;parentInput.append(option);});}
 function loadPageSettings(id){
