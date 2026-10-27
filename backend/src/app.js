@@ -389,7 +389,22 @@ export function createApp() {
       const isSpacer = section.type === 'custom-spacer';
       const sectionTitle = content.title || section.label || 'セクション';
       let body = '';
-      if (isDivider) body = '<hr class="page-divider">';
+      if (section.type === 'hero') {
+        const heroBackground = safeImageUrl(hero.backgroundImage);
+        const heroHeadline = hero.headline || content.title || section.label || page.name;
+        const heroCopy = hero.copy || content.subtitle || '';
+        const heroButtonUrl = safeUrl(hero.buttonUrl || content.link);
+        const heroButtonLabel = hero.buttonLabel || content.button || '';
+        const heroPosition = ['center', 'top', 'bottom', 'left', 'right'].includes(hero.imagePosition) ? hero.imagePosition : 'center';
+        const heroFit = ['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover';
+        const heroStyle = [
+          heroBackground && 'background-image:linear-gradient(90deg,rgba(7,9,13,.88),rgba(7,9,13,.28)),url("' + heroBackground + '")',
+          'background-position:' + heroPosition,
+          'background-size:' + (heroFit === 'auto' ? 'auto' : heroFit),
+          'background-repeat:no-repeat'
+        ].join(';');
+        body = `<div class="page-custom-hero" style="${escapeHtml(heroStyle)};padding:clamp(48px,9vw,120px) clamp(24px,6vw,80px);border-radius:${themeRadius};background-color:${themeBg || background};color:${themeText || textColor}">${hero.kicker ? `<p class="page-subtitle">${escapeHtml(hero.kicker)}</p>` : ''}<h1 style="font-size:clamp(2rem,5vw,4.5rem);line-height:1.15;max-width:18ch">${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p class="page-subtitle" style="max-width:60ch">${escapeHtml(heroCopy)}</p>` : ''}${heroButtonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}" style="background:${themeAccent || accent};color:${buttonTextColor}">${escapeHtml(heroButtonLabel)}</a>` : ''}</div>`;
+      } else if (isDivider) body = '<hr class="page-divider">';
       else if (isSpacer) body = '<div class="page-spacer" aria-hidden="true"></div>';
       else if (section.type === 'popular' || section.type === 'new-releases') {
         const products = dynamicSectionData.get(String(section.id || section.type))?.products || [];
