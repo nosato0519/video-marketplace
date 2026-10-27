@@ -397,13 +397,13 @@ export function createApp() {
       const sectionTitle = content.title || section.label || 'セクション';
       let body = '';
       if (section.type === 'hero') {
-        const heroBackground = safeImageUrl(hero.backgroundImage);
-        const heroHeadline = hero.headline || content.title || section.label || page.name;
-        const heroCopy = hero.copy || content.subtitle || '';
-        const heroButtonUrl = safeUrl(hero.buttonUrl || content.link);
-        const heroButtonLabel = hero.buttonLabel || content.button || '';
-        const heroPosition = ['center', 'top', 'bottom', 'left', 'right'].includes(hero.imagePosition) ? hero.imagePosition : 'center';
-        const heroFit = ['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover';
+        const heroBackground = safeImageUrl(content.image || hero.backgroundImage);
+        const heroHeadline = content.title || hero.headline || section.label || page.name;
+        const heroCopy = content.subtitle || hero.copy || '';
+        const heroButtonUrl = safeUrl(content.link || hero.buttonUrl);
+        const heroButtonLabel = content.button || hero.buttonLabel || '';
+        const heroPosition = ['center', 'top', 'bottom', 'left', 'right'].includes(settings.imagePosition) ? settings.imagePosition : (['center', 'top', 'bottom', 'left', 'right'].includes(hero.imagePosition) ? hero.imagePosition : 'center');
+        const heroFit = ['cover', 'contain', 'auto'].includes(themeImageFit) ? themeImageFit : (['cover', 'contain', 'auto'].includes(hero.imageFit) ? hero.imageFit : 'cover');
         const heroLayout = ['left', 'right'].includes(settings.imagePosition) ? settings.imagePosition : 'background';
         const heroHeight = ({ compact: '280px', standard: '400px', large: '560px' })[settings.height] || '400px';
         const heroStyle = [
