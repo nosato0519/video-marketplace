@@ -490,7 +490,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 body.page-style-minimal .page-hero{background:var(--page-bg)!important;border-bottom:1px solid #ffffff20}
 body.page-style-editorial .page-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 12%,transparent),transparent 75%)}
 .page-section{padding:clamp(34px,6vw,76px) max(5vw,20px);border-bottom:1px solid #ffffff14}
-.page-section-inner{max-width:1160px;margin:auto}
+.page-section-inner{margin:auto}
 .page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
 .page-subtitle{line-height:1.8;white-space:pre-line}
 .page-section-image{display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:24px 0}
