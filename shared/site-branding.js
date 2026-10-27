@@ -457,8 +457,14 @@
         button("削除", item.added !== true || item.type === "custom-page", function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
         head.appendChild(actions);
         row.appendChild(head);
+        const contentDetails = document.createElement("details");
+        contentDetails.style.cssText = "border-top:1px solid var(--line,#333);padding-top:10px;";
+        const contentSummary = document.createElement("summary");
+        contentSummary.textContent = "表示内容を編集";
+        contentSummary.style.cssText = "cursor:pointer;font-size:12px;font-weight:600;opacity:.8;padding:3px 0;";
+        contentDetails.appendChild(contentSummary);
         const fields = document.createElement("div");
-        fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;";
+        fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px;";
         fields.append(
           field("見出し", "title", item.content.title, item, false),
           field("説明", "subtitle", item.content.subtitle, item, true),
@@ -466,7 +472,8 @@
           field("リンク先", "link", item.content.link, item, false),
           field("画像URL", "image", item.content.image, item, false)
         );
-        row.appendChild(fields);
+        contentDetails.appendChild(fields);
+        row.appendChild(contentDetails);
         root.appendChild(row);
       });
     }
