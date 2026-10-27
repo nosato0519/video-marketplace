@@ -90,7 +90,21 @@ export function createApp() {
       } catch (_) {}
       let editorSections = null;
       let pageSettings = {};
+      let siteBranding = {};
+      let siteSettings = {};
+      let announcements = [];
       const themes = {};
+      try {
+        const rawBranding = editorEntries?.['vm-demo-site-branding'];
+        const rawSiteSettings = editorEntries?.['vm-demo-admin-setting-general'];
+        const rawAnnouncements = editorEntries?.['vm-demo-announcements'];
+        if (typeof rawBranding === 'string') siteBranding = JSON.parse(rawBranding) || {};
+        if (typeof rawSiteSettings === 'string') siteSettings = JSON.parse(rawSiteSettings) || {};
+        if (typeof rawAnnouncements === 'string') {
+          const parsed = JSON.parse(rawAnnouncements);
+          if (Array.isArray(parsed)) announcements = parsed.filter(item => item && item.status === 'published' && typeof item.title === 'string').sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
+        }
+      } catch (_) {}
       try {
         const raw = editorEntries?.['vm-demo-page-sections-top'] || editorEntries?.['vm-demo-homepage-sections'];
         if (typeof raw === 'string') editorSections = JSON.parse(raw);
@@ -118,7 +132,10 @@ export function createApp() {
           : settings.homepage_sections?.value ?? null,
         publishedPages,
         themes,
-        pageSettings
+        pageSettings,
+        siteBranding,
+        siteSettings,
+        announcements
       });
     } catch (error) {
       console.error('Loading homepage settings failed', error);
