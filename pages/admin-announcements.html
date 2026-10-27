@@ -21,7 +21,7 @@
 </aside>
 <main class="main">
 <header class="topbar"><div><div class="eyebrow">ADMIN / ANNOUNCEMENTS</div><h1 class="title">お知らせ管理</h1><p class="lead">サイトのお知らせを作成し、公開状態と表示内容を管理します。</p></div><div class="top-actions"><a class="btn" href="/pages/admin-pages.html">ページ編集へ戻る</a></div></header>
-<section class="section"><p class="note">お知らせは画面デモ用のローカル設定です。公開時には後続のシステム連携でデータベースへ接続し、TOPなどへ表示します。</p></section>
+<section class="section"><p class="note">お知らせはサーバーに保存されます。公開したお知らせはTOPページとお知らせ一覧に反映されます。</p></section>
 <section class="section announce-layout">
 <div class="panel"><div class="panel-head"><strong>お知らせ一覧</strong><span>ANNOUNCEMENTS</span></div><div id="list" class="announce-list"></div><div class="actions admin-announcement-actions"><button class="btn primary" id="new" type="button">＋ 新しいお知らせ</button></div></div>
 <div class="panel announce-editor">
@@ -33,7 +33,7 @@
 <label class="field">公開日<input id="date" type="date"></label>
 </div>
 <label class="field">本文<textarea id="body" placeholder="お知らせ本文を入力します。"></textarea></label>
-<div class="actions"><button class="btn primary" id="save" type="button">下書きを保存</button><button class="btn" id="publish" type="button">公開する</button><button class="btn" id="preview" type="button">プレビュー</button><button class="btn" id="delete" type="button">削除</button><span class="muted" id="message">画面デモ用の設定です。</span></div>
+<div class="actions"><button class="btn primary" id="save" type="button">下書きを保存</button><button class="btn" id="publish" type="button">公開する</button><button class="btn" id="preview" type="button">プレビュー</button><button class="btn" id="delete" type="button">削除</button><span class="muted" id="message">サーバー保存を使用します。</span></div>
 <div class="preview" id="previewBox" hidden><h3 id="previewTitle"></h3><div class="preview-meta" id="previewMeta"></div><div class="preview-body" id="previewBody"></div></div>
 </div>
 </section>
