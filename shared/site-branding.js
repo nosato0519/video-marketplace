@@ -280,6 +280,7 @@
   }
 
   function applyHomepageSections(data) {
+    if (window.location.pathname !== "/" && window.location.pathname !== "/index.html") return;
     const main = document.querySelector("main");
     if (!main || !data || !Array.isArray(data.sections)) return;
 
