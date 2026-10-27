@@ -291,7 +291,7 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 </style></head><body>
 <header class="page-published-header"><a href="/">VIDEO MARKETPLACE</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
 <main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
-<footer class="page-published-footer">${escapeHtml(footerDescription)}<div>${escapeHtml(footer.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
+<footer class="page-published-footer">${escapeHtml(footerDescription)}<div>${escapeHtml(chrome.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
 </body></html>`);
   } catch (error) {
     return next(error);
