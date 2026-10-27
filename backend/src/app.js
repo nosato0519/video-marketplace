@@ -387,7 +387,11 @@ export function createApp() {
       }).join('');
       const buttonUrl = safeUrl(content.link);
       const isCustom = String(section.type || '').startsWith('custom-');
-      const customClass = isCustom ? ' page-section-custom page-section-' + String(section.type).slice(7).replace(/[^a-z-]/g, '') : '';
+      const sectionType = String(section.type || '').replace(/[^a-z-]/g, '');
+      const customClass = isCustom ? ' page-section-custom page-section-' + sectionType : ' page-section-' + sectionType;
+      const layoutClassMap = { 'video-showcase': { feature: 'page-layout-feature' }, 'genre-rail': { rail: 'page-layout-rail' }, collection: { editorial: 'page-layout-editorial' }, library: { steps: 'page-layout-steps' }, creator: { centered: 'page-layout-centered' }, cta: { banner: 'page-layout-banner', centered: 'page-layout-centered' } };
+      const layoutClass = layoutClassMap[section.type]?.[settings.layout] || '';
+      const hideCardImages = section.type === 'library' && settings.showIcons === 'no';
       const isDivider = section.type === 'custom-divider';
       const isSpacer = section.type === 'custom-spacer';
       const sectionTitle = content.title || section.label || 'セクション';
@@ -465,7 +469,7 @@ export function createApp() {
         const cardGridStyle = cardColumns ? ` style="--page-custom-columns:${cardColumns}"` : '';
         body = `<h2>${escapeHtml(sectionTitle)}</h2>${content.subtitle ? `<p class="page-subtitle">${escapeHtml(content.subtitle)}</p>` : ''}${image ? `<img class="page-section-image" src="${escapeHtml(image)}" alt="" style="object-fit:${themeImageFit}">` : ''}${cards ? `<div class="page-card-grid"${cardGridStyle}>${cards}</div>` : ''}${content.button && buttonUrl ? `<a class="page-button" href="${escapeHtml(buttonUrl)}" style="${themeAccent ? 'background:' + themeAccent : ''};color:${escapeHtml(theme.buttonText && /^#[0-9a-fA-F]{3,8}$/.test(theme.buttonText) ? theme.buttonText : '#101010')}">${escapeHtml(content.button)}</a>` : ''}`;
       }
-      return `<section class="page-section${customClass}" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}">${body}</div></section>`;
+      return `<section class="page-section${customClass}${layoutClass ? " " + layoutClass : ""}${hideCardImages ? " page-hide-card-images" : ""}" style="${escapeHtml(themeStyle)};padding-block:${themeSpacing}"><div class="page-section-inner" style="max-width:${themeWidth}">${body}</div></section>`;
     }).join('');
 
     const pageTitle = String(meta.seoTitle || page.name || 'ページ').trim();
@@ -528,13 +532,13 @@ body.page-style-editorial .page-hero{background:linear-gradient(135deg,color-mix
 .page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
 .page-subtitle{line-height:1.8;white-space:pre-line}
 .page-section-image{display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:24px 0}
-.page-card-grid{display:grid;grid-template-columns:repeat(var(--page-custom-columns,auto-fit),minmax(220px,1fr));gap:18px;margin-top:24px}
+.page-card-grid{display:grid;grid-template-columns:repeat(var(--page-custom-columns,auto-fit),minmax(220px,1fr));gap:18px;margin-top:24px}.page-layout-feature .page-card:first-child,.page-layout-editorial .page-card:first-child{grid-column:span 2;grid-row:span 2}.page-layout-rail .page-card-grid{grid-auto-columns:minmax(220px,1fr);grid-auto-flow:column;grid-template-columns:none;overflow-x:auto;padding-bottom:8px}.page-layout-steps{counter-reset:page-step}.page-layout-steps .page-card{counter-increment:page-step}.page-layout-steps .page-card h3:before{content:counter(page-step,decimal-leading-zero) " ";color:var(--section-accent,#d9b45f)}.page-layout-centered .page-section-inner{text-align:center}.page-layout-banner{padding:28px;border-radius:16px;background:linear-gradient(120deg,#ffffff12,#ffffff04)}.page-hide-card-images .page-card img{display:none}
 .page-card{overflow:hidden;border:1px solid #ffffff20;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
 .page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-live-video-grid{grid-template-columns:repeat(var(--page-video-columns,4),minmax(0,1fr))}.page-live-category-grid{grid-template-columns:repeat(var(--page-category-columns,3),minmax(0,1fr))}@media(max-width:900px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:1fr}}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{grid-template-columns:repeat(var(--page-custom-columns,3),minmax(0,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
-@media(max-width:600px){.page-card-grid{grid-template-columns:1fr}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{--page-custom-columns:1}}
+@media(max-width:600px){.page-card-grid{grid-template-columns:1fr}.page-layout-feature .page-card:first-child,.page-layout-editorial .page-card:first-child{grid-column:auto;grid-row:auto}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{--page-custom-columns:1}}
 </style></head><body class="page-style-${designStyle}">
 <header class="page-published-header"><a href="/">${escapeHtml(siteName)}</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
 <main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
