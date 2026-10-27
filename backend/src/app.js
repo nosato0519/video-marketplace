@@ -449,6 +449,7 @@ export function createApp() {
     const headingSize = design.headingSize === 'large' ? 'large' : design.headingSize === 'compact' ? 'compact' : 'standard';
     const contentWidth = ['wide', 'narrow'].includes(design.contentWidth) ? design.contentWidth : 'standard';
     const cardShape = design.cardShape === 'square' ? 'square' : 'rounded';
+    const designStyle = ['minimal', 'editorial'].includes(design.style) ? design.style : 'cinematic';
     const chrome = parseJson(entries['vm-demo-page-chrome-' + id] || entries['vm-demo-site-chrome']);
     const branding = parseJson(entries['vm-demo-site-branding']);
     const siteName = String(branding.siteName || 'VIDEO MARKETPLACE').trim() || 'VIDEO MARKETPLACE';
@@ -486,19 +487,21 @@ body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:syste
 .page-hero p{max-width:760px;margin:0 auto 24px;line-height:1.8}
 .page-button{display:inline-block;background:var(--page-accent);color:#101010;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:18px}
 .page-hero .page-button{color:${buttonTextColor}}
+body.page-style-minimal .page-hero{background:var(--page-bg)!important;border-bottom:1px solid #ffffff20}
+body.page-style-editorial .page-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 12%,transparent),transparent 75%)}
 .page-section{padding:clamp(34px,6vw,76px) max(5vw,20px);border-bottom:1px solid #ffffff14}
 .page-section-inner{max-width:1160px;margin:auto}
 .page-section h2{font-size:clamp(1.4rem,3vw,2.2rem);margin:0 0 12px}
 .page-subtitle{line-height:1.8;white-space:pre-line}
 .page-section-image{display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:24px 0}
 .page-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}
-.page-card{overflow:hidden;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
+.page-card{overflow:hidden;border:1px solid #ffffff20;background:#ffffff08}
 .page-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .page-card div{padding:18px}.page-card h3{margin:0 0 8px}.page-card p{line-height:1.7;white-space:pre-line}
 .page-card-label{color:var(--page-accent);font-weight:700}.page-live-video-card small{display:block;color:var(--page-accent);font-size:.72rem;letter-spacing:.08em}.page-live-video-card strong{display:block;margin-top:8px}.page-live-video-placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:#ffffff0b;color:#ffffff70;font-weight:800;letter-spacing:.2em}.page-live-category-card{min-height:110px;display:flex;align-items:center}.page-live-category-card h3{color:var(--page-accent)}.page-live-video-grid{grid-template-columns:repeat(var(--page-video-columns,4),minmax(0,1fr))}.page-live-category-grid{grid-template-columns:repeat(var(--page-category-columns,3),minmax(0,1fr))}@media(max-width:900px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.page-live-video-grid,.page-live-category-grid{grid-template-columns:1fr}}.page-section-image{height:auto}.page-image-text-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}.page-image-text-copy{min-width:0}.page-image-text-layout .page-section-image{width:100%;height:auto;margin:0}.page-image-text-copy .page-subtitle{margin-top:0}.page-divider{border:0;border-top:1px solid #ffffff30;margin:0}.page-spacer{height:clamp(24px,6vw,96px)}.page-section-text .page-subtitle{max-width:850px}.page-section-button .page-section-inner{text-align:center}.page-section-button .page-section-inner>h2{margin-bottom:18px}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{grid-template-columns:repeat(var(--page-custom-columns,3),minmax(0,1fr))}@media(max-width:650px){.page-image-text-layout{grid-template-columns:1fr}}
 .page-published-footer{border-top:1px solid #ffffff20;border-bottom:0;line-height:1.7}
 @media(max-width:600px){.page-card-grid{grid-template-columns:1fr}.page-section-gallery .page-card-grid,.page-section-cards .page-card-grid{--page-custom-columns:1}}
-</style></head><body>
+</style></head><body class="page-style-${designStyle}">
 <header class="page-published-header"><a href="/">${escapeHtml(siteName)}</a><nav class="page-published-nav" aria-label="ページメニュー">${navHtml}</nav></header>
 <main><section class="page-hero"><span class="eyebrow">${escapeHtml(hero.kicker || 'DISCOVER SOMETHING NEW')}</span><h1>${escapeHtml(heroHeadline)}</h1>${heroCopy ? `<p>${escapeHtml(heroCopy)}</p>` : ''}${hero.buttonLabel && heroButtonUrl ? `<a class="page-button" href="${escapeHtml(heroButtonUrl)}">${escapeHtml(hero.buttonLabel)}</a>` : ''}</section>${sectionHtml}</main>
 <footer class="page-published-footer"><div>${escapeHtml(footerDescription)}</div>${chrome.footerShowLinks !== 'hide' ? `<nav class="page-published-footer-links" aria-label="フッターリンク">${navHtml}</nav>` : ''}<div>${escapeHtml(chrome.footerCopyright || '© VIDEO MARKETPLACE')}</div></footer>
