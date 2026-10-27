@@ -152,9 +152,23 @@
       logoDataUrl = "";
       nameInput.value = initialName;
       fileInput.value = "";
+      const defaultSettings = {};
+      Array.from(form.elements).filter(function (field) { return field.name; }).forEach(function (field) {
+        defaultSettings[field.name] = field.type === "checkbox" ? field.checked : field.value;
+      });
       applyBranding({ siteName: initialName, logoDataUrl: "" });
       renderPreview();
-      status.textContent = "初期表示に戻しました。";
+      status.textContent = "初期設定をサーバーに保存しています…";
+      fetch("/api/admin/settings/page-editor", {
+        method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ merge: true, entries: {
+          "vm-demo-site-branding": JSON.stringify({ siteName: initialName, logoDataUrl: "" }),
+          "vm-demo-admin-setting-general": JSON.stringify(defaultSettings)
+        } })
+      }).then(function (response) {
+        if (!response.ok) throw new Error("site_settings_reset_failed");
+        status.textContent = "初期設定をサーバーに保存しました。";
+      }).catch(function () { status.textContent = "初期設定のサーバー保存に失敗しました。"; });
     });
 
     const saved = readSettings();
@@ -245,6 +259,12 @@
       if (!response.ok) return;
       const data = await response.json();
       if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
+      const siteDescription = data.siteSettings && String(data.siteSettings.f1 || "").trim();
+      if (siteDescription) {
+        let meta = document.querySelector('meta[name="description"]');
+        if (!meta) { meta = document.createElement("meta"); meta.name = "description"; document.head.appendChild(meta); }
+        meta.content = siteDescription;
+      }
       renderPublicAnnouncements(data.announcements);
     } catch (_) {}
   }
