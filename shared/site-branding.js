@@ -357,7 +357,7 @@
     function normalize(items) {
       const source = Array.isArray(items) && items.length ? items : defaults();
       const seen = new Set();
-      return source.filter(function (item) {
+      const normalized = source.filter(function (item) {
         if (!item || typeof item !== "object" || !definitions.some(function (def) { return def.type === item.type; })) return false;
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
         if (seen.has(id)) return false;
@@ -367,6 +367,7 @@
         const def = definitions.find(function (entry) { return entry.type === item.type; });
         return Object.assign({}, item, { id: item.id || item.type, label: item.label || def.label, hidden: item.hidden === true, order: index, content: item.content && typeof item.content === "object" ? item.content : {} });
       });
+      return normalized.length ? normalized : defaults();
     }
     function field(labelText, key, value, item, multiline) {
       const label = document.createElement("label");
@@ -532,6 +533,11 @@
       const data = await getPublicSettings();
       const sections = Array.isArray(data.sections) ? data.sections : [];
       const pageSettings = data.pageSettings || {};
+      const homepageTheme = data.homepageTheme || {};
+      if (typeof homepageTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(homepageTheme.bg)) document.documentElement.style.setProperty("--bg", homepageTheme.bg);
+      if (typeof homepageTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(homepageTheme.accent)) document.documentElement.style.setProperty("--accent", homepageTheme.accent);
+      if (homepageTheme.radius === "square") document.body.classList.add("vm-square-cards");
+      else document.body.classList.remove("vm-square-cards");
       const heroSettings = pageSettings.meta && pageSettings.meta.hero;
       if (heroSettings && typeof heroSettings === "object") {
         const hero = document.querySelector(".hero");
