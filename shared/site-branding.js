@@ -4,7 +4,7 @@
 
   const STORAGE_KEY = "vm-demo-site-branding";
   const originalTitle = document.title;
-  const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+  const MAX_LOGO_BYTES = 450 * 1024;
   const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 
   function readSettings() {
@@ -94,7 +94,7 @@
       if (!file) return;
       if (!ALLOWED_LOGO_TYPES.includes(file.type) || file.size > MAX_LOGO_BYTES) {
         fileInput.value = "";
-        status.textContent = "PNG・JPEG・WebP・SVG、2MB以下の画像を選択してください。";
+        status.textContent = "PNG・JPEG・WebP・SVG、450KB以下の画像を選択してください。";
         return;
       }
       const reader = new FileReader();
