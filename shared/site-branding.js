@@ -450,19 +450,27 @@
           element.disabled = disabled;
           element.addEventListener("click", callback);
           actions.appendChild(element);
+          return element;
         }
         button("↑", index === 0, function () { [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; render(); });
         button("↓", index === sections.length - 1, function () { [sections[index + 1], sections[index]] = [sections[index], sections[index + 1]]; render(); });
         button(item.hidden ? "表示する" : "非表示にする", false, function () { item.hidden = !item.hidden; render(); });
-        button("削除", item.added !== true || item.type === "custom-page", function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
+        const deleteButton = button("削除", item.added !== true || item.type === "custom-page", function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
         head.appendChild(actions);
         row.appendChild(head);
         const contentDetails = document.createElement("details");
         contentDetails.style.cssText = "border-top:1px solid var(--line,#333);padding-top:10px;";
-        const contentSummary = document.createElement("summary");
-        contentSummary.textContent = "表示内容を編集";
-        contentSummary.style.cssText = "cursor:pointer;font-size:12px;font-weight:600;opacity:.8;padding:3px 0;";
-        contentDetails.appendChild(contentSummary);
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "btn";
+        editButton.textContent = "編集";
+        editButton.setAttribute("aria-expanded", "false");
+        editButton.addEventListener("click", function () {
+          contentDetails.open = !contentDetails.open;
+          editButton.textContent = contentDetails.open ? "閉じる" : "編集";
+          editButton.setAttribute("aria-expanded", String(contentDetails.open));
+        });
+        actions.insertBefore(editButton, deleteButton);
         const fields = document.createElement("div");
         fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px;";
         fields.append(
