@@ -1,9 +1,6 @@
 (function(){
 const KEY='vm-demo-announcements';
-const seed=[
-{id:'a1',title:'VIDEO MARKETPLACEへようこそ',category:'お知らせ',status:'published',date:'2026-10-01',body:'VIDEO MARKETPLACEのサービスを開始しました。\n\n新しい映像作品との出会いをお楽しみください。'},
-{id:'a2',title:'新しい作品を追加しました',category:'サービス',status:'published',date:'2026-09-28',body:'新しいクリエイターの作品を追加しました。\n\nぜひ作品一覧からチェックしてください。'}
-];
+
 let data=[],current=null;
 const $=id=>document.getElementById(id);
 async function load(){
