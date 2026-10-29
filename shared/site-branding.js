@@ -493,7 +493,9 @@
           const parts = line.split("|").map(function (part) { return part.trim(); });
           const previous = previousItems[index] && typeof previousItems[index] === "object" ? previousItems[index] : {};
           const image = parts[2] || (/^data:image\//i.test(previous.image || "") ? previous.image : "");
-          return { title: parts[0] || "", description: parts[1] || "", image: image, button: previous.button || "", link: parts[3] || "" };
+          const entry = { title: parts[0] || "", description: parts[1] || "", image: image, link: parts[3] || "" };
+          if (previous.button) entry.button = previous.button;
+          return entry;
         }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.button || entry.link; });
         renderRows();
       });
