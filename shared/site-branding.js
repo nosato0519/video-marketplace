@@ -854,7 +854,7 @@
                 }
               }
               card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
-              if (entry.image && (/^https?:\\/\\//i.test(entry.image) || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
+              if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
                 const image = document.createElement("img");
                 image.src = entry.image;
                 image.alt = "";
