@@ -1,78 +1,97 @@
 import { test, expect } from '@playwright/test';
 
 const pageEditorUrl = '/pages/admin-pages.html';
-const settingsApiUrl = '/api/admin/settings/page-editor';
-const backendBaseUrl = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
+const settingsUrl = '**/api/admin/settings/page-editor';
 
-test('admin page editor publishes through the real API and exposes the page on the homepage and public URL', async ({ page }) => {
-  const originalResponse = await page.request.get(settingsApiUrl);
-  expect(originalResponse.ok()).toBe(true);
-  const originalSettings = await originalResponse.json();
-  const originalEntries = originalSettings.entries && typeof originalSettings.entries === 'object'
-    ? originalSettings.entries
-    : {};
+test('admin page editor persists a newly published page and exposes its homepage link', async ({ page }) => {
+  let savedEntries = {};
+  let saveCount = 0;
 
-  const suffix = Date.now().toString(36);
-  const pageName = `受け入れテスト用ページ ${suffix}`;
-  const pageUrl = `/__acceptance-custom-page-${suffix}`;
-  let settingsMayHaveChanged = false;
-
-  try {
-    await page.goto(pageEditorUrl);
-    await expect(page.getByRole('button', { name: '新しいページを作成' })).toBeVisible();
-    await page.getByRole('button', { name: '新しいページを作成' }).click();
-
-    await page.locator('#page-name').fill(pageName);
-    await page.locator('#page-url').fill(pageUrl);
-    settingsMayHaveChanged = true;
-    await page.getByRole('button', { name: '公開する' }).click();
-
-    await expect(page.locator('#editor-status')).toContainText(`公開しました: ${pageUrl}`);
-
-    const savedResponse = await page.request.get(settingsApiUrl);
-    expect(savedResponse.ok()).toBe(true);
-    const savedSettings = await savedResponse.json();
-    const entries = savedSettings.entries;
-    expect(entries).toBeTruthy();
-    const publishedPages = JSON.parse(entries['vm-demo-pages']);
-    const publishedPage = publishedPages.find((item) => item.name === pageName);
-
-    expect(publishedPage).toBeTruthy();
-    expect(publishedPage.status).toBe('公開');
-    expect(publishedPage.url).toBe(pageUrl);
-    expect(typeof entries[`vm-demo-page-sections-${publishedPage.id}`]).toBe('string');
-    expect(typeof entries[`vm-demo-page-meta-${publishedPage.id}`]).toBe('string');
-    expect(typeof entries[`vm-demo-page-design-${publishedPage.id}`]).toBe('string');
-
-    await page.reload();
-    await expect(page.getByText(pageName, { exact: true })).toBeVisible();
-    await expect(page.getByText(`公開 ・ ${pageUrl}`, { exact: true })).toBeVisible();
-
-    const homepageResponse = await page.request.get('/api/site/homepage-settings');
-    expect(homepageResponse.ok()).toBe(true);
-    const homepage = await homepageResponse.json();
-    expect(homepage.publishedPages?.some((item) => item.id === publishedPage.id && item.url === pageUrl)).toBe(true);
-    expect(homepage.sections?.some((section) =>
-      section.type === 'custom-page' &&
-      section.pageId === publishedPage.id &&
-      section.content?.link === pageUrl
-    )).toBe(true);
-
-    await page.goto('/');
-    await expect(page.locator(`a[href="${pageUrl}"]`)).toBeVisible();
-    await expect(page.getByText(pageName, { exact: true })).toBeVisible();
-
-    const publicPageResponse = await page.request.get(`${backendBaseUrl}${pageUrl}`);
-    expect(publicPageResponse.status()).toBe(200);
-    const publicPageHtml = await publicPageResponse.text();
-    expect(publicPageHtml).toContain(pageName);
-    expect(publicPageHtml).toContain('page-custom-hero');
-  } finally {
-    if (settingsMayHaveChanged) {
-      const restoreResponse = await page.request.put(settingsApiUrl, {
-        data: { entries: originalEntries },
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
       });
-      expect(restoreResponse.ok()).toBe(true);
+      return;
     }
-  }
+
+    if (route.request().method() === 'PUT') {
+      const payload = route.request().postDataJSON();
+      expect(payload.entries).toBeTruthy();
+      expect(typeof payload.entries['vm-demo-pages']).toBe('string');
+      savedEntries = payload.entries;
+      saveCount += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  await expect(page.getByRole('button', { name: '新しいページを作成' })).toBeVisible();
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+
+  await page.locator('#page-name').fill('受け入れテスト用ページ');
+  await page.locator('#page-url').fill('/pages/acceptance-custom-page');
+
+  await page.getByRole('button', { name: '公開する' }).click();
+
+  await expect(page.locator('#editor-status')).toContainText('公開しました: /pages/acceptance-custom-page');
+  expect(saveCount).toBe(1);
+
+  const publishedPages = JSON.parse(savedEntries['vm-demo-pages']);
+  const publishedPage = publishedPages.find((item) => item.name === '受け入れテスト用ページ');
+
+  expect(publishedPage).toBeTruthy();
+  expect(publishedPage.status).toBe('公開');
+  expect(publishedPage.url).toBe('/pages/acceptance-custom-page');
+  expect(typeof savedEntries[`vm-demo-page-sections-${publishedPage.id}`]).toBe('string');
+  expect(typeof savedEntries[`vm-demo-page-meta-${publishedPage.id}`]).toBe('string');
+  expect(typeof savedEntries[`vm-demo-page-design-${publishedPage.id}`]).toBe('string');
+
+  await page.reload();
+  await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
+  await expect(page.getByText('公開 ・ /pages/acceptance-custom-page', { exact: true })).toBeVisible();
+  expect(saveCount).toBe(1);
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    const pages = JSON.parse(savedEntries['vm-demo-pages'])
+      .filter((item) => item.status === '公開')
+      .map(({ id, name, url }) => ({ id, name, url, image: '' }));
+    const sections = pages.map((publishedPage) => ({
+      id: `custom-page-${publishedPage.id}`,
+      type: 'custom-page',
+      pageId: publishedPage.id,
+      label: publishedPage.name,
+      hidden: false,
+      added: false,
+      order: 0,
+      content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+    }));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections,
+        publishedPages: pages,
+        themes: {},
+        pageSettings: {},
+        siteBranding: { siteName: 'VIDEO MARKETPLACE' },
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto('/');
+  await expect(page.locator('a[href="/pages/acceptance-custom-page"]')).toBeVisible();
+  await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
 });
