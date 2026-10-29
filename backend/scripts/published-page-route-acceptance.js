@@ -36,15 +36,44 @@ try {
 
   const entries = {
     'vm-demo-pages': JSON.stringify([{ id: pageId, name: marker, url: pageUrl, status: '公開' }]),
-    ['vm-demo-page-sections-' + pageId]: JSON.stringify([{
-      id: 'hero',
-      type: 'hero',
-      label: marker,
-      hidden: false,
-      order: 0,
-      content: { title: marker, subtitle: 'This page is rendered by the real backend route.' }
-    }]),
-    ['vm-demo-page-meta-' + pageId]: JSON.stringify({ hero: { headline: marker } })
+    ['vm-demo-page-sections-' + pageId]: JSON.stringify([
+      {
+        id: 'hero',
+        type: 'hero',
+        label: marker,
+        hidden: false,
+        order: 0,
+        content: { title: marker, subtitle: 'This page is rendered by the real backend route.' }
+      },
+      {
+        id: 'custom-intro',
+        type: 'custom-image-text',
+        label: 'Flexible content section',
+        hidden: false,
+        order: 1,
+        content: { title: 'Flexible content section', subtitle: 'Custom section content acceptance marker.' }
+      },
+      {
+        id: 'hidden-section',
+        type: 'custom-text',
+        label: 'Hidden section',
+        hidden: true,
+        order: 2,
+        content: { title: 'This hidden section must not render.' }
+      }
+    ]),
+    ['vm-demo-page-meta-' + pageId]: JSON.stringify({
+      seoTitle: marker + ' SEO',
+      description: 'Published page metadata acceptance.',
+      hero: { headline: marker }
+    }),
+    ['vm-demo-page-design-' + pageId]: JSON.stringify({
+      bg: '#101820',
+      text: '#f4f4f5',
+      accent: '#d9b45f',
+      style: 'editorial',
+      contentWidth: 'wide'
+    })
   };
   await query(
     `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
@@ -65,8 +94,13 @@ try {
   const html = await response.text();
 
   assert.equal(response.status, 200, 'published custom URL should return HTTP 200');
+  assert.ok(html.includes('<title>' + marker + ' SEO</title>'), 'rendered HTML should apply the saved SEO title');
   assert.ok(html.includes(marker), 'rendered HTML should contain the published page title');
   assert.ok(html.includes('page-custom-hero'), 'rendered HTML should contain the custom hero section');
+  assert.ok(html.includes('Custom section content acceptance marker.'), 'rendered HTML should include saved custom section content');
+  assert.ok(!html.includes('This hidden section must not render.'), 'hidden sections should not appear in published HTML');
+  assert.ok(html.includes('--page-bg:#101820'), 'rendered HTML should apply the saved page design');
+  assert.ok(html.indexOf(marker) < html.indexOf('Custom section content acceptance marker.'), 'published sections should retain their configured order');
 
   const homepageResponse = await fetch(`${baseUrl}/api/site/homepage-settings`);
   assert.equal(homepageResponse.status, 200, 'homepage settings should return HTTP 200');
