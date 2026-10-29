@@ -474,19 +474,19 @@ test('homepage dynamic sections persist layout controls and apply them to public
       ],
     },
   }, {
-    id: 'library-layout',
+    id: 'library',
     type: 'library',
     label: '購入後のライブラリ案内',
     hidden: false,
-    added: true,
+    added: false,
     order: 4,
     content: { settings: { layout: 'cards', showIcons: 'no' } },
   }, {
-    id: 'creator-layout',
+    id: 'creator',
     type: 'creator',
     label: '販売者向け案内',
     hidden: false,
-    added: true,
+    added: false,
     order: 5,
     content: { settings: { layout: 'centered' } },
   }, {
@@ -498,11 +498,11 @@ test('homepage dynamic sections persist layout controls and apply them to public
     order: 6,
     content: { settings: { layout: 'centered' } },
   }, {
-    id: 'collection-layout',
+    id: 'collection',
     type: 'collection',
     label: '編集的な作品紹介',
     hidden: false,
-    added: true,
+    added: false,
     order: 7,
     content: { settings: { layout: 'editorial' } },
   }, {
