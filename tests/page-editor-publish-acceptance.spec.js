@@ -229,6 +229,14 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
       await customRow.getByLabel('項目（1行ごとに「タイトル|説明|画像URL|リンク先」）').fill(block.items);
       await customRow.getByLabel('1行の表示数').selectOption(block.columns);
     }
+    if (block.type === 'custom-image') {
+      await customRow.getByLabel('画像の表示方法').selectOption('contain');
+      await customRow.getByLabel('角丸').selectOption('square');
+    }
+    if (block.type === 'custom-button') {
+      await customRow.getByLabel('ボタン文字色（HEX）').fill('#ffffff');
+      await customRow.getByLabel('角丸').selectOption('square');
+    }
   }
 
   await page.locator('#top-save-settings').click();
@@ -252,6 +260,8 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
       expect(savedBlock.content.columns).toBe(4);
     }
   }
+  expect(savedSections.find((section) => section.type === 'custom-image').content.theme).toMatchObject({ imageFit: 'contain', radius: 'square' });
+  expect(savedSections.find((section) => section.type === 'custom-button').content.theme).toMatchObject({ buttonText: '#ffffff', radius: 'square' });
 
   const imageBlock = savedSections.find((section) => section.type === 'custom-image');
   const buttonBlock = savedSections.find((section) => section.type === 'custom-button');
