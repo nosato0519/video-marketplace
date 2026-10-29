@@ -1169,6 +1169,8 @@
           if (typeof customTheme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.text)) customSection.style.color = customTheme.text;
           if (typeof customTheme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.accent)) customSection.style.setProperty("--accent", customTheme.accent);
           if (typeof customTheme.radius === "string") customSection.style.borderRadius = customTheme.radius === "square" ? "0" : "16px";
+          const customImageFit = customTheme.imageFit === "contain" ? "contain" : "cover";
+          const customButtonText = typeof customTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(customTheme.buttonText) ? customTheme.buttonText : "#111";
           if (typeof customTheme.spacing === "string") customSection.style.paddingBlock = customTheme.spacing === "compact" ? "12px" : customTheme.spacing === "large" ? "48px" : "28px";
           if (typeof customTheme.width === "string") {
             customSection.style.maxWidth = customTheme.width === "narrow" ? "900px" : customTheme.width === "wide" ? "none" : "1200px";
@@ -1211,7 +1213,7 @@
             image.src = imageUrl;
             image.alt = customContent.title || "";
             image.loading = "lazy";
-            image.style.cssText = "display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:16px auto;";
+            image.style.cssText = "display:block;max-width:100%;max-height:520px;object-fit:" + customImageFit + ";border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";margin:16px auto;";
             customSection.appendChild(image);
           }
           if (item.type === "custom-gallery" || item.type === "custom-cards") {
@@ -1237,13 +1239,13 @@
                   try { const url = new URL(target); if (url.protocol === "https:" || url.protocol === "http:") card.href = url.href; } catch (_) {}
                 }
               }
-              card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
+              card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
               if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
                 const image = document.createElement("img");
                 image.src = entry.image;
                 image.alt = "";
                 image.loading = "lazy";
-                image.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;";
+                image.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:" + customImageFit + ";border-radius:" + (customTheme.radius === "square" ? "0" : "8px") + ";";
                 card.appendChild(image);
               }
               if (entry.title) { const heading = document.createElement("strong"); heading.textContent = entry.title; card.appendChild(heading); }
@@ -1255,7 +1257,7 @@
           if (item.type === "custom-button" && customContent.button) {
             const button = document.createElement("a");
             button.textContent = customContent.button;
-            button.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:12px;padding:12px 20px;border-radius:999px;background:var(--accent,#d9b45f);color:#111;text-decoration:none;font-weight:700;";
+            button.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:12px;padding:12px 20px;border-radius:" + (customTheme.radius === "square" ? "0" : "999px") + ";background:var(--accent,#d9b45f);color:" + customButtonText + ";text-decoration:none;font-weight:700;";
             const link = String(customContent.link || "");
             if (link.startsWith("/") && !link.startsWith("//")) button.href = link;
             else { try { const url = new URL(link); if (url.protocol === "https:" || url.protocol === "http:") button.href = url.href; } catch (_) {} }
