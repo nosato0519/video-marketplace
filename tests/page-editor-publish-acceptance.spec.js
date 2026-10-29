@@ -476,7 +476,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { title: 'TOP反映専用の人気動画見出し', subtitle: 'TOP表示用の説明文', settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
     { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
@@ -531,8 +531,9 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(publicLink).toBeVisible();
   await expect(publicLink).toContainText('レイアウト保存テスト');
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]')).toBeVisible();
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"] h2')).toContainText('ページ内の人気動画');
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"] h2')).toContainText('TOP反映専用の人気動画見出し');
   const embeddedPopular = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]');
+  await expect(embeddedPopular).toContainText('TOP表示用の説明文');
   await expect(embeddedPopular).toHaveCSS('background-color', 'rgb(18, 52, 86)');
   await expect(embeddedPopular).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(embeddedPopular).toHaveCSS('max-width', '900px');

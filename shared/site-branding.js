@@ -1001,9 +1001,15 @@
                 embeddedSection.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
                 embeddedSection.style.maxWidth = "none";
                 embeddedSection.style.marginInline = "0";
-                const embeddedHeading = embeddedSection.querySelector(".section-head h2, h2");
-                if (embeddedHeading && pageSection.label) embeddedHeading.textContent = pageSection.label;
                 const embeddedSectionContent = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
+                const embeddedHeading = embeddedSection.querySelector(".section-head h2, h2");
+                const embeddedTitle = typeof embeddedSectionContent.title === "string" && embeddedSectionContent.title.trim()
+                  ? embeddedSectionContent.title.trim()
+                  : pageSection.label;
+                if (embeddedHeading && embeddedTitle) embeddedHeading.textContent = embeddedTitle;
+                const embeddedSubtitle = typeof embeddedSectionContent.subtitle === "string" ? embeddedSectionContent.subtitle.trim() : "";
+                const embeddedSectionDescription = embeddedSection.querySelector(".section-head p, .section-description");
+                if (embeddedSectionDescription && embeddedSubtitle) embeddedSectionDescription.textContent = embeddedSubtitle;
                 const embeddedSettings = pageSection.settings && typeof pageSection.settings === "object"
                   ? pageSection.settings
                   : (embeddedSectionContent.settings && typeof embeddedSectionContent.settings === "object" ? embeddedSectionContent.settings : {});
@@ -1051,6 +1057,10 @@
                   embeddedSection.style.minHeight = heroHeight;
                   if (heroBackground) {
                     heroBackground.style.backgroundPosition = embeddedSettings.imagePosition === "left" ? "left center" : embeddedSettings.imagePosition === "right" ? "right center" : "center";
+                  }
+                  if (typeof embeddedSectionContent.image === "string" && embeddedSectionContent.image.trim() && heroBackground) {
+                    const image = embeddedSectionContent.image.trim();
+                    if (/^(https?:\/\/|\/(?!\/))/.test(image)) heroBackground.style.backgroundImage = "url(\"" + image.replace(/["\\\n\r]/g, "") + "\")";
                   }
                 }
                 const embeddedColumns = Number(embeddedSettings.columns);
