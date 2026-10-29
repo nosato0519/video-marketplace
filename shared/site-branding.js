@@ -472,7 +472,7 @@
       wrapper.appendChild(heading);
       if (!Array.isArray(item.content.items)) {
         item.content.items = typeof item.content.itemsText === "string"
-          ? item.content.itemsText.split(/\\r?\\n/).map(function (line) {
+          ? item.content.itemsText.split(/\r?\n/).map(function (line) {
               const parts = line.split("|").map(function (part) { return part.trim(); });
               return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
             }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; })
@@ -499,7 +499,7 @@
             label.appendChild(document.createTextNode(fieldData[1]));
             const input = document.createElement("input");
             input.type = "text";
-            input.value = fieldData[0] === "image" && /^data:image\\//i.test(entry.image || "") ? "" : (entry[fieldData[0]] || "");
+            input.value = fieldData[0] === "image" && /^data:image\//i.test(entry.image || "") ? "" : (entry[fieldData[0]] || "");
             input.placeholder = fieldData[0] === "link" ? "/pages/video-list.html または https://…" : "";
             input.style.cssText = "box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
             input.addEventListener("input", function () { entry[fieldData[0]] = input.value.trim(); });
@@ -511,7 +511,7 @@
               upload.setAttribute("aria-label", "項目 " + (index + 1) + " の画像をアップロード");
               upload.style.cssText = "display:block;max-width:100%;margin-top:4px;";
               const hint = document.createElement("small");
-              hint.textContent = /^data:image\\//i.test(entry.image || "") ? "アップロード画像を設定済み" : "画像ファイルから設定できます";
+              hint.textContent = /^data:image\//i.test(entry.image || "") ? "アップロード画像を設定済み" : "画像ファイルから設定できます";
               label.append(upload, hint);
               upload.addEventListener("change", function () {
                 const file = upload.files && upload.files[0];
@@ -1532,7 +1532,7 @@
                 }
               }
               card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
-              if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")) || /^data:image\\/(?:png|jpe?g|webp|gif);base64,/i.test(entry.image))) {
+              if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")) || /^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(entry.image))) {
                 const image = document.createElement("img");
                 image.src = entry.image;
                 image.alt = "";
