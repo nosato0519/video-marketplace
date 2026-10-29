@@ -454,6 +454,14 @@ test('homepage dynamic sections persist layout controls and apply them to public
     added: true,
     order: 6,
     content: { settings: { layout: 'centered' } },
+  }, {
+    id: 'collection-layout',
+    type: 'collection',
+    label: '編集的な作品紹介',
+    hidden: false,
+    added: true,
+    order: 7,
+    content: { settings: { layout: 'editorial' } },
   }];
   const settings = () => ({
     sections: savedSections,
@@ -545,6 +553,10 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /^\S+$/);
   await expect(page.locator('#creator .creator-copy')).toHaveCSS('text-align', 'center');
   await expect(page.locator('.cta')).toHaveCSS('text-align', 'center');
+  const editorialCollection = page.locator('[data-vm-section-id="collection-layout"]');
+  await expect(editorialCollection.locator('.video-grid')).toHaveCSS('grid-template-columns', /^\S+$/);
+  await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('display', 'grid');
+  await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
