@@ -470,8 +470,8 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
     }
   }
   await expect(page.locator('.vm-homepage-custom-text')).toHaveCount(2);
-  await expect(page.locator('.vm-homepage-custom-text')).toContainText('公開される自由な本文です。');
-  await expect(page.locator('.vm-homepage-custom-text')).toContainText('同じ種類でも別々に表示されます。');
+  await expect(page.locator('.vm-homepage-custom-text').nth(0)).toContainText('公開される自由な本文です。');
+  await expect(page.locator('.vm-homepage-custom-text').nth(1)).toContainText('同じ種類でも別々に表示されます。');
   await expect(page.locator('.vm-homepage-custom-image-text')).toContainText('画像と一緒に表示する本文です。');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('object-fit', 'contain');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('border-radius', '0px');
