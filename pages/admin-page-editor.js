@@ -639,10 +639,6 @@ function runPublishCheck(){
   if(name&&!url){url='/pages/page-'+Date.now();urlInput.value=url;}
   const validUrl=!!url&&url===urlInput.value&&/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(url)&&url!=='/'&&url!=='/api'&&!url.startsWith('/api/')&&!url.split('/').includes('..');
   const visibleSections=sectionState.filter(item=>item&&!item.hidden).length;
-  const heroHasContent=['hero-kicker','hero-headline','hero-copy','hero-background-image'].some(id=>{
-    const field=document.getElementById(id);
-    return !!field&&field.value.trim()!=='';
-  });
   const hasVisibleContent=visibleSections>0;
   const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
   const checks=[
