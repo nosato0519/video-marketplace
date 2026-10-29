@@ -144,6 +144,30 @@ test('admin page editor refuses stale local settings when the server cannot load
   expect(writeRequests).toBe(0);
 });
 
+test('admin page editor preserves local settings when no server configuration exists yet', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('vm-demo-pages', JSON.stringify([
+      { id: 'local-first-run-page', name: '初回移行前の保存ページ', url: '/pages/local-first-run-page', status: '下書き' },
+    ]));
+  });
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: null }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+  });
+
+  await page.goto(pageEditorUrl);
+  await expect(page.getByRole('button', { name: '新しいページを作成' })).toBeVisible();
+  await expect(page.getByText('初回移行前の保存ページ', { exact: true })).toBeVisible();
+});
+
 test('homepage editor publishes all configurable custom blocks and adapts card columns to viewport width', async ({ page }) => {
   let savedSections = [];
   let pageEditorEntries = {};
