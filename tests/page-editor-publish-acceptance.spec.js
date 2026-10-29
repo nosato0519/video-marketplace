@@ -81,6 +81,19 @@ test('admin page editor persists a newly published page and exposes its homepage
   await expect(page.getByText('公開 ・ /pages/acceptance-custom-page', { exact: true })).toBeVisible();
   expect(saveCount).toBe(1);
 
+  const publishedPageRow = page.locator('#managed-pages-list .homepage-section-row').filter({ hasText: '受け入れテスト用ページ' });
+  await publishedPageRow.getByRole('button', { name: '編集' }).click();
+  const savedSectionRow = page.locator('#homepage-section-list .homepage-section-row').first();
+  await savedSectionRow.getByRole('button', { name: '編集' }).click();
+  await page.locator('#section-edit-name').fill('キャンセルした変更');
+  await page.getByRole('button', { name: '編集内容を反映' }).click();
+  await page.locator('#cancel-page-bottom').click();
+  await publishedPageRow.getByRole('button', { name: '編集' }).click();
+  await expect(page.locator('#homepage-section-list .homepage-section-row').first()).toContainText('独自コンテンツ');
+  await expect(page.locator('#homepage-section-list .homepage-section-row').first()).not.toContainText('キャンセルした変更');
+  await page.locator('#cancel-page-bottom').click();
+  expect(saveCount).toBe(1);
+
   await page.getByRole('button', { name: '新しいページを作成' }).click();
   await page.locator('#page-name').fill('キャンセル確認用ページ');
   await page.locator('#cancel-page-bottom').click();
