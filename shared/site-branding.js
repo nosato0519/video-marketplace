@@ -1003,6 +1003,32 @@
                 if (typeof embeddedTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.bg)) embeddedSection.style.backgroundColor = embeddedTheme.bg;
                 if (typeof embeddedTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.text)) embeddedSection.style.color = embeddedTheme.text;
                 if (typeof embeddedTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.accent)) embeddedSection.style.setProperty("--accent", embeddedTheme.accent);
+                if (embeddedTheme.width === "narrow") {
+                  embeddedSection.style.maxWidth = "900px";
+                  embeddedSection.style.marginInline = "auto";
+                } else if (embeddedTheme.width === "wide") {
+                  embeddedSection.style.maxWidth = "none";
+                  embeddedSection.style.marginInline = "0";
+                } else if (embeddedTheme.width === "standard") {
+                  embeddedSection.style.maxWidth = "1200px";
+                  embeddedSection.style.marginInline = "auto";
+                }
+                if (embeddedTheme.spacing === "compact") embeddedSection.style.paddingBlock = "12px";
+                else if (embeddedTheme.spacing === "large") embeddedSection.style.paddingBlock = "48px";
+                else if (embeddedTheme.spacing === "standard") embeddedSection.style.paddingBlock = "28px";
+                const embeddedCards = embeddedSection.querySelectorAll(".video-card, .cat, .genre-card, .recommendation-card, .showcase-card, .mini, .person, .collection-card");
+                if (embeddedTheme.radius === "square") {
+                  embeddedCards.forEach(function (card) { card.style.borderRadius = "0"; });
+                  embeddedSection.querySelectorAll("img").forEach(function (image) { image.style.borderRadius = "0"; });
+                } else if (embeddedTheme.radius === "rounded") {
+                  embeddedCards.forEach(function (card) { card.style.borderRadius = "12px"; });
+                }
+                if (embeddedTheme.imageFit === "contain" || embeddedTheme.imageFit === "cover") {
+                  embeddedSection.querySelectorAll("img").forEach(function (image) { image.style.objectFit = embeddedTheme.imageFit; });
+                }
+                if (typeof embeddedTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.buttonText)) {
+                  embeddedSection.querySelectorAll("button, .btn, a.button").forEach(function (button) { button.style.color = embeddedTheme.buttonText; });
+                }
                 const embeddedColumns = Number(embeddedSettings.columns);
                 const embeddedGrid = pageSection.type === "categories"
                   ? embeddedSection.querySelector(".category-grid")
