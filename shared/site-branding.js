@@ -1076,11 +1076,21 @@
         if (cardGrid && [2, 3, 4, 5].includes(Number(displaySettings.columns))) {
           cardGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
         }
-        const cardSelector = item.type === "popular" || item.type === "new-releases" ? ".video-card" : item.type === "categories" ? ".cat" : item.type === "genre-rail" ? ".genre-card, .cat" : "";
-        if (cardSelector) {
-          const cards = Array.from(section.querySelectorAll(cardSelector));
-          const countKey = item.type === "categories" ? "categoryCount" : item.type === "genre-rail" ? "genreCount" : "videoCount";
-          const count = Number(displaySettings[countKey]);
+        const sectionCardSettings = {
+          "popular": { selector: ".video-card", countKey: "videoCount" },
+          "new-releases": { selector: ".video-card", countKey: "videoCount" },
+          "categories": { selector: ".cat", countKey: "categoryCount" },
+          "genre-rail": { selector: ".genre-card", countKey: "genreCount" },
+          "genre-recommendations": { selector: ".recommendation-card", countKey: "genreCount" },
+          "video-showcase": { selector: ".showcase-card", countKey: "videoCount" },
+          "spotlight": { selector: ".spotlight-stack > .mini", countKey: "featureCount" },
+          "creators": { selector: ".creator-list > .person", countKey: "creatorCount" },
+          "collection": { selector: ".video-card", countKey: "videoCount" }
+        };
+        const cardSettings = sectionCardSettings[item.type];
+        if (cardSettings) {
+          const cards = Array.from(section.querySelectorAll(cardSettings.selector));
+          const count = Number(displaySettings[cardSettings.countKey]);
           if (Number.isFinite(count) && count > 0) {
             cards.forEach(function (card, index) {
               card.hidden = index >= count;
@@ -1089,9 +1099,35 @@
             });
           }
         }
+        if (["popular", "new-releases", "collection"].includes(item.type) && [2, 3, 4, 5].includes(Number(displaySettings.columns))) {
+          const cardGrid = section.querySelector("#videos, .video-grid");
+          if (cardGrid) cardGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
+        }
         if (item.type === "categories" && [2, 3, 4].includes(Number(displaySettings.columns))) {
           const categoryGrid = section.querySelector(".category-grid");
           if (categoryGrid) categoryGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
+        }
+        if (item.type === "creators" && [2, 3, 4].includes(Number(displaySettings.columns))) {
+          const creatorGrid = section.querySelector(".creator-list");
+          if (creatorGrid) creatorGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
+        }
+        if (item.type === "genre-rail") {
+          const genreTrack = section.querySelector(".genre-track");
+          if (genreTrack && displaySettings.layout === "grid") {
+            genreTrack.style.display = "grid";
+            genreTrack.style.gridTemplateColumns = "repeat(auto-fit, minmax(160px, 1fr))";
+          } else if (genreTrack) {
+            genreTrack.style.display = "";
+            genreTrack.style.gridTemplateColumns = "";
+          }
+        }
+        if (item.type === "video-showcase" && displaySettings.layout === "grid") {
+          const showcaseGrid = section.querySelector(".video-showcase-grid");
+          if (showcaseGrid) showcaseGrid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+        }
+        if (item.type === "spotlight" && displaySettings.layout === "grid") {
+          const spotlightStack = section.querySelector(".spotlight-stack");
+          if (spotlightStack) spotlightStack.style.display = "grid";
         }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
