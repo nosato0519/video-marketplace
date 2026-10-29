@@ -230,10 +230,12 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
       await customRow.getByLabel('1行の表示数').selectOption(block.columns);
     }
     if (block.type === 'custom-image') {
+      await customRow.getByText('セクションのデザイン設定', { exact: true }).click();
       await customRow.getByLabel('画像の表示方法').selectOption('contain');
       await customRow.getByLabel('角丸').selectOption('square');
     }
     if (block.type === 'custom-button') {
+      await customRow.getByText('セクションのデザイン設定', { exact: true }).click();
       await customRow.getByLabel('ボタン文字色（HEX）').fill('#ffffff');
       await customRow.getByLabel('角丸').selectOption('square');
     }
