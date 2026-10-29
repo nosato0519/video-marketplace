@@ -878,3 +878,51 @@ test('admin page editor persists page-specific header and footer settings', asyn
   await expect(page.locator('#footer-show-links')).toHaveValue('hide');
   await expect(page.locator('#footer-copyright')).toHaveValue('© ページ設定保存テスト');
 });
+
+test('admin page editor restores a page and its settings when deletion cannot be saved to the server', async ({ page }) => {
+  const pageId = 'delete-rollback-page';
+  const pageName = '削除失敗時の復元テスト';
+  const savedEntries = {
+    'vm-demo-pages': JSON.stringify([
+      { id: pageId, name: pageName, url: '/pages/delete-rollback-page', status: '下書き', locked: false, createdByEditor: true },
+    ]),
+    [`vm-demo-page-sections-${pageId}`]: JSON.stringify([
+      { id: 'delete-rollback-section', type: 'custom-text', label: '復元するセクション', hidden: false, added: true, order: 0, content: { title: '保持する設定' } },
+    ]),
+  };
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'temporarily_unavailable' }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto(pageEditorUrl);
+
+  const pageRow = page.locator('#managed-pages-list .homepage-section-row').filter({ hasText: pageName });
+  await expect(pageRow).toBeVisible();
+  await pageRow.getByRole('button', { name: '削除' }).click();
+
+  await expect(pageRow).toBeVisible();
+  await expect(page.locator('#editor-status')).toContainText('ページ設定のサーバー保存に失敗しました。');
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), `vm-demo-page-sections-${pageId}`))
+    .toBe(savedEntries[`vm-demo-page-sections-${pageId}`]);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('vm-demo-pages') || '[]').some((item) => item.id === 'delete-rollback-page')))
+    .toBe(true);
+});
+
