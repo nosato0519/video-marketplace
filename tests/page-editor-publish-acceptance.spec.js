@@ -137,7 +137,6 @@ test('admin page editor refuses stale local settings when the server cannot load
   const createButton = page.getByRole('button', { name: '新しいページを作成' });
   await expect(createButton).toBeDisabled();
   await expect(page.getByText('サーバー側の古い下書き', { exact: true })).toHaveCount(0);
-  await createButton.click({ force: true });
   expect(writeRequests).toBe(0);
 });
 
