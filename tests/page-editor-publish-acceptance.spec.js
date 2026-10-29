@@ -51,7 +51,7 @@ test('admin page editor persists a newly published page and exposes its homepage
   await page.locator('#section-edit-name').fill('独自コンテンツ');
   await page.locator('#section-content-title').fill('自由な見出し');
   await page.locator('#section-content-subtitle').fill('保存されて公開ページに反映される説明文です。');
-  await page.getByRole('button', { name: 'セクションを保存' }).click();
+  await page.getByRole('button', { name: '編集内容を反映' }).click();
 
   await page.getByRole('button', { name: '公開する' }).click();
 
