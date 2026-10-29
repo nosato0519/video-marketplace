@@ -478,8 +478,33 @@
             }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; })
           : [];
       }
+      const bulkLabel = document.createElement("label");
+      bulkLabel.style.cssText = "display:grid;gap:6px;font-size:12px;";
+      bulkLabel.appendChild(document.createTextNode("項目（1行ごとに「タイトル|説明|画像URL|リンク先」）"));
+      const bulkInput = document.createElement("textarea");
+      bulkInput.rows = 3;
+      bulkInput.value = item.content.items.map(function (entry) {
+        return [entry.title || "", entry.description || "", /^data:image\\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
+      }).join("\n");
+      bulkInput.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+      bulkInput.addEventListener("input", function () {
+        item.content.items = bulkInput.value.split(/\\r?\\n/).map(function (line) {
+          const parts = line.split("|").map(function (part) { return part.trim(); });
+          return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
+        }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; });
+        renderRows();
+      });
+      bulkLabel.appendChild(bulkInput);
+      const bulkHint = document.createElement("small");
+      bulkHint.textContent = "複数項目をまとめて入力できます。下の項目編集欄から個別に編集することもできます。";
+      bulkLabel.appendChild(bulkHint);
       const list = document.createElement("div");
       list.style.cssText = "display:grid;gap:10px;";
+      function syncBulkInput() {
+        bulkInput.value = item.content.items.map(function (entry) {
+          return [entry.title || "", entry.description || "", /^data:image\\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
+        }).join("\n");
+      }
       function renderRows() {
         list.replaceChildren();
         item.content.items.forEach(function (entry, index) {
@@ -502,7 +527,7 @@
             input.value = fieldData[0] === "image" && /^data:image\//i.test(entry.image || "") ? "" : (entry[fieldData[0]] || "");
             input.placeholder = fieldData[0] === "link" ? "/pages/video-list.html または https://…" : "";
             input.style.cssText = "box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
-            input.addEventListener("input", function () { entry[fieldData[0]] = input.value.trim(); });
+            input.addEventListener("input", function () { entry[fieldData[0]] = input.value.trim(); syncBulkInput(); });
             label.appendChild(input);
             if (fieldData[0] === "image") {
               const upload = document.createElement("input");
@@ -565,6 +590,7 @@
           remove.addEventListener("click", function () {
             item.content.items.splice(index, 1);
             renderRows();
+            syncBulkInput();
           });
           card.appendChild(remove);
           list.appendChild(card);
@@ -577,9 +603,10 @@
       addItem.addEventListener("click", function () {
         item.content.items.push({ title: "", description: "", image: "", button: "", link: "" });
         renderRows();
+        syncBulkInput();
       });
       renderRows();
-      wrapper.append(list, addItem);
+      wrapper.append(bulkLabel, list, addItem);
       return wrapper;
     }
     function render() {
