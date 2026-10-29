@@ -518,6 +518,58 @@
         if (item.type === "custom-text" || item.type === "custom-image-text") {
           fields.appendChild(field("本文", "body", item.content.body, item, true));
         }
+        const sectionSettingOptions = {
+          "popular": [
+            ["videoCount", "表示する動画数", [["4","4件"],["8","8件"],["12","12件"],["16","16件"],["24","24件"],["36","36件"],["48","48件"]]],
+            ["columns", "1行のカード数", [["2","2列"],["3","3列"],["4","4列"],["5","5列"]]],
+            ["period", "人気の集計期間", [["all","全期間"],["month","過去30日"],["week","過去7日"]]]
+          ],
+          "new-releases": [
+            ["videoCount", "表示する動画数", [["4","4件"],["8","8件"],["12","12件"],["16","16件"],["24","24件"],["36","36件"],["48","48件"]]],
+            ["columns", "1行のカード数", [["2","2列"],["3","3列"],["4","4列"],["5","5列"]]]
+          ],
+          "categories": [
+            ["categoryCount", "表示するカテゴリー数", [["4","4件"],["6","6件"],["8","8件"],["12","12件"],["16","16件"],["20","20件"]]],
+            ["columns", "1行の表示数", [["2","2列"],["3","3列"],["4","4列"]]]
+          ],
+          "genre-rail": [
+            ["genreCount", "表示するカテゴリー数", [["4","4件"],["6","6件"],["8","8件"],["10","10件"],["12","12件"]]]
+          ]
+        };
+        const sectionOptions = sectionSettingOptions[item.type];
+        if (sectionOptions) {
+          const settingsDetails = document.createElement("details");
+          settingsDetails.style.cssText = "grid-column:1/-1;border-top:1px solid var(--line,#333);padding-top:10px;";
+          const settingsSummary = document.createElement("summary");
+          settingsSummary.textContent = "表示内容の設定";
+          settingsSummary.style.cursor = "pointer";
+          settingsDetails.appendChild(settingsSummary);
+          const settingsFields = document.createElement("div");
+          settingsFields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:10px;";
+          item.content.settings = item.content.settings && typeof item.content.settings === "object" ? item.content.settings : {};
+          sectionOptions.forEach(function (setting) {
+            const label = document.createElement("label");
+            label.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
+            label.appendChild(document.createTextNode(setting[1]));
+            const control = document.createElement("select");
+            control.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+            setting[2].forEach(function (optionData) {
+              const option = document.createElement("option");
+              option.value = optionData[0];
+              option.textContent = optionData[1];
+              control.appendChild(option);
+            });
+            const defaultValue = setting[0] === "columns" ? "3" : setting[0] === "period" ? "all" : setting[0] === "videoCount" ? "8" : "8";
+            control.value = String(item.content.settings[setting[0]] || defaultValue);
+            control.addEventListener("change", function () {
+              item.content.settings[setting[0]] = setting[0] === "period" ? control.value : Number(control.value);
+            });
+            label.appendChild(control);
+            settingsFields.appendChild(label);
+          });
+          settingsDetails.appendChild(settingsFields);
+          fields.appendChild(settingsDetails);
+        }
         {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
@@ -1020,6 +1072,28 @@
         else section.style.removeProperty("display");
         section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
+        const displaySettings = sectionContent.settings && typeof sectionContent.settings === "object" ? sectionContent.settings : {};
+        const cardGrid = item.type === "popular" ? section.querySelector("#videos, .video-grid") : item.type === "new-releases" ? section.querySelector(".video-grid, #new-videos") : null;
+        if (cardGrid && [2, 3, 4, 5].includes(Number(displaySettings.columns))) {
+          cardGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
+        }
+        const cardSelector = item.type === "popular" || item.type === "new-releases" ? ".video-card" : item.type === "categories" ? ".cat" : item.type === "genre-rail" ? ".genre-card, .cat" : "";
+        if (cardSelector) {
+          const cards = Array.from(section.querySelectorAll(cardSelector));
+          const countKey = item.type === "categories" ? "categoryCount" : item.type === "genre-rail" ? "genreCount" : "videoCount";
+          const count = Number(displaySettings[countKey]);
+          if (Number.isFinite(count) && count > 0) {
+            cards.forEach(function (card, index) {
+              card.hidden = index >= count;
+              if (card.hidden) card.style.setProperty("display", "none", "important");
+              else card.style.removeProperty("display");
+            });
+          }
+        }
+        if (item.type === "categories" && [2, 3, 4].includes(Number(displaySettings.columns))) {
+          const categoryGrid = section.querySelector(".category-grid");
+          if (categoryGrid) categoryGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
+        }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
           section.style.maxWidth = "none";
