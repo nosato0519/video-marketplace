@@ -289,13 +289,13 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 
   const grid = page.locator('.vm-homepage-custom-cards .vm-homepage-custom-grid');
   const columnCount = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await grid.elementHandle());
-  expect(await columnCount()).toBe(4);
+  await expect.poll(columnCount).toBe(4);
   await page.setViewportSize({ width: 800, height: 900 });
-  expect(await columnCount()).toBe(3);
+  await expect.poll(columnCount).toBe(3);
   await page.setViewportSize({ width: 600, height: 900 });
-  expect(await columnCount()).toBe(2);
+  await expect.poll(columnCount).toBe(2);
   await page.setViewportSize({ width: 390, height: 844 });
-  expect(await columnCount()).toBe(1);
+  await expect.poll(columnCount).toBe(1);
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
@@ -489,7 +489,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   const spotlightRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '今、観てほしい作品たち' }).first();
   await spotlightRow.getByRole('button', { name: '編集' }).click();
   await spotlightRow.getByText('表示内容の設定', { exact: true }).click();
-  await spotlightRow.locator('label').filter({ hasText: 'レイアウト' }).locator('select').selectOption('grid');
+  await spotlightRow.locator('label').filter({ hasText: /^レイアウト$/ }).locator('select').selectOption('grid');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   expect(savedSections.find((section) => section.id === 'spotlight').content.settings.layout).toBe('grid');
