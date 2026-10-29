@@ -1212,42 +1212,36 @@
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
               const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
-              const isImageText = pageSection.type === "custom-image-text";
-              const contentTarget = isImageText ? document.createElement("div") : preview;
-              if (isImageText) {
-                preview.style.display = "flex";
-                preview.style.flexWrap = "wrap";
-                preview.style.alignItems = "flex-start";
-                preview.style.gap = "24px";
-                contentTarget.style.cssText = "flex:1 1 320px;min-width:0;";
+              if (pageSection.type === "custom-image-text") preview.style.display = "grid";
+              if (title) {
+                const heading = document.createElement("h2");
+                heading.textContent = title;
+                preview.appendChild(heading);
+              }
+              if (typeof content.subtitle === "string" && content.subtitle.trim()) {
+                const description = document.createElement("p");
+                description.textContent = content.subtitle.trim();
+                description.style.lineHeight = "1.7";
+                preview.appendChild(description);
+              }
+              if (typeof content.body === "string" && content.body.trim()) {
+                const body = document.createElement("div");
+                body.textContent = content.body.trim();
+                body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
+                preview.appendChild(body);
               }
               if (validImageUrl) {
                 const image = document.createElement("img");
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;width:100%;max-width:" + (isImageText ? "480px" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
-                if (isImageText) image.style.flex = "1 1 280px";
+                image.style.cssText = "display:block;width:100%;max-width:" + (pageSection.type === "custom-image-text" ? "min(100%, 480px)" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
+                if (pageSection.type === "custom-image-text") {
+                  image.style.gridRow = "1 / span 4";
+                  image.style.alignSelf = "start";
+                }
                 preview.appendChild(image);
               }
-              if (title) {
-                const heading = document.createElement("h2");
-                heading.textContent = title;
-                contentTarget.appendChild(heading);
-              }
-              if (typeof content.subtitle === "string" && content.subtitle.trim()) {
-                const description = document.createElement("p");
-                description.textContent = content.subtitle.trim();
-                description.style.lineHeight = "1.7";
-                contentTarget.appendChild(description);
-              }
-              if (typeof content.body === "string" && content.body.trim()) {
-                const body = document.createElement("div");
-                body.textContent = content.body.trim();
-                body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
-                contentTarget.appendChild(body);
-              }
-              if (isImageText) preview.appendChild(contentTarget);
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
                 const list = document.createElement("div");
                 const previewColumns = Number(previewSettings.columns);
@@ -1283,14 +1277,14 @@
                   }
                   list.appendChild(card);
                 });
-                contentTarget.appendChild(list);
+                preview.appendChild(list);
               }
               if (typeof content.button === "string" && content.button.trim() && typeof content.link === "string" && (/^https?:\/\//i.test(content.link.trim()) || /^\/(?!\/)/.test(content.link.trim()))) {
                 const action = document.createElement("a");
                 action.textContent = content.button.trim();
                 action.href = content.link.trim();
                 action.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:16px;padding:10px 18px;border-radius:" + (previewTheme.radius === "square" ? "0" : "8px") + ";background:var(--accent,#d9b45f);color:" + (typeof previewTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.buttonText) ? previewTheme.buttonText : "#111111") + ";font-weight:700;text-decoration:none;";
-                contentTarget.appendChild(action);
+                preview.appendChild(action);
               }
               if (pageSection.type === "custom-button" && !content.button) preview.style.minHeight = "1px";
               embeddedContent.appendChild(preview);
