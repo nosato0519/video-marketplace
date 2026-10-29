@@ -115,3 +115,29 @@ test('admin page editor persists a newly published page and exposes its homepage
   await expect(page.locator('a[href="/pages/acceptance-custom-page"]')).toBeVisible();
   await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
 });
+
+test('admin page editor refuses stale local settings when the server cannot load canonical settings', async ({ page }) => {
+  let writeRequests = 0;
+  await page.addInitScript(() => {
+    localStorage.setItem('vm-demo-pages', JSON.stringify([
+      { id: 'stale-page', name: 'サーバー側の古い下書き', url: '/pages/stale-page', status: '下書き' },
+    ]));
+  });
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'PUT') {
+      writeRequests += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'temporarily_unavailable' }) });
+  });
+
+  await page.goto(pageEditorUrl);
+  const createButton = page.getByRole('button', { name: '新しいページを作成' });
+  await expect(createButton).toBeDisabled();
+  await expect(page.getByText('サーバー側の古い下書き', { exact: true })).toHaveCount(0);
+  await createButton.click({ force: true });
+  expect(writeRequests).toBe(0);
+});
+
