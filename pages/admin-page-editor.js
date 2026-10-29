@@ -119,7 +119,13 @@ async function removePage(page){
   }
   pages=pages.filter(item=>item.id!==page.id);
   removedSettings.forEach(([key])=>localStorage.removeItem(key));
-  save();
+  if(!save()){
+    pages=previousPages;
+    removedSettings.forEach(([key,value])=>localStorage.setItem(key,value));
+    renderPageList();
+    editorStatus.textContent='削除を保存できませんでした。';
+    return;
+  }
   if(editingId===page.id)closeEditor();
   renderPageList();
   try{
