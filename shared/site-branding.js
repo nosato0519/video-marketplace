@@ -577,10 +577,23 @@
               option.textContent = optionData[1];
               control.appendChild(option);
             });
-            const defaultValue = setting[0] === "columns" ? "3" : setting[0] === "videoCount" ? "8" : "8";
-            control.value = String(item.content.settings[setting[0]] || defaultValue);
+            const defaults = {
+              videoCount: "8",
+              columns: "3",
+              categoryCount: "8",
+              genreCount: "8",
+              creatorCount: "4",
+              featureCount: "3",
+              layout: setting[0] === "layout" && item.type === "genre-rail" ? "rail" : "feature"
+            };
+            const defaultValue = defaults[setting[0]] || setting[2][0][0];
+            const savedValue = item.content.settings[setting[0]];
+            control.value = String(savedValue === undefined || savedValue === null || savedValue === "" ? defaultValue : savedValue);
+            if (!Array.from(control.options).some(function (option) { return option.value === control.value; })) {
+              control.value = defaultValue;
+            }
             control.addEventListener("change", function () {
-              item.content.settings[setting[0]] = Number(control.value);
+              item.content.settings[setting[0]] = setting[0] === "layout" ? control.value : Number(control.value);
             });
             label.appendChild(control);
             settingsFields.appendChild(label);
