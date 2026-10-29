@@ -105,6 +105,7 @@ async function move(index,delta){const target=index+delta;if(target<0||target>=p
 async function removePage(page){
   if(page.locked)return;
   if(!confirm('「'+page.name+'」を削除しますか？'))return;
+  if(editingId===page.id)closeEditor();
   const previousPages=pages.slice(),removedSettings=[];
   const prefixes=[
     'vm-demo-page-sections-'+page.id,
@@ -126,7 +127,6 @@ async function removePage(page){
     editorStatus.textContent='削除を保存できませんでした。';
     return;
   }
-  if(editingId===page.id)closeEditor();
   renderPageList();
   try{
     await persistEditorSettings();
