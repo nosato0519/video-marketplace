@@ -193,7 +193,7 @@ test('homepage editor creates and publishes a configurable custom card section',
   await expect(customRow).toBeVisible();
   await customRow.getByRole('button', { name: '編集' }).click();
   await customRow.getByLabel('見出し').fill('おすすめの学び');
-  await customRow.getByLabel('説明').fill('目的に合った動画を選べます。');
+  await customRow.getByRole('textbox', { name: '説明', exact: true }).fill('目的に合った動画を選べます。');
   await customRow.getByLabel('項目（1行ごとに「タイトル|説明|画像URL|リンク先」）')
     .fill('動画講座|基礎から学べます||/pages/video-list.html');
   await page.locator('#top-save-settings').click();
