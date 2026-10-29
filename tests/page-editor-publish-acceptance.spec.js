@@ -418,8 +418,21 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
     }
   }
 
+  await page.locator('#top-add-type').selectOption('custom-text');
+  await page.locator('#top-add-section').click();
+  const repeatedTextRow = page.locator('#top-settings-list .homepage-section-row')
+    .filter({ hasText: '自由ブロック：文章' }).last();
+  await repeatedTextRow.getByRole('button', { name: '編集' }).click();
+  await repeatedTextRow.getByLabel('見出し').fill('2つ目の独自文章');
+  await repeatedTextRow.getByLabel('本文').fill('同じ種類でも別々に表示されます。');
+
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+
+  const repeatedTextBlocks = savedSections.filter((section) => section.type === 'custom-text');
+  expect(repeatedTextBlocks).toHaveLength(2);
+  expect(new Set(repeatedTextBlocks.map((section) => section.id)).size).toBe(2);
+  expect(repeatedTextBlocks.some((section) => section.content.title === '2つ目の独自文章')).toBe(true);
 
   for (const block of blockCases) {
     const savedBlock = savedSections.find((section) => section.type === block.type);
@@ -455,7 +468,9 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
       await expect(page.locator(`.vm-homepage-${block.type}`).getByRole('heading', { name: block.title })).toBeVisible();
     }
   }
+  await expect(page.locator('.vm-homepage-custom-text')).toHaveCount(2);
   await expect(page.locator('.vm-homepage-custom-text')).toContainText('公開される自由な本文です。');
+  await expect(page.locator('.vm-homepage-custom-text')).toContainText('同じ種類でも別々に表示されます。');
   await expect(page.locator('.vm-homepage-custom-image-text')).toContainText('画像と一緒に表示する本文です。');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('object-fit', 'contain');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('border-radius', '0px');
