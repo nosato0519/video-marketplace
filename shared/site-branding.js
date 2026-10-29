@@ -379,7 +379,7 @@
         }
         if (!allDefinitions.some(function (def) { return def.type === item.type; })) return false;
         seenIds.add(id);
-        if (item.added !== true && seenTypes.has(item.type)) return false;
+        if (!customTypes.has(item.type) && seenTypes.has(item.type)) return false;
         seenTypes.add(item.type);
         return true;
       }).map(function (item, index) {
