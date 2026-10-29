@@ -9,6 +9,7 @@ const pageUrl = '/__acceptance-published-page-' + pageId;
 let server;
 let originalSetting;
 let settingExisted = false;
+let settingBackupLoaded = false;
 
 async function restoreSetting() {
   if (settingExisted) {
@@ -31,6 +32,7 @@ try {
   );
   settingExisted = previous.rows.length > 0;
   originalSetting = previous.rows[0]?.setting_value;
+  settingBackupLoaded = true;
 
   const entries = {
     'vm-demo-pages': JSON.stringify([{ id: pageId, name: marker, url: pageUrl, status: '公開' }]),
@@ -62,14 +64,14 @@ try {
   const html = await response.text();
 
   assert.equal(response.status, 200, 'published custom URL should return HTTP 200');
-  assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'rendered HTML should contain the published page title');
-  assert.match(html, /page-custom-hero/, 'rendered HTML should contain the custom hero section');
+  assert.ok(html.includes(marker), 'rendered HTML should contain the published page title');
+  assert.ok(html.includes('page-custom-hero'), 'rendered HTML should contain the custom hero section');
 
   console.log('PASS: published custom URL returns rendered page HTML from the backend.');
 } finally {
   if (server) await new Promise(resolve => server.close(resolve));
   try {
-    await restoreSetting();
+    if (settingBackupLoaded) await restoreSetting();
   } finally {
     await closePool();
   }
