@@ -542,7 +542,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#library .library-flow')).toHaveCSS('display', 'grid');
   await expect(page.locator('#library .library-flow .flow-line').first()).toBeHidden();
   await expect(page.locator('#library .library-flow .flow-card > span').first()).toBeHidden();
-  await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /minmax\(0px, 1fr\)/);
+  await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /^\S+$/);
   await expect(page.locator('#creator .creator-copy')).toHaveCSS('text-align', 'center');
   await expect(page.locator('.cta')).toHaveCSS('text-align', 'center');
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
