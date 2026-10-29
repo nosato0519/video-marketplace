@@ -784,7 +784,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('.trustbar > div:visible')).toHaveCount(2);
   await expect(page.locator('.vm-homepage-custom-gallery .vm-homepage-custom-grid')).toHaveAttribute('data-columns', '4');
   await expect(page.locator('.hero')).toHaveCSS('min-height', '420px');
-  await expect(page.locator('.hero .hero-bg')).toHaveCSS('background-position', 'left center');
+  await expect(page.locator('.hero .hero-bg')).toHaveCSS('background-position', '0% 50%');
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
