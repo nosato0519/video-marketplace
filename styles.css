@@ -1025,3 +1025,8 @@ footer{border-radius:0;background:#07090c}
 .collection-copy{max-width:880px;line-height:2;margin:18px 0 34px;color:#737d86}
 .collection-note{margin-top:34px;padding-top:22px;border-top:1px solid #1112;display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:10px;letter-spacing:2px;font-weight:900}
 .announcement-empty{color:#77828d;font-size:10px}
+/* Responsive layout for configurable homepage card and gallery blocks. */
+.vm-homepage-custom-grid{grid-template-columns:repeat(var(--vm-homepage-card-columns,3),minmax(0,1fr))}
+@media(max-width:900px){.vm-homepage-custom-grid{--vm-homepage-card-columns:3!important}}
+@media(max-width:620px){.vm-homepage-custom-grid{--vm-homepage-card-columns:2!important}}
+@media(max-width:420px){.vm-homepage-custom-grid{--vm-homepage-card-columns:1!important}}
