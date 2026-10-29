@@ -993,6 +993,53 @@
                 embeddedSection.style.marginInline = "0";
                 const embeddedHeading = embeddedSection.querySelector(".section-head h2, h2");
                 if (embeddedHeading && pageSection.label) embeddedHeading.textContent = pageSection.label;
+                const embeddedSectionContent = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
+                const embeddedSettings = pageSection.settings && typeof pageSection.settings === "object"
+                  ? pageSection.settings
+                  : (embeddedSectionContent.settings && typeof embeddedSectionContent.settings === "object" ? embeddedSectionContent.settings : {});
+                const embeddedTheme = embeddedSectionContent.theme && typeof embeddedSectionContent.theme === "object" ? embeddedSectionContent.theme : {};
+                if (typeof embeddedTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.bg)) embeddedSection.style.backgroundColor = embeddedTheme.bg;
+                if (typeof embeddedTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.text)) embeddedSection.style.color = embeddedTheme.text;
+                if (typeof embeddedTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.accent)) embeddedSection.style.setProperty("--accent", embeddedTheme.accent);
+                const embeddedColumns = Number(embeddedSettings.columns);
+                const embeddedGrid = pageSection.type === "categories"
+                  ? embeddedSection.querySelector(".category-grid")
+                  : embeddedSection.querySelector("#videos, .video-grid, .creator-list");
+                if (embeddedGrid && [2, 3, 4, 5].includes(embeddedColumns)) {
+                  embeddedGrid.style.gridTemplateColumns = "repeat(" + embeddedColumns + ", minmax(0, 1fr))";
+                }
+                const embeddedCardRules = {
+                  "popular": [".video-card", "videoCount"],
+                  "new-releases": [".video-card", "videoCount"],
+                  "categories": [".cat", "categoryCount"],
+                  "genre-rail": [".genre-card", "genreCount"],
+                  "genre-recommendations": [".recommendation-card", "genreCount"],
+                  "video-showcase": [".showcase-card", "videoCount"],
+                  "spotlight": [".spotlight-stack > .mini", "featureCount"],
+                  "creators": [".creator-list > .person", "creatorCount"],
+                  "collection": [".video-card", "videoCount"]
+                };
+                const embeddedCardRule = embeddedCardRules[pageSection.type];
+                if (embeddedCardRule) {
+                  const embeddedCount = Number(embeddedSettings[embeddedCardRule[1]]);
+                  if (Number.isFinite(embeddedCount) && embeddedCount > 0) {
+                    Array.from(embeddedSection.querySelectorAll(embeddedCardRule[0])).forEach(function (card, cardIndex) {
+                      card.hidden = cardIndex >= embeddedCount;
+                      if (card.hidden) card.style.setProperty("display", "none", "important");
+                      else card.style.removeProperty("display");
+                    });
+                  }
+                }
+                if (embeddedSettings.layout === "grid") {
+                  const embeddedLayoutTarget = pageSection.type === "genre-rail"
+                    ? embeddedSection.querySelector(".genre-track")
+                    : pageSection.type === "video-showcase"
+                      ? embeddedSection.querySelector(".video-showcase-grid")
+                      : pageSection.type === "spotlight"
+                        ? embeddedSection.querySelector(".spotlight-stack")
+                        : null;
+                  if (embeddedLayoutTarget) embeddedLayoutTarget.style.display = "grid";
+                }
                 embeddedContent.appendChild(embeddedSection);
                 return;
               }
