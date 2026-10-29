@@ -65,11 +65,21 @@ test('admin page editor persists a newly published page and restores it from ser
     const pages = JSON.parse(savedEntries['vm-demo-pages'])
       .filter((item) => item.status === '公開')
       .map(({ id, name, url }) => ({ id, name, url, image: '' }));
+    const sections = pages.map((publishedPage) => ({
+      id: `custom-page-${publishedPage.id}`,
+      type: 'custom-page',
+      pageId: publishedPage.id,
+      label: publishedPage.name,
+      hidden: false,
+      added: false,
+      order: 0,
+      content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+    }));
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        sections: [],
+        sections,
         publishedPages: pages,
         themes: {},
         pageSettings: {},
