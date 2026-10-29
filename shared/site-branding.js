@@ -1094,6 +1094,30 @@
                     filter.hidden = embeddedSettings.searchFields !== "extended";
                   });
                 }
+                if (pageSection.type === "library") {
+                  const flow = embeddedSection.querySelector(".library-flow");
+                  if (flow) {
+                    const useCards = embeddedSettings.layout === "cards";
+                    flow.style.display = useCards ? "grid" : "";
+                    flow.style.gridTemplateColumns = useCards ? "repeat(auto-fit, minmax(120px, 1fr))" : "";
+                    flow.querySelectorAll(".flow-line").forEach(function (line) { line.hidden = useCards; });
+                    flow.querySelectorAll(".flow-card > span").forEach(function (icon) { icon.hidden = embeddedSettings.showIcons === "no"; });
+                  }
+                }
+                if (pageSection.type === "creator") {
+                  const copy = embeddedSection.querySelector(".creator-copy");
+                  const art = embeddedSection.querySelector(".creator-art");
+                  const centered = embeddedSettings.layout === "centered";
+                  embeddedSection.style.gridTemplateColumns = centered ? "minmax(0, 1fr)" : "";
+                  if (copy) copy.style.textAlign = centered ? "center" : "";
+                  if (art) { art.style.maxWidth = centered ? "320px" : ""; art.style.marginInline = centered ? "auto" : ""; }
+                  embeddedSection.querySelectorAll(".creator-points").forEach(function (points) { points.style.justifyContent = centered ? "center" : ""; });
+                }
+                if (pageSection.type === "cta") {
+                  const centered = embeddedSettings.layout === "centered";
+                  embeddedSection.style.textAlign = centered ? "center" : "";
+                  embeddedSection.querySelectorAll(":scope > div:last-child").forEach(function (actions) { actions.style.justifyContent = centered ? "center" : ""; });
+                }
                 embeddedContent.appendChild(embeddedSection);
                 return;
               }
@@ -1384,6 +1408,30 @@
           section.querySelectorAll(".find-row span").forEach(function (filter) {
             filter.hidden = displaySettings.searchFields !== "extended";
           });
+        }
+        if (item.type === "library") {
+          const flow = section.querySelector(".library-flow");
+          if (flow) {
+            const useCards = displaySettings.layout === "cards";
+            flow.style.display = useCards ? "grid" : "";
+            flow.style.gridTemplateColumns = useCards ? "repeat(auto-fit, minmax(120px, 1fr))" : "";
+            flow.querySelectorAll(".flow-line").forEach(function (line) { line.hidden = useCards; });
+            flow.querySelectorAll(".flow-card > span").forEach(function (icon) { icon.hidden = displaySettings.showIcons === "no"; });
+          }
+        }
+        if (item.type === "creator") {
+          const copy = section.querySelector(".creator-copy");
+          const art = section.querySelector(".creator-art");
+          const centered = displaySettings.layout === "centered";
+          section.style.gridTemplateColumns = centered ? "minmax(0, 1fr)" : "";
+          if (copy) copy.style.textAlign = centered ? "center" : "";
+          if (art) { art.style.maxWidth = centered ? "320px" : ""; art.style.marginInline = centered ? "auto" : ""; }
+          section.querySelectorAll(".creator-points").forEach(function (points) { points.style.justifyContent = centered ? "center" : ""; });
+        }
+        if (item.type === "cta") {
+          const centered = displaySettings.layout === "centered";
+          section.style.textAlign = centered ? "center" : "";
+          section.querySelectorAll(":scope > div:last-child").forEach(function (actions) { actions.style.justifyContent = centered ? "center" : ""; });
         }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
