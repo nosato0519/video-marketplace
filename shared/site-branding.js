@@ -1668,7 +1668,7 @@
       // An explicit saved item (including hidden:true) remains authoritative.
       const configuredTypes = new Set(sections
         .filter(function (item) { return item && typeof item === "object"; })
-        .map(function (item) { return item.type || item.key || item.id; }));
+        .map(function (item) { return item.type; }));
       definitions.forEach(function (definition, definitionIndex) {
         if (configuredTypes.has(definition.key)) return;
         const missingSection = originals[definition.key];
