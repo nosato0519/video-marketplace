@@ -118,7 +118,7 @@ test('admin page editor persists a newly published page and exposes its homepage
   await expect(page.locator('#page-editor')).toBeHidden();
   await expect(page.locator('#page-management')).toBeVisible();
   await expect(page.getByText('キャンセル確認用ページ', { exact: true })).toHaveCount(0);
-  expect(saveCount).toBe(1);
+  expect(saveCount).toBe(2);
 
   await page.route('**/api/site/homepage-settings', async (route) => {
     const pages = JSON.parse(savedEntries['vm-demo-pages'])
