@@ -445,8 +445,8 @@
       }
       input.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
       input.addEventListener("input", function () {
-        if (key === "themeBg" || key === "themeText" || key === "themeAccent") {
-          const themeKey = key === "themeBg" ? "bg" : key === "themeText" ? "text" : "accent";
+        if (["themeBg", "themeText", "themeAccent", "themeButtonText"].includes(key)) {
+          const themeKey = { themeBg: "bg", themeText: "text", themeAccent: "accent", themeButtonText: "buttonText" }[key];
           item.content.theme = item.content.theme && typeof item.content.theme === "object" ? item.content.theme : {};
           if (input.value.trim()) item.content.theme[themeKey] = input.value.trim();
           else delete item.content.theme[themeKey];
@@ -670,6 +670,12 @@
           themeSelect("上下の余白", "spacing", [["compact","小"],["standard","標準"],["large","大"]], "standard"),
           themeSelect("角丸", "radius", [["rounded","あり"],["square","なし"]], "rounded")
         );
+        if (["custom-image", "custom-image-text", "custom-gallery", "custom-cards"].includes(item.type)) {
+          themeFields.appendChild(themeSelect("画像の表示方法", "imageFit", [["cover","枠に合わせて表示"],["contain","画像全体を表示"]], "cover"));
+        }
+        if (item.type === "custom-button") {
+          themeFields.appendChild(field("ボタン文字色（HEX）", "themeButtonText", sectionTheme.buttonText || "#111111", item, false));
+        }
         themeDetails.appendChild(themeFields);
         fields.appendChild(themeDetails);
         if (item.type === "custom-gallery" || item.type === "custom-cards") {
