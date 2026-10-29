@@ -643,7 +643,7 @@ function runPublishCheck(){
     const field=document.getElementById(id);
     return !!field&&field.value.trim()!=='';
   });
-  const hasVisibleContent=visibleSections>0||heroHasContent;
+  const hasVisibleContent=visibleSections>0;
   const duplicateUrl=pages.some(page=>page.id!==editingId&&page.url===url);
   const checks=[
     {label:'ページ名が入力されている',ok:!!name},
