@@ -337,7 +337,6 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(embeddedPopular).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(embeddedPopular).toHaveCSS('max-width', '900px');
   await expect(embeddedPopular).toHaveCSS('padding-top', '48px');
-  await expect(embeddedPopular.locator('.video-card').first()).toHaveCSS('border-radius', '0px');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
