@@ -205,6 +205,74 @@ test('admin page editor persists a newly published page and exposes its homepage
   await expect(homepagePageLink).toHaveAttribute('style', /flex-direction:\s*column/);
 });
 
+test('admin page editor persists section order and visibility across reloads', async ({ page }) => {
+  let savedEntries = {};
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      savedEntries = route.request().postDataJSON().entries;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+  await page.locator('#page-name').fill('セクション順序保存テスト');
+  await page.locator('#page-url').fill('/pages/section-order-persistence');
+
+  for (const [label, title] of [
+    ['先に追加したセクション', '先に追加した見出し'],
+    ['後に追加したセクション', '後に追加した見出し'],
+  ]) {
+    await page.locator('#homepage-add-type').selectOption('custom-text');
+    await page.locator('#homepage-add-section').click();
+    const row = page.locator('#homepage-section-list .homepage-section-row').last();
+    await row.getByRole('button', { name: '編集' }).click();
+    await page.locator('#section-edit-name').fill(label);
+    await page.locator('#section-content-title').fill(title);
+    await page.getByRole('button', { name: '編集内容を反映' }).click();
+  }
+
+  const rows = page.locator('#homepage-section-list .homepage-section-row');
+  await rows.nth(1).getByRole('button', { name: '↑' }).click();
+  await page.locator('#homepage-section-list .homepage-section-row').first().getByRole('button', { name: '表示' }).click();
+  await page.getByRole('button', { name: '公開する' }).click();
+  await expect(page.locator('#editor-status')).toContainText('公開しました: /pages/section-order-persistence');
+
+  const pages = JSON.parse(savedEntries['vm-demo-pages']);
+  const savedPage = pages.find((item) => item.url === '/pages/section-order-persistence');
+  expect(savedPage).toBeTruthy();
+  const sectionsKey = `vm-demo-page-sections-${savedPage.id}`;
+  const sections = JSON.parse(savedEntries[sectionsKey]);
+  expect(sections.map((item) => item.label)).toEqual(['後に追加したセクション', '先に追加したセクション']);
+  expect(sections.map((item) => item.hidden)).toEqual([true, false]);
+  expect(sections.map((item) => item.order)).toEqual([0, 1]);
+
+  await page.reload();
+  const pageRow = page.locator('#managed-pages-list .homepage-section-row').filter({ hasText: 'セクション順序保存テスト' });
+  await pageRow.getByRole('button', { name: '編集' }).click();
+  const reloadedRows = page.locator('#homepage-section-list .homepage-section-row');
+  await expect(reloadedRows).toHaveCount(2);
+  await expect(reloadedRows.nth(0)).toContainText('後に追加したセクション');
+  await expect(reloadedRows.nth(0)).toHaveAttribute('data-hidden', 'true');
+  await expect(reloadedRows.nth(1)).toContainText('先に追加したセクション');
+  await expect(reloadedRows.nth(1)).toHaveAttribute('data-hidden', 'false');
+});
+
 test('admin page editor refuses stale local settings when the server cannot load canonical settings', async ({ page }) => {
   let writeRequests = 0;
   await page.addInitScript(() => {
