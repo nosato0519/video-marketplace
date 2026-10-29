@@ -666,6 +666,10 @@ document.getElementById('homepage-add-section').addEventListener('click',()=>{
   const type = document.getElementById('homepage-add-type').value;
   const definition = definitions.find(item => item.key === type);
   if (!definition) return;
+  if (!type.startsWith('custom-') && sectionState.some(item => item && item.type === type)) {
+    editorStatus.textContent = '同じ標準セクションは重複して追加できません。';
+    return;
+  }
   sectionState.push({id:type+'-'+Date.now(),type,label:definition.label,hidden:false,added:true,order:sectionState.length,content:{}});
   renderSections();
 });
