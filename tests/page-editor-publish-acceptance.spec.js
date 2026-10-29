@@ -590,6 +590,16 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   expect(savedSections.find((section) => section.id === 'spotlight').content.settings.layout).toBe('grid');
 
+  const libraryRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '購入後のライブラリ案内' }).first();
+  await libraryRow.getByRole('button', { name: '編集' }).click();
+  await libraryRow.getByText('表示内容の設定', { exact: true }).click();
+  await libraryRow.locator('details select:has(option[value="flow"]):has(option[value="cards"])').selectOption('cards');
+  await libraryRow.locator('details select:has(option[value="yes"]):has(option[value="no"])').selectOption('no');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((section) => section.id === 'library').content.settings.layout).toBe('cards');
+  expect(savedSections.find((section) => section.id === 'library').content.settings.showIcons).toBe('no');
+
   const reorderGenreRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '気分から選ぶ' }).first();
   await reorderGenreRow.getByRole('button', { name: '↑' }).click();
   await page.locator('#top-save-settings').click();
