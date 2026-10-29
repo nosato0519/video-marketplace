@@ -277,7 +277,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, items: [] }] };
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -339,6 +339,11 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(embeddedPopular).toHaveCSS('padding-top', '48px');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
+  const embeddedText = page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text');
+  await expect(embeddedText).toHaveCSS('background-color', 'rgb(35, 69, 103)');
+  await expect(embeddedText).toHaveCSS('color', 'rgb(238, 238, 238)');
+  await expect(embeddedText).toHaveCSS('max-width', 'none');
+  await expect(embeddedText).toHaveCSS('padding-top', '12px');
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
   await page.reload();
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
