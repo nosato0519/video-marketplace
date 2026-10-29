@@ -430,6 +430,30 @@ test('homepage dynamic sections persist layout controls and apply them to public
       body: '保存したデザインが公開TOPに反映されます。',
       theme: { bg: '#234567', text: '#eeeeee', accent: '#abcdef', width: 'narrow', spacing: 'compact', radius: 'square' },
     },
+  }, {
+    id: 'library-layout',
+    type: 'library',
+    label: '購入後のライブラリ案内',
+    hidden: false,
+    added: true,
+    order: 4,
+    content: { settings: { layout: 'cards', showIcons: 'no' } },
+  }, {
+    id: 'creator-layout',
+    type: 'creator',
+    label: '販売者向け案内',
+    hidden: false,
+    added: true,
+    order: 5,
+    content: { settings: { layout: 'centered' } },
+  }, {
+    id: 'cta-layout',
+    type: 'cta',
+    label: '最後の案内',
+    hidden: false,
+    added: true,
+    order: 6,
+    content: { settings: { layout: 'centered' } },
   }];
   const settings = () => ({
     sections: savedSections,
@@ -515,6 +539,12 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('.genre-rail .genre-track')).toHaveCSS('display', 'grid');
   await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('display', 'grid');
   await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
+  await expect(page.locator('#library .library-flow')).toHaveCSS('display', 'grid');
+  await expect(page.locator('#library .library-flow .flow-line').first()).toBeHidden();
+  await expect(page.locator('#library .library-flow .flow-card > span').first()).toBeHidden();
+  await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /minmax\(0px, 1fr\)/);
+  await expect(page.locator('#creator .creator-copy')).toHaveCSS('text-align', 'center');
+  await expect(page.locator('.cta')).toHaveCSS('text-align', 'center');
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
