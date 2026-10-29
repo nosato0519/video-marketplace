@@ -1164,7 +1164,8 @@
           const customContent = item.content && typeof item.content === "object" ? item.content : {};
           const layout = customContent.layout || "standard";
           customSection.style.cssText = "box-sizing:border-box;width:100%;padding:32px 5%;";
-          const customTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : {};
+          const savedCustomTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : null;
+          const customTheme = savedCustomTheme || (data.themes && data.themes[item.id]) || {};
           if (typeof customTheme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.bg)) customSection.style.backgroundColor = customTheme.bg;
           if (typeof customTheme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.text)) customSection.style.color = customTheme.text;
           if (typeof customTheme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.accent)) customSection.style.setProperty("--accent", customTheme.accent);
