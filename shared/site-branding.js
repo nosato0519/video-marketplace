@@ -464,6 +464,124 @@
       label.appendChild(input);
       return label;
     }
+    function renderItemsEditor(item) {
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "grid-column:1/-1;display:grid;gap:10px;";
+      const heading = document.createElement("strong");
+      heading.textContent = "項目の内容";
+      wrapper.appendChild(heading);
+      if (!Array.isArray(item.content.items)) {
+        item.content.items = typeof item.content.itemsText === "string"
+          ? item.content.itemsText.split(/\\r?\\n/).map(function (line) {
+              const parts = line.split("|").map(function (part) { return part.trim(); });
+              return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
+            }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; })
+          : [];
+      }
+      const list = document.createElement("div");
+      list.style.cssText = "display:grid;gap:10px;";
+      function renderRows() {
+        list.replaceChildren();
+        item.content.items.forEach(function (entry, index) {
+          if (!entry || typeof entry !== "object") {
+            item.content.items[index] = {};
+            entry = item.content.items[index];
+          }
+          const card = document.createElement("div");
+          card.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;padding:10px;border:1px solid var(--line,#333);border-radius:8px;";
+          const title = document.createElement("strong");
+          title.textContent = "項目 " + (index + 1);
+          title.style.cssText = "grid-column:1/-1;";
+          card.appendChild(title);
+          [["title","タイトル"],["description","説明文"],["image","画像URL（または画像アップロード）"],["button","ボタン表示"],["link","リンク先"]].forEach(function (fieldData) {
+            const label = document.createElement("label");
+            label.style.cssText = "display:grid;gap:4px;min-width:0;font-size:12px;";
+            label.appendChild(document.createTextNode(fieldData[1]));
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = fieldData[0] === "image" && /^data:image\\//i.test(entry.image || "") ? "" : (entry[fieldData[0]] || "");
+            input.placeholder = fieldData[0] === "link" ? "/pages/video-list.html または https://…" : "";
+            input.style.cssText = "box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+            input.addEventListener("input", function () { entry[fieldData[0]] = input.value.trim(); });
+            label.appendChild(input);
+            if (fieldData[0] === "image") {
+              const upload = document.createElement("input");
+              upload.type = "file";
+              upload.accept = "image/*";
+              upload.setAttribute("aria-label", "項目 " + (index + 1) + " の画像をアップロード");
+              upload.style.cssText = "display:block;max-width:100%;margin-top:4px;";
+              const hint = document.createElement("small");
+              hint.textContent = /^data:image\\//i.test(entry.image || "") ? "アップロード画像を設定済み" : "画像ファイルから設定できます";
+              label.append(upload, hint);
+              upload.addEventListener("change", function () {
+                const file = upload.files && upload.files[0];
+                if (!file) return;
+                if (!file.type || !file.type.startsWith("image/")) {
+                  status.textContent = "画像ファイルを選択してください。";
+                  upload.value = "";
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onerror = function () { status.textContent = "画像を読み込めませんでした。"; upload.value = ""; };
+                reader.onload = function () {
+                  const image = new Image();
+                  image.onerror = function () { status.textContent = "画像を開けませんでした。"; upload.value = ""; };
+                  image.onload = function () {
+                    const scale = Math.min(1, 1200 / image.width, 900 / image.height);
+                    const canvas = document.createElement("canvas");
+                    canvas.width = Math.max(1, Math.round(image.width * scale));
+                    canvas.height = Math.max(1, Math.round(image.height * scale));
+                    const context = canvas.getContext("2d");
+                    if (!context) { status.textContent = "画像を処理できませんでした。"; upload.value = ""; return; }
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    let quality = 0.78;
+                    let dataUrl = canvas.toDataURL("image/webp", quality);
+                    while (dataUrl.length > 120000 && quality > 0.42) {
+                      quality = Math.max(0.42, quality - 0.08);
+                      dataUrl = canvas.toDataURL("image/webp", quality);
+                    }
+                    if (dataUrl.length > 120000) {
+                      status.textContent = "画像サイズが大きすぎます。小さい画像を選択してください。";
+                      upload.value = "";
+                      return;
+                    }
+                    entry.image = dataUrl;
+                    hint.textContent = "アップロード画像を設定済み";
+                    status.textContent = "項目 " + (index + 1) + " の画像を設定しました。保存すると反映されます。";
+                    upload.value = "";
+                  };
+                  image.src = String(reader.result || "");
+                };
+                reader.readAsDataURL(file);
+              });
+            }
+            card.appendChild(label);
+          });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "btn";
+          remove.textContent = "この項目を削除";
+          remove.style.gridColumn = "1/-1";
+          remove.addEventListener("click", function () {
+            item.content.items.splice(index, 1);
+            renderRows();
+          });
+          card.appendChild(remove);
+          list.appendChild(card);
+        });
+      }
+      const addItem = document.createElement("button");
+      addItem.type = "button";
+      addItem.className = "btn";
+      addItem.textContent = "項目を追加";
+      addItem.addEventListener("click", function () {
+        item.content.items.push({ title: "", description: "", image: "", button: "", link: "" });
+        renderRows();
+      });
+      renderRows();
+      wrapper.append(list, addItem);
+      return wrapper;
+    }
     function render() {
       root.replaceChildren();
       sections.forEach(function (item, index) {
@@ -714,7 +832,7 @@
           columnsSelect.addEventListener("change", function () { item.content.columns = Number(columnsSelect.value); });
           fields.appendChild(columnsLabel);
           columnsLabel.appendChild(columnsSelect);
-          fields.appendChild(field("項目（1行ごとに「タイトル|説明|画像URL|リンク先」）", "itemsText", item.content.itemsText, item, true));
+          fields.appendChild(renderItemsEditor(item));
         }
         contentDetails.appendChild(fields);
         row.appendChild(contentDetails);
@@ -1414,7 +1532,7 @@
                 }
               }
               card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
-              if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
+              if (entry.image && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")) || /^data:image\\/(?:png|jpe?g|webp|gif);base64,/i.test(entry.image))) {
                 const image = document.createElement("img");
                 image.src = entry.image;
                 image.alt = "";
