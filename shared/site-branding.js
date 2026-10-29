@@ -1238,6 +1238,7 @@
           customSection.dataset.vmSectionId = item.id || item.type;
           customSection.dataset.vmSectionType = item.type;
           const customContent = item.content && typeof item.content === "object" ? item.content : {};
+          const customSettings = item.settings && typeof item.settings === "object" ? item.settings : (customContent.settings && typeof customContent.settings === "object" ? customContent.settings : {});
           const layout = customContent.layout || "standard";
           customSection.style.cssText = "box-sizing:border-box;width:100%;padding:32px 5%;";
           const savedCustomTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : null;
@@ -1295,7 +1296,8 @@
           }
           if (item.type === "custom-gallery" || item.type === "custom-cards") {
             const grid = document.createElement("div");
-            const columnCount = [2, 3, 4, 5].includes(Number(customContent.columns)) ? Number(customContent.columns) : 3;
+            const configuredColumns = Number(customSettings.columns ?? customContent.columns);
+            const columnCount = [2, 3, 4, 5].includes(configuredColumns) ? configuredColumns : 3;
             grid.className = "vm-homepage-custom-grid";
             grid.dataset.columns = String(columnCount);
             grid.style.cssText = "display:grid;gap:16px;margin-top:18px;";
