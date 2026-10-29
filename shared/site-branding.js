@@ -1302,10 +1302,6 @@
         section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
         const displaySettings = sectionContent.settings && typeof sectionContent.settings === "object" ? sectionContent.settings : {};
-        const cardGrid = item.type === "popular" ? section.querySelector("#videos, .video-grid") : item.type === "new-releases" ? section.querySelector(".video-grid, #new-videos") : null;
-        if (cardGrid && [2, 3, 4, 5].includes(Number(displaySettings.columns))) {
-          cardGrid.style.gridTemplateColumns = "repeat(" + Number(displaySettings.columns) + ", minmax(0, 1fr))";
-        }
         const sectionCardSettings = {
           "popular": { selector: ".video-card", countKey: "videoCount" },
           "new-releases": { selector: ".video-card", countKey: "videoCount" },
