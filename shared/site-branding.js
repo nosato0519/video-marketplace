@@ -722,6 +722,10 @@
     if (add) add.addEventListener("click", function () {
       const def = allDefinitions.find(function (item) { return item.type === select.value; });
       if (!def) return;
+      if (!customTypes.has(def.type) && sections.some(function (item) { return item && item.type === def.type; })) {
+        status.textContent = "同じ標準セクションは重複して追加できません。";
+        return;
+      }
       const id = def.type + "-added-" + Date.now();
       sections.push({ id: id, type: def.type, label: def.label, hidden: false, added: true, order: sections.length, content: {} });
       render();
