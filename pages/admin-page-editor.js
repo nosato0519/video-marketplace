@@ -83,12 +83,11 @@ throw new Error('ページ設定のサーバー保存に失敗しました（'+d
 return true;
 }
 async function loadServerEditorSettings(){
-try{
 const response=await fetch('/api/admin/settings/page-editor',{credentials:'same-origin',cache:'no-store'});
-if(!response.ok)return null;
+if(!response.ok)throw new Error('ページ設定をサーバーから読み込めませんでした（HTTP '+response.status+'）。');
 const data=await response.json();
 const entries=data.entries===null?{}:data.entries;
-if(!entries||typeof entries!=='object'||Array.isArray(entries))return null;
+if(!entries||typeof entries!=='object'||Array.isArray(entries))throw new Error('サーバーから受け取ったページ設定の形式が正しくありません。');
 const isManagedKey=key=>key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||key==='vm-demo-site-branding'||key==='vm-demo-admin-setting-general'||key==='vm-demo-announcements'||key==='vm-demo-homepage-theme'||/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key);
 const serverKeys=new Set(Object.keys(entries));
 for(let index=localStorage.length-1;index>=0;index--){
@@ -97,7 +96,6 @@ if(key&&isManagedKey(key)&&!serverKeys.has(key))localStorage.removeItem(key);
 }
 Object.entries(entries).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});
 return entries;
-}catch(error){console.error('Loading page editor settings failed',error);return null;}
 }
 function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'&&!RESERVED_PAGE_URLS.has(page.url)):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
@@ -616,10 +614,10 @@ loadServerEditorSettings().then(() => {
   pages = pages.filter(page => page && page.id !== 'top' && !RESERVED_PAGE_URLS.has(page.url));
   save();
   renderPageList();
-}).catch(() => {
-  load();
-  pages = pages.filter(page => page && page.id !== 'top');
-  renderPageList();
+}).catch(error => {
+  console.error('Page editor initialization failed', error);
+  editorStatus.textContent = error instanceof Error ? error.message + ' データ保護のため編集操作を停止しました。' : 'ページ設定を読み込めないため、データ保護のため編集操作を停止しました。';
+  document.querySelectorAll('#page-management button, #page-editor button, #section-editor button').forEach(button => { button.disabled = true; });
 });
 
 })();
