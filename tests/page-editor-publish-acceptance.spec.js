@@ -330,8 +330,8 @@ test('homepage custom-page layout selection persists and controls public renderi
   const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
   await expect(publicLink).toBeVisible();
   await expect(publicLink).toContainText('表示設定の保存テスト');
-  await expect(publicLink).toHaveAttribute('style', /justify-content:\\s*space-between/);
+  await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
   await page.reload();
-  await expect(publicLink).toHaveAttribute('style', /justify-content:\\s*space-between/);
+  await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
 });
 
