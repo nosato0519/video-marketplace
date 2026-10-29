@@ -1094,6 +1094,18 @@
                     filter.hidden = embeddedSettings.searchFields !== "extended";
                   });
                 }
+                if (pageSection.type === "collection") {
+                  const grid = embeddedSection.querySelector(".video-grid");
+                  if (grid) {
+                    const editorial = embeddedSettings.layout === "editorial";
+                    grid.style.gridTemplateColumns = editorial ? "minmax(0, 1fr)" : "";
+                    grid.querySelectorAll(".video-card").forEach(function (card) {
+                      card.style.display = editorial ? "grid" : "";
+                      card.style.gridTemplateColumns = editorial ? "minmax(0, 1.2fr) minmax(0, 1fr)" : "";
+                      card.style.alignItems = editorial ? "stretch" : "";
+                    });
+                  }
+                }
                 if (pageSection.type === "library") {
                   const flow = embeddedSection.querySelector(".library-flow");
                   if (flow) {
@@ -1408,6 +1420,18 @@
           section.querySelectorAll(".find-row span").forEach(function (filter) {
             filter.hidden = displaySettings.searchFields !== "extended";
           });
+        }
+        if (item.type === "collection") {
+          const grid = section.querySelector(".video-grid");
+          if (grid) {
+            const editorial = displaySettings.layout === "editorial";
+            grid.style.gridTemplateColumns = editorial ? "minmax(0, 1fr)" : "";
+            grid.querySelectorAll(".video-card").forEach(function (card) {
+              card.style.display = editorial ? "grid" : "";
+              card.style.gridTemplateColumns = editorial ? "minmax(0, 1.2fr) minmax(0, 1fr)" : "";
+              card.style.alignItems = editorial ? "stretch" : "";
+            });
+          }
         }
         if (item.type === "library") {
           const flow = section.querySelector(".library-flow");
