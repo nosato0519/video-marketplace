@@ -439,7 +439,7 @@
         const existingItems = Array.isArray(item.content.items) ? item.content.items : [];
         input.value = item.content.itemsText || existingItems.map(function (entry) {
           return [entry.title || "", entry.description || "", entry.image || "", entry.link || ""].join("|");
-        }).join("\\n");
+        }).join("\n");
       } else {
         input.value = value || "";
       }
@@ -447,7 +447,7 @@
       input.addEventListener("input", function () {
         item.content[key] = input.value;
         if (key === "itemsText") {
-          item.content.items = input.value.split(/\\r?\\n/).map(function (line) {
+          item.content.items = input.value.split(/\r?\n/).map(function (line) {
             const parts = line.split("|").map(function (part) { return part.trim(); });
             return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
           }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; });
