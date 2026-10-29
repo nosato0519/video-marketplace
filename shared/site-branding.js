@@ -597,7 +597,7 @@
               control.value = defaultValue;
             }
             control.addEventListener("change", function () {
-              item.content.settings[setting[0]] = setting[0] === "layout" ? control.value : Number(control.value);
+              item.content.settings[setting[0]] = ["layout", "showIcons"].includes(setting[0]) ? control.value : Number(control.value);
             });
             label.appendChild(control);
             settingsFields.appendChild(label);
