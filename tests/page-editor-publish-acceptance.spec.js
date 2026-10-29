@@ -40,6 +40,18 @@ test('admin page editor persists a newly published page and exposes its homepage
 
   await page.locator('#page-name').fill('受け入れテスト用ページ');
   await page.locator('#page-url').fill('/pages/acceptance-custom-page');
+  await page.locator('#page-description').fill('自由に編集したページの受け入れテストです。');
+  await page.locator('#page-seo-title').fill('受け入れテスト用ページ SEO');
+  await page.locator('#page-bg').fill('#101820');
+
+  await page.locator('#homepage-add-type').selectOption('custom-text');
+  await page.locator('#homepage-add-section').click();
+  const sectionRow = page.locator('#homepage-section-list .homepage-section-row').first();
+  await sectionRow.getByRole('button', { name: '編集' }).click();
+  await page.locator('#section-edit-name').fill('独自コンテンツ');
+  await page.locator('#section-content-title').fill('自由な見出し');
+  await page.locator('#section-content-subtitle').fill('保存されて公開ページに反映される説明文です。');
+  await page.getByRole('button', { name: 'セクションを保存' }).click();
 
   await page.getByRole('button', { name: '公開する' }).click();
 
@@ -55,6 +67,14 @@ test('admin page editor persists a newly published page and exposes its homepage
   expect(typeof savedEntries[`vm-demo-page-sections-${publishedPage.id}`]).toBe('string');
   expect(typeof savedEntries[`vm-demo-page-meta-${publishedPage.id}`]).toBe('string');
   expect(typeof savedEntries[`vm-demo-page-design-${publishedPage.id}`]).toBe('string');
+  const savedSections = JSON.parse(savedEntries[`vm-demo-page-sections-${publishedPage.id}`]);
+  const customSection = savedSections.find((item) => item.type === 'custom-text');
+  expect(customSection).toBeTruthy();
+  expect(customSection.label).toBe('独自コンテンツ');
+  expect(customSection.content.title).toBe('自由な見出し');
+  expect(customSection.content.subtitle).toBe('保存されて公開ページに反映される説明文です。');
+  expect(JSON.parse(savedEntries[`vm-demo-page-design-${publishedPage.id}`]).bg).toBe('#101820');
+  expect(JSON.parse(savedEntries[`vm-demo-page-meta-${publishedPage.id}`]).seoTitle).toBe('受け入れテスト用ページ SEO');
 
   await page.reload();
   await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
