@@ -170,6 +170,26 @@ export function createApp() {
         const rightOrder = Number.isFinite(Number(right?.order)) ? Number(right.order) : Number.MAX_SAFE_INTEGER;
         return leftOrder - rightOrder;
       });
+      const standardSectionTypes = new Set([
+        'hero', 'announcements', 'video-showcase', 'trustbar', 'collection', 'popular',
+        'new-releases', 'genre-rail', 'genre-recommendations', 'spotlight', 'finder',
+        'categories', 'library', 'creator', 'creators', 'cta'
+      ]);
+      const seenStandardSectionTypes = new Set();
+      const seenSectionIds = new Set();
+      const uniqueHomepageSections = homepageSections.filter((section) => {
+        if (!section || typeof section !== 'object') return false;
+        if (typeof section.id === 'string' && section.id) {
+          if (seenSectionIds.has(section.id)) return false;
+          seenSectionIds.add(section.id);
+        }
+        if (standardSectionTypes.has(section.type)) {
+          if (seenStandardSectionTypes.has(section.type)) return false;
+          seenStandardSectionTypes.add(section.type);
+        }
+        return true;
+      });
+      homepageSections.splice(0, homepageSections.length, ...uniqueHomepageSections);
       publishedPages.forEach((page) => {
         if (!homepageSections.some((section) => section && section.type === 'custom-page' && section.pageId === page.id)) {
           homepageSections.push({
