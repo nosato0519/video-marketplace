@@ -1017,7 +1017,7 @@ test('homepage settings can duplicate a configured custom block without sharing 
   await original.locator('textarea').nth(1).fill('複製しても内容を引き継ぎます。');
   await original.getByRole('button', { name: '複製' }).click();
 
-  const copies = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '複製元の見出し' });
+  const copies = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '自由ブロック：文章' });
   await expect(copies).toHaveCount(2);
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました。');
