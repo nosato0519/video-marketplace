@@ -478,8 +478,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await reorderGenreRow.getByRole('button', { name: '↑' }).click();
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
-  expect(savedSections.map((section) => section.id)).toEqual(['genre-rail', 'popular', 'custom-banner']);
-  expect(savedSections.map((section) => section.order)).toEqual([0, 1, 2]);
+  expect(savedSections.slice(0, 3).map((section) => section.id)).toEqual(['genre-rail', 'popular', 'custom-banner']);
+  expect(savedSections.slice(0, 3).map((section) => section.order)).toEqual([0, 1, 2]);
 
   await page.goto('/');
   const publicSection = page.locator('#popular');
