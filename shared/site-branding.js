@@ -541,6 +541,57 @@
           fields.appendChild(layout);
           layout.appendChild(layoutSelect);
         }
+        const themeDetails = document.createElement("details");
+        themeDetails.style.cssText = "grid-column:1/-1;border-top:1px solid var(--line,#333);padding-top:10px;";
+        const themeSummary = document.createElement("summary");
+        themeSummary.textContent = "セクションのデザイン設定";
+        themeSummary.style.cursor = "pointer";
+        themeDetails.appendChild(themeSummary);
+        const themeFields = document.createElement("div");
+        themeFields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:10px;";
+        const sectionTheme = item.content.theme && typeof item.content.theme === "object" ? item.content.theme : (item.content.theme = {});
+        themeFields.append(
+          field("背景色（HEX）", "themeBg", sectionTheme.bg || "", item, false),
+          field("文字色（HEX）", "themeText", sectionTheme.text || "", item, false),
+          field("アクセント色（HEX）", "themeAccent", sectionTheme.accent || "", item, false)
+        );
+        function themeSelect(labelText, key, options, fallback) {
+          const label = document.createElement("label");
+          label.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
+          label.appendChild(document.createTextNode(labelText));
+          const input = document.createElement("select");
+          input.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+          options.forEach(function (entry) {
+            const option = document.createElement("option");
+            option.value = entry[0];
+            option.textContent = entry[1];
+            input.appendChild(option);
+          });
+          input.value = sectionTheme[key] || fallback;
+          input.addEventListener("change", function () {
+            sectionTheme[key] = input.value;
+            item.content.theme = sectionTheme;
+          });
+          label.appendChild(input);
+          return label;
+        }
+        themeFields.append(
+          themeSelect("コンテンツ幅", "width", [["standard","標準"],["wide","幅広"],["narrow","狭い"]], "standard"),
+          themeSelect("上下の余白", "spacing", [["compact","小"],["standard","標準"],["large","大"]], "standard"),
+          themeSelect("角丸", "radius", [["rounded","あり"],["square","なし"]], "rounded")
+        );
+        ["themeBg", "themeText", "themeAccent"].forEach(function (key, index) {
+          const input = themeFields.querySelectorAll("input")[index];
+          if (!input) return;
+          input.addEventListener("input", function () {
+            const themeKey = key === "themeBg" ? "bg" : key === "themeText" ? "text" : "accent";
+            if (input.value.trim()) sectionTheme[themeKey] = input.value.trim();
+            else delete sectionTheme[themeKey];
+            item.content.theme = sectionTheme;
+          });
+        });
+        themeDetails.appendChild(themeFields);
+        fields.appendChild(themeDetails);
         if (item.type === "custom-gallery" || item.type === "custom-cards") {
           const columnsLabel = document.createElement("label");
           columnsLabel.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
@@ -1034,7 +1085,8 @@
             } catch (_) {}
           }
         }
-        const theme = data.themes && data.themes[item.id];
+        const savedTheme = sectionContent.theme && typeof sectionContent.theme === "object" ? sectionContent.theme : null;
+        const theme = savedTheme || (data.themes && data.themes[item.id]);
         if (theme && typeof theme === "object") {
           if (typeof theme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(theme.bg)) section.style.backgroundColor = theme.bg;
           if (typeof theme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(theme.text)) section.style.color = theme.text;
@@ -1043,7 +1095,8 @@
           if (typeof theme.spacing === "string") section.style.paddingBlock = theme.spacing === "compact" ? "18px" : theme.spacing === "large" ? "64px" : "36px";
           if (typeof theme.width === "string") {
             section.style.maxWidth = theme.width === "narrow" ? "900px" : theme.width === "wide" ? "none" : "";
-            if (theme.width === "narrow") section.style.marginInline = "auto";
+            section.style.marginInline = theme.width === "narrow" ? "auto" : "";
+            if (theme.width === "wide") section.style.paddingInline = "2%";
           }
         }
         ordered.push(section);
