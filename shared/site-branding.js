@@ -531,6 +531,21 @@
           layout.appendChild(layoutSelect);
         }
         if (item.type === "custom-gallery" || item.type === "custom-cards") {
+          const columnsLabel = document.createElement("label");
+          columnsLabel.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
+          columnsLabel.appendChild(document.createTextNode("1行の表示数"));
+          const columnsSelect = document.createElement("select");
+          columnsSelect.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+          [["2","2列"],["3","3列"],["4","4列"],["5","5列"]].forEach(function (optionData) {
+            const option = document.createElement("option");
+            option.value = optionData[0];
+            option.textContent = optionData[1];
+            columnsSelect.appendChild(option);
+          });
+          columnsSelect.value = String(item.content.columns || 3);
+          columnsSelect.addEventListener("change", function () { item.content.columns = Number(columnsSelect.value); });
+          fields.appendChild(columnsLabel);
+          columnsLabel.appendChild(columnsSelect);
           fields.appendChild(field("項目（1行ごとに「タイトル|説明|画像URL|リンク先」）", "itemsText", item.content.itemsText, item, true));
         }
         contentDetails.appendChild(fields);
@@ -842,7 +857,8 @@
           }
           if (item.type === "custom-gallery" || item.type === "custom-cards") {
             const grid = document.createElement("div");
-            grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px;";
+            const columnCount = [2, 3, 4, 5].includes(Number(customContent.columns)) ? Number(customContent.columns) : 3;
+            grid.style.cssText = "display:grid;grid-template-columns:repeat(" + columnCount + ",minmax(0,1fr));gap:16px;margin-top:18px;";
             (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
               if (!entry || typeof entry !== "object") return;
               const card = document.createElement(entry.link && (entry.link.startsWith("/") && !entry.link.startsWith("//") || entry.link.startsWith("https://") || entry.link.startsWith("http://")) ? "a" : "article");
