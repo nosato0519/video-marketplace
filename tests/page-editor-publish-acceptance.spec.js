@@ -431,6 +431,23 @@ test('homepage dynamic sections persist layout controls and apply them to public
       theme: { bg: '#234567', text: '#eeeeee', accent: '#abcdef', width: 'narrow', spacing: 'compact', radius: 'square' },
     },
   }, {
+    id: 'custom-gallery-columns',
+    type: 'custom-gallery',
+    label: '自由ギャラリー列数',
+    hidden: false,
+    added: true,
+    order: 4,
+    settings: { columns: '4' },
+    content: {
+      title: 'ギャラリー列数テスト',
+      items: [
+        { title: '作品A' },
+        { title: '作品B' },
+        { title: '作品C' },
+        { title: '作品D' },
+      ],
+    },
+  }, {
     id: 'library-layout',
     type: 'library',
     label: '購入後のライブラリ案内',
@@ -574,6 +591,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('display', 'grid');
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   await expect(page.locator('.trustbar > div:visible')).toHaveCount(2);
+  await expect(page.locator('.vm-homepage-custom-gallery .vm-homepage-custom-grid')).toHaveAttribute('data-columns', '4');
   await expect(page.locator('.hero')).toHaveCSS('min-height', '420px');
   await expect(page.locator('.hero .hero-bg')).toHaveCSS('background-position', 'left center');
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
