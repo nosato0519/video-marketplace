@@ -808,3 +808,73 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(hiddenCustomBlock).toBeHidden();
   await expect(hiddenCustomBlock).toHaveAttribute('aria-hidden', 'true');
 });
+
+test('admin page editor persists page-specific header and footer settings', async ({ page }) => {
+  let savedEntries = {};
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      savedEntries = route.request().postDataJSON().entries;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+  await page.locator('#page-name').fill('ヘッダー・フッター設定保存テスト');
+  await page.locator('#page-url').fill('/pages/chrome-settings-persistence');
+  await page.locator('#header-show-sell').uncheck();
+  await page.locator('#header-show-cart').uncheck();
+  await page.locator('#header-show-purchase').check();
+  await page.locator('#header-show-account').check();
+  await page.locator('#header-menu-order').selectOption('purchase,sell,cart');
+  await page.locator('#footer-description').fill('ページ専用のフッター説明');
+  await page.locator('#footer-show-links').selectOption('hide');
+  await page.locator('#footer-copyright').fill('© ページ設定保存テスト');
+
+  await page.locator('#homepage-add-type').selectOption('custom-text');
+  await page.locator('#homepage-add-section').click();
+  await page.getByRole('button', { name: '公開する' }).click();
+
+  await expect(page.locator('#editor-status')).toContainText('公開しました: /pages/chrome-settings-persistence');
+
+  const pages = JSON.parse(savedEntries['vm-demo-pages']);
+  const savedPage = pages.find((item) => item.url === '/pages/chrome-settings-persistence');
+  expect(savedPage).toBeTruthy();
+  const chrome = JSON.parse(savedEntries[`vm-demo-page-chrome-${savedPage.id}`]);
+  expect(chrome).toMatchObject({
+    showPurchase: true,
+    showSell: false,
+    showAccount: true,
+    showCart: false,
+    menuOrder: 'purchase,sell,cart',
+    footerDescription: 'ページ専用のフッター説明',
+    footerShowLinks: 'hide',
+    footerCopyright: '© ページ設定保存テスト',
+  });
+
+  await page.reload();
+  const pageRow = page.locator('#managed-pages-list .homepage-section-row').filter({ hasText: 'ヘッダー・フッター設定保存テスト' });
+  await pageRow.getByRole('button', { name: '編集' }).click();
+  await expect(page.locator('#header-show-sell')).not.toBeChecked();
+  await expect(page.locator('#header-show-cart')).not.toBeChecked();
+  await expect(page.locator('#header-show-purchase')).toBeChecked();
+  await expect(page.locator('#header-show-account')).toBeChecked();
+  await expect(page.locator('#footer-description')).toHaveValue('ページ専用のフッター説明');
+  await expect(page.locator('#footer-show-links')).toHaveValue('hide');
+  await expect(page.locator('#footer-copyright')).toHaveValue('© ページ設定保存テスト');
+});
