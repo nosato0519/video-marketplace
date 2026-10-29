@@ -381,6 +381,18 @@ test('homepage dynamic sections persist layout controls and apply them to public
     added: false,
     order: 1,
     content: { layout: 'standard' },
+  }, {
+    id: 'custom-banner',
+    type: 'custom-text',
+    label: '自由ブロックテスト',
+    hidden: false,
+    added: true,
+    order: 2,
+    content: {
+      title: '自由ブロックのテーマ確認',
+      body: '保存したデザインが公開TOPに反映されます。',
+      theme: { bg: '#234567', text: '#eeeeee', accent: '#abcdef', width: 'narrow', spacing: 'compact', radius: 'square' },
+    },
   }];
   const settings = () => ({
     sections: savedSections,
@@ -449,6 +461,13 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#videos .video-card:visible')).toHaveCount(4);
   await expect(page.locator('#videos')).toHaveCSS('grid-template-columns', /repeat\(4,/);
   await expect(page.locator('.genre-rail .genre-track')).toHaveCSS('display', 'grid');
+  const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
+  await expect(customBlock).toBeVisible();
+  await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
+  await expect(customBlock).toHaveCSS('color', 'rgb(238, 238, 238)');
+  await expect(customBlock).toHaveCSS('max-width', '900px');
+  await expect(customBlock).toHaveCSS('padding-top', '12px');
+  await expect(customBlock).toHaveCSS('border-radius', '0px');
   await page.reload();
   await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
   await expect(page.locator('#popular')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
