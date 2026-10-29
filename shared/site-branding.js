@@ -351,6 +351,18 @@
       ["finder","動画を探す"],["categories","カテゴリー一覧"],["library","ライブラリ紹介"],
       ["creator","クリエイター向け案内"],["creators","注目のクリエイター"],["cta","最後の案内"]
     ].map(function (item) { return { type: item[0], label: item[1] }; });
+    const customDefinitions = [
+      ["custom-text", "自由ブロック：文章"],
+      ["custom-image", "自由ブロック：画像"],
+      ["custom-image-text", "自由ブロック：画像＋文章"],
+      ["custom-gallery", "自由ブロック：画像ギャラリー"],
+      ["custom-cards", "自由ブロック：カード一覧"],
+      ["custom-button", "自由ブロック：ボタン"],
+      ["custom-divider", "自由ブロック：区切り線"],
+      ["custom-spacer", "自由ブロック：余白"]
+    ].map(function (item) { return { type: item[0], label: item[1] }; });
+    const allDefinitions = definitions.concat(customDefinitions);
+    const customTypes = new Set(customDefinitions.map(function (item) { return item.type; }));
     let sections = [];
     function normalize(items, publishedPages) {
       const source = Array.isArray(items) ? items : [];
@@ -365,7 +377,7 @@
           seenIds.add(id);
           return true;
         }
-        if (!definitions.some(function (def) { return def.type === item.type; })) return false;
+        if (!allDefinitions.some(function (def) { return def.type === item.type; })) return false;
         seenIds.add(id);
         if (item.added !== true && seenTypes.has(item.type)) return false;
         seenTypes.add(item.type);
@@ -423,9 +435,24 @@
       const input = document.createElement(multiline ? "textarea" : "input");
       if (!multiline) input.type = "text";
       if (multiline) input.rows = 2;
-      input.value = value || "";
+      if (key === "itemsText") {
+        const existingItems = Array.isArray(item.content.items) ? item.content.items : [];
+        input.value = item.content.itemsText || existingItems.map(function (entry) {
+          return [entry.title || "", entry.description || "", entry.image || "", entry.link || ""].join("|");
+        }).join("\\n");
+      } else {
+        input.value = value || "";
+      }
       input.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
-      input.addEventListener("input", function () { item.content[key] = input.value; });
+      input.addEventListener("input", function () {
+        item.content[key] = input.value;
+        if (key === "itemsText") {
+          item.content.items = input.value.split(/\\r?\\n/).map(function (line) {
+            const parts = line.split("|").map(function (part) { return part.trim(); });
+            return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
+          }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; });
+        }
+      });
       label.appendChild(input);
       return label;
     }
@@ -481,6 +508,31 @@
           field("リンク先", "link", item.content.link, item, false),
           field("画像URL", "image", item.content.image, item, false)
         );
+        if (customTypes.has(item.type)) {
+          const layout = document.createElement("label");
+          layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
+          layout.appendChild(document.createTextNode("表示レイアウト"));
+          const layoutSelect = document.createElement("select");
+          layoutSelect.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
+          [
+            ["standard", "標準"],
+            ["wide", "幅広"],
+            ["narrow", "幅を狭く"],
+            ["center", "中央揃え"]
+          ].forEach(function (optionData) {
+            const option = document.createElement("option");
+            option.value = optionData[0];
+            option.textContent = optionData[1];
+            layoutSelect.appendChild(option);
+          });
+          layoutSelect.value = item.content.layout || "standard";
+          layoutSelect.addEventListener("change", function () { item.content.layout = layoutSelect.value; });
+          fields.appendChild(layout);
+          layout.appendChild(layoutSelect);
+        }
+        if (item.type === "custom-gallery" || item.type === "custom-cards") {
+          fields.appendChild(field("項目（1行ごとに「タイトル|説明|画像URL|リンク先」）", "itemsText", item.content.itemsText, item, true));
+        }
         contentDetails.appendChild(fields);
         row.appendChild(contentDetails);
         root.appendChild(row);
@@ -501,7 +553,7 @@
     }
     const add = document.getElementById("top-add-section");
     if (add) add.addEventListener("click", function () {
-      const def = definitions.find(function (item) { return item.type === select.value; });
+      const def = allDefinitions.find(function (item) { return item.type === select.value; });
       if (!def) return;
       const id = def.type + "-added-" + Date.now();
       sections.push({ id: id, type: def.type, label: def.label, hidden: false, added: true, order: sections.length, content: {} });
@@ -747,6 +799,95 @@
           copy.append(heading, action);
           link.appendChild(copy);
           customSection.appendChild(link);
+          ordered.push(customSection);
+          return;
+        }
+        if (customTypes.has(item.type)) {
+          const customSection = document.createElement("section");
+          customSection.className = "section vm-homepage-custom-block vm-homepage-" + item.type;
+          customSection.dataset.vmSectionId = item.id || item.type;
+          customSection.dataset.vmSectionType = item.type;
+          const customContent = item.content && typeof item.content === "object" ? item.content : {};
+          const layout = customContent.layout || "standard";
+          customSection.style.cssText = "box-sizing:border-box;width:100%;padding:32px 5%;";
+          if (layout === "wide") customSection.style.paddingInline = "2%";
+          if (layout === "narrow") { customSection.style.maxWidth = "900px"; customSection.style.marginInline = "auto"; }
+          if (layout === "center") customSection.style.textAlign = "center";
+          if (item.hidden === true) {
+            customSection.hidden = true;
+            customSection.style.setProperty("display", "none", "important");
+            customSection.setAttribute("aria-hidden", "true");
+          }
+          function addText(tag, value, className) {
+            if (typeof value !== "string" || !value.trim()) return null;
+            const element = document.createElement(tag);
+            element.textContent = value.trim();
+            if (className) element.className = className;
+            customSection.appendChild(element);
+            return element;
+          }
+          if (item.type !== "custom-divider" && item.type !== "custom-spacer") {
+            addText("h2", customContent.title, "section-headline");
+            addText("p", customContent.subtitle, "section-description");
+          }
+          const imageUrl = typeof customContent.image === "string" ? customContent.image.trim() : "";
+          if ((item.type === "custom-image" || item.type === "custom-image-text") && imageUrl &&
+              (/^https?:\\/\\//i.test(imageUrl) || (imageUrl.startsWith("/") && !imageUrl.startsWith("//")))) {
+            const image = document.createElement("img");
+            image.src = imageUrl;
+            image.alt = customContent.title || "";
+            image.loading = "lazy";
+            image.style.cssText = "display:block;max-width:100%;max-height:520px;object-fit:cover;border-radius:12px;margin:16px auto;";
+            customSection.appendChild(image);
+          }
+          if (item.type === "custom-gallery" || item.type === "custom-cards") {
+            const grid = document.createElement("div");
+            grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px;";
+            (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
+              if (!entry || typeof entry !== "object") return;
+              const card = document.createElement(entry.link && /^\\/(?!\\/)|^https?:\\/\\//i.test(entry.link) ? "a" : "article");
+              if (card.tagName === "A") {
+                const target = String(entry.link);
+                if (target.startsWith("/") && !target.startsWith("//")) card.href = target;
+                else {
+                  try { const url = new URL(target); if (url.protocol === "https:" || url.protocol === "http:") card.href = url.href; } catch (_) {}
+                }
+              }
+              card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
+              if (entry.image && (/^https?:\\/\\//i.test(entry.image) || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
+                const image = document.createElement("img");
+                image.src = entry.image;
+                image.alt = "";
+                image.loading = "lazy";
+                image.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;";
+                card.appendChild(image);
+              }
+              if (entry.title) { const heading = document.createElement("strong"); heading.textContent = entry.title; card.appendChild(heading); }
+              if (entry.description) { const description = document.createElement("p"); description.textContent = entry.description; card.appendChild(description); }
+              grid.appendChild(card);
+            });
+            customSection.appendChild(grid);
+          }
+          if (item.type === "custom-button" && customContent.button) {
+            const button = document.createElement("a");
+            button.textContent = customContent.button;
+            button.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:12px;padding:12px 20px;border-radius:999px;background:var(--accent,#d9b45f);color:#111;text-decoration:none;font-weight:700;";
+            const link = String(customContent.link || "");
+            if (link.startsWith("/") && !link.startsWith("//")) button.href = link;
+            else { try { const url = new URL(link); if (url.protocol === "https:" || url.protocol === "http:") button.href = url.href; } catch (_) {} }
+            customSection.appendChild(button);
+          }
+          if (item.type === "custom-divider") {
+            const divider = document.createElement("hr");
+            divider.style.cssText = "border:0;border-top:1px solid var(--line,#333);margin:0 auto;width:100%;";
+            customSection.appendChild(divider);
+          }
+          if (item.type === "custom-spacer") {
+            const spacer = document.createElement("div");
+            spacer.setAttribute("aria-hidden", "true");
+            spacer.style.height = "48px";
+            customSection.appendChild(spacer);
+          }
           ordered.push(customSection);
           return;
         }
