@@ -81,6 +81,14 @@ test('admin page editor persists a newly published page and exposes its homepage
   await expect(page.getByText('公開 ・ /pages/acceptance-custom-page', { exact: true })).toBeVisible();
   expect(saveCount).toBe(1);
 
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+  await page.locator('#page-name').fill('キャンセル確認用ページ');
+  await page.locator('#cancel-page-bottom').click();
+  await expect(page.locator('#page-editor')).toBeHidden();
+  await expect(page.locator('#page-management')).toBeVisible();
+  await expect(page.getByText('キャンセル確認用ページ', { exact: true })).toHaveCount(0);
+  expect(saveCount).toBe(1);
+
   await page.route('**/api/site/homepage-settings', async (route) => {
     const pages = JSON.parse(savedEntries['vm-demo-pages'])
       .filter((item) => item.status === '公開')
