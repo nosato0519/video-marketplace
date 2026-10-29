@@ -86,8 +86,10 @@ async function loadServerEditorSettings(){
 const response=await fetch('/api/admin/settings/page-editor',{credentials:'same-origin',cache:'no-store'});
 if(!response.ok)throw new Error('ページ設定をサーバーから読み込めませんでした（HTTP '+response.status+'）。');
 const data=await response.json();
-const entries=data.entries===null?{}:data.entries;
+const hasServerConfig=data.entries!==null&&data.entries!==undefined;
+const entries=hasServerConfig?data.entries:{};
 if(!entries||typeof entries!=='object'||Array.isArray(entries))throw new Error('サーバーから受け取ったページ設定の形式が正しくありません。');
+if(!hasServerConfig)return entries;
 const isManagedKey=key=>key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||key==='vm-demo-site-branding'||key==='vm-demo-admin-setting-general'||key==='vm-demo-announcements'||key==='vm-demo-homepage-theme'||/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key);
 const serverKeys=new Set(Object.keys(entries));
 for(let index=localStorage.length-1;index>=0;index--){
