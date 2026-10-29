@@ -140,3 +140,75 @@ test('admin page editor refuses stale local settings when the server cannot load
   expect(writeRequests).toBe(0);
 });
 
+test('homepage editor creates and publishes a configurable custom card section', async ({ page }) => {
+  let savedSections = [];
+  let pageEditorEntries = {};
+  const homepageSettings = () => ({
+    sections: savedSections,
+    publishedPages: [],
+    themes: {},
+    pageSettings: {},
+    siteBranding: { siteName: 'VIDEO MARKETPLACE' },
+    siteSettings: {},
+    announcements: [],
+    homepageTheme: {},
+  });
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(homepageSettings()),
+    });
+  });
+  await page.route('**/api/admin/settings/page-editor', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const payload = route.request().postDataJSON();
+      pageEditorEntries = { ...pageEditorEntries, ...(payload.entries || {}) };
+      if (pageEditorEntries['vm-demo-homepage-sections']) {
+        savedSections = JSON.parse(pageEditorEntries['vm-demo-homepage-sections']);
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries: pageEditorEntries }) });
+  });
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const payload = route.request().postDataJSON();
+      savedSections = payload.sections;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(homepageSettings()) });
+  });
+
+  await page.goto('/pages/admin-setting-general.html');
+  await expect(page.locator('#top-settings-list')).toBeVisible();
+  await page.locator('#top-add-type').selectOption('custom-cards');
+  await page.locator('#top-add-section').click();
+
+  const customRow = page.locator('#top-settings-list .homepage-section-row')
+    .filter({ hasText: '自由ブロック：カード一覧' }).last();
+  await expect(customRow).toBeVisible();
+  await customRow.getByRole('button', { name: '編集' }).click();
+  await customRow.getByLabel('見出し').fill('おすすめの学び');
+  await customRow.getByLabel('説明').fill('目的に合った動画を選べます。');
+  await customRow.getByLabel('項目（1行ごとに「タイトル|説明|画像URL|リンク先」）')
+    .fill('動画講座|基礎から学べます||/pages/video-list.html');
+  await page.locator('#top-save-settings').click();
+
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  const savedBlock = savedSections.find((section) => section.type === 'custom-cards');
+  expect(savedBlock).toBeTruthy();
+  expect(savedBlock.content.title).toBe('おすすめの学び');
+  expect(savedBlock.content.items).toEqual([
+    { title: '動画講座', description: '基礎から学べます', image: '', link: '/pages/video-list.html' },
+  ]);
+
+  await page.goto('/');
+  const publishedBlock = page.locator('.vm-homepage-custom-cards');
+  await expect(publishedBlock).toBeVisible();
+  await expect(publishedBlock.getByRole('heading', { name: 'おすすめの学び' })).toBeVisible();
+  await expect(publishedBlock.getByText('動画講座', { exact: true })).toBeVisible();
+});
