@@ -872,8 +872,15 @@
             const grid = document.createElement("div");
             const columnCount = [2, 3, 4, 5].includes(Number(customContent.columns)) ? Number(customContent.columns) : 3;
             grid.className = "vm-homepage-custom-grid";
-            grid.style.cssText = "display:grid;grid-template-columns:repeat(var(--vm-homepage-card-columns,3),minmax(0,1fr));gap:16px;margin-top:18px;";
-            grid.style.setProperty("--vm-homepage-card-columns", String(columnCount));
+            grid.dataset.columns = String(columnCount);
+            grid.style.cssText = "display:grid;gap:16px;margin-top:18px;";
+            const updateGridColumns = function () {
+              const viewportWidth = window.innerWidth;
+              const responsiveColumns = viewportWidth <= 420 ? 1 : viewportWidth <= 620 ? 2 : viewportWidth <= 900 ? 3 : columnCount;
+              grid.style.gridTemplateColumns = "repeat(" + responsiveColumns + ",minmax(0,1fr))";
+            };
+            updateGridColumns();
+            window.addEventListener("resize", updateGridColumns, { passive: true });
             (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
               if (!entry || typeof entry !== "object") return;
               const card = document.createElement(entry.link && (entry.link.startsWith("/") && !entry.link.startsWith("//") || entry.link.startsWith("https://") || entry.link.startsWith("http://")) ? "a" : "article");
