@@ -501,6 +501,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
   await expect(page.locator('#popular')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
 
+  await page.goto('/pages/admin-setting-general.html');
   const customBlockRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '自由ブロックテスト' }).first();
   await customBlockRow.getByRole('button', { name: '非表示にする' }).click();
   await page.locator('#top-save-settings').click();
