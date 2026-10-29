@@ -369,7 +369,7 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(embeddedShowcaseGrid).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-custom-gallery"] > div')).toHaveCSS('grid-template-columns', /\\S+\\s+\\S+\\s+\\S+\\s+\\S+/);
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-custom-gallery"] > div')).toHaveCSS('grid-template-columns', /\S+\s+\S+\s+\S+\s+\S+/);
   const embeddedText = page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text');
   await expect(embeddedText).toHaveCSS('background-color', 'rgb(35, 69, 103)');
   await expect(embeddedText).toHaveCSS('color', 'rgb(238, 238, 238)');
