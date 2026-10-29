@@ -1077,6 +1077,21 @@
               preview.className = "vm-published-page-block vm-published-page-block-" + String(pageSection.type).replace(/[^a-z0-9-]/gi, "");
               preview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
               preview.style.cssText = "box-sizing:border-box;min-width:0;padding:20px 0;border-top:1px solid var(--line,#333);";
+              const previewTheme = pageSection.theme && typeof pageSection.theme === "object"
+                ? pageSection.theme
+                : (content.theme && typeof content.theme === "object" ? content.theme : {});
+              const previewSettings = pageSection.settings && typeof pageSection.settings === "object"
+                ? pageSection.settings
+                : (content.settings && typeof content.settings === "object" ? content.settings : {});
+              if (typeof previewTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.bg)) preview.style.backgroundColor = previewTheme.bg;
+              if (typeof previewTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.text)) preview.style.color = previewTheme.text;
+              if (typeof previewTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.accent)) preview.style.setProperty("--accent", previewTheme.accent);
+              if (previewTheme.width === "narrow") { preview.style.maxWidth = "900px"; preview.style.marginInline = "auto"; }
+              else if (previewTheme.width === "wide") { preview.style.maxWidth = "none"; preview.style.marginInline = "0"; }
+              else if (previewTheme.width === "standard") { preview.style.maxWidth = "1200px"; preview.style.marginInline = "auto"; }
+              if (previewTheme.spacing === "compact") preview.style.paddingBlock = "12px";
+              else if (previewTheme.spacing === "large") preview.style.paddingBlock = "48px";
+              else if (previewTheme.spacing === "standard") preview.style.paddingBlock = "28px";
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               if (title) {
                 const heading = document.createElement("h2");
@@ -1101,22 +1116,23 @@
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;max-width:100%;max-height:420px;object-fit:cover;border-radius:12px;margin:12px 0;";
+                image.style.cssText = "display:block;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
                 preview.appendChild(image);
               }
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
                 const list = document.createElement("div");
-                list.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;";
+                const previewColumns = Number(previewSettings.columns);
+                list.style.cssText = "display:grid;grid-template-columns:" + ([2, 3, 4, 5].includes(previewColumns) ? "repeat(" + previewColumns + ", minmax(0, 1fr))" : "repeat(auto-fit,minmax(180px,1fr))") + ";gap:12px;";
                 pageSection.items.forEach(function (entry) {
                   if (!entry || typeof entry !== "object") return;
                   const card = document.createElement("article");
-                  card.style.cssText = "min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:10px;";
+                  card.style.cssText = "min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (previewTheme.radius === "square" ? "0" : "10px") + ";";
                   if (typeof entry.image === "string" && (entry.image.startsWith("https://") || entry.image.startsWith("http://") || (entry.image.startsWith("/") && !entry.image.startsWith("//")))) {
                     const itemImage = document.createElement("img");
                     itemImage.src = entry.image;
                     itemImage.alt = "";
                     itemImage.loading = "lazy";
-                    itemImage.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;";
+                    itemImage.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "8px") + ";";
                     card.appendChild(itemImage);
                   }
                   if (typeof entry.title === "string" && entry.title.trim()) {
