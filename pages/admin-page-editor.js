@@ -113,7 +113,7 @@ async function removePage(page){
     'vm-demo-page-chrome-'+page.id,
     'vm-demo-page-theme-'+page.id+'-'
   ];
-  for(let index=0;index<localStorage.length;index++){
+  for(let index=localStorage.length-1;index>=0;index--){
     const key=localStorage.key(index);
     if(key&&prefixes.some(prefix=>key.startsWith(prefix)))removedSettings.push([key,localStorage.getItem(key)]);
   }
