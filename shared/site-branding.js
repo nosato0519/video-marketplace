@@ -1373,7 +1373,9 @@
         else section.style.removeProperty("display");
         section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
-        const displaySettings = sectionContent.settings && typeof sectionContent.settings === "object" ? sectionContent.settings : {};
+        const displaySettings = item.settings && typeof item.settings === "object"
+          ? item.settings
+          : (sectionContent.settings && typeof sectionContent.settings === "object" ? sectionContent.settings : {});
         if (item.type === "trustbar") {
           const itemCount = Number(displaySettings.itemCount);
           Array.from(section.querySelectorAll(":scope > div")).forEach(function (entry, index) {
