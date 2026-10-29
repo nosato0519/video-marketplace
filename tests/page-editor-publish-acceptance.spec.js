@@ -408,12 +408,20 @@ test('homepage dynamic sections persist layout controls and apply them to public
     order: 1,
     content: { layout: 'standard' },
   }, {
+    id: 'spotlight',
+    type: 'spotlight',
+    label: '今、観てほしい作品たち',
+    hidden: false,
+    added: false,
+    order: 2,
+    content: { layout: 'standard' },
+  }, {
     id: 'custom-banner',
     type: 'custom-text',
     label: '自由ブロックテスト',
     hidden: false,
     added: true,
-    order: 2,
+    order: 3,
     content: {
       title: '自由ブロックのテーマ確認',
       body: '保存したデザインが公開TOPに反映されます。',
@@ -478,12 +486,20 @@ test('homepage dynamic sections persist layout controls and apply them to public
   const savedGenreRail = savedSections.find((section) => section.id === 'genre-rail');
   expect(savedGenreRail.content.settings.layout).toBe('grid');
 
+  const spotlightRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '今、観てほしい作品たち' }).first();
+  await spotlightRow.getByRole('button', { name: '編集' }).click();
+  await spotlightRow.getByText('表示内容の設定', { exact: true }).click();
+  await spotlightRow.locator('label').filter({ hasText: 'レイアウト' }).locator('select').selectOption('grid');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((section) => section.id === 'spotlight').content.settings.layout).toBe('grid');
+
   const reorderGenreRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '気分から選ぶ' }).first();
   await reorderGenreRow.getByRole('button', { name: '↑' }).click();
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
-  expect(savedSections.slice(0, 3).map((section) => section.id)).toEqual(['genre-rail', 'popular', 'custom-banner']);
-  expect(savedSections.slice(0, 3).map((section) => section.order)).toEqual([0, 1, 2]);
+  expect(savedSections.slice(0, 4).map((section) => section.id)).toEqual(['genre-rail', 'popular', 'spotlight', 'custom-banner']);
+  expect(savedSections.slice(0, 4).map((section) => section.order)).toEqual([0, 1, 2, 3]);
 
   await page.goto('/');
   const publicSection = page.locator('#popular');
@@ -494,6 +510,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#videos .video-card:visible')).toHaveCount(4);
   await expect(page.locator('#videos')).toHaveCSS('grid-template-columns', /repeat\(4,/);
   await expect(page.locator('.genre-rail .genre-track')).toHaveCSS('display', 'grid');
+  await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('display', 'grid');
+  await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('grid-template-columns', /\\S+\\s+\\S+/);
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
