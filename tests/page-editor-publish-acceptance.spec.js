@@ -277,7 +277,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '' };
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -330,6 +330,8 @@ test('homepage custom-page layout selection persists and controls public renderi
   const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
   await expect(publicLink).toBeVisible();
   await expect(publicLink).toContainText('レイアウト保存テスト');
+  await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
+  await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
   await page.reload();
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
