@@ -520,6 +520,7 @@ document.querySelectorAll('[data-page-template]').forEach(button=>{
   button.addEventListener('click',()=>applyPageTemplate(button.dataset.pageTemplate));
 });
 document.getElementById('cancel-page').addEventListener('click',closeEditor);
+document.getElementById('cancel-page-bottom').addEventListener('click',closeEditor);
 document.getElementById('save-page').textContent='下書き保存';
 document.getElementById('save-page').addEventListener('click',()=>{statusInput.value='下書き';savePage();});
 document.getElementById('save-page-bottom').addEventListener('click',()=>{statusInput.value='下書き';savePage();});
