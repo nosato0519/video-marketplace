@@ -34,7 +34,8 @@
     "test:security-regression": "node --test src/security/security-regression.test.js",
     "test:rate-limit": "node --test src/rate-limit.test.js",
     "test": "node --test src/**/*.test.js",
-    "test:published-page-route-acceptance": "node scripts/published-page-route-acceptance.js"
+    "test:published-page-route-acceptance": "node scripts/published-page-route-acceptance.js",
+    "test:admin-page-editor-acceptance": "node scripts/admin-page-editor-acceptance.js"
   },
   "engines": {
     "node": ">=20"
