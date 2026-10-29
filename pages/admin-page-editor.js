@@ -571,10 +571,16 @@ localStorage.removeItem(draftThemeKey);
 localStorage.setItem(SECTION_PREFIX+pageId,JSON.stringify(sectionState));
 savePageEditorMetadata(pageId);
 }catch(e){
+restoreManagedEditorSettings(previousSettings);
+pages=previousPages;
+editingId=previousEditingId;
 editorStatus.textContent='ページ内容を保存できませんでした。ブラウザの保存容量を確認してください。';
 return false;
 }
 if(!save()){
+restoreManagedEditorSettings(previousSettings);
+pages=previousPages;
+editingId=previousEditingId;
 editorStatus.textContent='保存できませんでした。';
 return false;
 }
