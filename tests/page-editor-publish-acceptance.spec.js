@@ -140,7 +140,7 @@ test('admin page editor refuses stale local settings when the server cannot load
   expect(writeRequests).toBe(0);
 });
 
-test('homepage editor creates and publishes a configurable custom card section', async ({ page }) => {
+test('homepage editor publishes all configurable custom blocks and adapts card columns to viewport width', async ({ page }) => {
   let savedSections = [];
   let pageEditorEntries = {};
   const homepageSettings = () => ({
@@ -183,32 +183,91 @@ test('homepage editor creates and publishes a configurable custom card section',
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(homepageSettings()) });
   });
 
+  const blockCases = [
+    { type: 'custom-text', title: '独自文章', subtitle: '文章ブロックの説明', body: '公開される自由な本文です。' },
+    { type: 'custom-image', title: '独自画像', image: 'https://example.com/homepage-test.jpg' },
+    { type: 'custom-image-text', title: '画像と文章', subtitle: '画像と文章の説明', body: '画像と一緒に表示する本文です。', image: 'https://example.com/homepage-text-test.jpg' },
+    { type: 'custom-gallery', title: '独自ギャラリー', items: '写真A|写真の説明|https://example.com/gallery.jpg|/pages/video-list.html', columns: '4' },
+    { type: 'custom-cards', title: 'おすすめの学び', subtitle: '目的に合った動画を選べます。', items: '動画講座|基礎から学べます||/pages/video-list.html', columns: '4' },
+    { type: 'custom-button', title: '独自ボタン', subtitle: 'ボタンの説明', button: '動画一覧へ', link: '/pages/video-list.html' },
+    { type: 'custom-divider' },
+    { type: 'custom-spacer' },
+  ];
+
   await page.goto('/pages/admin-setting-general.html');
   await expect(page.locator('#top-settings-list')).toBeVisible();
-  await page.locator('#top-add-type').selectOption('custom-cards');
-  await page.locator('#top-add-section').click();
 
-  const customRow = page.locator('#top-settings-list .homepage-section-row')
-    .filter({ hasText: '自由ブロック：カード一覧' }).last();
-  await expect(customRow).toBeVisible();
-  await customRow.getByRole('button', { name: '編集' }).click();
-  await customRow.getByLabel('見出し').fill('おすすめの学び');
-  await customRow.getByRole('textbox', { name: '説明', exact: true }).fill('目的に合った動画を選べます。');
-  await customRow.getByLabel('項目（1行ごとに「タイトル|説明|画像URL|リンク先」）')
-    .fill('動画講座|基礎から学べます||/pages/video-list.html');
+  for (const block of blockCases) {
+    await page.locator('#top-add-type').selectOption(block.type);
+    await page.locator('#top-add-section').click();
+    const customRow = page.locator('#top-settings-list .homepage-section-row')
+      .filter({ hasText: `自由ブロック：${({
+        'custom-text': '文章',
+        'custom-image': '画像',
+        'custom-image-text': '画像＋文章',
+        'custom-gallery': '画像ギャラリー',
+        'custom-cards': 'カード一覧',
+        'custom-button': 'ボタン',
+        'custom-divider': '区切り線',
+        'custom-spacer': '余白',
+      })[block.type]}` }).last();
+    await expect(customRow).toBeVisible();
+    await customRow.getByRole('button', { name: '編集' }).click();
+
+    if (block.title) await customRow.getByLabel('見出し').fill(block.title);
+    if (block.subtitle) await customRow.getByRole('textbox', { name: '説明', exact: true }).fill(block.subtitle);
+    if (block.body) await customRow.getByLabel('本文').fill(block.body);
+    if (block.image) await customRow.getByLabel('画像URL').fill(block.image);
+    if (block.button) await customRow.getByLabel('ボタン表示').fill(block.button);
+    if (block.link) await customRow.getByLabel('リンク先').fill(block.link);
+    if (block.items) {
+      await customRow.getByLabel('項目（1行ごとに「タイトル|説明|画像URL|リンク先」）').fill(block.items);
+      await customRow.getByLabel('1行の表示数').selectOption(block.columns);
+    }
+  }
+
   await page.locator('#top-save-settings').click();
-
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
-  const savedBlock = savedSections.find((section) => section.type === 'custom-cards');
-  expect(savedBlock).toBeTruthy();
-  expect(savedBlock.content.title).toBe('おすすめの学び');
-  expect(savedBlock.content.items).toEqual([
-    { title: '動画講座', description: '基礎から学べます', image: '', link: '/pages/video-list.html' },
-  ]);
 
+  for (const block of blockCases) {
+    const savedBlock = savedSections.find((section) => section.type === block.type);
+    expect(savedBlock, `missing saved block: ${block.type}`).toBeTruthy();
+    if (block.title) expect(savedBlock.content.title).toBe(block.title);
+    if (block.body) expect(savedBlock.content.body).toBe(block.body);
+    if (block.image) expect(savedBlock.content.image).toBe(block.image);
+    if (block.button) expect(savedBlock.content.button).toBe(block.button);
+    if (block.link) expect(savedBlock.content.link).toBe(block.link);
+    if (block.items) {
+      expect(savedBlock.content.items).toEqual([{
+        title: block.items.split('|')[0],
+        description: block.items.split('|')[1],
+        image: block.items.split('|')[2],
+        link: block.items.split('|')[3],
+      }]);
+      expect(savedBlock.content.columns).toBe(4);
+    }
+  }
+
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
-  const publishedBlock = page.locator('.vm-homepage-custom-cards');
-  await expect(publishedBlock).toBeVisible();
-  await expect(publishedBlock.getByRole('heading', { name: 'おすすめの学び' })).toBeVisible();
-  await expect(publishedBlock.getByText('動画講座', { exact: true })).toBeVisible();
+  for (const block of blockCases) {
+    await expect(page.locator(`.vm-homepage-${block.type}`)).toBeVisible();
+    if (block.title) {
+      await expect(page.locator(`.vm-homepage-${block.type}`).getByRole('heading', { name: block.title })).toBeVisible();
+    }
+  }
+  await expect(page.locator('.vm-homepage-custom-text')).toContainText('公開される自由な本文です。');
+  await expect(page.locator('.vm-homepage-custom-image-text')).toContainText('画像と一緒に表示する本文です。');
+  await expect(page.locator('.vm-homepage-custom-gallery')).toContainText('写真A');
+  await expect(page.locator('.vm-homepage-custom-cards')).toContainText('動画講座');
+
+  const grid = page.locator('.vm-homepage-custom-cards .vm-homepage-custom-grid');
+  const columnCount = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await grid.elementHandle());
+  expect(await columnCount()).toBe(4);
+  await page.setViewportSize({ width: 800, height: 900 });
+  expect(await columnCount()).toBe(3);
+  await page.setViewportSize({ width: 600, height: 900 });
+  expect(await columnCount()).toBe(2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await columnCount()).toBe(1);
 });
