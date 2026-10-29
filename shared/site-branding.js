@@ -488,10 +488,13 @@
       }).join("\n");
       bulkInput.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
       bulkInput.addEventListener("input", function () {
-        item.content.items = bulkInput.value.split(/\r?\n/).map(function (line) {
+        const previousItems = item.content.items.slice();
+        item.content.items = bulkInput.value.split(/\r?\n/).map(function (line, index) {
           const parts = line.split("|").map(function (part) { return part.trim(); });
-          return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
-        }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; });
+          const previous = previousItems[index] && typeof previousItems[index] === "object" ? previousItems[index] : {};
+          const image = parts[2] || (/^data:image\//i.test(previous.image || "") ? previous.image : "");
+          return { title: parts[0] || "", description: parts[1] || "", image: image, button: previous.button || "", link: parts[3] || "" };
+        }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.button || entry.link; });
         renderRows();
       });
       bulkLabel.appendChild(bulkInput);
