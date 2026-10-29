@@ -60,14 +60,26 @@ try {
     server.listen(0, '127.0.0.1', resolve);
   });
   const address = server.address();
-  const response = await fetch(`http://127.0.0.1:${address.port}${pageUrl}`);
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const response = await fetch(`${baseUrl}${pageUrl}`);
   const html = await response.text();
 
   assert.equal(response.status, 200, 'published custom URL should return HTTP 200');
   assert.ok(html.includes(marker), 'rendered HTML should contain the published page title');
   assert.ok(html.includes('page-custom-hero'), 'rendered HTML should contain the custom hero section');
 
-  console.log('PASS: published custom URL returns rendered page HTML from the backend.');
+  const homepageResponse = await fetch(`${baseUrl}/api/site/homepage-settings`);
+  assert.equal(homepageResponse.status, 200, 'homepage settings should return HTTP 200');
+  const homepage = await homepageResponse.json();
+  assert.ok(homepage.publishedPages?.some(item => item.id === pageId && item.url === pageUrl),
+    'homepage settings should expose the published custom page');
+  assert.ok(homepage.sections?.some(section =>
+    section.type === 'custom-page' &&
+    section.pageId === pageId &&
+    section.content?.link === pageUrl
+  ), 'homepage settings should include a section linking to the published custom page');
+
+  console.log('PASS: published custom URL renders backend HTML and appears in real homepage settings.');
 } finally {
   if (server) await new Promise(resolve => server.close(resolve));
   try {
