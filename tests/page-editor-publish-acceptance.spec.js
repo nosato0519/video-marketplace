@@ -882,7 +882,7 @@ test('admin page editor persists page-specific header and footer settings', asyn
 test('admin page editor restores a page and its settings when deletion cannot be saved to the server', async ({ page }) => {
   const pageId = 'delete-rollback-page';
   const pageName = '削除失敗時の復元テスト';
-  const savedEntries = {
+  let savedEntries = {
     'vm-demo-pages': JSON.stringify([
       { id: pageId, name: pageName, url: '/pages/delete-rollback-page', status: '下書き', locked: false, createdByEditor: true },
     ]),
