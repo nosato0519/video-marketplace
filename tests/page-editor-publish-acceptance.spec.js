@@ -511,7 +511,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#videos')).toHaveCSS('grid-template-columns', /repeat\(4,/);
   await expect(page.locator('.genre-rail .genre-track')).toHaveCSS('display', 'grid');
   await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('display', 'grid');
-  await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('grid-template-columns', /\\S+\\s+\\S+/);
+  await expect(page.locator('.spotlight .spotlight-stack')).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
