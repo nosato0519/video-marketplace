@@ -820,7 +820,7 @@
           ordered.push(customSection);
           return;
         }
-        if (customTypes.has(item.type)) {
+        if (["custom-text", "custom-image", "custom-image-text", "custom-gallery", "custom-cards", "custom-button", "custom-divider", "custom-spacer"].includes(item.type)) {
           const customSection = document.createElement("section");
           customSection.className = "section vm-homepage-custom-block vm-homepage-" + item.type;
           customSection.dataset.vmSectionId = item.id || item.type;
