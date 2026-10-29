@@ -484,11 +484,11 @@
       const bulkInput = document.createElement("textarea");
       bulkInput.rows = 3;
       bulkInput.value = item.content.items.map(function (entry) {
-        return [entry.title || "", entry.description || "", /^data:image\\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
+        return [entry.title || "", entry.description || "", /^data:image\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
       }).join("\n");
       bulkInput.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
       bulkInput.addEventListener("input", function () {
-        item.content.items = bulkInput.value.split(/\\r?\\n/).map(function (line) {
+        item.content.items = bulkInput.value.split(/\r?\n/).map(function (line) {
           const parts = line.split("|").map(function (part) { return part.trim(); });
           return { title: parts[0] || "", description: parts[1] || "", image: parts[2] || "", link: parts[3] || "" };
         }).filter(function (entry) { return entry.title || entry.description || entry.image || entry.link; });
@@ -502,7 +502,7 @@
       list.style.cssText = "display:grid;gap:10px;";
       function syncBulkInput() {
         bulkInput.value = item.content.items.map(function (entry) {
-          return [entry.title || "", entry.description || "", /^data:image\\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
+          return [entry.title || "", entry.description || "", /^data:image\//i.test(entry.image || "") ? "" : (entry.image || ""), entry.link || ""].join("|");
         }).join("\n");
       }
       function renderRows() {
