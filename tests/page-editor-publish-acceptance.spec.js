@@ -350,3 +350,58 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(posterLink).toHaveAttribute('style', /min-height:\s*260px/);
 });
 
+test('homepage dynamic sections persist layout controls and apply them to public sections', async ({ page }) => {
+  let savedSections = [{
+    id: 'popular',
+    type: 'popular',
+    label: '人気の動画',
+    hidden: false,
+    added: false,
+    order: 0,
+    content: { layout: 'standard' },
+  }];
+  const settings = () => ({
+    sections: savedSections,
+    publishedPages: [],
+    themes: {},
+    pageSettings: {},
+    siteBranding: { siteName: 'VIDEO MARKETPLACE' },
+    siteSettings: {},
+    announcements: [],
+    homepageTheme: {},
+  });
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(settings()) });
+  });
+  await page.route('**/api/admin/settings/page-editor', async (route) => {
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries: {} }) });
+  });
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedSections = route.request().postDataJSON().sections;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(settings()) });
+  });
+
+  await page.goto('/pages/admin-setting-general.html');
+  const popularRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '人気の動画' }).first();
+  await popularRow.getByRole('button', { name: '編集' }).click();
+  await popularRow.locator('select').last().selectOption('center');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((section) => section.id === 'popular').content.layout).toBe('center');
+
+  await page.goto('/');
+  const publicSection = page.locator('#popular');
+  await expect(publicSection).toBeVisible();
+  await expect(publicSection).toHaveCSS('text-align', 'center');
+  await page.reload();
+  await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
+});
