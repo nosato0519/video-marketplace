@@ -1027,6 +1027,6 @@ footer{border-radius:0;background:#07090c}
 .announcement-empty{color:#77828d;font-size:10px}
 /* Responsive layout for configurable homepage card and gallery blocks. */
 .vm-homepage-custom-grid{grid-template-columns:repeat(var(--vm-homepage-card-columns,3),minmax(0,1fr))}
-@media(max-width:900px){.vm-homepage-custom-grid{--vm-homepage-card-columns:3!important}}
-@media(max-width:620px){.vm-homepage-custom-grid{--vm-homepage-card-columns:2!important}}
-@media(max-width:420px){.vm-homepage-custom-grid{--vm-homepage-card-columns:1!important}}
+@media(max-width:900px){.vm-homepage-custom-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:620px){.vm-homepage-custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:420px){.vm-homepage-custom-grid{grid-template-columns:repeat(1,minmax(0,1fr))!important}}
