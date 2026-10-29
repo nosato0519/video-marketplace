@@ -489,6 +489,21 @@
         }
         button("↑", index === 0, function () { [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; render(); });
         button("↓", index === sections.length - 1, function () { [sections[index + 1], sections[index]] = [sections[index], sections[index + 1]]; render(); });
+        if (customTypes.has(item.type)) {
+          button("複製", false, function () {
+            let id;
+            do {
+              id = item.type + "-copy-" + Date.now() + "-" + (++nextAddedSectionId);
+            } while (sections.some(function (section) { return section && section.id === id; }));
+            const copy = JSON.parse(JSON.stringify(item));
+            copy.id = id;
+            copy.label = (item.label || item.type) + "（複製）";
+            copy.added = true;
+            copy.order = index + 1;
+            sections.splice(index + 1, 0, copy);
+            render();
+          });
+        }
         button(item.hidden ? "表示する" : "非表示にする", false, function () { item.hidden = !item.hidden; render(); });
         const deleteButton = button("削除", item.added !== true || item.type === "custom-page", function () { sections = sections.filter(function (section) { return section.id !== item.id; }); render(); });
         head.appendChild(actions);
