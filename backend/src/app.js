@@ -94,7 +94,21 @@ export function createApp() {
               const sectionImage = Array.isArray(pageSections) ? pageSections.find((section) => section && section.hidden !== true && typeof section.content?.image === 'string' && section.content.image.trim())?.content.image : '';
               const itemImage = Array.isArray(pageSections) ? pageSections.flatMap((section) => Array.isArray(section?.items) ? section.items : []).find((item) => typeof item?.image === 'string' && item.image.trim())?.image : '';
               const image = [heroImage, sectionImage, itemImage].find((value) => /^(https?:\/\/|\/(?!\/)|data:image\/webp;base64,[A-Za-z0-9+/=]+$)/.test(value || '')) || '';
-              return { id: page.id, name: page.name, url: page.url, image };
+              const publicSections = Array.isArray(pageSections)
+                ? pageSections
+                    .filter((section) => section && typeof section === 'object' && section.hidden !== true && typeof section.type === 'string')
+                    .map((section, index) => ({
+                      id: typeof section.id === 'string' ? section.id : section.type + '-' + index,
+                      type: section.type,
+                      label: typeof section.label === 'string' ? section.label : '',
+                      order: Number.isFinite(Number(section.order)) ? Number(section.order) : index,
+                      content: section.content && typeof section.content === 'object' ? section.content : {},
+                      settings: section.settings && typeof section.settings === 'object' ? section.settings : {},
+                      items: Array.isArray(section.items) ? section.items : []
+                    }))
+                    .sort((left, right) => left.order - right.order)
+                : [];
+              return { id: page.id, name: page.name, url: page.url, image, sections: publicSections };
             });
         }
       } catch (_) {}
