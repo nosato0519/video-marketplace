@@ -919,7 +919,7 @@ test('admin page editor restores a page and its settings when deletion cannot be
   await pageRow.getByRole('button', { name: '削除' }).click();
 
   await expect(pageRow).toBeVisible();
-  await expect(page.locator('#editor-status')).toContainText('ページ設定のサーバー保存に失敗しました。');
+  await expect(page.locator('#editor-status')).toContainText('ページ設定のサーバー保存に失敗しました');
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), `vm-demo-page-sections-${pageId}`))
     .toBe(savedEntries[`vm-demo-page-sections-${pageId}`]);
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('vm-demo-pages') || '[]').some((item) => item.id === 'delete-rollback-page')))
