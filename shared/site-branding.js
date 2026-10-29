@@ -1177,6 +1177,23 @@
               preview.className = "vm-published-page-block vm-published-page-block-" + String(pageSection.type).replace(/[^a-z0-9-]/gi, "");
               preview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
               preview.style.cssText = "box-sizing:border-box;min-width:0;padding:20px 0;border-top:1px solid var(--line,#333);";
+              if (pageSection.type === "custom-divider") {
+                const divider = document.createElement("hr");
+                divider.style.cssText = "border:0;border-top:1px solid var(--line,#333);width:100%;margin:12px 0;";
+                preview.style.padding = "0";
+                preview.appendChild(divider);
+                embeddedContent.appendChild(preview);
+                return;
+              }
+              if (pageSection.type === "custom-spacer") {
+                const spacer = document.createElement("div");
+                spacer.setAttribute("aria-hidden", "true");
+                spacer.style.height = String(Math.max(16, Math.min(240, Number(pageSection.settings && pageSection.settings.height) || 64))) + "px";
+                preview.style.padding = "0";
+                preview.appendChild(spacer);
+                embeddedContent.appendChild(preview);
+                return;
+              }
               const previewTheme = pageSection.theme && typeof pageSection.theme === "object"
                 ? pageSection.theme
                 : (content.theme && typeof content.theme === "object" ? content.theme : {});
@@ -1193,6 +1210,9 @@
               else if (previewTheme.spacing === "large") preview.style.paddingBlock = "48px";
               else if (previewTheme.spacing === "standard") preview.style.paddingBlock = "28px";
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
+              const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
+              const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
+              if (pageSection.type === "custom-image-text") preview.style.display = "grid";
               if (title) {
                 const heading = document.createElement("h2");
                 heading.textContent = title;
@@ -1210,13 +1230,16 @@
                 body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
                 preview.appendChild(body);
               }
-              const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
-              if (imageUrl && (imageUrl.startsWith("https://") || imageUrl.startsWith("http://") || (imageUrl.startsWith("/") && !imageUrl.startsWith("//")))) {
+              if (validImageUrl) {
                 const image = document.createElement("img");
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
+                image.style.cssText = "display:block;width:100%;max-width:" + (pageSection.type === "custom-image-text" ? "min(100%, 480px)" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
+                if (pageSection.type === "custom-image-text") {
+                  image.style.gridRow = "1 / span 4";
+                  image.style.alignSelf = "start";
+                }
                 preview.appendChild(image);
               }
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
@@ -1245,10 +1268,25 @@
                     itemDescription.textContent = entry.description.trim();
                     card.appendChild(itemDescription);
                   }
+                  if (typeof entry.button === "string" && entry.button.trim() && typeof entry.link === "string" && (/^https?:\/\//i.test(entry.link.trim()) || /^\/(?!\/)/.test(entry.link.trim()))) {
+                    const itemButton = document.createElement("a");
+                    itemButton.textContent = entry.button.trim();
+                    itemButton.href = entry.link.trim();
+                    itemButton.style.cssText = "display:inline-block;margin-top:10px;color:var(--accent,#d9b45f);font-weight:700;";
+                    card.appendChild(itemButton);
+                  }
                   list.appendChild(card);
                 });
                 preview.appendChild(list);
               }
+              if (typeof content.button === "string" && content.button.trim() && typeof content.link === "string" && (/^https?:\/\//i.test(content.link.trim()) || /^\/(?!\/)/.test(content.link.trim()))) {
+                const action = document.createElement("a");
+                action.textContent = content.button.trim();
+                action.href = content.link.trim();
+                action.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:16px;padding:10px 18px;border-radius:" + (previewTheme.radius === "square" ? "0" : "8px") + ";background:var(--accent,#d9b45f);color:" + (typeof previewTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.buttonText) ? previewTheme.buttonText : "#111111") + ";font-weight:700;text-decoration:none;";
+                preview.appendChild(action);
+              }
+              if (pageSection.type === "custom-button" && !content.button) preview.style.minHeight = "1px";
               embeddedContent.appendChild(preview);
             });
             customSection.appendChild(embeddedContent);
