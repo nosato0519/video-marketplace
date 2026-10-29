@@ -1082,7 +1082,12 @@
                 }
                 if (pageSection.type === "spotlight") {
                   const embeddedSpotlightStack = embeddedSection.querySelector(".spotlight-stack");
-                  if (embeddedSpotlightStack) embeddedSpotlightStack.style.display = embeddedSettings.layout === "grid" ? "grid" : "";
+                  if (embeddedSpotlightStack) {
+                    const useGridLayout = embeddedSettings.layout === "grid";
+                    embeddedSpotlightStack.style.display = useGridLayout ? "grid" : "";
+                    embeddedSpotlightStack.style.gridTemplateColumns = useGridLayout ? "repeat(auto-fit, minmax(220px, 1fr))" : "";
+                    embeddedSpotlightStack.style.gap = useGridLayout ? "16px" : "";
+                  }
                 }
                 embeddedContent.appendChild(embeddedSection);
                 return;
@@ -1363,7 +1368,12 @@
         }
         if (item.type === "spotlight") {
           const spotlightStack = section.querySelector(".spotlight-stack");
-          if (spotlightStack) spotlightStack.style.display = displaySettings.layout === "grid" ? "grid" : "";
+          if (spotlightStack) {
+            const useGridLayout = displaySettings.layout === "grid";
+            spotlightStack.style.display = useGridLayout ? "grid" : "";
+            spotlightStack.style.gridTemplateColumns = useGridLayout ? "repeat(auto-fit, minmax(220px, 1fr))" : "";
+            spotlightStack.style.gap = useGridLayout ? "16px" : "";
+          }
         }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
