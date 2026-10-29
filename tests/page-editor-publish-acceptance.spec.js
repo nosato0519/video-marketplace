@@ -275,3 +275,63 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await columnCount()).toBe(1);
 });
+
+test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '' };
+  let savedSections = [{
+    id: 'custom-page-layout-persistence-page',
+    type: 'custom-page',
+    pageId: publishedPage.id,
+    label: publishedPage.name,
+    hidden: false,
+    added: false,
+    order: 0,
+    content: { title: publishedPage.name, subtitle: '表示設定の保存テスト', link: publishedPage.url, button: '詳しく見る →', layout: 'standard' },
+  }];
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: savedSections,
+        publishedPages: [publishedPage],
+        themes: {},
+        pageSettings: {},
+        siteBranding: { siteName: 'VIDEO MARKETPLACE' },
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+  await page.route('**/api/admin/settings/page-editor', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries: {} }) });
+  });
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedSections = route.request().postDataJSON().sections;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sections: savedSections }) });
+  });
+
+  await page.goto('/pages/admin-setting-general.html');
+  const row = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: '編集' }).click();
+  await row.locator('select').last().selectOption('center');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('center');
+
+  await page.goto('/');
+  const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
+  await expect(publicLink).toBeVisible();
+  await expect(publicLink).toContainText('表示設定の保存テスト');
+  await expect(publicLink).toHaveAttribute('style', /justify-content:\\s*space-between/);
+  await page.reload();
+  await expect(publicLink).toHaveAttribute('style', /justify-content:\\s*space-between/);
+});
+
