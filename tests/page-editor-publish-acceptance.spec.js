@@ -621,11 +621,11 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#library .library-flow')).toHaveCSS('display', 'grid');
   await expect(page.locator('#library .library-flow .flow-line').first()).toBeHidden();
   await expect(page.locator('#library .library-flow .flow-card > span').first()).toBeHidden();
-  await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /^\S+$/);
+  await expect(page.locator('#creator')).toHaveCSS('grid-template-columns', /^minmax\(0px,\s*1fr\)$/);
   await expect(page.locator('#creator .creator-copy')).toHaveCSS('text-align', 'center');
   await expect(page.locator('.cta')).toHaveCSS('text-align', 'center');
   const editorialCollection = page.locator('main > section').filter({ hasText: '編集的な作品紹介' }).last();
-  await expect(editorialCollection.locator('.video-grid')).toHaveCSS('grid-template-columns', /^\S+$/);
+  await expect(editorialCollection.locator('.video-grid')).toHaveCSS('grid-template-columns', /^minmax\(0px,\s*1fr\)$/);
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('display', 'grid');
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   await expect(page.locator('.trustbar > div:visible')).toHaveCount(2);
