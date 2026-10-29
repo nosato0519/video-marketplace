@@ -1514,7 +1514,9 @@
             head.style.textAlign = "center";
           });
         } else {
-          section.style.textAlign = "";
+          if (!(item.type === "cta" && displaySettings.layout === "centered")) {
+            section.style.textAlign = "";
+          }
           section.querySelectorAll(".section-head").forEach(function (head) {
             head.style.justifyContent = "";
             head.style.textAlign = "";
