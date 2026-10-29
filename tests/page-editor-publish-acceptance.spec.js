@@ -393,7 +393,11 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await page.goto('/pages/admin-setting-general.html');
   const popularRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '人気の動画' }).first();
   await popularRow.getByRole('button', { name: '編集' }).click();
-  await popularRow.locator('select').first().selectOption('center');
+  await popularRow.locator('label').filter({ hasText: '表示レイアウト' }).locator('select').selectOption('center');
+  const displayDetails = popularRow.locator('details').filter({ hasText: '表示内容の設定' });
+  await displayDetails.locator('summary').click();
+  await displayDetails.locator('select').nth(0).selectOption('4');
+  await displayDetails.locator('select').nth(1).selectOption('4');
   const themeDetails = popularRow.locator('details').filter({ hasText: 'セクションのデザイン設定' });
   await themeDetails.locator('summary').click();
   await themeDetails.locator('input').nth(0).fill('#123456');
@@ -402,6 +406,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   const savedPopular = savedSections.find((section) => section.id === 'popular');
   expect(savedPopular.content.layout).toBe('center');
+  expect(savedPopular.content.settings.videoCount).toBe(4);
+  expect(savedPopular.content.settings.columns).toBe(4);
   expect(savedPopular.content.theme.bg).toBe('#123456');
   expect(savedPopular.content.theme.width).toBe('wide');
 
@@ -411,6 +417,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(publicSection).toHaveCSS('text-align', 'center');
   await expect(publicSection).toHaveCSS('background-color', 'rgb(18, 52, 86)');
   await expect(publicSection).toHaveCSS('max-width', 'none');
+  await expect(page.locator('#videos .video-card:visible')).toHaveCount(4);
+  await expect(page.locator('#videos')).toHaveCSS('grid-template-columns', /repeat\(4,/);
   await page.reload();
   await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
   await expect(page.locator('#popular')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
