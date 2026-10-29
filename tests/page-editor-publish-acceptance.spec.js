@@ -277,7 +277,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, items: [] }] };
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -330,6 +330,8 @@ test('homepage custom-page layout selection persists and controls public renderi
   const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
   await expect(publicLink).toBeVisible();
   await expect(publicLink).toContainText('レイアウト保存テスト');
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]')).toBeVisible();
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"] h2')).toContainText('ページ内の人気動画');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
