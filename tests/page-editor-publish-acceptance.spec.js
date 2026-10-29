@@ -359,6 +359,14 @@ test('homepage dynamic sections persist layout controls and apply them to public
     added: false,
     order: 0,
     content: { layout: 'standard' },
+  }, {
+    id: 'genre-rail',
+    type: 'genre-rail',
+    label: '気分から選ぶ',
+    hidden: false,
+    added: false,
+    order: 1,
+    content: { layout: 'standard' },
   }];
   const settings = () => ({
     sections: savedSections,
@@ -411,6 +419,16 @@ test('homepage dynamic sections persist layout controls and apply them to public
   expect(savedPopular.content.theme.bg).toBe('#123456');
   expect(savedPopular.content.theme.width).toBe('wide');
 
+  const genreRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '気分から選ぶ' }).first();
+  await genreRow.getByRole('button', { name: '編集' }).click();
+  const genreSettings = genreRow.locator('details').filter({ hasText: '表示内容の設定' });
+  await genreSettings.locator('summary').click();
+  await genreSettings.locator('select').nth(1).selectOption('grid');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  const savedGenreRail = savedSections.find((section) => section.id === 'genre-rail');
+  expect(savedGenreRail.content.settings.layout).toBe('grid');
+
   await page.goto('/');
   const publicSection = page.locator('#popular');
   await expect(publicSection).toBeVisible();
@@ -419,6 +437,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(publicSection).toHaveCSS('max-width', 'none');
   await expect(page.locator('#videos .video-card:visible')).toHaveCount(4);
   await expect(page.locator('#videos')).toHaveCSS('grid-template-columns', /repeat\(4,/);
+  await expect(page.locator('.genre-rail .genre-track')).toHaveCSS('display', 'grid');
   await page.reload();
   await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
   await expect(page.locator('#popular')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
