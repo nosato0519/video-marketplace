@@ -1451,7 +1451,7 @@
           ordered.push(customSection);
           return;
         }
-        let section = originals[item.id] || null;
+        let section = originals[item.id] || originals[item.type] || null;
         if (!section) {
           const source = originals[item.type];
           if (!source) return;
