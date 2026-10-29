@@ -1064,15 +1064,25 @@
                     });
                   }
                 }
-                if (embeddedSettings.layout === "grid") {
-                  const embeddedLayoutTarget = pageSection.type === "genre-rail"
-                    ? embeddedSection.querySelector(".genre-track")
-                    : pageSection.type === "video-showcase"
-                      ? embeddedSection.querySelector(".video-showcase-grid")
-                      : pageSection.type === "spotlight"
-                        ? embeddedSection.querySelector(".spotlight-stack")
-                        : null;
-                  if (embeddedLayoutTarget) embeddedLayoutTarget.style.display = "grid";
+                if (pageSection.type === "genre-rail") {
+                  const embeddedGenreTrack = embeddedSection.querySelector(".genre-track");
+                  if (embeddedGenreTrack && embeddedSettings.layout === "grid") {
+                    embeddedGenreTrack.style.display = "grid";
+                    embeddedGenreTrack.style.gridTemplateColumns = "repeat(auto-fit, minmax(160px, 1fr))";
+                  } else if (embeddedGenreTrack) {
+                    embeddedGenreTrack.style.display = "";
+                    embeddedGenreTrack.style.gridTemplateColumns = "";
+                  }
+                }
+                if (pageSection.type === "video-showcase") {
+                  const embeddedShowcaseGrid = embeddedSection.querySelector(".video-showcase-grid");
+                  if (embeddedShowcaseGrid) {
+                    embeddedShowcaseGrid.style.gridTemplateColumns = embeddedSettings.layout === "grid" ? "repeat(auto-fit, minmax(180px, 1fr))" : "";
+                  }
+                }
+                if (pageSection.type === "spotlight") {
+                  const embeddedSpotlightStack = embeddedSection.querySelector(".spotlight-stack");
+                  if (embeddedSpotlightStack) embeddedSpotlightStack.style.display = embeddedSettings.layout === "grid" ? "grid" : "";
                 }
                 embeddedContent.appendChild(embeddedSection);
                 return;
