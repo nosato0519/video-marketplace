@@ -1094,8 +1094,10 @@
       ];
       const originals = {};
       definitions.forEach(function (definition) {
-        const element = document.querySelector(definition.selector);
-        if (element) originals[definition.key] = element;
+        const matches = Array.from(document.querySelectorAll(definition.selector));
+        if (!matches.length) return;
+        originals[definition.key] = matches[0];
+        matches.slice(1).forEach(function (duplicate) { duplicate.remove(); });
       });
       const ordered = [];
       const orderedIds = new Set();
