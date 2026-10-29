@@ -445,7 +445,14 @@
       }
       input.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
       input.addEventListener("input", function () {
-        item.content[key] = input.value;
+        if (key === "themeBg" || key === "themeText" || key === "themeAccent") {
+          const themeKey = key === "themeBg" ? "bg" : key === "themeText" ? "text" : "accent";
+          item.content.theme = item.content.theme && typeof item.content.theme === "object" ? item.content.theme : {};
+          if (input.value.trim()) item.content.theme[themeKey] = input.value.trim();
+          else delete item.content.theme[themeKey];
+        } else {
+          item.content[key] = input.value;
+        }
         if (key === "itemsText") {
           item.content.items = input.value.split(/\r?\n/).map(function (line) {
             const parts = line.split("|").map(function (part) { return part.trim(); });
@@ -580,16 +587,6 @@
           themeSelect("上下の余白", "spacing", [["compact","小"],["standard","標準"],["large","大"]], "standard"),
           themeSelect("角丸", "radius", [["rounded","あり"],["square","なし"]], "rounded")
         );
-        ["themeBg", "themeText", "themeAccent"].forEach(function (key, index) {
-          const input = themeFields.querySelectorAll("input")[index];
-          if (!input) return;
-          input.addEventListener("input", function () {
-            const themeKey = key === "themeBg" ? "bg" : key === "themeText" ? "text" : "accent";
-            if (input.value.trim()) sectionTheme[themeKey] = input.value.trim();
-            else delete sectionTheme[themeKey];
-            item.content.theme = sectionTheme;
-          });
-        });
         themeDetails.appendChild(themeFields);
         fields.appendChild(themeDetails);
         if (item.type === "custom-gallery" || item.type === "custom-cards") {
