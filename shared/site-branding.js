@@ -1089,6 +1089,11 @@
                     embeddedSpotlightStack.style.gap = useGridLayout ? "16px" : "";
                   }
                 }
+                if (pageSection.type === "finder") {
+                  embeddedSection.querySelectorAll(".find-row span").forEach(function (filter) {
+                    filter.hidden = embeddedSettings.searchFields !== "extended";
+                  });
+                }
                 embeddedContent.appendChild(embeddedSection);
                 return;
               }
@@ -1374,6 +1379,11 @@
             spotlightStack.style.gridTemplateColumns = useGridLayout ? "repeat(auto-fit, minmax(220px, 1fr))" : "";
             spotlightStack.style.gap = useGridLayout ? "16px" : "";
           }
+        }
+        if (item.type === "finder") {
+          section.querySelectorAll(".find-row span").forEach(function (filter) {
+            filter.hidden = displaySettings.searchFields !== "extended";
+          });
         }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
