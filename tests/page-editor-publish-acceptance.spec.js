@@ -24,10 +24,10 @@ test('admin page editor publishes through the real API and exposes the page on t
 
     await page.locator('#page-name').fill(pageName);
     await page.locator('#page-url').fill(pageUrl);
+    settingsMayHaveChanged = true;
     await page.getByRole('button', { name: '公開する' }).click();
 
     await expect(page.locator('#editor-status')).toContainText(`公開しました: ${pageUrl}`);
-    settingsMayHaveChanged = true;
 
     const savedResponse = await page.request.get(settingsApiUrl);
     expect(savedResponse.ok()).toBe(true);
