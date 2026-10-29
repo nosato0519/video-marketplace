@@ -594,6 +594,7 @@ restoreManagedEditorSettings(previousSettings);
 pages=previousPages;
 editingId=previousEditingId;
 renderPageList();
+try{await persistEditorSettings();}catch(rollbackError){}
 editorStatus.textContent=error instanceof Error&&error.message
 ? error.message
 : 'ページ設定のサーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';
