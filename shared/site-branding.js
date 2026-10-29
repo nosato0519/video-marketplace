@@ -1008,7 +1008,17 @@
                   : pageSection.label;
                 if (embeddedHeading && embeddedTitle) embeddedHeading.textContent = embeddedTitle;
                 const embeddedSubtitle = typeof embeddedSectionContent.subtitle === "string" ? embeddedSectionContent.subtitle.trim() : "";
-                const embeddedSectionDescription = embeddedSection.querySelector(".section-head p, .section-description");
+                let embeddedSectionDescription = embeddedSection.querySelector(".section-head p, .section-description");
+                if (embeddedSubtitle && !embeddedSectionDescription) {
+                  embeddedSectionDescription = document.createElement("p");
+                  embeddedSectionDescription.className = "section-description";
+                  embeddedSectionDescription.style.cssText = "line-height:1.7;max-width:70ch;";
+                  const sectionHead = embeddedSection.querySelector(".section-head");
+                  const headingGroup = sectionHead && sectionHead.firstElementChild;
+                  if (headingGroup) headingGroup.appendChild(embeddedSectionDescription);
+                  else if (embeddedHeading && embeddedHeading.parentElement) embeddedHeading.insertAdjacentElement("afterend", embeddedSectionDescription);
+                  else embeddedSection.insertBefore(embeddedSectionDescription, embeddedSection.firstChild);
+                }
                 if (embeddedSectionDescription && embeddedSubtitle) embeddedSectionDescription.textContent = embeddedSubtitle;
                 const embeddedSettings = pageSection.settings && typeof pageSection.settings === "object"
                   ? pageSection.settings
