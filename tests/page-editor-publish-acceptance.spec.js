@@ -351,7 +351,7 @@ test('homepage custom-page layout selection persists and controls public renderi
   await page.goto('/pages/admin-setting-general.html');
   const refreshedRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
   await refreshedRow.getByRole('button', { name: '編集' }).click();
-  await refreshedRow.locator('select').last().selectOption('poster');
+  await refreshedRow.locator('label').filter({ hasText: '表示レイアウト' }).locator('select').selectOption('poster');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('poster');
@@ -433,9 +433,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
 
   const genreRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '気分から選ぶ' }).first();
   await genreRow.getByRole('button', { name: '編集' }).click();
-  const genreSettings = genreRow.locator('details').filter({ hasText: '表示内容の設定' });
-  await genreSettings.locator('summary').click();
-  await genreSettings.locator('select').nth(1).selectOption('grid');
+  await genreRow.getByText('表示内容の設定', { exact: true }).click();
+  await genreRow.locator('label').filter({ hasText: '表示形式' }).locator('select').selectOption('grid');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   const savedGenreRail = savedSections.find((section) => section.id === 'genre-rail');
