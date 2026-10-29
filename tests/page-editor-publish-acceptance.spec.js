@@ -3,6 +3,42 @@ import { test, expect } from '@playwright/test';
 const pageEditorUrl = '/pages/admin-pages.html';
 const settingsUrl = '**/api/admin/settings/page-editor';
 
+test('admin page editor blocks publishing when no public section will render', async ({ page }) => {
+  let saveCount = 0;
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: {} }),
+      });
+      return;
+    }
+
+    if (route.request().method() === 'PUT') {
+      saveCount += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+  await page.locator('#page-name').fill('空ページの公開防止');
+  await page.locator('#page-url').fill('/pages/empty-page-blocked');
+  await page.getByRole('button', { name: '公開する' }).click();
+
+  await expect(page.locator('#editor-status')).toContainText('公開前チェックで未完了');
+  expect(saveCount).toBe(0);
+});
+
 test('admin page editor persists a newly published page and exposes its homepage link', async ({ page }) => {
   let savedEntries = {};
   let saveCount = 0;
