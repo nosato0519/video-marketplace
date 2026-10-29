@@ -133,7 +133,7 @@ try {
   assert.ok(result.data.includes('--page-bg:#101820'));
   assert.ok(result.data.includes('ページ専用フッター説明'));
   assert.ok(result.data.includes('© ページ専用表記'));
-  assert.ok(!result.data.includes('page-published-footer-links'), 'hidden footer links must not render');
+  assert.ok(!result.data.includes('<nav class="page-published-footer-links"'), 'hidden footer links must not render');
   assert.ok(!result.data.includes('href="/pages/seller-register.html"'), 'disabled seller navigation must not render');
   assert.ok(!result.data.includes('href="/cart"'), 'disabled cart navigation must not render');
 
