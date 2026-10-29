@@ -511,7 +511,7 @@
         if (item.type === "custom-text" || item.type === "custom-image-text") {
           fields.appendChild(field("本文", "body", item.content.body, item, true));
         }
-        if (customTypes.has(item.type) || item.type === "custom-page") {
+        {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
           layout.appendChild(document.createTextNode("表示レイアウト"));
@@ -527,7 +527,7 @@
             ["center", "シンプル表示"]
           ] : [
             ["standard", "標準"],
-            ["wide", "幅広"],
+            ["wide", "幅いっぱい"],
             ["narrow", "幅を狭く"],
             ["center", "中央揃え"]
           ]).forEach(function (optionData) {
@@ -972,6 +972,33 @@
         else section.style.removeProperty("display");
         section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
+        const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
+        if (sectionLayout === "wide") {
+          section.style.maxWidth = "none";
+          section.style.marginInline = "0";
+          section.style.paddingInline = "2%";
+        } else if (sectionLayout === "narrow") {
+          section.style.maxWidth = "900px";
+          section.style.marginInline = "auto";
+          section.style.paddingInline = "24px";
+        } else {
+          section.style.maxWidth = "";
+          section.style.marginInline = "";
+          section.style.paddingInline = "";
+        }
+        if (sectionLayout === "center") {
+          section.style.textAlign = "center";
+          section.querySelectorAll(".section-head").forEach(function (head) {
+            head.style.justifyContent = "center";
+            head.style.textAlign = "center";
+          });
+        } else {
+          section.style.textAlign = "";
+          section.querySelectorAll(".section-head").forEach(function (head) {
+            head.style.justifyContent = "";
+            head.style.textAlign = "";
+          });
+        }
         if (typeof sectionContent.title === "string" && sectionContent.title.trim()) {
           const heading = section.querySelector(".section-head h2, .hero-copy h1, .spotlight-copy h2, .finder h2, .library-copy h2, .creator-copy h2, .cta h2, h1, h2");
           if (heading) {
