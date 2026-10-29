@@ -930,12 +930,18 @@
       });
       const ordered = [];
       const orderedIds = new Set();
+      const orderedStandardTypes = new Set();
+      const orderedPublishedPageIds = new Set();
+      const standardHomepageTypes = new Set(definitions.map(function (definition) { return definition.key; }));
       sections.forEach(function (item) {
         if (!item || typeof item !== "object") return;
         const itemId = typeof item.id === "string" ? item.id : "";
         if (itemId && orderedIds.has(itemId)) return;
         if (itemId) orderedIds.add(itemId);
         if (item.type === "custom-page") {
+          const pageId = typeof item.pageId === "string" ? item.pageId : "";
+          if (!pageId || orderedPublishedPageIds.has(pageId)) return;
+          orderedPublishedPageIds.add(pageId);
           const page = (Array.isArray(data.publishedPages) ? data.publishedPages : [])
             .find(function (candidate) { return candidate.id === item.pageId; });
           if (!page || !page.url || !page.name) return;
@@ -1297,6 +1303,10 @@
           }
           ordered.push(customSection);
           return;
+        }
+        if (standardHomepageTypes.has(item.type)) {
+          if (orderedStandardTypes.has(item.type)) return;
+          orderedStandardTypes.add(item.type);
         }
         if (["custom-text", "custom-image", "custom-image-text", "custom-gallery", "custom-cards", "custom-button", "custom-divider", "custom-spacer"].includes(item.type)) {
           const customSection = document.createElement("section");
