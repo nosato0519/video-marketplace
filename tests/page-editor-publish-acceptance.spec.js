@@ -147,10 +147,11 @@ test('admin page editor refuses stale local settings when the server cannot load
 test('homepage editor publishes all configurable custom blocks and adapts card columns to viewport width', async ({ page }) => {
   let savedSections = [];
   let pageEditorEntries = {};
+  let savedThemes = {};
   const homepageSettings = () => ({
     sections: savedSections,
     publishedPages: [],
-    themes: {},
+    themes: savedThemes,
     pageSettings: {},
     siteBranding: { siteName: 'VIDEO MARKETPLACE' },
     siteSettings: {},
@@ -252,6 +253,11 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
     }
   }
 
+  const imageBlock = savedSections.find((section) => section.type === 'custom-image');
+  const buttonBlock = savedSections.find((section) => section.type === 'custom-button');
+  savedThemes[imageBlock.id] = { imageFit: 'contain', radius: 'square' };
+  savedThemes[buttonBlock.id] = { buttonText: '#ffffff', radius: 'square' };
+
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
   for (const block of blockCases) {
@@ -262,6 +268,10 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   }
   await expect(page.locator('.vm-homepage-custom-text')).toContainText('公開される自由な本文です。');
   await expect(page.locator('.vm-homepage-custom-image-text')).toContainText('画像と一緒に表示する本文です。');
+  await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('object-fit', 'contain');
+  await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('border-radius', '0px');
+  await expect(page.locator('.vm-homepage-custom-button a')).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(page.locator('.vm-homepage-custom-button a')).toHaveCSS('border-radius', '0px');
   await expect(page.locator('.vm-homepage-custom-gallery')).toContainText('写真A');
   await expect(page.locator('.vm-homepage-custom-cards')).toContainText('動画講座');
 
