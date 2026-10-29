@@ -71,6 +71,7 @@ jobs:
           npm run test:http-payment-refund
           npm run test:http-payment-failed
           npm run test:security-regression
+          npm run test:published-page-route-acceptance
       - name: Start backend
         working-directory: backend
         env:
