@@ -1164,6 +1164,16 @@
           const customContent = item.content && typeof item.content === "object" ? item.content : {};
           const layout = customContent.layout || "standard";
           customSection.style.cssText = "box-sizing:border-box;width:100%;padding:32px 5%;";
+          const customTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : {};
+          if (typeof customTheme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.bg)) customSection.style.backgroundColor = customTheme.bg;
+          if (typeof customTheme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.text)) customSection.style.color = customTheme.text;
+          if (typeof customTheme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.accent)) customSection.style.setProperty("--accent", customTheme.accent);
+          if (typeof customTheme.radius === "string") customSection.style.borderRadius = customTheme.radius === "square" ? "0" : "16px";
+          if (typeof customTheme.spacing === "string") customSection.style.paddingBlock = customTheme.spacing === "compact" ? "12px" : customTheme.spacing === "large" ? "48px" : "28px";
+          if (typeof customTheme.width === "string") {
+            customSection.style.maxWidth = customTheme.width === "narrow" ? "900px" : customTheme.width === "wide" ? "none" : "1200px";
+            customSection.style.marginInline = customTheme.width === "wide" ? "0" : "auto";
+          }
           if (layout === "wide") customSection.style.paddingInline = "2%";
           if (layout === "narrow") { customSection.style.maxWidth = "900px"; customSection.style.marginInline = "auto"; }
           if (layout === "center") customSection.style.textAlign = "center";
