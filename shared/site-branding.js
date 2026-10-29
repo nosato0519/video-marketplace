@@ -871,7 +871,8 @@
           if (item.type === "custom-gallery" || item.type === "custom-cards") {
             const grid = document.createElement("div");
             const columnCount = [2, 3, 4, 5].includes(Number(customContent.columns)) ? Number(customContent.columns) : 3;
-            grid.style.cssText = "display:grid;grid-template-columns:repeat(" + columnCount + ",minmax(0,1fr));gap:16px;margin-top:18px;";
+            grid.className = "vm-homepage-custom-grid";
+            grid.style.cssText = "display:grid;grid-template-columns:repeat(var(--vm-homepage-card-columns,3),minmax(0,1fr));gap:16px;margin-top:18px;";
             grid.style.setProperty("--vm-homepage-card-columns", String(columnCount));
             (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
               if (!entry || typeof entry !== "object") return;
