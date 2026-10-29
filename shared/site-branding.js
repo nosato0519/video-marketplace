@@ -1035,6 +1035,20 @@
                 if (typeof embeddedTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.buttonText)) {
                   embeddedSection.querySelectorAll("button, .btn, a.button").forEach(function (button) { button.style.color = embeddedTheme.buttonText; });
                 }
+                if (pageSection.type === "trustbar") {
+                  const itemCount = Number(embeddedSettings.itemCount);
+                  Array.from(embeddedSection.querySelectorAll(":scope > div")).forEach(function (item, index) {
+                    item.hidden = Number.isFinite(itemCount) && itemCount > 0 && index >= itemCount;
+                  });
+                }
+                if (pageSection.type === "hero") {
+                  const heroBackground = embeddedSection.querySelector(".hero-bg");
+                  const heroHeight = { compact: "420px", standard: "", large: "760px" }[embeddedSettings.height] || "";
+                  embeddedSection.style.minHeight = heroHeight;
+                  if (heroBackground) {
+                    heroBackground.style.backgroundPosition = embeddedSettings.imagePosition === "left" ? "left center" : embeddedSettings.imagePosition === "right" ? "right center" : "center";
+                  }
+                }
                 const embeddedColumns = Number(embeddedSettings.columns);
                 const embeddedGrid = pageSection.type === "categories"
                   ? embeddedSection.querySelector(".category-grid")
@@ -1358,6 +1372,20 @@
         section.setAttribute("aria-hidden", String(sectionHidden));
         const sectionContent = item.content && typeof item.content === "object" ? item.content : {};
         const displaySettings = sectionContent.settings && typeof sectionContent.settings === "object" ? sectionContent.settings : {};
+        if (item.type === "trustbar") {
+          const itemCount = Number(displaySettings.itemCount);
+          Array.from(section.querySelectorAll(":scope > div")).forEach(function (entry, index) {
+            entry.hidden = Number.isFinite(itemCount) && itemCount > 0 && index >= itemCount;
+          });
+        }
+        if (item.type === "hero") {
+          const heroBackground = section.querySelector(".hero-bg");
+          const heroHeight = { compact: "420px", standard: "", large: "760px" }[displaySettings.height] || "";
+          section.style.minHeight = heroHeight;
+          if (heroBackground) {
+            heroBackground.style.backgroundPosition = displaySettings.imagePosition === "left" ? "left center" : displaySettings.imagePosition === "right" ? "right center" : "center";
+          }
+        }
         const sectionCardSettings = {
           "popular": { selector: ".video-card", countKey: "videoCount" },
           "new-releases": { selector: ".video-card", countKey: "videoCount" },
