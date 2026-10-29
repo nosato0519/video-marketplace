@@ -508,7 +508,7 @@ await persistEditorSettings();
 editorStatus.textContent=statusInput.value==='公開'
 ? '公開しました: '+url
 : '下書きを保存しました。';
-editorSnapshot=null;
+editorSnapshot=captureEditorSnapshot(pageId);
 renderPageList();
 return true;
 }catch(error){
