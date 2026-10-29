@@ -486,7 +486,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
     hidden: false,
     added: true,
     order: 8,
-    content: { settings: { itemCount: '2' } },
+    settings: { itemCount: '2' },
+    content: {},
   }, {
     id: 'hero-layout',
     type: 'hero',
@@ -494,7 +495,8 @@ test('homepage dynamic sections persist layout controls and apply them to public
     hidden: false,
     added: true,
     order: 9,
-    content: { settings: { height: 'compact', imagePosition: 'left' } },
+    settings: { height: 'compact', imagePosition: 'left' },
+    content: {},
   }];
   const settings = () => ({
     sections: savedSections,
