@@ -474,6 +474,13 @@ test('homepage dynamic sections persist layout controls and apply them to public
   const savedGenreRail = savedSections.find((section) => section.id === 'genre-rail');
   expect(savedGenreRail.content.settings.layout).toBe('grid');
 
+  const reorderGenreRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '気分から選ぶ' }).first();
+  await reorderGenreRow.getByRole('button', { name: '↑' }).click();
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.map((section) => section.id)).toEqual(['genre-rail', 'popular', 'custom-banner']);
+  expect(savedSections.map((section) => section.order)).toEqual([0, 1, 2]);
+
   await page.goto('/');
   const publicSection = page.locator('#popular');
   await expect(publicSection).toBeVisible();
@@ -493,4 +500,15 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await page.reload();
   await expect(page.locator('#popular')).toHaveCSS('text-align', 'center');
   await expect(page.locator('#popular')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
+
+  const customBlockRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '自由ブロックテスト' }).first();
+  await customBlockRow.getByRole('button', { name: '非表示にする' }).click();
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((section) => section.id === 'custom-banner').hidden).toBe(true);
+
+  await page.goto('/');
+  const hiddenCustomBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
+  await expect(hiddenCustomBlock).toBeHidden();
+  await expect(hiddenCustomBlock).toHaveAttribute('aria-hidden', 'true');
 });
