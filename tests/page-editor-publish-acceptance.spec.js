@@ -585,7 +585,7 @@ test('homepage dynamic sections persist layout controls and apply them to public
   const spotlightRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '今、観てほしい作品たち' }).first();
   await spotlightRow.getByRole('button', { name: '編集' }).click();
   await spotlightRow.getByText('表示内容の設定', { exact: true }).click();
-  await spotlightRow.locator('details').locator('select').nth(1).selectOption('grid');
+  await spotlightRow.locator('details select:has(option[value="feature"]):has(option[value="grid"])').selectOption('grid');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
   expect(savedSections.find((section) => section.id === 'spotlight').content.settings.layout).toBe('grid');
