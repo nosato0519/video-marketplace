@@ -93,7 +93,7 @@ test('admin page editor persists a newly published page and exposes its homepage
       hidden: false,
       added: false,
       order: 0,
-      content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+      content: { title: publishedPage.name, subtitle: 'TOPページの表示説明も設定できます。', link: publishedPage.url, button: '詳しく見る →', layout: 'wide' },
     }));
     await route.fulfill({
       status: 200,
@@ -112,8 +112,12 @@ test('admin page editor persists a newly published page and exposes its homepage
   });
 
   await page.goto('/');
-  await expect(page.locator('a[href="/pages/acceptance-custom-page"]')).toBeVisible();
-  await expect(page.getByText('受け入れテスト用ページ', { exact: true })).toBeVisible();
+  const homepagePageLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/acceptance-custom-page"]');
+  await expect(homepagePageLink).toBeVisible();
+  await expect(homepagePageLink).toContainText('受け入れテスト用ページ');
+  await expect(homepagePageLink).toContainText('TOPページの表示説明も設定できます。');
+  await expect(homepagePageLink).toContainText('詳しく見る →');
+  await expect(homepagePageLink).toHaveAttribute('style', /flex-direction:\s*column/);
 });
 
 test('admin page editor refuses stale local settings when the server cannot load canonical settings', async ({ page }) => {
