@@ -1140,13 +1140,13 @@
             genreTrack.style.gridTemplateColumns = "";
           }
         }
-        if (item.type === "video-showcase" && displaySettings.layout === "grid") {
+        if (item.type === "video-showcase") {
           const showcaseGrid = section.querySelector(".video-showcase-grid");
-          if (showcaseGrid) showcaseGrid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+          if (showcaseGrid) showcaseGrid.style.gridTemplateColumns = displaySettings.layout === "grid" ? "repeat(auto-fit, minmax(180px, 1fr))" : "";
         }
-        if (item.type === "spotlight" && displaySettings.layout === "grid") {
+        if (item.type === "spotlight") {
           const spotlightStack = section.querySelector(".spotlight-stack");
-          if (spotlightStack) spotlightStack.style.display = "grid";
+          if (spotlightStack) spotlightStack.style.display = displaySettings.layout === "grid" ? "grid" : "";
         }
         const sectionLayout = ["standard", "wide", "narrow", "center"].includes(sectionContent.layout) ? sectionContent.layout : "standard";
         if (sectionLayout === "wide") {
