@@ -333,5 +333,20 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
   await page.reload();
   await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
+
+  await page.goto('/pages/admin-setting-general.html');
+  const refreshedRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
+  await refreshedRow.getByRole('button', { name: '編集' }).click();
+  await refreshedRow.locator('select').last().selectOption('poster');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('poster');
+
+  await page.goto('/');
+  const posterLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
+  await expect(posterLink).toHaveAttribute('style', /min-height:\s*260px/);
+  await expect(posterLink).toContainText('レイアウト保存テスト');
+  await page.reload();
+  await expect(posterLink).toHaveAttribute('style', /min-height:\s*260px/);
 });
 
