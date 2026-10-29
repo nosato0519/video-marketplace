@@ -61,6 +61,21 @@ const sectionOptions={
 };
 let editingSectionIndex=null;
 let pages=[],editingId=null,sectionState=[],editorSnapshot=null;
+function snapshotManagedEditorSettings(){
+const entries={};
+for(let i=0;i<localStorage.length;i++){
+const key=localStorage.key(i);
+if(key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||key==='vm-demo-site-branding'||key==='vm-demo-admin-setting-general'||key==='vm-demo-announcements'||key==='vm-demo-homepage-theme'||/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key))entries[key]=localStorage.getItem(key);
+}
+return entries;
+}
+function restoreManagedEditorSettings(entries){
+for(let i=localStorage.length-1;i>=0;i--){
+const key=localStorage.key(i);
+if(key&&(key==='vm-demo-pages'||key==='vm-demo-homepage-sections'||key==='vm-demo-site-chrome'||key==='vm-demo-site-branding'||key==='vm-demo-admin-setting-general'||key==='vm-demo-announcements'||key==='vm-demo-homepage-theme'||/^vm-demo-page-(sections|theme|meta|design|chrome)-[a-zA-Z0-9_-]+$/.test(key))&&!Object.prototype.hasOwnProperty.call(entries,key))localStorage.removeItem(key);
+}
+Object.entries(entries).forEach(([key,value])=>localStorage.setItem(key,value));
+}
 async function persistEditorSettings(){
 const entries={};
 for(let i=0;i<localStorage.length;i++){
@@ -521,6 +536,9 @@ function closeEditor() {
   document.getElementById('page-management').hidden = false;
 }
 async function savePage(){
+const previousSettings=snapshotManagedEditorSettings();
+const previousPages=pages.map(page=>({...page}));
+const previousEditingId=editingId;
 const name=nameInput.value.trim();
 let url=urlInput.value.trim();
 if(!name){editorStatus.textContent='ページ名を入力してください。';return false;}
@@ -572,6 +590,10 @@ editorSnapshot=captureEditorSnapshot(pageId);
 renderPageList();
 return true;
 }catch(error){
+restoreManagedEditorSettings(previousSettings);
+pages=previousPages;
+editingId=previousEditingId;
+renderPageList();
 editorStatus.textContent=error instanceof Error&&error.message
 ? error.message
 : 'ページ設定のサーバー保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。';
