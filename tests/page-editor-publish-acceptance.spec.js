@@ -891,6 +891,7 @@ test('admin page editor restores a page and its settings when deletion cannot be
     ]),
   };
 
+  let putCount = 0;
   await page.route(settingsUrl, async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
@@ -901,10 +902,20 @@ test('admin page editor restores a page and its settings when deletion cannot be
       return;
     }
     if (route.request().method() === 'PUT') {
+      putCount += 1;
+      if (putCount === 1) {
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'temporarily_unavailable' }),
+        });
+        return;
+      }
+      savedEntries = route.request().postDataJSON().entries;
       await route.fulfill({
-        status: 503,
+        status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ error: 'temporarily_unavailable' }),
+        body: JSON.stringify({ saved: true }),
       });
       return;
     }
@@ -924,5 +935,8 @@ test('admin page editor restores a page and its settings when deletion cannot be
     .toBe(savedEntries[`vm-demo-page-sections-${pageId}`]);
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('vm-demo-pages') || '[]').some((item) => item.id === 'delete-rollback-page')))
     .toBe(true);
+  await expect.poll(() => Object.hasOwn(savedEntries, 'vm-demo-pages') && JSON.parse(savedEntries['vm-demo-pages']).some((item) => item.id === pageId))
+    .toBe(true);
+  expect(putCount).toBe(2);
 });
 
