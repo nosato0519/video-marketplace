@@ -1542,6 +1542,7 @@
               }
               if (entry.title) { const heading = document.createElement("strong"); heading.textContent = entry.title; card.appendChild(heading); }
               if (entry.description) { const description = document.createElement("p"); description.textContent = entry.description; card.appendChild(description); }
+              if (entry.button) { const action = document.createElement("span"); action.textContent = entry.button; action.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:8px;padding:8px 12px;border-radius:" + (customTheme.radius === "square" ? "0" : "8px") + ";background:var(--accent,#d9b45f);color:" + customButtonText + ";font-weight:700;"; card.appendChild(action); }
               grid.appendChild(card);
             });
             customSection.appendChild(grid);
