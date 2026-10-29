@@ -363,6 +363,7 @@
     ].map(function (item) { return { type: item[0], label: item[1] }; });
     const allDefinitions = definitions.concat(customDefinitions);
     const customTypes = new Set(customDefinitions.map(function (item) { return item.type; }));
+    let nextAddedSectionId = 0;
     let sections = [];
     function normalize(items, publishedPages) {
       const source = Array.isArray(items) ? items : [];
@@ -726,7 +727,10 @@
         status.textContent = "同じ標準セクションは重複して追加できません。";
         return;
       }
-      const id = def.type + "-added-" + Date.now();
+      let id;
+      do {
+        id = def.type + "-added-" + Date.now() + "-" + (++nextAddedSectionId);
+      } while (sections.some(function (item) { return item && item.id === id; }));
       sections.push({ id: id, type: def.type, label: def.label, hidden: false, added: true, order: sections.length, content: {} });
       render();
     });
