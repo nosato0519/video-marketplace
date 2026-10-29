@@ -832,7 +832,7 @@
           }
           const imageUrl = typeof customContent.image === "string" ? customContent.image.trim() : "";
           if ((item.type === "custom-image" || item.type === "custom-image-text") && imageUrl &&
-              (/^https?:\\/\\//i.test(imageUrl) || (imageUrl.startsWith("/") && !imageUrl.startsWith("//")))) {
+              (imageUrl.startsWith("https://") || imageUrl.startsWith("http://") || (imageUrl.startsWith("/") && !imageUrl.startsWith("//")))) {
             const image = document.createElement("img");
             image.src = imageUrl;
             image.alt = customContent.title || "";
@@ -845,7 +845,7 @@
             grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px;";
             (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
               if (!entry || typeof entry !== "object") return;
-              const card = document.createElement(entry.link && /^\\/(?!\\/)|^https?:\\/\\//i.test(entry.link) ? "a" : "article");
+              const card = document.createElement(entry.link && (entry.link.startsWith("/") && !entry.link.startsWith("//") || entry.link.startsWith("https://") || entry.link.startsWith("http://")) ? "a" : "article");
               if (card.tagName === "A") {
                 const target = String(entry.link);
                 if (target.startsWith("/") && !target.startsWith("//")) card.href = target;
