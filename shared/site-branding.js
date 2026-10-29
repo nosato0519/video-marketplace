@@ -511,18 +511,23 @@
         if (item.type === "custom-text" || item.type === "custom-image-text") {
           fields.appendChild(field("本文", "body", item.content.body, item, true));
         }
-        if (customTypes.has(item.type)) {
+        if (customTypes.has(item.type) || item.type === "custom-page") {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
           layout.appendChild(document.createTextNode("表示レイアウト"));
           const layoutSelect = document.createElement("select");
           layoutSelect.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
-          [
+          (item.type === "custom-page" ? [
+            ["standard", "標準カード"],
+            ["wide", "大きなバナー"],
+            ["narrow", "画像＋文章"],
+            ["center", "シンプル表示"]
+          ] : [
             ["standard", "標準"],
             ["wide", "幅広"],
             ["narrow", "幅を狭く"],
             ["center", "中央揃え"]
-          ].forEach(function (optionData) {
+          ]).forEach(function (optionData) {
             const option = document.createElement("option");
             option.value = optionData[0];
             option.textContent = optionData[1];
@@ -797,24 +802,38 @@
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           const link = document.createElement("a");
           link.href = page.url;
-          link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
-          const previewImage = item.content && typeof item.content.image === "string" && item.content.image ? item.content.image : page.image;
+          const content = item.content && typeof item.content === "object" ? item.content : {};
+          const layout = ["standard", "wide", "narrow", "center"].includes(content.layout) ? content.layout : "standard";
+          link.style.cssText = "display:flex;align-items:center;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);overflow:hidden;";
+          if (layout === "wide") link.style.cssText += "flex-direction:column;align-items:stretch;padding:0;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015));";
+          if (layout === "narrow") link.style.cssText += "align-items:stretch;";
+          if (layout === "center") link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line,#333);color:inherit;text-decoration:none;";
+          const previewImage = content.image || page.image;
           const safePreviewImage = previewImage && (previewImage.startsWith("https://") || previewImage.startsWith("http://") || (previewImage.startsWith("/") && !previewImage.startsWith("//")) || previewImage.startsWith("data:image/webp;base64,"));
           if (safePreviewImage) {
             const image = document.createElement("img");
             image.src = previewImage;
             image.alt = "";
             image.loading = "lazy";
-            image.style.cssText = "width:clamp(90px,18vw,180px);height:clamp(64px,10vw,110px);object-fit:cover;border-radius:8px;flex:0 0 auto;";
-            link.appendChild(image);
+            image.style.cssText = "display:block;width:" + (layout === "wide" ? "100%" : layout === "narrow" ? "min(38%,320px)" : "clamp(90px,18vw,180px)") + ";height:" + (layout === "wide" ? "clamp(180px,28vw,360px)" : layout === "narrow" ? "clamp(100px,18vw,220px)" : "clamp(64px,10vw,110px)") + ";object-fit:cover;border-radius:" + (layout === "wide" ? "0" : "8px") + ";flex:0 0 auto;";
+            if (layout !== "center") link.appendChild(image);
           }
           const copy = document.createElement("span");
-          copy.style.cssText = "display:grid;gap:8px;min-width:0;flex:1;";
+          copy.style.cssText = "display:grid;gap:9px;min-width:0;flex:1;padding:" + (layout === "wide" ? "24px" : "0") + ";" + (layout === "center" ? "display:flex;flex-direction:row;align-items:center;justify-content:space-between;" : "");
           const heading = document.createElement("strong");
-          heading.textContent = item.content && item.content.title || page.name;
+          heading.textContent = content.title || page.name;
+          heading.style.cssText = "font-size:" + (layout === "wide" ? "clamp(1.4rem,3vw,2.4rem)" : "clamp(1rem,1.8vw,1.5rem)") + ";line-height:1.3;overflow-wrap:anywhere;";
+          copy.appendChild(heading);
+          if (typeof content.subtitle === "string" && content.subtitle.trim() && layout !== "center") {
+            const description = document.createElement("span");
+            description.textContent = content.subtitle.trim();
+            description.style.cssText = "line-height:1.7;opacity:.78;overflow-wrap:anywhere;";
+            copy.appendChild(description);
+          }
           const action = document.createElement("span");
-          action.textContent = item.content && item.content.button || "ページを見る →";
-          copy.append(heading, action);
+          action.textContent = content.button || "ページを見る →";
+          action.style.cssText = "font-weight:700;opacity:.9;";
+          copy.appendChild(action);
           link.appendChild(copy);
           customSection.appendChild(link);
           ordered.push(customSection);
