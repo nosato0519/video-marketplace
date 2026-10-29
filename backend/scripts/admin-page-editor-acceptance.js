@@ -109,6 +109,7 @@ try {
     }]),
     ['vm-demo-page-meta-' + pageId]: JSON.stringify({ seoTitle: '認証付き保存テスト SEO', description: 'Authenticated page editor acceptance.' }),
     ['vm-demo-page-design-' + pageId]: JSON.stringify({ bg: '#101820', text: '#f4f4f5', accent: '#d9b45f' }),
+    ['vm-demo-page-chrome-' + pageId]: JSON.stringify({ showPurchase: true, showSell: false, showAccount: true, showCart: false, menuOrder: 'purchase,sell,cart', footerDescription: 'ページ専用フッター説明', footerShowLinks: 'hide', footerCopyright: '© ページ専用表記' }),
   };
 
   result = await request(baseUrl, endpoint, {
@@ -130,6 +131,11 @@ try {
   assert.ok(result.data.includes('運営者認証を通して保存した本文です。'));
   assert.ok(result.data.includes('<title>認証付き保存テスト SEO</title>'));
   assert.ok(result.data.includes('--page-bg:#101820'));
+  assert.ok(result.data.includes('ページ専用フッター説明'));
+  assert.ok(result.data.includes('© ページ専用表記'));
+  assert.ok(!result.data.includes('page-published-footer-links'), 'hidden footer links must not render');
+  assert.ok(!result.data.includes('href="/pages/seller-register.html"'), 'disabled seller navigation must not render');
+  assert.ok(!result.data.includes('href="/cart"'), 'disabled cart navigation must not render');
 
   result = await request(baseUrl, '/api/site/homepage-settings');
   assert.equal(result.response.status, 200);
