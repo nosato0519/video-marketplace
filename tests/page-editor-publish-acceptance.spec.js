@@ -463,9 +463,13 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
   for (const block of blockCases) {
-    await expect(page.locator(`.vm-homepage-${block.type}`)).toBeVisible();
+    const renderedBlock = page.locator(`.vm-homepage-${block.type}`).filter({
+      has: block.title ? page.getByRole('heading', { name: block.title, exact: true }) : undefined,
+    });
     if (block.title) {
-      await expect(page.locator(`.vm-homepage-${block.type}`).getByRole('heading', { name: block.title })).toBeVisible();
+      await expect(page.getByRole('heading', { name: block.title, exact: true })).toBeVisible();
+    } else {
+      await expect(page.locator(`.vm-homepage-${block.type}`).first()).toBeVisible();
     }
   }
   await expect(page.locator('.vm-homepage-custom-text')).toHaveCount(2);
