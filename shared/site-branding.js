@@ -508,6 +508,9 @@
           field("リンク先", "link", item.content.link, item, false),
           field("画像URL", "image", item.content.image, item, false)
         );
+        if (item.type === "custom-text" || item.type === "custom-image-text") {
+          fields.appendChild(field("本文", "body", item.content.body, item, true));
+        }
         if (customTypes.has(item.type)) {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
@@ -845,6 +848,16 @@
             addText("h2", customContent.title, "section-headline");
             addText("p", customContent.subtitle, "section-description");
           }
+          if (item.type === "custom-text" || item.type === "custom-image-text") {
+            const body = typeof customContent.body === "string" ? customContent.body.trim() : "";
+            if (body) {
+              const paragraph = document.createElement("div");
+              paragraph.className = "vm-homepage-custom-body";
+              paragraph.style.cssText = "white-space:pre-line;line-height:1.8;max-width:100%;overflow-wrap:anywhere;";
+              paragraph.textContent = body;
+              customSection.appendChild(paragraph);
+            }
+          }
           const imageUrl = typeof customContent.image === "string" ? customContent.image.trim() : "";
           if ((item.type === "custom-image" || item.type === "custom-image-text") && imageUrl &&
               (imageUrl.startsWith("https://") || imageUrl.startsWith("http://") || (imageUrl.startsWith("/") && !imageUrl.startsWith("//")))) {
@@ -859,6 +872,7 @@
             const grid = document.createElement("div");
             const columnCount = [2, 3, 4, 5].includes(Number(customContent.columns)) ? Number(customContent.columns) : 3;
             grid.style.cssText = "display:grid;grid-template-columns:repeat(" + columnCount + ",minmax(0,1fr));gap:16px;margin-top:18px;";
+            grid.style.setProperty("--vm-homepage-card-columns", String(columnCount));
             (Array.isArray(customContent.items) ? customContent.items : []).forEach(function (entry) {
               if (!entry || typeof entry !== "object") return;
               const card = document.createElement(entry.link && (entry.link.startsWith("/") && !entry.link.startsWith("//") || entry.link.startsWith("https://") || entry.link.startsWith("http://")) ? "a" : "article");
