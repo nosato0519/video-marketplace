@@ -135,6 +135,7 @@ async function removePage(page){
     save();
     removedSettings.forEach(([key,value])=>localStorage.setItem(key,value));
     renderPageList();
+    try{await persistEditorSettings();}catch(rollbackError){}
     editorStatus.textContent=error.message||'ページ削除のサーバー保存に失敗しました。';
   }
 }
