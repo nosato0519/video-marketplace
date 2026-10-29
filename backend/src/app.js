@@ -104,6 +104,14 @@ export function createApp() {
                       order: Number.isFinite(Number(section.order)) ? Number(section.order) : index,
                       content: section.content && typeof section.content === 'object' ? section.content : {},
                       settings: section.settings && typeof section.settings === 'object' ? section.settings : {},
+                      theme: (() => {
+                        try {
+                          const savedTheme = JSON.parse(editorEntries?.['vm-demo-page-theme-' + page.id + '-' + (typeof section.id === 'string' ? section.id : section.type + '-' + index)] || '{}');
+                          return savedTheme && typeof savedTheme === 'object' ? savedTheme : {};
+                        } catch (_) {
+                          return {};
+                        }
+                      })(),
                       items: Array.isArray(section.items) ? section.items : []
                     }))
                     .sort((left, right) => left.order - right.order)
