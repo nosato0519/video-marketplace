@@ -37,6 +37,16 @@ test('admin page editor blocks publishing when no public section will render', a
 
   await expect(page.locator('#editor-status')).toContainText('公開前チェックで未完了');
   expect(saveCount).toBe(0);
+
+  await page.locator('#homepage-add-type').selectOption('custom-text');
+  await page.locator('#homepage-add-section').click();
+  const sectionRow = page.locator('#homepage-section-list .homepage-section-row').first();
+  await sectionRow.getByRole('button', { name: '表示' }).click();
+  await expect(sectionRow).toHaveAttribute('data-hidden', 'true');
+
+  await page.getByRole('button', { name: '公開する' }).click();
+  await expect(page.locator('#editor-status')).toContainText('公開前チェックで未完了');
+  expect(saveCount).toBe(0);
 });
 
 test('admin page editor persists a newly published page and exposes its homepage link', async ({ page }) => {
