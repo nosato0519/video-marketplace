@@ -462,6 +462,22 @@ test('homepage dynamic sections persist layout controls and apply them to public
     added: true,
     order: 7,
     content: { settings: { layout: 'editorial' } },
+  }, {
+    id: 'trustbar-count',
+    type: 'trustbar',
+    label: '購入ガイド項目数',
+    hidden: false,
+    added: true,
+    order: 8,
+    content: { settings: { itemCount: '2' } },
+  }, {
+    id: 'hero-layout',
+    type: 'hero',
+    label: 'メインビジュアル高さ',
+    hidden: false,
+    added: true,
+    order: 9,
+    content: { settings: { height: 'compact', imagePosition: 'left' } },
   }];
   const settings = () => ({
     sections: savedSections,
@@ -557,6 +573,9 @@ test('homepage dynamic sections persist layout controls and apply them to public
   await expect(editorialCollection.locator('.video-grid')).toHaveCSS('grid-template-columns', /^\S+$/);
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('display', 'grid');
   await expect(editorialCollection.locator('.video-card').first()).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
+  await expect(page.locator('.trustbar > div:visible')).toHaveCount(2);
+  await expect(page.locator('.hero')).toHaveCSS('min-height', '420px');
+  await expect(page.locator('.hero .hero-bg')).toHaveCSS('background-position', 'left center');
   const customBlock = page.locator('.vm-homepage-custom-text[data-vm-section-id="custom-banner"]');
   await expect(customBlock).toBeVisible();
   await expect(customBlock).toHaveCSS('background-color', 'rgb(35, 69, 103)');
