@@ -299,7 +299,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 });
 
 test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }] };
+  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -361,6 +361,9 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(embeddedPopular).toHaveCSS('padding-top', '48px');
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-genre-rail"] .genre-track')).toHaveCSS('display', 'grid');
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-genre-rail"] .genre-track')).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span')).toHaveCount(2);
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span').nth(0)).toBeHidden();
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span').nth(1)).toBeHidden();
   const embeddedShowcaseGrid = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-video-showcase"] .video-showcase-grid');
   await expect(embeddedShowcaseGrid).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
