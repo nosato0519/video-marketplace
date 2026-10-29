@@ -521,8 +521,7 @@
         const sectionSettingOptions = {
           "popular": [
             ["videoCount", "表示する動画数", [["4","4件"],["8","8件"],["12","12件"],["16","16件"],["24","24件"],["36","36件"],["48","48件"]]],
-            ["columns", "1行のカード数", [["2","2列"],["3","3列"],["4","4列"],["5","5列"]]],
-            ["period", "人気の集計期間", [["all","全期間"],["month","過去30日"],["week","過去7日"]]]
+            ["columns", "1行のカード数", [["2","2列"],["3","3列"],["4","4列"],["5","5列"]]]
           ],
           "new-releases": [
             ["videoCount", "表示する動画数", [["4","4件"],["8","8件"],["12","12件"],["16","16件"],["24","24件"],["36","36件"],["48","48件"]]],
@@ -559,10 +558,10 @@
               option.textContent = optionData[1];
               control.appendChild(option);
             });
-            const defaultValue = setting[0] === "columns" ? "3" : setting[0] === "period" ? "all" : setting[0] === "videoCount" ? "8" : "8";
+            const defaultValue = setting[0] === "columns" ? "3" : setting[0] === "videoCount" ? "8" : "8";
             control.value = String(item.content.settings[setting[0]] || defaultValue);
             control.addEventListener("change", function () {
-              item.content.settings[setting[0]] = setting[0] === "period" ? control.value : Number(control.value);
+              item.content.settings[setting[0]] = Number(control.value);
             });
             label.appendChild(control);
             settingsFields.appendChild(label);
