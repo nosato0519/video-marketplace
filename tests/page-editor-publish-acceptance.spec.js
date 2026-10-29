@@ -94,6 +94,24 @@ test('admin page editor persists a newly published page and exposes its homepage
   await page.locator('#cancel-page-bottom').click();
   expect(saveCount).toBe(1);
 
+  await publishedPageRow.getByRole('button', { name: '編集' }).click();
+  await page.locator('#homepage-section-list .homepage-section-row').first().getByRole('button', { name: '編集' }).click();
+  await page.locator('#section-edit-name').fill('保存済みの変更');
+  await page.getByRole('button', { name: '編集内容を反映' }).click();
+  await page.getByRole('button', { name: '公開する' }).click();
+  await expect(page.locator('#editor-status')).toContainText('公開しました: /pages/acceptance-custom-page');
+  expect(saveCount).toBe(2);
+
+  await page.locator('#homepage-section-list .homepage-section-row').first().getByRole('button', { name: '編集' }).click();
+  await page.locator('#section-edit-name').fill('保存後の未保存変更');
+  await page.getByRole('button', { name: '編集内容を反映' }).click();
+  await page.locator('#cancel-page-bottom').click();
+  await publishedPageRow.getByRole('button', { name: '編集' }).click();
+  await expect(page.locator('#homepage-section-list .homepage-section-row').first()).toContainText('保存済みの変更');
+  await expect(page.locator('#homepage-section-list .homepage-section-row').first()).not.toContainText('保存後の未保存変更');
+  await page.locator('#cancel-page-bottom').click();
+  expect(saveCount).toBe(2);
+
   await page.getByRole('button', { name: '新しいページを作成' }).click();
   await page.locator('#page-name').fill('キャンセル確認用ページ');
   await page.locator('#cancel-page-bottom').click();
