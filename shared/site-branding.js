@@ -997,7 +997,9 @@
                 const embeddedSettings = pageSection.settings && typeof pageSection.settings === "object"
                   ? pageSection.settings
                   : (embeddedSectionContent.settings && typeof embeddedSectionContent.settings === "object" ? embeddedSectionContent.settings : {});
-                const embeddedTheme = embeddedSectionContent.theme && typeof embeddedSectionContent.theme === "object" ? embeddedSectionContent.theme : {};
+                const embeddedTheme = pageSection.theme && typeof pageSection.theme === "object"
+                  ? pageSection.theme
+                  : (embeddedSectionContent.theme && typeof embeddedSectionContent.theme === "object" ? embeddedSectionContent.theme : {});
                 if (typeof embeddedTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.bg)) embeddedSection.style.backgroundColor = embeddedTheme.bg;
                 if (typeof embeddedTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.text)) embeddedSection.style.color = embeddedTheme.text;
                 if (typeof embeddedTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.accent)) embeddedSection.style.setProperty("--accent", embeddedTheme.accent);
