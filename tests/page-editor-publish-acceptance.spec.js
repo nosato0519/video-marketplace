@@ -957,3 +957,74 @@ test('admin page editor restores a page and its settings when deletion cannot be
   expect(putCount).toBe(2);
 });
 
+
+
+test('homepage settings can duplicate a configured custom block without sharing its id', async ({ page }) => {
+  let savedHomepageSections = null;
+  let savedEntries = {};
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ sections: [], publishedPages: [], themes: {}, pageSettings: {}, siteBranding: {}, siteSettings: {}, announcements: [], homepageTheme: {} }),
+    });
+  });
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      const payload = route.request().postDataJSON();
+      savedEntries = { ...savedEntries, ...(payload.entries || {}) };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedHomepageSections = route.request().postDataJSON().sections;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を読み込みました');
+
+  await page.locator('#top-add-type').selectOption('custom-text');
+  await page.locator('#top-add-section').click();
+  const original = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '自由ブロック：文章' }).last();
+  await original.getByRole('button', { name: '編集' }).click();
+  await original.locator('input').nth(0).fill('複製元の見出し');
+  await original.locator('textarea').nth(1).fill('複製しても内容を引き継ぎます。');
+  await original.getByRole('button', { name: '複製' }).click();
+
+  const copies = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: '複製元の見出し' });
+  await expect(copies).toHaveCount(2);
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました。');
+
+  expect(Array.isArray(savedHomepageSections)).toBe(true);
+  const customTexts = savedHomepageSections.filter((section) => section.type === 'custom-text' && section.content?.title === '複製元の見出し');
+  expect(customTexts).toHaveLength(2);
+  expect(customTexts[0].id).not.toBe(customTexts[1].id);
+  expect(customTexts[1].content.body).toBe('複製しても内容を引き継ぎます。');
+});
