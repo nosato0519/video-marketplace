@@ -1325,7 +1325,7 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   await textBlock.locator('input').first().fill('TOP独自の見出し');
   await textBlock.locator('textarea').nth(1).fill('TOPに表示する自由な本文です。');
 
-  await builder.locator('select').last().selectOption('custom-image-text');
+  await builder.locator('select').first().selectOption('custom-image-text');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
   const imageTextBlock = builder.locator('section').nth(1);
   await imageTextBlock.locator('input').nth(0).fill('画像付き紹介');
