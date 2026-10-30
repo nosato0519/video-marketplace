@@ -1296,16 +1296,15 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
 
   await builder.locator('select').selectOption('custom-text');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
-  const textBlock = builder.locator(':scope > section').first();
+  const textBlock = builder.locator('section').first();
   await textBlock.locator('input').first().fill('TOP独自の見出し');
   await textBlock.locator('textarea').nth(1).fill('TOPに表示する自由な本文です。');
 
   await builder.locator('select').selectOption('custom-gallery');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
-  const galleryBlock = builder.locator(':scope > section').nth(1);
+  const galleryBlock = builder.locator('section').nth(1);
   await galleryBlock.getByRole('button', { name: 'カード・画像を追加' }).click();
-  const galleryItem = galleryBlock.locator('div').filter({ has: page.locator('input').first() }).last();
-  await galleryBlock.locator('input').filter({ visible: true }).last().fill('ギャラリー項目のリンク先');
+  await galleryBlock.locator('input').first().fill('ギャラリーのカード');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
 
@@ -1322,7 +1321,7 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   const publishedTop = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
   await expect(publishedTop).toContainText('TOP独自の見出し');
   await expect(publishedTop).toContainText('TOPに表示する自由な本文です。');
-  await expect(publishedTop).toContainText('ギャラリー項目のリンク先');
+  await expect(publishedTop).toContainText('ギャラリーのカード');
   await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
   await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toHaveCount(1);
 });
