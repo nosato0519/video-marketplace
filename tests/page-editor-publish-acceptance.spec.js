@@ -1085,3 +1085,56 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
 });
+
+test('homepage keeps custom blocks from three published pages without cloning standard homepage sections', async ({ page }) => {
+  const publishedPages = [1, 2, 3].map((index) => ({
+    id: `published-page-${index}`,
+    name: `独立ページ${index}`,
+    url: `/pages/published-page-${index}`,
+    image: '',
+    sections: [
+      { id: `page-${index}-hero`, type: 'hero', label: 'メインビジュアル', content: { title: `ページ${index}のメインビジュアル` } },
+      { id: `page-${index}-popular`, type: 'popular', label: '人気の動画', content: { title: `ページ${index}の人気動画` } },
+      { id: `page-${index}-custom`, type: 'custom-text', label: '独自コンテンツ', content: { title: `TOPに残す独自内容${index}`, body: 'ページ固有の内容' } },
+    ],
+  }));
+  const sections = publishedPages.map((publishedPage, index) => ({
+    id: `homepage-page-link-${index + 1}`,
+    type: 'custom-page',
+    pageId: publishedPage.id,
+    label: publishedPage.name,
+    hidden: false,
+    added: false,
+    order: index,
+    content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+  }));
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections,
+        publishedPages,
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto('/');
+  const homepagePageSections = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
+  await expect(homepagePageSections).toHaveCount(3);
+  for (let index = 0; index < 3; index += 1) {
+    const homepagePageSection = homepagePageSections.nth(index);
+    await expect(homepagePageSection.locator('.hero, #popular')).toHaveCount(0);
+    await expect(homepagePageSection.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
+    await expect(homepagePageSection).toContainText(`TOPに残す独自内容${index + 1}`);
+  }
+  await expect(page.locator('main > .hero')).toHaveCount(1);
+  await expect(page.locator('main > #popular')).toHaveCount(1);
+});
