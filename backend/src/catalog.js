@@ -74,3 +74,71 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
     }
   };
 }
+
+export async function listHomepageSection({ type, locale = 'ja', limit = 8 }) {
+  const safeLimit = Math.min(20, Math.max(1, Number.parseInt(limit, 10) || 8));
+  if (type === 'categories') {
+    const result = await query(
+      `SELECT c.slug, c.name, COUNT(p.id)::int AS product_count
+         FROM categories c
+         LEFT JOIN products p ON p.category_id = c.id AND p.status = 'published'
+        GROUP BY c.id, c.slug, c.name
+        ORDER BY c.name ASC
+        LIMIT $1`,
+      [safeLimit]
+    );
+    return result.rows;
+  }
+  if (type !== 'popular') throw new Error('unsupported_homepage_section');
+  const result = await query(
+    `SELECT
+       p.id,
+       p.price_amount,
+       p.price_currency,
+       CASE WHEN thumbnail.image_id IS NOT NULL
+         THEN '/api/catalog/products/' || p.id::text || '/images/' || thumbnail.image_id::text
+         ELSE NULL
+       END AS thumbnail_url,
+       c.slug AS category,
+       sp.display_name AS seller,
+       COALESCE(pt.title, fallback.title, p.title) AS title,
+       COALESCE(pt.description, fallback.description, p.description) AS description,
+       COUNT(o.id)::int AS sales_count
+     FROM products p
+     JOIN seller_profiles sp ON sp.id = p.seller_id
+     JOIN users su ON su.id = sp.user_id
+     LEFT JOIN categories c ON c.id = p.category_id
+     LEFT JOIN LATERAL (
+       SELECT pi.media_asset_id AS image_id
+         FROM product_images pi
+         JOIN media_assets ma ON ma.id = pi.media_asset_id
+        WHERE pi.product_id = p.id
+          AND pi.image_role = 'thumbnail'
+          AND ma.status = 'ready'
+          AND ma.mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+        ORDER BY pi.sort_order ASC, pi.id ASC
+        LIMIT 1
+     ) thumbnail ON TRUE
+     LEFT JOIN product_translations pt ON pt.product_id = p.id AND pt.locale = $1
+     LEFT JOIN LATERAL (
+       SELECT title, description
+         FROM product_translations
+        WHERE product_id = p.id
+        ORDER BY CASE WHEN locale = $1 THEN 0 WHEN locale LIKE $1 || '-%' THEN 1 WHEN locale = 'en' THEN 2 ELSE 3 END, locale
+        LIMIT 1
+     ) fallback ON TRUE
+     LEFT JOIN orders o ON o.product_id = p.id AND o.status = 'paid'
+     WHERE p.status = 'published'
+       AND su.status = 'active'
+       AND NOT EXISTS (
+         SELECT 1 FROM content_reviews cr
+          WHERE cr.product_id = p.id AND cr.status = 'blocked'
+       )
+     GROUP BY p.id, thumbnail.image_id, c.slug, sp.display_name,
+              pt.title, fallback.title, p.title, pt.description, fallback.description, p.description
+     ORDER BY sales_count DESC, p.published_at DESC NULLS LAST, p.id DESC
+     LIMIT $2`,
+    [locale, safeLimit]
+  );
+  return result.rows;
+}
