@@ -508,7 +508,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 
 test('homepage custom pages render their saved sections without a duplicate page card', async ({ page }) => {
   const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { title: 'TOP反映専用の人気動画見出し', subtitle: 'TOP表示用の説明文', settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
-    { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }, { id: 'page-hidden-block', type: 'custom-text', label: '非表示ブロック', hidden: true, content: { title: '非表示の見出し', body: 'TOPには出さない内容' }, items: [] }, { id: 'page-image-text', type: 'custom-image-text', label: '画像と文章', content: { title: '画像と文章の配置', body: '画像と文章を横並びに表示します。', image: '/assets/test-image.jpg' }, items: [] }] };
+    { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }, { id: 'page-hidden-block', type: 'custom-text', label: '非表示ブロック', hidden: true, content: { title: '非表示の見出し', body: 'TOPには出さない内容' }, items: [] }, { id: 'page-image-text', type: 'custom-image-text', label: '画像と文章', content: { title: '画像と文章の配置', subtitle: '画像と文章の説明', body: '画像と文章を横並びに表示します。', image: '/assets/test-image.jpg', button: '詳しく見る', link: '/pages/video-list.html' }, items: [] }, { id: 'page-divider', type: 'custom-divider', label: '区切り線', theme: { accent: '#ff0000', width: 'narrow', spacing: 'compact' }, items: [] }, { id: 'page-spacer', type: 'custom-spacer', label: '余白', theme: { width: 'narrow', spacing: 'large' }, settings: { height: 128 }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -585,8 +585,22 @@ test('homepage custom pages render their saved sections without a duplicate page
   await expect(embeddedText).toHaveCSS('padding-top', '12px');
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-hidden-block"]')).toHaveCount(0);
   const imageTextBlock = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-image-text"]');
-  await expect(imageTextBlock.locator(':scope > img')).toHaveCount(1);
-  await expect(imageTextBlock.locator('.vm-published-page-image-text-copy')).toContainText('画像と文章を横並びに表示します。');
+  const imageTextLayout = imageTextBlock.locator('.vm-published-page-image-text');
+  await expect(imageTextLayout.locator(':scope > img')).toHaveCount(1);
+  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy h2')).toHaveText('画像と文章の配置');
+  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy')).toContainText('画像と文章を横並びに表示します。');
+  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy a')).toHaveText('詳しく見る');
+  const publishedImageTextColumns = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await imageTextLayout.elementHandle());
+  await expect.poll(publishedImageTextColumns).toBe(2);
+  const embeddedDivider = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-divider"]');
+  await expect(embeddedDivider).toHaveCSS('max-width', '900px');
+  await expect(embeddedDivider.locator('hr')).toHaveCSS('border-top-color', 'rgb(255, 0, 0)');
+  const embeddedSpacer = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-spacer"]');
+  await expect(embeddedSpacer).toHaveCSS('max-width', '900px');
+  await expect(embeddedSpacer.locator('div[aria-hidden="true"]')).toHaveCSS('height', '128px');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(publishedImageTextColumns).toBe(1);
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.reload();
   await expect(publicLink).toHaveCount(0);
 
