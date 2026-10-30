@@ -227,6 +227,13 @@ export function createApp() {
           });
         }
       });
+      homepageSections.forEach((section) => {
+        if (!section || section.type !== 'custom-page') return;
+        const page = publishedPages.find((candidate) => candidate.id === section.pageId);
+        if (!page || !Array.isArray(page.topSections)) return;
+        section.content = section.content && typeof section.content === 'object' ? section.content : {};
+        section.content.topSections = page.topSections;
+      });
       homepageSections.forEach((section, index) => { if (section && typeof section === 'object') section.order = index; });
       res.set('Cache-Control', 'no-store');
       return res.json({
