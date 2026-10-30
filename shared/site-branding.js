@@ -399,6 +399,13 @@
         });
       });
 
+      normalized.forEach(function (item) {
+        if (item.type !== "custom-page") return;
+        const page = publishedPages.find(function (candidate) { return candidate.id === item.pageId; });
+        if (!page || !Array.isArray(page.topSections)) return;
+        item.content.topSections = JSON.parse(JSON.stringify(page.topSections));
+      });
+
       // Older saved configurations can contain only newly added sections.
       // Restore any missing standard sections so they remain reorderable.
       definitions.forEach(function (def) {
@@ -426,7 +433,7 @@
           hidden: false,
           added: false,
           order: normalized.length,
-          content: { title: page.name, link: page.url }
+          content: Object.assign({ title: page.name, link: page.url }, Array.isArray(page.topSections) ? { topSections: JSON.parse(JSON.stringify(page.topSections)) } : {})
         });
       });
 
@@ -638,7 +645,7 @@
       ];
       if (!Array.isArray(item.content.topSections)) {
         const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
-        const legacySections = page && Array.isArray(page.sections) ? page.sections : [];
+        const legacySections = page && Array.isArray(page.topSections) ? page.topSections : (page && Array.isArray(page.sections) ? page.sections : []);
         const selectedIds = Array.isArray(item.content.visibleSectionIds) ? new Set(item.content.visibleSectionIds.map(String)) : null;
         item.content.topSections = legacySections
           .filter(function (section) {
@@ -792,6 +799,8 @@
       details.append(addRow,list);
       return details;
     }
+
+    window.VMPageTopSectionsEditor = function (item) { return renderPublishedPageSectionsEditor(item); };
 
     function render() {
       root.replaceChildren();
@@ -1089,16 +1098,29 @@
     const save = document.getElementById("top-save-settings");
     if (save) save.addEventListener("click", async function () {
       sections = sections.map(function (item, index) { return Object.assign({}, item, { order: index }); });
+      let pageRecords = null;
+      try {
+        const parsedPages = JSON.parse(localStorage.getItem("vm-demo-pages") || "null");
+        if (Array.isArray(parsedPages)) {
+          pageRecords = parsedPages;
+          sections.forEach(function (item) {
+            if (!item || item.type !== "custom-page" || !Array.isArray(item.content && item.content.topSections)) return;
+            const page = pageRecords.find(function (candidate) { return candidate && candidate.id === item.pageId; });
+            if (page) page.topSections = JSON.parse(JSON.stringify(item.content.topSections));
+          });
+        }
+      } catch (_) {}
       const serialized = JSON.stringify(sections);
+      const pageRecordsSerialized = pageRecords ? JSON.stringify(pageRecords) : null;
       status.textContent = "TOP設定をサーバーに保存しています…";
       save.disabled = true;
       try {
         const editorResponse = await fetch("/api/admin/settings/page-editor", {
           method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ merge: true, entries: {
+          body: JSON.stringify({ merge: true, entries: Object.assign({
             "vm-demo-page-sections-top": serialized,
             "vm-demo-homepage-sections": serialized
-          } })
+          }, pageRecordsSerialized ? { "vm-demo-pages": pageRecordsSerialized } : {}) })
         });
         if (!editorResponse.ok) throw new Error("page_editor_save_failed");
         const homepageResponse = await fetch("/api/admin/settings/homepage", {
@@ -1108,6 +1130,7 @@
         if (!homepageResponse.ok) throw new Error("homepage_save_failed");
         localStorage.setItem("vm-demo-page-sections-top", serialized);
         localStorage.setItem("vm-demo-homepage-sections", serialized);
+        if (pageRecordsSerialized) localStorage.setItem("vm-demo-pages", pageRecordsSerialized);
         status.textContent = "TOP設定を保存しました。公開TOPに反映されます。";
       } catch (_) {
         status.textContent = "保存に失敗しました。運営者ログイン状態とサーバーログを確認してください。";
@@ -1314,7 +1337,7 @@
           const customPageHidden = item.hidden === true;
           customSection.hidden = customPageHidden;
           customSection.style.cssText = "padding:24px 5%;";
-          const pageSections = Array.isArray(item.content && item.content.topSections) ? item.content.topSections : (Array.isArray(page.sections) ? page.sections : []);
+          const pageSections = Array.isArray(item.content && item.content.topSections) ? item.content.topSections : (Array.isArray(page.topSections) ? page.topSections : (Array.isArray(page.sections) ? page.sections : []));
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           const pageContent = item.content && typeof item.content === "object" ? item.content : {};
