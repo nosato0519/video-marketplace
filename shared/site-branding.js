@@ -1812,21 +1812,28 @@
                 updateGalleryColumns();
                 window.addEventListener("resize", updateGalleryColumns, { passive: true });
                 embeddedItems.forEach(function (entry) {
-                  if (!entry || typeof entry.image !== "string") return;
-                  const imageUrl = entry.image.trim();
-                  const validImage = /^https?:\/\//i.test(imageUrl) || /^\/(?!\/)/.test(imageUrl) || /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/i.test(imageUrl);
-                  if (!validImage) return;
+                  if (!entry || typeof entry !== "object") return;
+                  const imageUrl = typeof entry.image === "string" ? entry.image.trim() : "";
+                  const validImage = /^https?:\/\//i.test(imageUrl) || /^\/(?!\/)/.test(imageUrl) || /^data:image\/(?:webp|png|jpe?g);base64,/i.test(imageUrl);
                   const link = typeof entry.link === "string" ? entry.link.trim() : "";
                   const validLink = /^https?:\/\//i.test(link) || /^\/(?!\/)/.test(link);
+                  if (!validImage && !(typeof entry.title === "string" && entry.title.trim())) return;
                   const tile = document.createElement(validLink ? "a" : "div");
                   if (validLink) tile.href = link;
-                  tile.style.cssText = "display:block;min-width:0;overflow:hidden;border-radius:" + (previewTheme.radius === "square" ? "0" : "10px") + ";";
-                  const image = document.createElement("img");
-                  image.src = imageUrl;
-                  image.alt = typeof entry.title === "string" ? entry.title : "";
-                  image.loading = "lazy";
-                  image.style.cssText = "display:block;width:100%;aspect-ratio:16/9;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";";
-                  tile.appendChild(image);
+                  tile.style.cssText = "display:grid;gap:6px;min-width:0;overflow:hidden;border-radius:" + (previewTheme.radius === "square" ? "0" : "10px") + ";";
+                  if (validImage) {
+                    const image = document.createElement("img");
+                    image.src = imageUrl;
+                    image.alt = typeof entry.title === "string" ? entry.title : "";
+                    image.loading = "lazy";
+                    image.style.cssText = "display:block;width:100%;aspect-ratio:16/9;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";";
+                    tile.appendChild(image);
+                  }
+                  if (typeof entry.title === "string" && entry.title.trim()) {
+                    const caption = document.createElement("span");
+                    caption.textContent = entry.title.trim();
+                    tile.appendChild(caption);
+                  }
                   gallery.appendChild(tile);
                 });
                 if (gallery.children.length) preview.appendChild(gallery);
