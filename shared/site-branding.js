@@ -1016,10 +1016,15 @@
     if (description && typeof chrome.footerDescription === "string") description.textContent = chrome.footerDescription;
   }
 
+  let homepageSyncSequence = 0;
   async function syncHomepageSections() {
     if (!document.querySelector("main") || !document.querySelector(".hero")) return;
+    const syncSequence = ++homepageSyncSequence;
     try {
       const data = await getPublicSettings();
+      if (syncSequence !== homepageSyncSequence) return;
+      const main = document.querySelector("main");
+      main.querySelectorAll(".vm-published-page").forEach(function (section) { section.remove(); });
       applySiteChrome(data.pageSettings && data.pageSettings.chrome);
       const sections = Array.isArray(data.sections) ? data.sections : [];
       const pageSettings = data.pageSettings || {};
