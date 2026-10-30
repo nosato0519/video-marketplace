@@ -293,6 +293,7 @@
       container.appendChild(link);
     });
     column.hidden = container.childElementCount === 0;
+    column.style.display = column.hidden ? "none" : "";
   }
 
   async function syncPublicSettings() {
