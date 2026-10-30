@@ -1381,6 +1381,9 @@ test('page builder edits and persists an independent TOP page composition', asyn
   await topTextBlock.locator('input').first().fill('TOP専用の見出し');
   await topTextBlock.locator('textarea').nth(1).fill('TOP専用の本文です。');
 
+  await page.locator('#homepage-add-type').selectOption('custom-text');
+  await page.locator('#homepage-add-section').click();
+
   await page.locator('#page-name').fill('TOP構成の保存テスト');
   await page.locator('#page-url').fill('/pages/top-composition-test');
   await page.getByRole('button', { name: '下書き保存' }).click();
