@@ -506,10 +506,37 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await expect.poll(imageTextColumns).toBe(1);
 });
 
-test('homepage custom pages render their saved sections without a duplicate page card', async ({ page }) => {
-  const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { title: 'TOP反映専用の人気動画見出し', subtitle: 'TOP表示用の説明文', settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
-    { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }, { id: 'page-hidden-block', type: 'custom-text', label: '非表示ブロック', hidden: true, content: { title: '非表示の見出し', body: 'TOPには出さない内容' }, items: [] }, { id: 'page-image-text', type: 'custom-image-text', label: '画像と文章', content: { title: '画像と文章の配置', subtitle: '画像と文章の説明', body: '画像と文章を横並びに表示します。', image: '/assets/test-image.jpg', button: '詳しく見る', link: '/pages/video-list.html' }, items: [] }, { id: 'page-divider', type: 'custom-divider', label: '区切り線', theme: { accent: '#ff0000', width: 'narrow', spacing: 'compact' }, items: [] }, { id: 'page-spacer', type: 'custom-spacer', label: '余白', theme: { width: 'narrow', spacing: 'large' }, settings: { height: 128 }, items: [] }] };
-  let savedSections = [{
+test('homepage custom pages render only their saved free-form TOP composition without a duplicate page card', async ({ page }) => {
+  const publishedPage = {
+    id: 'layout-persistence-page',
+    name: 'レイアウト保存テスト',
+    url: '/pages/layout-persistence-page',
+    image: '',
+    sections: [
+      { id: 'page-popular', type: 'popular', label: 'ページ本文の人気動画', content: { title: '独立ページ側の標準セクション' } },
+      { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ本文の作品紹介', content: {} },
+    ],
+    topSections: [
+      {
+        id: 'top-custom-text',
+        type: 'custom-text',
+        label: 'TOP専用文章',
+        hidden: false,
+        content: { title: 'TOP専用の自由な見出し', subtitle: 'TOP掲載用の説明文', body: '独立ページ本文とは別に保存したTOP専用の文章です。' },
+        theme: { bg: '#123456', text: '#ffffff', width: 'narrow', spacing: 'large' },
+      },
+      {
+        id: 'top-custom-gallery',
+        type: 'custom-gallery',
+        label: 'TOP専用ギャラリー',
+        hidden: false,
+        content: { title: 'TOP専用ギャラリー' },
+        settings: { columns: '4' },
+        items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }],
+      },
+    ],
+  };
+  const savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
     pageId: publishedPage.id,
@@ -517,7 +544,7 @@ test('homepage custom pages render their saved sections without a duplicate page
     hidden: false,
     added: false,
     order: 0,
-    content: { title: publishedPage.name, subtitle: '表示設定の保存テスト', link: publishedPage.url, button: '詳しく見る →', layout: 'standard' },
+    content: { title: publishedPage.name, link: publishedPage.url, button: '詳しく見る →' },
   }];
 
   await page.route('**/api/site/homepage-settings', async (route) => {
@@ -536,65 +563,21 @@ test('homepage custom pages render their saved sections without a duplicate page
       }),
     });
   });
-  await page.goto('/');
-  const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
-  await expect(publicLink).toHaveCount(0);
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]')).toBeVisible();
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"] h2')).toContainText('TOP反映専用の人気動画見出し');
-  const embeddedPopular = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]');
-  await expect(embeddedPopular).toContainText('TOP表示用の説明文');
-  await expect(embeddedPopular).toHaveCSS('background-color', 'rgb(18, 52, 86)');
-  await expect(embeddedPopular).toHaveCSS('color', 'rgb(255, 255, 255)');
-  await expect(embeddedPopular).toHaveCSS('max-width', '900px');
-  await expect(embeddedPopular).toHaveCSS('padding-top', '48px');
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-genre-rail"] .genre-track')).toHaveCSS('display', 'grid');
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-genre-rail"] .genre-track')).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span')).toHaveCount(2);
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span').nth(0)).toBeHidden();
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-finder"] .find-row span').nth(1)).toBeHidden();
-  const embeddedShowcaseGrid = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-video-showcase"] .video-showcase-grid');
-  await expect(embeddedShowcaseGrid).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
-  await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('埋め込みセクション');
-  await expect(page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text')).toContainText('独立ページで保存した内容です。');
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-custom-gallery"] > div')).toHaveCSS('grid-template-columns', /\S+\s+\S+\s+\S+\s+\S+/);
-  const embeddedText = page.locator('[data-vm-section-type="custom-page"] .vm-published-page-block-custom-text');
-  await expect(embeddedText).toHaveCSS('background-color', 'rgb(35, 69, 103)');
-  await expect(embeddedText).toHaveCSS('color', 'rgb(238, 238, 238)');
-  await expect(embeddedText).toHaveCSS('max-width', 'none');
-  await expect(embeddedText).toHaveCSS('padding-top', '12px');
-  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-hidden-block"]')).toHaveCount(0);
-  const imageTextBlock = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-image-text"]');
-  const imageTextLayout = imageTextBlock.locator('.vm-published-page-image-text');
-  await expect(imageTextLayout.locator(':scope > img')).toHaveCount(1);
-  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy h2')).toHaveText('画像と文章の配置');
-  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy')).toContainText('画像と文章を横並びに表示します。');
-  await expect(imageTextLayout.locator('.vm-published-page-image-text-copy a')).toHaveText('詳しく見る');
-  const publishedImageTextColumns = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await imageTextLayout.elementHandle());
-  await expect.poll(publishedImageTextColumns).toBe(2);
-  const embeddedDivider = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-divider"]');
-  await expect(embeddedDivider).toHaveCSS('max-width', '900px');
-  await expect(embeddedDivider.locator('hr')).toHaveCSS('border-top-color', 'rgb(255, 0, 0)');
-  const embeddedSpacer = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-spacer"]');
-  await expect(embeddedSpacer).toHaveCSS('max-width', '900px');
-  await expect(embeddedSpacer.locator('div[aria-hidden="true"]')).toHaveCSS('height', '128px');
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect.poll(publishedImageTextColumns).toBe(1);
-  await page.setViewportSize({ width: 1280, height: 720 });
-  await page.reload();
-  await expect(publicLink).toHaveCount(0);
-
-  await page.goto('/pages/admin-setting-general.html');
-  const refreshedRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
-  await refreshedRow.getByRole('button', { name: '編集' }).click();
-  await refreshedRow.locator('label').filter({ hasText: '表示レイアウト' }).locator('select').selectOption('poster');
-  await page.locator('#top-save-settings').click();
-  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
-  expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('poster');
 
   await page.goto('/');
-  await expect(page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]')).toHaveCount(0);
+  const publishedTop = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
+  await expect(publishedTop).toHaveCount(1);
+  await expect(publishedTop.locator('a[href="/pages/layout-persistence-page"]')).toHaveCount(0);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toContainText('TOP専用の自由な見出し');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toContainText('独立ページ本文とは別に保存したTOP専用の文章です。');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toContainText('TOP専用ギャラリー');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toContainText('画像D');
+  await expect(publishedTop).not.toContainText('独立ページ側の標準セクション');
+  await expect(page.locator('main > #popular')).toHaveCount(1);
+  await expect(page.locator('main > #popular')).not.toContainText('独立ページ側の標準セクション');
   await page.reload();
-  await expect(page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]')).toHaveCount(0);
+  await expect(publishedTop).toHaveCount(1);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toContainText('TOP専用の自由な見出し');
 });
 
 test('homepage dynamic sections persist layout controls and apply them to public sections', async ({ page }) => {
