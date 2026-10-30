@@ -1208,8 +1208,22 @@
                 const embeddedSubtitle = typeof content.subtitle === "string" ? content.subtitle.trim() : "";
                 const embeddedHeading = standardPreview.querySelector(".section-head h2, .hero-copy h1, .spotlight-copy h2, .finder h2, .library-copy h2, .creator-copy h2, .cta h2, h1, h2");
                 if (embeddedHeading && embeddedTitle) embeddedHeading.textContent = embeddedTitle;
-                const embeddedDescription = standardPreview.querySelector(".section-head p, .hero-copy > p, .video-showcase-copy, .collection-copy, .spotlight-copy > p, .finder > div > p, .library-copy > p, .creator-copy > p, .cta > p");
-                if (embeddedDescription && embeddedSubtitle) embeddedDescription.textContent = embeddedSubtitle;
+                let embeddedDescription = standardPreview.querySelector(".section-head p, .hero-copy > p, .video-showcase-copy, .collection-copy, .spotlight-copy > p, .finder > div > p, .library-copy > p, .creator-copy > p, .cta > p");
+                if (embeddedSubtitle) {
+                  if (embeddedDescription) {
+                    embeddedDescription.textContent = embeddedSubtitle;
+                  } else {
+                    const sectionHead = standardPreview.querySelector(".section-head");
+                    if (sectionHead) {
+                      embeddedDescription = document.createElement("p");
+                      embeddedDescription.className = "section-description";
+                      embeddedDescription.textContent = embeddedSubtitle;
+                      const heading = sectionHead.querySelector("h2");
+                      if (heading) heading.insertAdjacentElement("afterend", embeddedDescription);
+                      else sectionHead.appendChild(embeddedDescription);
+                    }
+                  }
+                }
 
                 if (typeof embeddedTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.bg)) standardPreview.style.backgroundColor = embeddedTheme.bg;
                 if (typeof embeddedTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.text)) standardPreview.style.color = embeddedTheme.text;
