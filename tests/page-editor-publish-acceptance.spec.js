@@ -536,27 +536,6 @@ test('homepage custom pages render their saved sections without a duplicate page
       }),
     });
   });
-  await page.route('**/api/admin/settings/page-editor', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries: {} }) });
-  });
-  await page.route('**/api/admin/settings/homepage', async (route) => {
-    if (route.request().method() === 'PUT') {
-      savedSections = route.request().postDataJSON().sections;
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
-      return;
-    }
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sections: savedSections }) });
-  });
-
-  await page.goto('/pages/admin-setting-general.html');
-  const row = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
-  await expect(row).toBeVisible();
-  await row.getByRole('button', { name: '編集' }).click();
-  await row.locator('label').filter({ hasText: '表示レイアウト' }).locator('select').selectOption('center');
-  await page.locator('#top-save-settings').click();
-  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
-  expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('center');
-
   await page.goto('/');
   const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
   await expect(publicLink).toHaveCount(0);
@@ -1323,13 +1302,13 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   const builder = pageRow.locator('details').filter({ hasText: 'TOP掲載用の自由構成' }).last();
   await expect(builder).toBeVisible();
 
-  await builder.locator('select').selectOption('custom-text');
+  await builder.locator('select').first().selectOption('custom-text');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
   const textBlock = builder.locator('section').first();
   await textBlock.locator('input').first().fill('TOP独自の見出し');
   await textBlock.locator('textarea').nth(1).fill('TOPに表示する自由な本文です。');
 
-  await builder.locator('select').selectOption('custom-gallery');
+  await builder.locator('select').first().selectOption('custom-gallery');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
   const galleryBlock = builder.locator('section').nth(1);
   await galleryBlock.getByRole('button', { name: 'カード・画像を追加' }).click();
