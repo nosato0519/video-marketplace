@@ -1328,36 +1328,45 @@
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
               const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
-              if (pageSection.type === "custom-image-text") preview.style.display = "grid";
+              const isImageText = pageSection.type === "custom-image-text";
+              const textContent = isImageText ? document.createElement("div") : preview;
+              if (isImageText) {
+                preview.style.display = "grid";
+                preview.style.gridTemplateColumns = "repeat(auto-fit, minmax(min(100%, 320px), 1fr))";
+                textContent.className = "vm-published-page-image-text-copy";
+                textContent.style.cssText = "min-width:0;align-self:center;";
+              }
               if (title) {
                 const heading = document.createElement("h2");
                 heading.textContent = title;
-                preview.appendChild(heading);
+                textContent.appendChild(heading);
               }
               if (typeof content.subtitle === "string" && content.subtitle.trim()) {
                 const description = document.createElement("p");
                 description.textContent = content.subtitle.trim();
                 description.style.lineHeight = "1.7";
-                preview.appendChild(description);
+                textContent.appendChild(description);
               }
               if (typeof content.body === "string" && content.body.trim()) {
                 const body = document.createElement("div");
                 body.textContent = content.body.trim();
                 body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
-                preview.appendChild(body);
+                textContent.appendChild(body);
               }
               if (validImageUrl) {
                 const image = document.createElement("img");
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;width:100%;max-width:" + (pageSection.type === "custom-image-text" ? "min(100%, 480px)" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
-                if (pageSection.type === "custom-image-text") {
-                  image.style.gridRow = "1 / span 4";
+                image.style.cssText = "display:block;width:100%;max-width:" + (isImageText ? "100%" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
+                if (isImageText) {
                   image.style.alignSelf = "start";
+                  preview.appendChild(image);
+                } else {
+                  preview.appendChild(image);
                 }
-                preview.appendChild(image);
               }
+              if (isImageText) preview.appendChild(textContent);
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
                 const list = document.createElement("div");
                 const previewColumns = Number(previewSettings.columns);
