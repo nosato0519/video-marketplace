@@ -152,7 +152,7 @@ router.put('/settings/public-documents', async (req, res, next) => {
           typeof document.description !== 'string' || document.description.length > 240 ||
           typeof document.version !== 'string' || document.version.length > 40 ||
           !['draft', 'published'].includes(document.status) ||
-          typeof document.date !== 'string' || (document.date && !/^\\d{4}-\\d{2}-\\d{2}$/.test(document.date)) ||
+          typeof document.date !== 'string' || (document.date && !/^\d{4}-\d{2}-\d{2}$/.test(document.date)) ||
           typeof document.body !== 'string' || document.body.length > 150000) {
         return res.status(400).json({ error: 'invalid_public_document', id: document?.id || null });
       }
