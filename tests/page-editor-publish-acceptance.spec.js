@@ -1399,7 +1399,10 @@ test('page builder edits and persists an independent TOP page composition', asyn
 
   const topComposer = page.locator('#page-top-sections-editor details');
   await expect(topComposer).toBeVisible();
-  await topComposer.locator('select').selectOption('custom-text');
+  await expect(topComposer.locator('select').first().locator('option')).toHaveText([
+    '見出し・文章', '人気の動画', 'カテゴリー一覧', '画像＋文章'
+  ]);
+  await topComposer.locator('select').first().selectOption('custom-text');
   await topComposer.getByRole('button', { name: 'ブロックを追加' }).click();
 
   const topTextBlock = topComposer.locator('section').first();
