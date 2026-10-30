@@ -1228,3 +1228,134 @@ test('homepage renders each configured standard section only once when saved ent
     await expect(page.locator(selectors[type])).toHaveCount(1);
   }
 });
+
+
+test('homepage can display selected standard sections from a published page', async ({ page }) => {
+  const publishedPage = {
+    id: 'homepage-section-selection-page',
+    name: 'TOP表示セクション選択テスト',
+    url: '/pages/homepage-section-selection',
+    image: '',
+    sections: [
+      {
+        id: 'page-popular-section',
+        type: 'popular',
+        label: '人気の動画',
+        content: { title: 'このページの人気動画' },
+        settings: { videoCount: 8, columns: 4 },
+        theme: {},
+      },
+      {
+        id: 'page-categories-section',
+        type: 'categories',
+        label: 'カテゴリー一覧',
+        content: { title: 'このページのカテゴリー' },
+        settings: { categoryCount: 8, columns: 4 },
+        theme: {},
+      },
+      {
+        id: 'page-custom-section',
+        type: 'custom-text',
+        label: 'ページ独自の文章',
+        content: { title: 'ページ独自の内容', body: '独立ページの文章です。' },
+        settings: {},
+        theme: {},
+      },
+    ],
+  };
+  let savedHomepageSections = [
+    {
+      id: 'homepage-custom-page-selection',
+      type: 'custom-page',
+      pageId: publishedPage.id,
+      label: publishedPage.name,
+      hidden: false,
+      added: false,
+      order: 0,
+      content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る' },
+    },
+  ];
+  let savedEntries = {};
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: savedHomepageSections,
+        publishedPages: [publishedPage],
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      savedEntries = { ...savedEntries, ...(route.request().postDataJSON().entries || {}) };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedHomepageSections = route.request().postDataJSON().sections;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  const pageRow = page.locator('#top-settings-list .homepage-section-row')
+    .filter({ hasText: publishedPage.name });
+  await expect(pageRow).toBeVisible();
+  await pageRow.getByRole('button', { name: '編集' }).click();
+  await pageRow.getByText('TOPに表示するページ内セクション').click();
+
+  const popularToggle = pageRow.locator('label').filter({ hasText: '人気の動画' }).locator('input[type="checkbox"]');
+  const categoriesToggle = pageRow.locator('label').filter({ hasText: 'カテゴリー一覧' }).locator('input[type="checkbox"]');
+  await expect(popularToggle).not.toBeChecked();
+  await expect(categoriesToggle).not.toBeChecked();
+  await popularToggle.check();
+  await categoriesToggle.check();
+
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+  expect(savedHomepageSections[0].content.visibleSectionIds).toEqual([
+    'page-popular-section',
+    'page-categories-section',
+    'page-custom-section',
+  ]);
+
+  await page.goto('/');
+  const embeddedPopular = page.locator('.vm-published-page-content .vm-published-page-block-popular');
+  const embeddedCategories = page.locator('.vm-published-page-content .vm-published-page-block-categories');
+  await expect(embeddedPopular).toBeVisible();
+  await expect(embeddedCategories).toBeVisible();
+  await expect(embeddedPopular.locator('.video-grid')).toHaveCSS('grid-template-columns', /\S+\s+\S+\s+\S+\s+\S+/);
+  await expect(page.locator('main > #popular')).toHaveCount(1);
+  await expect(page.locator('main > #categories')).toHaveCount(1);
+});
