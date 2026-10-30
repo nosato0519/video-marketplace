@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,10 @@ assert.ok(adminSettingsRoutes.includes("router.put('/settings/public-documents'"
 assert.ok(adminSettingsRoutes.includes("router.use(requireAuth, requireRole('admin'))"));
 assert.ok(backendApp.includes('publishedPublicDocumentMiddleware'));
 assert.ok(backendApp.includes("'public_documents'"));
+const policyInlineScript = publicDocumentAdmin.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+assert.ok(policyInlineScript, 'public document editor script exists');
+const policyScriptHash = createHash('sha256').update(policyInlineScript).digest('base64');
+assert.ok(backendApp.includes(`'sha256-${policyScriptHash}'`), 'public document editor script is allowed by CSP');
 assert.ok(publicHome.includes('href="/pages/terms.html"'));
 assert.ok(publicHome.includes('href="/pages/privacy.html"'));
 
