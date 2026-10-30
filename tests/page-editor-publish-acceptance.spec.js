@@ -456,7 +456,6 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   expect(savedSections.find((section) => section.type === 'custom-button').content.theme).toMatchObject({ buttonText: '#ffffff', radius: 'square' });
 
   const imageBlock = savedSections.find((section) => section.type === 'custom-image');
-  const imageTextBlock = savedSections.find((section) => section.type === 'custom-image-text');
   const buttonBlock = savedSections.find((section) => section.type === 'custom-button');
   const dividerBlock = savedSections.find((section) => section.type === 'custom-divider');
   const spacerBlock = savedSections.find((section) => section.type === 'custom-spacer');
