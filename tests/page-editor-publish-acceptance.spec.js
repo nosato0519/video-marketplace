@@ -1138,3 +1138,68 @@ test('homepage keeps custom blocks from three published pages without cloning st
   await expect(page.locator('main > .hero')).toHaveCount(1);
   await expect(page.locator('main > #popular')).toHaveCount(1);
 });
+
+test('homepage renders each configured standard section only once when saved entries repeat with different ids', async ({ page }) => {
+  const standardTypes = [
+    'hero', 'announcements', 'video-showcase', 'trustbar', 'collection', 'popular',
+    'new-releases', 'genre-rail', 'genre-recommendations', 'spotlight', 'finder',
+    'categories', 'library', 'creator', 'creators', 'cta',
+  ];
+  const selectors = {
+    hero: 'main > .hero',
+    announcements: 'main > #announcements',
+    'video-showcase': 'main > .video-showcase',
+    trustbar: 'main > .trustbar',
+    collection: 'main > #collection',
+    popular: 'main > #popular',
+    'new-releases': 'main > #new-releases',
+    'genre-rail': 'main > .genre-rail',
+    'genre-recommendations': 'main > .genre-recommendations',
+    spotlight: 'main > .spotlight',
+    finder: 'main > #search',
+    categories: 'main > #categories',
+    library: 'main > #library',
+    creator: 'main > #creator',
+    creators: 'main > #creators',
+    cta: 'main > .cta',
+  };
+  const sections = [];
+  for (let copy = 0; copy < 3; copy += 1) {
+    standardTypes.forEach((type) => {
+      sections.push({
+        id: `repeated-${type}-${copy + 1}`,
+        type,
+        label: type,
+        hidden: false,
+        order: sections.length,
+        content: {},
+      });
+    });
+  }
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections,
+        publishedPages: [],
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto('/');
+  for (const type of standardTypes) {
+    await expect(page.locator(selectors[type])).toHaveCount(1);
+  }
+  await page.reload();
+  for (const type of standardTypes) {
+    await expect(page.locator(selectors[type])).toHaveCount(1);
+  }
+});
