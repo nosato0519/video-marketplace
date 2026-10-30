@@ -1329,6 +1329,10 @@
                   const grid = standardPreview.querySelector(".video-grid");
                   if (grid) grid.style.gridTemplateColumns = "repeat(" + Number(embeddedSettings.columns) + ", minmax(0, 1fr))";
                 }
+                if (pageSection.type === "categories" && [2, 3, 4].includes(Number(embeddedSettings.columns))) {
+                  const grid = standardPreview.querySelector(".category-grid");
+                  if (grid) grid.style.gridTemplateColumns = "repeat(" + Number(embeddedSettings.columns) + ", minmax(0, 1fr))";
+                }
                 if (pageSection.type === "genre-rail") {
                   const track = standardPreview.querySelector(".genre-track");
                   if (track) {
