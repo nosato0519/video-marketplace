@@ -199,6 +199,9 @@ try {
 
   result = await request(baseUrl, '/api/site/homepage-settings');
   assert.equal(result.response.status, 200);
+  assert.deepEqual(result.data.publicDocuments, [{
+    id: 'terms', title: '受け入れテスト利用規約', url: '/pages/terms.html'
+  }], 'homepage settings should expose only published public documents');
   assert.ok(result.data.publishedPages?.some((page) => page.id === pageId && page.url === pageUrl));
   assert.ok(result.data.sections?.some((section) => section.type === 'custom-page' && section.pageId === pageId && section.content?.link === pageUrl));
 
