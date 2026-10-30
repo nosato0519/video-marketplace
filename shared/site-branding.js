@@ -642,7 +642,8 @@
         ["custom-text","見出し・文章"],
         ["popular","人気の動画"],
         ["categories","カテゴリー一覧"],
-        ["custom-image-text","画像＋文章"]
+        ["custom-image-text","画像＋文章"],
+        ["custom-gallery","画像ギャラリー"]
       ];
       if (!Array.isArray(item.content.topSections)) {
         const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
@@ -815,21 +816,35 @@
               items.replaceChildren();
               block.content.items.forEach(function(entry,itemIndex){
                 const itemFields=document.createElement("div"); itemFields.style.cssText="display:grid;gap:5px;padding:8px;border:1px solid var(--line,#333);border-radius:6px;";
-                [["タイトル","title"],["説明","description"],["画像URL","image"],["ボタン","button"],["リンク先","link"]].forEach(function(fieldDef){
-                  const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[1] === "image" ? "画像（PCから選択／URL入力も可）" : fieldDef[0];
-                  const input=document.createElement("input"); input.type="text"; input.value=fieldDef[1] === "image" && String(entry.image||"").indexOf("data:image/") === 0 ? "" : (entry[fieldDef[1]]||"");
-                  if (fieldDef[1] === "image") input.placeholder = String(entry.image||"").indexOf("data:image/") === 0 ? "PCから選択した画像を設定済み" : "画像URL（任意）";
-                  input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input);
-                  if (fieldDef[1] === "image") addImageUpload(label, input, function () { return entry.image || ""; }, function (value) { entry.image = value; });
-                  itemFields.appendChild(label);
-                });
+                if (block.type === "custom-gallery") {
+                  const imageLabel=document.createElement("label"); imageLabel.style.cssText="display:grid;gap:3px;font-size:11px;"; imageLabel.textContent="画像（PCから選択／URL入力も可）";
+                  const imageInput=document.createElement("input"); imageInput.type="text"; imageInput.value=/^data:image\//i.test(entry.image||"")?"":(entry.image||"");
+                  imageInput.placeholder=/^data:image\//i.test(entry.image||"")?"PCから選択した画像を設定済み":"画像URL（任意）";
+                  imageInput.addEventListener("input",function(){entry.image=imageInput.value;});
+                  imageLabel.appendChild(imageInput);
+                  addImageUpload(imageLabel,imageInput,function(){return entry.image||"";},function(value){entry.image=value;});
+                  itemFields.appendChild(imageLabel);
+                  const linkLabel=document.createElement("label"); linkLabel.style.cssText="display:grid;gap:3px;font-size:11px;"; linkLabel.textContent="リンク先（任意）";
+                  const linkInput=document.createElement("input"); linkInput.type="text"; linkInput.placeholder="/pages/video-list.html"; linkInput.value=entry.link||"";
+                  linkInput.addEventListener("input",function(){entry.link=linkInput.value;});
+                  linkLabel.appendChild(linkInput); itemFields.appendChild(linkLabel);
+                } else {
+                  [["タイトル","title"],["説明","description"],["画像URL","image"],["ボタン","button"],["リンク先","link"]].forEach(function(fieldDef){
+                    const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[1] === "image" ? "画像（PCから選択／URL入力も可）" : fieldDef[0];
+                    const input=document.createElement("input"); input.type="text"; input.value=fieldDef[1] === "image" && String(entry.image||"").indexOf("data:image/") === 0 ? "" : (entry[fieldDef[1]]||"");
+                    if (fieldDef[1] === "image") input.placeholder = String(entry.image||"").indexOf("data:image/") === 0 ? "PCから選択した画像を設定済み" : "画像URL（任意）";
+                    input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input);
+                    if (fieldDef[1] === "image") addImageUpload(label, input, function () { return entry.image || ""; }, function (value) { entry.image = value; });
+                    itemFields.appendChild(label);
+                  });
+                }
                 const remove=document.createElement("button"); remove.type="button"; remove.className="btn"; remove.textContent="項目を削除";
                 remove.addEventListener("click",function(){block.content.items.splice(itemIndex,1);renderItems();});
                 itemFields.appendChild(remove); items.appendChild(itemFields);
               });
             }
-            const addItem=document.createElement("button"); addItem.type="button"; addItem.className="btn"; addItem.textContent="カード・画像を追加";
-            addItem.addEventListener("click",function(){block.content.items.push({title:"",description:"",image:"",button:"",link:""});renderItems();});
+            const addItem=document.createElement("button"); addItem.type="button"; addItem.className="btn"; addItem.textContent=block.type === "custom-gallery" ? "画像を追加" : "カード・画像を追加";
+            addItem.addEventListener("click",function(){block.content.items.push(block.type === "custom-gallery" ? {image:"",link:""} : {title:"",description:"",image:"",button:"",link:""});renderItems();});
             renderItems(); card.append(items,addItem);
           }
           const design=document.createElement("details");
@@ -1784,7 +1799,38 @@
               const embeddedItems = Array.isArray(pageSection.items)
                 ? pageSection.items
                 : (Array.isArray(content.items) ? content.items : []);
-              if (embeddedItems.length) {
+              if (pageSection.type === "custom-gallery") {
+                const gallery = document.createElement("div");
+                const configuredColumns = Number(previewSettings.columns ?? content.columns);
+                const columnCount = [2, 3, 4, 5].includes(configuredColumns) ? configuredColumns : 3;
+                const updateGalleryColumns = function () {
+                  const viewportWidth = window.innerWidth;
+                  const columns = viewportWidth <= 520 ? 1 : viewportWidth <= 820 ? Math.min(2, columnCount) : columnCount;
+                  gallery.style.gridTemplateColumns = "repeat(" + columns + ",minmax(0,1fr))";
+                };
+                gallery.style.cssText = "display:grid;gap:12px;margin-top:16px;min-width:0;";
+                updateGalleryColumns();
+                window.addEventListener("resize", updateGalleryColumns, { passive: true });
+                embeddedItems.forEach(function (entry) {
+                  if (!entry || typeof entry.image !== "string") return;
+                  const imageUrl = entry.image.trim();
+                  const validImage = /^https?:\/\//i.test(imageUrl) || /^\/(?!\/)/.test(imageUrl) || /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/i.test(imageUrl);
+                  if (!validImage) return;
+                  const link = typeof entry.link === "string" ? entry.link.trim() : "";
+                  const validLink = /^https?:\/\//i.test(link) || /^\/(?!\/)/.test(link);
+                  const tile = document.createElement(validLink ? "a" : "div");
+                  if (validLink) tile.href = link;
+                  tile.style.cssText = "display:block;min-width:0;overflow:hidden;border-radius:" + (previewTheme.radius === "square" ? "0" : "10px") + ";";
+                  const image = document.createElement("img");
+                  image.src = imageUrl;
+                  image.alt = typeof entry.title === "string" ? entry.title : "";
+                  image.loading = "lazy";
+                  image.style.cssText = "display:block;width:100%;aspect-ratio:16/9;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";";
+                  tile.appendChild(image);
+                  gallery.appendChild(tile);
+                });
+                if (gallery.children.length) preview.appendChild(gallery);
+              } else if (embeddedItems.length) {
                 const list = document.createElement("div");
                 const previewColumns = Number(previewSettings.columns ?? content.columns);
                 list.style.cssText = "display:grid;grid-template-columns:" + ([2, 3, 4, 5].includes(previewColumns) ? "repeat(" + previewColumns + ", minmax(0, 1fr))" : "repeat(auto-fit,minmax(180px,1fr))") + ";gap:12px;";
