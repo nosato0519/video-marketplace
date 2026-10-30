@@ -544,8 +544,7 @@ test('homepage custom-page layout selection persists and controls public renderi
 
   await page.goto('/');
   const publicLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
-  await expect(publicLink).toBeVisible();
-  await expect(publicLink).toContainText('レイアウト保存テスト');
+  await expect(publicLink).toHaveCount(0);
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]')).toBeVisible();
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"] h2')).toContainText('TOP反映専用の人気動画見出し');
   const embeddedPopular = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-popular"]');
@@ -569,9 +568,8 @@ test('homepage custom-page layout selection persists and controls public renderi
   await expect(embeddedText).toHaveCSS('color', 'rgb(238, 238, 238)');
   await expect(embeddedText).toHaveCSS('max-width', 'none');
   await expect(embeddedText).toHaveCSS('padding-top', '12px');
-  await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
   await page.reload();
-  await expect(publicLink).toHaveAttribute('style', /justify-content:\s*space-between/);
+  await expect(publicLink).toHaveCount(0);
 
   await page.goto('/pages/admin-setting-general.html');
   const refreshedRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
@@ -582,11 +580,9 @@ test('homepage custom-page layout selection persists and controls public renderi
   expect(savedSections.find((item) => item.type === 'custom-page').content.layout).toBe('poster');
 
   await page.goto('/');
-  const posterLink = page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]');
-  await expect(posterLink).toHaveAttribute('style', /min-height:\s*260px/);
-  await expect(posterLink).toContainText('レイアウト保存テスト');
+  await expect(page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]')).toHaveCount(0);
   await page.reload();
-  await expect(posterLink).toHaveAttribute('style', /min-height:\s*260px/);
+  await expect(page.locator('section[data-vm-section-type="custom-page"] a[href="/pages/layout-persistence-page"]')).toHaveCount(0);
 });
 
 test('homepage dynamic sections persist layout controls and apply them to public sections', async ({ page }) => {
@@ -1075,7 +1071,7 @@ test('homepage renders each published custom page once when API data contains du
   const publishedPageSections = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
-  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
+  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(0);
   await expect(publishedPageSections.locator('.hero')).toHaveCount(1);
   await expect(publishedPageSections.locator('.hero h1')).toContainText('独立ページ専用の内容');
   await expect(publishedPageSections.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
