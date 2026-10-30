@@ -1230,7 +1230,103 @@ test('homepage renders each configured standard section only once when saved ent
 });
 
 
-test('homepage can display selected standard sections from a published page', async ({ page }) => {
+test('homepage editor builds and publishes a free-form TOP composition for a published page', async ({ page }) => {
+  const publishedPage = {
+    id: 'homepage-free-layout-page',
+    name: 'TOP自由構成テスト',
+    url: '/pages/homepage-free-layout',
+    image: '',
+    sections: [],
+  };
+  let savedHomepageSections = [{
+    id: 'homepage-free-layout-link',
+    type: 'custom-page',
+    pageId: publishedPage.id,
+    label: publishedPage.name,
+    hidden: false,
+    added: false,
+    order: 0,
+    content: { title: publishedPage.name, link: publishedPage.url },
+  }];
+  let savedEntries = {};
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: savedHomepageSections,
+        publishedPages: [publishedPage],
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries: savedEntries }) });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      savedEntries = { ...savedEntries, ...(route.request().postDataJSON().entries || {}) };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+  await page.route('**/api/admin/settings/homepage', async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedHomepageSections = route.request().postDataJSON().sections;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true }) });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.goto(pageEditorUrl);
+  const pageRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
+  await expect(pageRow).toBeVisible();
+  await pageRow.getByRole('button', { name: '編集' }).click();
+  const builder = pageRow.locator('details').filter({ hasText: 'TOP掲載用の自由構成' });
+  await expect(builder).toBeVisible();
+
+  await builder.locator('select').selectOption('custom-text');
+  await builder.getByRole('button', { name: 'ブロックを追加' }).click();
+  const textBlock = builder.locator(':scope > section').first();
+  await textBlock.locator('input').first().fill('TOP独自の見出し');
+  await textBlock.locator('textarea').nth(1).fill('TOPに表示する自由な本文です。');
+
+  await builder.locator('select').selectOption('custom-gallery');
+  await builder.getByRole('button', { name: 'ブロックを追加' }).click();
+  const galleryBlock = builder.locator(':scope > section').nth(1);
+  await galleryBlock.getByRole('button', { name: 'カード・画像を追加' }).click();
+  const galleryItem = galleryBlock.locator('div').filter({ has: page.locator('input').first() }).last();
+  await galleryBlock.locator('input').filter({ visible: true }).last().fill('ギャラリー項目のリンク先');
+  await page.locator('#top-save-settings').click();
+  await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
+
+  const topSections = savedHomepageSections[0].content.topSections;
+  expect(topSections).toHaveLength(2);
+  expect(topSections[0]).toMatchObject({
+    type: 'custom-text',
+    content: { title: 'TOP独自の見出し', body: 'TOPに表示する自由な本文です。' },
+  });
+  expect(topSections[1].type).toBe('custom-gallery');
+  expect(topSections[1].content.items).toHaveLength(1);
+
+  await page.goto('/');
+  const publishedTop = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
+  await expect(publishedTop).toContainText('TOP独自の見出し');
+  await expect(publishedTop).toContainText('TOPに表示する自由な本文です。');
+  await expect(publishedTop).toContainText('ギャラリー項目のリンク先');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toHaveCount(1);
+});
+) => {
   const publishedPage = {
     id: 'homepage-section-selection-page',
     name: 'TOP表示セクション選択テスト',
