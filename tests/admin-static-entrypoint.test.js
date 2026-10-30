@@ -22,4 +22,20 @@ assert.match(moderation, /\/takedown/);
 assert.match(moderation, /r\.status===401\|\|r\.status===403/);
 assert.match(verifications, /bindSellerVerificationReviewPage/);
 
+
+const publicDocumentAdmin = fs.readFileSync(path.join(root, 'pages', 'admin-page-policies.html'), 'utf8');
+const adminSettingsRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'admin', 'settings-routes.js'), 'utf8');
+const backendApp = fs.readFileSync(path.join(root, 'backend', 'src', 'app.js'), 'utf8');
+const publicHome = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+assert.match(publicDocumentAdmin, /api\\/admin\\/settings\\/public-documents/);
+assert.doesNotMatch(publicDocumentAdmin, /localStorage/);
+assert.match(adminSettingsRoutes, /router\\.get\\('\/settings\/public-documents'/);
+assert.match(adminSettingsRoutes, /router\\.put\\('\/settings\/public-documents'/);
+assert.match(adminSettingsRoutes, /router\\.use\\(requireAuth, requireRole\\('admin'\\)\\)/);
+assert.match(backendApp, /publishedPublicDocumentMiddleware/);
+assert.match(backendApp, /'public_documents'/);
+assert.match(publicHome, /href="\/pages\/terms\\.html"/);
+assert.match(publicHome, /href="\/pages\/privacy\\.html"/);
+
 console.log('Admin entrypoint and route contract checks passed.');
