@@ -44,7 +44,11 @@ const policyInlineScript = policyScriptEnd > policyScriptStart ? publicDocumentA
 assert.ok(policyInlineScript, 'public document editor script exists');
 const policyScriptHash = createHash('sha256').update(policyInlineScript).digest('base64');
 assert.ok(backendApp.includes(`'sha256-${policyScriptHash}'`), 'public document editor script is allowed by CSP');
-assert.ok(publicHome.includes('href="/pages/terms.html"'));
-assert.ok(publicHome.includes('href="/pages/privacy.html"'));
+assert.ok(publicHome.includes('id="vm-public-documents-footer"'));
+assert.ok(publicHome.includes('id="vm-public-document-links"'));
+const siteBranding = fs.readFileSync(path.join(root, 'shared', 'site-branding.js'), 'utf8');
+assert.ok(siteBranding.includes('function renderPublicDocumentLinks(documents)'));
+assert.ok(siteBranding.includes('link.textContent = item.title'));
+assert.ok(siteBranding.includes('column.style.display = column.hidden ? "none" : ""'));
 
 console.log('Admin entrypoint and route contract checks passed.');
