@@ -493,7 +493,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
 
 test('homepage custom pages render their saved sections without a duplicate page card', async ({ page }) => {
   const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { title: 'TOP反映専用の人気動画見出し', subtitle: 'TOP表示用の説明文', settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
-    { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }] };
+    { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }, { id: 'page-hidden-block', type: 'custom-text', label: '非表示ブロック', hidden: true, content: { title: '非表示の見出し', body: 'TOPには出さない内容' }, items: [] }] };
   let savedSections = [{
     id: 'custom-page-layout-persistence-page',
     type: 'custom-page',
@@ -568,6 +568,7 @@ test('homepage custom pages render their saved sections without a duplicate page
   await expect(embeddedText).toHaveCSS('color', 'rgb(238, 238, 238)');
   await expect(embeddedText).toHaveCSS('max-width', 'none');
   await expect(embeddedText).toHaveCSS('padding-top', '12px');
+  await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-hidden-block"]')).toHaveCount(0);
   await page.reload();
   await expect(publicLink).toHaveCount(0);
 
