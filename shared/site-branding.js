@@ -1510,11 +1510,14 @@
                 image.style.cssText = "display:block;width:100%;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
                 preview.appendChild(image);
               }
-              if (Array.isArray(pageSection.items) && pageSection.items.length) {
+              const embeddedItems = Array.isArray(pageSection.items)
+                ? pageSection.items
+                : (Array.isArray(content.items) ? content.items : []);
+              if (embeddedItems.length) {
                 const list = document.createElement("div");
-                const previewColumns = Number(previewSettings.columns);
+                const previewColumns = Number(previewSettings.columns ?? content.columns);
                 list.style.cssText = "display:grid;grid-template-columns:" + ([2, 3, 4, 5].includes(previewColumns) ? "repeat(" + previewColumns + ", minmax(0, 1fr))" : "repeat(auto-fit,minmax(180px,1fr))") + ";gap:12px;";
-                pageSection.items.forEach(function (entry) {
+                embeddedItems.forEach(function (entry) {
                   if (!entry || typeof entry !== "object") return;
                   const card = document.createElement("article");
                   card.style.cssText = "min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (previewTheme.radius === "square" ? "0" : "10px") + ";";
