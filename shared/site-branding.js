@@ -1686,7 +1686,7 @@
           const imageTextLayout = item.type === "custom-image-text" ? document.createElement("div") : null;
           const imageTextCopy = imageTextLayout ? document.createElement("div") : customSection;
           if (imageTextLayout) {
-            imageTextLayout.className = "vm-homepage-custom-image-text";
+            imageTextLayout.className = "vm-homepage-custom-image-text-layout";
             imageTextLayout.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:center;gap:24px;width:100%;";
             imageTextCopy.className = "vm-homepage-custom-image-text-copy";
             imageTextCopy.style.cssText = "display:grid;align-content:center;gap:10px;min-width:0;";
