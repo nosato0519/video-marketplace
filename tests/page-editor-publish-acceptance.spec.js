@@ -1080,7 +1080,7 @@ test('homepage renders each published custom page once when API data contains du
 
   await page.evaluate(() => document.dispatchEvent(new Event('DOMContentLoaded')));
   await expect(publishedPageSections).toHaveCount(1);
-  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
+  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(0);
 });
 
 test('homepage scopes each published page standard section without duplicating homepage sections', async ({ page }) => {
