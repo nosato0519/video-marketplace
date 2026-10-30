@@ -1325,3 +1325,86 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
   await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toHaveCount(1);
 });
+
+
+test('page builder edits and persists an independent TOP page composition', async ({ page }) => {
+  let savedEntries = {};
+
+  await page.route(settingsUrl, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: savedEntries }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      const payload = route.request().postDataJSON();
+      savedEntries = { ...savedEntries, ...(payload.entries || {}) };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ saved: true }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, body: 'Method not allowed' });
+  });
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: [],
+        publishedPages: [],
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto(pageEditorUrl);
+  await page.getByRole('button', { name: '新しいページを作成' }).click();
+
+  const topComposer = page.locator('#page-top-sections-editor details');
+  await expect(topComposer).toBeVisible();
+  await topComposer.locator('select').selectOption('custom-text');
+  await topComposer.getByRole('button', { name: 'ブロックを追加' }).click();
+
+  const topTextBlock = topComposer.locator('section').first();
+  await topTextBlock.locator('input').first().fill('TOP専用の見出し');
+  await topTextBlock.locator('textarea').nth(1).fill('TOP専用の本文です。');
+
+  await page.locator('#page-name').fill('TOP構成の保存テスト');
+  await page.locator('#page-url').fill('/pages/top-composition-test');
+  await page.getByRole('button', { name: '下書き保存' }).click();
+  await expect(page.locator('#editor-status')).toContainText('下書きを保存しました');
+
+  const savedPage = JSON.parse(savedEntries['vm-demo-pages'])
+    .find((item) => item.name === 'TOP構成の保存テスト');
+  expect(savedPage).toBeTruthy();
+  expect(savedPage.topSections).toHaveLength(1);
+  expect(savedPage.topSections[0]).toMatchObject({
+    type: 'custom-text',
+    content: {
+      title: 'TOP専用の見出し',
+      body: 'TOP専用の本文です。',
+    },
+  });
+
+  await page.reload();
+  const pageRow = page.locator('#managed-pages-list .homepage-section-row')
+    .filter({ hasText: 'TOP構成の保存テスト' });
+  await expect(pageRow).toBeVisible();
+  await pageRow.getByRole('button', { name: '編集' }).click();
+
+  const restoredBlock = page.locator('#page-top-sections-editor section').first();
+  await expect(restoredBlock.locator('input').first()).toHaveValue('TOP専用の見出し');
+  await expect(restoredBlock.locator('textarea').nth(1)).toHaveValue('TOP専用の本文です。');
+});
