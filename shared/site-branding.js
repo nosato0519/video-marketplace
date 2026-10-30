@@ -1514,9 +1514,11 @@
               preview.className = "vm-published-page-block vm-published-page-block-" + String(pageSection.type).replace(/[^a-z0-9-]/gi, "");
               preview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
               preview.style.cssText = "box-sizing:border-box;min-width:0;padding:20px 0;border-top:1px solid var(--line,#333);";
-              const previewTheme = pageSection.theme && typeof pageSection.theme === "object"
-                ? pageSection.theme
-                : (content.theme && typeof content.theme === "object" ? content.theme : {});
+              const previewTheme = Object.assign(
+                {},
+                content.theme && typeof content.theme === "object" ? content.theme : {},
+                pageSection.theme && typeof pageSection.theme === "object" ? pageSection.theme : {}
+              );
               const previewSettings = pageSection.settings && typeof pageSection.settings === "object"
                 ? pageSection.settings
                 : (content.settings && typeof content.settings === "object" ? content.settings : {});
@@ -1654,8 +1656,9 @@
           const customSettings = item.settings && typeof item.settings === "object" ? item.settings : (customContent.settings && typeof customContent.settings === "object" ? customContent.settings : {});
           const layout = customContent.layout || "standard";
           customSection.style.cssText = "box-sizing:border-box;width:100%;padding:32px 5%;";
-          const savedCustomTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : null;
-          const customTheme = savedCustomTheme || (data.themes && data.themes[item.id]) || {};
+          const savedCustomTheme = customContent.theme && typeof customContent.theme === "object" ? customContent.theme : {};
+          const storedCustomTheme = data.themes && data.themes[item.id] && typeof data.themes[item.id] === "object" ? data.themes[item.id] : {};
+          const customTheme = Object.assign({}, storedCustomTheme, savedCustomTheme);
           if (typeof customTheme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.bg)) customSection.style.backgroundColor = customTheme.bg;
           if (typeof customTheme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.text)) customSection.style.color = customTheme.text;
           if (typeof customTheme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.accent)) customSection.style.setProperty("--accent", customTheme.accent);
