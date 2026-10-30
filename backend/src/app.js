@@ -81,11 +81,22 @@ export function createApp() {
       try {
         const savedPages = JSON.parse(editorEntries?.['vm-demo-pages'] || '[]');
         if (Array.isArray(savedPages)) {
+          const seenPublishedPageIds = new Set();
+          const seenPublishedPageUrls = new Set();
           publishedPages = savedPages
-            .filter((page) => page && page.status === '公開' &&
-              typeof page.name === 'string' && typeof page.url === 'string' && page.url !== '/' && !['/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'].includes(page.url) &&
-              /^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) &&
-              !page.url.split('/').includes('..') && !existsSync(path.resolve(process.cwd(), '.' + page.url)))
+            .filter((page) => {
+              if (!page || page.status !== '公開' ||
+                  typeof page.id !== 'string' || typeof page.name !== 'string' ||
+                  typeof page.url !== 'string' || page.url === '/' ||
+                  ['/pages/video-list.html', '/pages/categories.html', '/pages/about.html', '/pages/contact.html'].includes(page.url) ||
+                  !/^\/(?!\/)[a-zA-Z0-9._/-]*$/.test(page.url) ||
+                  page.url.split('/').includes('..') ||
+                  existsSync(path.resolve(process.cwd(), '.' + page.url)) ||
+                  seenPublishedPageIds.has(page.id) || seenPublishedPageUrls.has(page.url)) return false;
+              seenPublishedPageIds.add(page.id);
+              seenPublishedPageUrls.add(page.url);
+              return true;
+            })
             .map((page) => {
               let meta = {}, pageSections = [];
               try { meta = JSON.parse(editorEntries?.['vm-demo-page-meta-' + page.id] || '{}') || {}; } catch (_) {}
