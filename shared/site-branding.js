@@ -657,6 +657,10 @@
           })
           .map(function (section) { return JSON.parse(JSON.stringify(section)); });
       }
+      const supportedTopBlockTypes = new Set(blockTypes.map(function (entry) { return entry[0]; }));
+      item.content.topSections = item.content.topSections.filter(function (section) {
+        return section && typeof section === "object" && supportedTopBlockTypes.has(section.type);
+      });
       const list = document.createElement("div");
       list.style.cssText = "display:grid;gap:10px;";
       function renderBlocks() {
