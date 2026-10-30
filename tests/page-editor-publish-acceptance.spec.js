@@ -1076,8 +1076,8 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
-  await expect(publishedPageSections.locator('.hero')).toHaveCount(0);
-  await expect(publishedPageSections.locator('.vm-published-page-block-hero h2')).toContainText('独立ページ専用の内容');
+  await expect(publishedPageSections.locator('.hero')).toHaveCount(1);
+  await expect(publishedPageSections.locator('.hero h1')).toContainText('独立ページ専用の内容');
   await expect(publishedPageSections.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
   await expect(publishedPageSections).toContainText('独立ページ本文の見出し');
   await expect(page.locator('main > .hero')).toHaveCount(1);
@@ -1132,8 +1132,8 @@ test('homepage scopes each published page standard section without duplicating h
   await expect(homepagePageSections).toHaveCount(3);
   for (let index = 0; index < 3; index += 1) {
     const homepagePageSection = homepagePageSections.nth(index);
-    await expect(homepagePageSection.locator('.vm-published-page-block-hero')).toHaveCount(1);
-    await expect(homepagePageSection.locator('.vm-published-page-block-popular')).toHaveCount(1);
+    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-hero"]`)).toHaveCount(1);
+    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-popular"]`)).toHaveCount(1);
     await expect(homepagePageSection.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
     await expect(homepagePageSection).toContainText(`ページ${index + 1}のメインビジュアル`);
     await expect(homepagePageSection).toContainText(`ページ${index + 1}の人気動画`);
