@@ -1086,7 +1086,7 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
 });
 
-test('homepage keeps custom blocks from three published pages without cloning standard homepage sections', async ({ page }) => {
+test('homepage scopes each published page standard section without duplicating homepage sections', async ({ page }) => {
   const publishedPages = [1, 2, 3].map((index) => ({
     id: `published-page-${index}`,
     name: `独立ページ${index}`,
@@ -1131,8 +1131,11 @@ test('homepage keeps custom blocks from three published pages without cloning st
   await expect(homepagePageSections).toHaveCount(3);
   for (let index = 0; index < 3; index += 1) {
     const homepagePageSection = homepagePageSections.nth(index);
-    await expect(homepagePageSection.locator('.hero, #popular')).toHaveCount(0);
+    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-hero"]`)).toHaveCount(1);
+    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-popular"]`)).toHaveCount(1);
     await expect(homepagePageSection.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
+    await expect(homepagePageSection).toContainText(`ページ${index + 1}のメインビジュアル`);
+    await expect(homepagePageSection).toContainText(`ページ${index + 1}の人気動画`);
     await expect(homepagePageSection).toContainText(`TOPに残す独自内容${index + 1}`);
   }
   await expect(page.locator('main > .hero')).toHaveCount(1);
