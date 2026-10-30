@@ -1176,7 +1176,8 @@
             customSection.appendChild(link);
           }
           const visiblePageSections = pageSections.filter(function (pageSection) {
-            return pageSection && typeof pageSection === "object" && pageSection.type && pageSection.hidden !== true;
+            if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
+            return !definitions.some(function (definition) { return definition.key === pageSection.type; });
           });
           if (visiblePageSections.length) {
             const embeddedContent = document.createElement("div");
@@ -1330,30 +1331,23 @@
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
               const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
-              const isImageText = pageSection.type === "custom-image-text";
-              const textContent = isImageText ? document.createElement("div") : preview;
-              if (isImageText) {
-                preview.style.display = "grid";
-                preview.style.gridTemplateColumns = "repeat(auto-fit, minmax(min(100%, 320px), 1fr))";
-                textContent.className = "vm-published-page-image-text-copy";
-                textContent.style.cssText = "min-width:0;align-self:center;";
-              }
+              if (pageSection.type === "custom-image-text") preview.style.display = "grid";
               if (title) {
                 const heading = document.createElement("h2");
                 heading.textContent = title;
-                textContent.appendChild(heading);
+                preview.appendChild(heading);
               }
               if (typeof content.subtitle === "string" && content.subtitle.trim()) {
                 const description = document.createElement("p");
                 description.textContent = content.subtitle.trim();
                 description.style.lineHeight = "1.7";
-                textContent.appendChild(description);
+                preview.appendChild(description);
               }
               if (typeof content.body === "string" && content.body.trim()) {
                 const body = document.createElement("div");
                 body.textContent = content.body.trim();
                 body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
-                textContent.appendChild(body);
+                preview.appendChild(body);
               }
               if (validImageUrl) {
                 const image = document.createElement("img");
@@ -1361,10 +1355,8 @@
                 image.alt = title || "";
                 image.loading = "lazy";
                 image.style.cssText = "display:block;width:100%;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
-                if (isImageText) image.style.alignSelf = "start";
                 preview.appendChild(image);
               }
-              if (isImageText) preview.appendChild(textContent);
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
                 const list = document.createElement("div");
                 const previewColumns = Number(previewSettings.columns);
