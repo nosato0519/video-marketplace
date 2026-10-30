@@ -1266,7 +1266,7 @@
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           const pageContent = item.content && typeof item.content === "object" ? item.content : {};
-          const selectedSectionIds = Array.isArray(pageContent.visibleSectionIds)
+          const selectedSectionIds = !Array.isArray(pageContent.topSections) && Array.isArray(pageContent.visibleSectionIds)
             ? new Set(pageContent.visibleSectionIds.map(String))
             : null;
           const visiblePageSections = pageSections.filter(function (pageSection) {
