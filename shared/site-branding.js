@@ -766,7 +766,7 @@
           addDesignSelect("上下の余白", "spacing", [["","標準"],["compact","狭い"],["standard","標準"],["large","広い"]]);
           addDesignSelect("角の形", "radius", [["","角丸"],["square","四角"]]);
           if (["custom-image","custom-image-text","custom-gallery","custom-cards"].includes(block.type)) {
-            addDesignSelect("画像の表示方法", "imageFit", [["","全体に合わせる"],["cover","枠いっぱい"],["contain","全体を表示"]]);
+            addDesignSelect("画像の表示方法", "imageFit", [["","標準（枠いっぱい）"],["contain","画像全体を表示"]]);
           }
           [["背景色","bg"],["文字色","text"],["アクセント色","accent"]].forEach(function(entry){
             const label=document.createElement("label"); label.style.cssText="display:grid;gap:4px;font-size:11px;"; label.textContent=entry[0];
