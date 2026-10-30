@@ -1131,6 +1131,13 @@
           customSection.hidden = customPageHidden;
           customSection.style.cssText = "padding:24px 5%;";
           const pageSections = Array.isArray(page.sections) ? page.sections : [];
+          const hiddenHomepageStandardTypes = new Set(sections
+            .filter(function (homepageSection) {
+              return homepageSection && homepageSection.hidden === true && definitions.some(function (definition) {
+                return definition.key === homepageSection.type;
+              });
+            })
+            .map(function (homepageSection) { return homepageSection.type; }));
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           if (!pageSections.length) {
@@ -1177,7 +1184,8 @@
           }
           const visiblePageSections = pageSections.filter(function (pageSection) {
             if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
-            return !definitions.some(function (definition) { return definition.key === pageSection.type; });
+            const isHomepageStandard = definitions.some(function (definition) { return definition.key === pageSection.type; });
+            return !isHomepageStandard || hiddenHomepageStandardTypes.has(pageSection.type);
           });
           if (visiblePageSections.length) {
             const embeddedContent = document.createElement("div");
