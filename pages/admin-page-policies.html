@@ -46,7 +46,7 @@
 </header>
 
 <section class="section">
-  <p class="policy-note">ここでは公開文書の本文を管理します。保存・公開状態は画面デモ用のローカル設定です。実際の公開反映や法的な内容の確定は、後続のシステム連携と内容確認が必要です。</p>
+  <p class="policy-note">ここで編集・保存・公開した文書は、データベースに保存され、公開ページに反映されます。</p>
 </section>
 
 <section class="section policy-layout">
@@ -69,7 +69,7 @@
       <button class="btn" type="button" id="publish">公開状態にする</button>
       <button class="btn" type="button" id="preview">プレビュー</button>
       <button class="btn" type="button" id="reset">初期内容に戻す</button>
-      <span class="muted" id="status-message">画面デモ用の設定です。</span>
+      <span class="muted" id="status-message">データベースと連携しています。</span>
     </div>
     <div class="policy-preview" id="preview-panel" hidden>
       <h3 id="preview-title"></h3>
@@ -82,12 +82,10 @@
 <footer class="footer">ADMIN ACCESS　•　OPERATOR CONSOLE</footer>
 </main>
 </div>
-<script>
-(function(){
-const KEY='vm-demo-public-documents';
+<script>(async function(){
 const documents=[
-{id:'terms',title:'利用規約',description:'サービス利用条件・アカウント・購入・販売など',version:'v1.0',status:'draft',date:'',body:'利用規約の本文をここに入力します。\n\n※これは画面デモ用の初期文です。実際の販売時には、サービスの実態に合わせた正式な規約を作成してください。'},
-{id:'privacy',title:'プライバシーポリシー',description:'個人情報・利用目的・第三者提供など',version:'v1.0',status:'draft',date:'',body:'プライバシーポリシーの本文をここに入力します。\n\n※これは画面デモ用の初期文です。実際の取得情報・利用目的などに合わせて正式な内容を作成してください。'},
+{id:'terms',title:'利用規約',description:'サービス利用条件・アカウント・購入・販売など',version:'v1.0',status:'draft',date:'',body:'利用規約の本文をここに入力します。\n\n※これは初期文です。実際の販売時には、サービスの実態に合わせた正式な規約を作成してください。'},
+{id:'privacy',title:'プライバシーポリシー',description:'個人情報・利用目的・第三者提供など',version:'v1.0',status:'draft',date:'',body:'プライバシーポリシーの本文をここに入力します。\n\n※実際の取得情報・利用目的などに合わせて正式な内容を作成してください。'},
 {id:'commerce',title:'特定商取引法に基づく表記',description:'販売事業者・価格・支払・返品などの表示',version:'v1.0',status:'draft',date:'',body:'特定商取引法に基づく表記の本文をここに入力します。\n\n※販売形態や事業者情報に合わせて正式な内容を作成してください。'},
 {id:'refund',title:'販売・返金ポリシー',description:'購入後のキャンセル・返金・コンテンツ提供条件',version:'v1.0',status:'draft',date:'',body:'販売・返金ポリシーの本文をここに入力します。\n\n※実際の販売条件・返金条件に合わせて正式な内容を作成してください。'},
 {id:'seller',title:'販売者向け利用規約',description:'販売者登録・コンテンツ掲載・売上・禁止事項など',version:'v1.0',status:'draft',date:'',body:'販売者向け利用規約の本文をここに入力します。\n\n※販売者との契約関係や運営ルールに合わせて正式な内容を作成してください。'},
@@ -95,18 +93,16 @@ const documents=[
 ];
 let state=[],current='terms';
 const $=id=>document.getElementById(id);
-function load(){try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');state=Array.isArray(saved)&&saved.length?saved:documents.map(x=>({...x}));}catch(e){state=documents.map(x=>({...x}));}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true;}catch(e){return false;}}
 function renderList(){const root=$('policy-list');root.replaceChildren();state.forEach(doc=>{const b=document.createElement('button');b.type='button';b.className='policy-item'+(doc.id===current?' active':'');b.innerHTML='<strong></strong><small></small>';b.querySelector('strong').textContent=doc.title;b.querySelector('small').textContent=(doc.status==='published'?'公開':'下書き')+'　•　'+doc.description;b.addEventListener('click',()=>{current=doc.id;renderList();loadEditor();});root.append(b);});}
-function loadEditor(){const doc=state.find(x=>x.id===current)||state[0];if(!doc)return; $('editor-title').textContent=doc.title;$('editor-state').textContent=doc.status==='published'?'公開':'下書き';$('doc-title').value=doc.title;$('doc-status').value=doc.status;$('doc-version').value=doc.version||'v1.0';$('doc-date').value=doc.date||'';$('doc-body').value=doc.body||'';$('preview-panel').hidden=true;}
+function loadEditor(){const doc=state.find(x=>x.id===current)||state[0];if(!doc)return;$('editor-title').textContent=doc.title;$('editor-state').textContent=doc.status==='published'?'公開':'下書き';$('doc-title').value=doc.title;$('doc-status').value=doc.status;$('doc-version').value=doc.version||'v1.0';$('doc-date').value=doc.date||'';$('doc-body').value=doc.body||'';$('preview-panel').hidden=true;}
 function collect(){const doc=state.find(x=>x.id===current);if(!doc)return;doc.title=$('doc-title').value.trim()||'無題の公開文書';doc.status=$('doc-status').value;doc.version=$('doc-version').value.trim()||'v1.0';doc.date=$('doc-date').value;doc.body=$('doc-body').value;}
-function message(text){$('status-message').textContent=text;setTimeout(()=>{$('status-message').textContent='画面デモ用の設定です。';},2200);}
-$('save-draft').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);doc.status='draft';save();renderList();loadEditor();message('下書きを保存しました。');});
-$('publish').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);if(!doc.body.trim()){message('本文を入力してから公開してください。');return;}doc.status='published';save();renderList();loadEditor();message('公開状態として保存しました。');});
+function message(value){$('status-message').textContent=value;}
+async function persist(){const response=await fetch('/api/admin/settings/public-documents',{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({documents:state})});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'保存に失敗しました。');state=result.documents;renderList();loadEditor();}
+$('save-draft').addEventListener('click',async()=>{collect();const doc=state.find(x=>x.id===current);doc.status='draft';try{await persist();message('下書きを保存しました。');}catch(error){message('保存できませんでした。運営者ログインと通信状態を確認してください。');}});
+$('publish').addEventListener('click',async()=>{collect();const doc=state.find(x=>x.id===current);if(!doc.body.trim()){message('本文を入力してから公開してください。');return;}doc.status='published';try{await persist();message('公開しました。公開ページに反映されています。');}catch(error){message('公開できませんでした。運営者ログインと通信状態を確認してください。');}});
 $('preview').addEventListener('click',()=>{collect();const doc=state.find(x=>x.id===current);$('preview-title').textContent=doc.title;$('preview-meta').textContent=(doc.status==='published'?'公開':'下書き')+'　•　'+doc.version+(doc.date?'　•　改定日 '+doc.date:'');$('preview-body').textContent=doc.body||'本文がありません。';$('preview-panel').hidden=false;});
-$('reset').addEventListener('click',()=>{if(!confirm('この文書を初期内容に戻しますか？'))return;const original=documents.find(x=>x.id===current);const index=state.findIndex(x=>x.id===current);state[index]={...original};save();loadEditor();renderList();message('初期内容に戻しました。');});
-load();renderList();loadEditor();
-})();
-</script>
+$('reset').addEventListener('click',async()=>{if(!confirm('この文書を初期内容に戻しますか？'))return;const original=documents.find(x=>x.id===current);const index=state.findIndex(x=>x.id===current);state[index]={...original};try{await persist();message('初期内容に戻しました。');}catch(error){message('初期内容を保存できませんでした。');}});
+try{const response=await fetch('/api/admin/settings/public-documents',{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('読み込みに失敗しました。');const result=await response.json();state=Array.isArray(result.documents)&&result.documents.length?result.documents:documents.map(x=>({...x}));renderList();loadEditor();message('データベースから読み込みました。');}catch(error){state=documents.map(x=>({...x}));renderList();loadEditor();message('読み込みできません。運営者ログインと通信状態を確認してください。');}
+})();</script>
 <script src="/shared/site-branding.js"></script></body>
 </html>
