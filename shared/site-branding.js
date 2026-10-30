@@ -1175,12 +1175,14 @@
             link.appendChild(copy);
             customSection.appendChild(link);
           }
-          if (pageSections.length) {
+          const visiblePageSections = pageSections.filter(function (pageSection) {
+            return pageSection && typeof pageSection === "object" && pageSection.type && pageSection.hidden !== true;
+          });
+          if (visiblePageSections.length) {
             const embeddedContent = document.createElement("div");
             embeddedContent.className = "vm-published-page-content";
             embeddedContent.style.cssText = "display:grid;gap:20px;margin-top:20px;min-width:0;";
-            pageSections.forEach(function (pageSection) {
-              if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return;
+            visiblePageSections.forEach(function (pageSection) {
               const content = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
               const standardDefinition = definitions.find(function (definition) { return definition.key === pageSection.type; });
               if (standardDefinition) {
