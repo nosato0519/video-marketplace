@@ -691,6 +691,7 @@
             preview.style.cssText = "display:block;max-width:220px;max-height:140px;object-fit:contain;margin-top:6px;border-radius:6px;";
             preview.hidden = !getValue();
             if (getValue()) preview.src = getValue();
+            if ((getValue() || "").indexOf("data:image/") === 0) input.placeholder = "PCから選択した画像を設定済み";
             upload.addEventListener("change", async function () {
               const file = upload.files && upload.files[0];
               if (!file) return;
@@ -699,7 +700,8 @@
                 if (typeof window.compressPageImage !== "function") throw new Error("画像選択機能を読み込めませんでした。ページを再読み込みしてください。");
                 const dataUrl = await window.compressPageImage(file);
                 setValue(dataUrl);
-                input.value = dataUrl;
+                input.value = "";
+                input.placeholder = "PCから選択した画像を設定済み";
                 preview.src = dataUrl;
                 preview.hidden = false;
               } catch (error) {
@@ -720,11 +722,12 @@
           function addField(labelText, key, multiline) {
             const label = document.createElement("label");
             label.style.cssText = "display:grid;gap:5px;font-size:12px;";
-            label.appendChild(document.createTextNode(labelText));
+            label.appendChild(document.createTextNode(key === "image" ? "画像（PCから選択／URL入力も可）" : labelText));
             const control = document.createElement(multiline ? "textarea" : "input");
             if (!multiline) control.type = "text";
             else control.rows = key === "body" ? 4 : 2;
-            control.value = typeof block.content[key] === "string" ? block.content[key] : "";
+            control.value = typeof block.content[key] === "string" && String(block.content[key]).indexOf("data:image/") !== 0 ? block.content[key] : "";
+            if (key === "image") control.placeholder = "画像URL（任意）";
             control.addEventListener("input", function () { block.content[key] = control.value; });
             label.appendChild(control);
             if (key === "image") addImageUpload(label, control, function () { return block.content.image || ""; }, function (value) { block.content.image = value; });
@@ -773,8 +776,9 @@
               block.content.items.forEach(function(entry,itemIndex){
                 const itemFields=document.createElement("div"); itemFields.style.cssText="display:grid;gap:5px;padding:8px;border:1px solid var(--line,#333);border-radius:6px;";
                 [["タイトル","title"],["説明","description"],["画像URL","image"],["ボタン","button"],["リンク先","link"]].forEach(function(fieldDef){
-                  const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[0];
-                  const input=document.createElement("input"); input.type="text"; input.value=entry[fieldDef[1]]||"";
+                  const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[1] === "image" ? "画像（PCから選択／URL入力も可）" : fieldDef[0];
+                  const input=document.createElement("input"); input.type="text"; input.value=fieldDef[1] === "image" && String(entry.image||"").indexOf("data:image/") === 0 ? "" : (entry[fieldDef[1]]||"");
+                  if (fieldDef[1] === "image") input.placeholder = String(entry.image||"").indexOf("data:image/") === 0 ? "PCから選択した画像を設定済み" : "画像URL（任意）";
                   input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input);
                   if (fieldDef[1] === "image") addImageUpload(label, input, function () { return entry.image || ""; }, function (value) { entry.image = value; });
                   itemFields.appendChild(label);
