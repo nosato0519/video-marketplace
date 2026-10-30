@@ -279,9 +279,26 @@
     });
   }
 
+  function renderPublicDocumentLinks(documents) {
+    const container = document.getElementById("vm-public-document-links");
+    const column = document.getElementById("vm-public-documents-footer");
+    if (!container || !column) return;
+    container.replaceChildren();
+    (Array.isArray(documents) ? documents : []).forEach(function (document) {
+      if (!document || typeof document.title !== "string" || !document.title.trim() ||
+          typeof document.url !== "string" || !document.url.startsWith("/pages/")) return;
+      const link = document.createElement("a");
+      link.href = document.url;
+      link.textContent = document.title;
+      container.appendChild(link);
+    });
+    column.hidden = container.childElementCount === 0;
+  }
+
   async function syncPublicSettings() {
     try {
       const data = await getPublicSettings();
+      renderPublicDocumentLinks(data.publicDocuments);
       applySiteChrome(data.pageSettings && data.pageSettings.chrome);
       if (data.siteBranding && Object.keys(data.siteBranding).length) applyBranding(data.siteBranding);
       const siteDescription = data.siteSettings && String(data.siteSettings.f1 || "").trim();

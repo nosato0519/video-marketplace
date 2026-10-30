@@ -73,10 +73,30 @@ export function createApp() {
   app.get('/api/site/homepage-settings', async (_req, res) => {
     try {
       const result = await query(
-        "SELECT setting_key, setting_value FROM platform_settings WHERE setting_key IN ('homepage_sections', 'page_editor_config')"
+        "SELECT setting_key, setting_value FROM platform_settings WHERE setting_key IN ('homepage_sections', 'page_editor_config', 'public_documents')"
       );
       const settings = Object.fromEntries(result.rows.map((row) => [row.setting_key, row.setting_value]));
       const editorEntries = settings.page_editor_config?.value?.entries;
+      const publicDocumentPaths = {
+        terms: '/pages/terms.html',
+        privacy: '/pages/privacy.html',
+        commerce: '/pages/commerce.html',
+        refund: '/pages/refund.html',
+        seller: '/pages/seller-terms.html',
+        contact: '/pages/public-support.html'
+      };
+      const savedPublicDocuments = settings.public_documents?.value?.documents;
+      const publicDocuments = Array.isArray(savedPublicDocuments)
+        ? savedPublicDocuments
+            .filter((document) => document && document.status === 'published' &&
+              Object.prototype.hasOwnProperty.call(publicDocumentPaths, document.id) &&
+              typeof document.title === 'string' && document.title.trim())
+            .map((document) => ({
+              id: document.id,
+              title: document.title.trim(),
+              url: publicDocumentPaths[document.id]
+            }))
+        : [];
       let publishedPages = [];
       try {
         const savedPages = JSON.parse(editorEntries?.['vm-demo-pages'] || '[]');
@@ -244,6 +264,7 @@ export function createApp() {
         siteBranding,
         siteSettings,
         announcements,
+        publicDocuments,
         homepageTheme
       });
     } catch (error) {
