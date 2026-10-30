@@ -1358,13 +1358,9 @@
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;width:100%;max-width:" + (isImageText ? "100%" : "100%") + ";max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
-                if (isImageText) {
-                  image.style.alignSelf = "start";
-                  preview.appendChild(image);
-                } else {
-                  preview.appendChild(image);
-                }
+                image.style.cssText = "display:block;width:100%;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
+                if (isImageText) image.style.alignSelf = "start";
+                preview.appendChild(image);
               }
               if (isImageText) preview.appendChild(textContent);
               if (Array.isArray(pageSection.items) && pageSection.items.length) {
