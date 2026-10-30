@@ -119,6 +119,72 @@ router.put('/settings/page-editor', async (req, res, next) => {
   }
 });
 
+
+const PUBLIC_DOCUMENTS_KEY = 'public_documents';
+const PUBLIC_DOCUMENT_IDS = new Set(['terms', 'privacy', 'commerce', 'refund', 'seller', 'contact']);
+
+router.get('/settings/public-documents', async (_req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+      [PUBLIC_DOCUMENTS_KEY]
+    );
+    const documents = result.rows[0]?.setting_value?.value?.documents;
+    return res.json({ documents: Array.isArray(documents) ? documents : [] });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.put('/settings/public-documents', async (req, res, next) => {
+  try {
+    const documents = req.body?.documents;
+    if (!Array.isArray(documents) || documents.length !== PUBLIC_DOCUMENT_IDS.size) {
+      return res.status(400).json({ error: 'invalid_public_documents' });
+    }
+
+    const seen = new Set();
+    const normalized = [];
+    for (const document of documents) {
+      if (!document || typeof document !== 'object' || Array.isArray(document) ||
+          !PUBLIC_DOCUMENT_IDS.has(document.id) || seen.has(document.id) ||
+          typeof document.title !== 'string' || !document.title.trim() || document.title.length > 200 ||
+          typeof document.description !== 'string' || document.description.length > 240 ||
+          typeof document.version !== 'string' || document.version.length > 40 ||
+          !['draft', 'published'].includes(document.status) ||
+          typeof document.date !== 'string' || (document.date && !/^\\d{4}-\\d{2}-\\d{2}$/.test(document.date)) ||
+          typeof document.body !== 'string' || document.body.length > 150000) {
+        return res.status(400).json({ error: 'invalid_public_document', id: document?.id || null });
+      }
+      seen.add(document.id);
+      normalized.push({
+        id: document.id,
+        title: document.title.trim(),
+        description: document.description,
+        version: document.version.trim() || 'v1.0',
+        status: document.status,
+        date: document.date,
+        body: document.body
+      });
+    }
+
+    if (seen.size !== PUBLIC_DOCUMENT_IDS.size) {
+      return res.status(400).json({ error: 'incomplete_public_documents' });
+    }
+
+    await query(
+      `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (setting_key)
+       DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+      [PUBLIC_DOCUMENTS_KEY, JSON.stringify({ value: { documents: normalized } })]
+    );
+    return res.json({ saved: true, documents: normalized });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get('/settings/seller-verification', async (_req, res, next) => {
   try {
     const result = await query(
