@@ -36,6 +36,8 @@ assert.ok(adminSettingsRoutes.includes("router.put('/settings/public-documents'"
 assert.ok(adminSettingsRoutes.includes("router.use(requireAuth, requireRole('admin'))"));
 assert.ok(backendApp.includes('publishedPublicDocumentMiddleware'));
 assert.ok(backendApp.includes("'public_documents'"));
+assert.ok(backendApp.includes("'/pages/public-support.html': 'contact'"));
+assert.ok(!backendApp.includes("'/pages/support.html': 'contact'"));
 const policyScriptStart = publicDocumentAdmin.indexOf('<script>') + '<script>'.length;
 const policyScriptEnd = publicDocumentAdmin.indexOf('</script>', policyScriptStart);
 const policyInlineScript = policyScriptEnd > policyScriptStart ? publicDocumentAdmin.slice(policyScriptStart, policyScriptEnd) : '';
