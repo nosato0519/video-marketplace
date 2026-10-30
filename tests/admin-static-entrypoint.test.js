@@ -31,7 +31,7 @@ const publicHome = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(publicDocumentAdmin.includes('/api/admin/settings/public-documents'));
 assert.doesNotMatch(publicDocumentAdmin, /localStorage/);
 assert.ok(adminSettingsRoutes.includes("router.get('/settings/public-documents'"));
-assert.ok(adminSettingsRoutes.includes("router.get('/settings/public-documents'"));
+assert.ok(adminSettingsRoutes.includes("router.put('/settings/public-documents'"));
 assert.ok(adminSettingsRoutes.includes("router.use(requireAuth, requireRole('admin'))"));
 assert.ok(backendApp.includes('publishedPublicDocumentMiddleware'));
 assert.ok(backendApp.includes("'public_documents'"));
