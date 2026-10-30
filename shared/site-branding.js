@@ -1796,7 +1796,7 @@
                 imageTextLayout.appendChild(imageTextCopy);
                 preview.appendChild(imageTextLayout);
               }
-              const embeddedItems = Array.isArray(pageSection.items)
+              const embeddedItems = Array.isArray(pageSection.items) && pageSection.items.length
                 ? pageSection.items
                 : (Array.isArray(content.items) ? content.items : []);
               if (pageSection.type === "custom-gallery") {
