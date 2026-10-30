@@ -655,6 +655,7 @@
           if (!block || typeof block !== "object") return;
           block.content = block.content && typeof block.content === "object" ? block.content : {};
           block.theme = block.theme && typeof block.theme === "object" ? block.theme : {};
+          block.settings = block.settings && typeof block.settings === "object" ? block.settings : {};
           const card = document.createElement("section");
           card.style.cssText = "display:grid;gap:8px;padding:12px;border:1px solid var(--line,#333);border-radius:8px;";
           const head = document.createElement("div");
@@ -682,6 +683,22 @@
             control.value = typeof block.content[key] === "string" ? block.content[key] : "";
             control.addEventListener("input", function () { block.content[key] = control.value; });
             label.appendChild(control); card.appendChild(label);
+          }
+          if (block.type === "custom-spacer") {
+            const heightLabel = document.createElement("label");
+            heightLabel.style.cssText = "display:grid;gap:5px;font-size:12px;";
+            heightLabel.appendChild(document.createTextNode("余白の高さ"));
+            const heightSelect = document.createElement("select");
+            [[32,"小"],[64,"標準"],[96,"広め"],[128,"大きめ"],[160,"大"],[240,"最大"]].forEach(function (entry) {
+              const option = document.createElement("option");
+              option.value = String(entry[0]);
+              option.textContent = entry[1] + "（" + entry[0] + "px）";
+              heightSelect.appendChild(option);
+            });
+            heightSelect.value = String(Math.max(16, Math.min(240, Number(block.settings.height) || 64)));
+            heightSelect.addEventListener("change", function () { block.settings.height = Number(heightSelect.value); });
+            heightLabel.appendChild(heightSelect);
+            card.appendChild(heightLabel);
           }
           if (!["custom-divider","custom-spacer"].includes(block.type)) {
             addField("見出し","title",false);
@@ -726,6 +743,31 @@
           const design=document.createElement("details");
           const designSummary=document.createElement("summary"); designSummary.textContent="このブロックのデザイン"; design.appendChild(designSummary);
           const designGrid=document.createElement("div"); designGrid.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px;";
+          function addDesignSelect(labelText, key, options) {
+            const label = document.createElement("label");
+            label.style.cssText = "display:grid;gap:4px;font-size:11px;";
+            label.appendChild(document.createTextNode(labelText));
+            const select = document.createElement("select");
+            options.forEach(function (entry) {
+              const option = document.createElement("option");
+              option.value = entry[0];
+              option.textContent = entry[1];
+              select.appendChild(option);
+            });
+            select.value = block.theme[key] || "";
+            select.addEventListener("change", function () {
+              if (select.value) block.theme[key] = select.value;
+              else delete block.theme[key];
+            });
+            label.appendChild(select);
+            designGrid.appendChild(label);
+          }
+          addDesignSelect("横幅", "width", [["","標準"],["narrow","狭い"],["standard","標準幅"],["wide","広い"]]);
+          addDesignSelect("上下の余白", "spacing", [["","標準"],["compact","狭い"],["standard","標準"],["large","広い"]]);
+          addDesignSelect("角の形", "radius", [["","角丸"],["square","四角"]]);
+          if (["custom-image","custom-image-text","custom-gallery","custom-cards"].includes(block.type)) {
+            addDesignSelect("画像の表示方法", "imageFit", [["","全体に合わせる"],["cover","枠いっぱい"],["contain","全体を表示"]]);
+          }
           [["背景色","bg"],["文字色","text"],["アクセント色","accent"]].forEach(function(entry){
             const label=document.createElement("label"); label.style.cssText="display:grid;gap:4px;font-size:11px;"; label.textContent=entry[0];
             const input=document.createElement("input"); input.type="text"; input.placeholder="#000000"; input.value=block.theme[entry[1]]||"";
