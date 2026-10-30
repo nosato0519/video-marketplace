@@ -1103,7 +1103,7 @@ test('homepage renders each published custom page once when API data contains du
   await page.goto('/');
   const publishedPageSections = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
   await expect(publishedPageSections).toHaveCount(1);
-  await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
+  await expect(publishedPageSections.first()).toContainText('独立ページ本文の見出し');
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(0);
   await expect(publishedPageSections.locator('.hero')).toHaveCount(0);
   await expect(publishedPageSections.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
@@ -1320,7 +1320,7 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   const pageRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
   await expect(pageRow).toBeVisible();
   await pageRow.getByRole('button', { name: '編集' }).click();
-  const builder = pageRow.locator('#page-top-sections-editor details').last();
+  const builder = pageRow.locator('details').filter({ hasText: 'TOP掲載用の自由構成' }).last();
   await expect(builder).toBeVisible();
 
   await builder.locator('select').selectOption('custom-text');
