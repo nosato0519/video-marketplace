@@ -456,9 +456,15 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   expect(savedSections.find((section) => section.type === 'custom-button').content.theme).toMatchObject({ buttonText: '#ffffff', radius: 'square' });
 
   const imageBlock = savedSections.find((section) => section.type === 'custom-image');
+  const imageTextBlock = savedSections.find((section) => section.type === 'custom-image-text');
   const buttonBlock = savedSections.find((section) => section.type === 'custom-button');
+  const dividerBlock = savedSections.find((section) => section.type === 'custom-divider');
+  const spacerBlock = savedSections.find((section) => section.type === 'custom-spacer');
   savedThemes[imageBlock.id] = { imageFit: 'contain', radius: 'square' };
   savedThemes[buttonBlock.id] = { buttonText: '#ffffff', radius: 'square' };
+  savedThemes[dividerBlock.id] = { accent: '#ff0000', width: 'narrow', spacing: 'compact' };
+  savedThemes[spacerBlock.id] = { width: 'narrow', spacing: 'large' };
+  spacerBlock.settings = { ...(spacerBlock.settings || {}), height: 128 };
 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
@@ -472,13 +478,22 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await expect(page.locator('.vm-homepage-custom-text')).toHaveCount(2);
   await expect(page.locator('.vm-homepage-custom-text').nth(0)).toContainText('公開される自由な本文です。');
   await expect(page.locator('.vm-homepage-custom-text').nth(1)).toContainText('同じ種類でも別々に表示されます。');
-  await expect(page.locator('.vm-homepage-custom-image-text')).toContainText('画像と一緒に表示する本文です。');
+  const imageTextLayout = page.locator('.vm-homepage-custom-image-text');
+  await expect(imageTextLayout).toContainText('画像と文章の説明');
+  await expect(imageTextLayout).toContainText('画像と一緒に表示する本文です。');
+  await expect(imageTextLayout.locator('.vm-homepage-custom-image-text-copy h2')).toHaveText('画像と文章');
+  const imageTextColumns = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await imageTextLayout.elementHandle());
+  await expect.poll(imageTextColumns).toBe(2);
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('object-fit', 'contain');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('border-radius', '0px');
   await expect(page.locator('.vm-homepage-custom-button a')).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(page.locator('.vm-homepage-custom-button a')).toHaveCSS('border-radius', '0px');
   await expect(page.locator('.vm-homepage-custom-gallery')).toContainText('写真A');
   await expect(page.locator('.vm-homepage-custom-cards')).toContainText('動画講座');
+  await expect(page.locator('.vm-homepage-custom-divider hr')).toHaveCSS('border-top-color', 'rgb(255, 0, 0)');
+  await expect(page.locator('.vm-homepage-custom-divider')).toHaveCSS('max-width', '900px');
+  await expect(page.locator('.vm-homepage-custom-spacer > div[aria-hidden="true"]')).toHaveCSS('height', '128px');
+  await expect(page.locator('.vm-homepage-custom-spacer')).toHaveCSS('max-width', '900px');
 
   const grid = page.locator('.vm-homepage-custom-cards .vm-homepage-custom-grid');
   const columnCount = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await grid.elementHandle());
@@ -489,6 +504,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await expect.poll(columnCount).toBe(2);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(columnCount).toBe(1);
+  await expect.poll(imageTextColumns).toBe(1);
 });
 
 test('homepage custom pages render their saved sections without a duplicate page card', async ({ page }) => {
