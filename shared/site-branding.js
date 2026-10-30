@@ -1482,6 +1482,109 @@
             embeddedContent.style.cssText = "display:grid;gap:20px;margin-top:20px;min-width:0;";
             visiblePageSections.forEach(function (pageSection) {
               const content = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
+              if (pageSection.type === "popular" || pageSection.type === "categories") {
+                const liveSection = document.createElement("section");
+                liveSection.className = "vm-published-page-block vm-published-page-block-" + pageSection.type;
+                liveSection.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
+                liveSection.style.cssText = "box-sizing:border-box;min-width:0;padding:20px 0;border-top:1px solid var(--line,#333);";
+                const liveTheme = pageSection.theme && typeof pageSection.theme === "object" ? pageSection.theme : {};
+                if (typeof liveTheme.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(liveTheme.bg)) liveSection.style.backgroundColor = liveTheme.bg;
+                if (typeof liveTheme.text === "string" && /^#[0-9a-f]{3,8}$/i.test(liveTheme.text)) liveSection.style.color = liveTheme.text;
+                const liveTitle = document.createElement("h2");
+                liveTitle.textContent = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
+                liveSection.appendChild(liveTitle);
+                if (typeof content.subtitle === "string" && content.subtitle.trim()) {
+                  const description = document.createElement("p");
+                  description.textContent = content.subtitle.trim();
+                  description.style.cssText = "line-height:1.7;opacity:.8;margin:8px 0 18px;";
+                  liveSection.appendChild(description);
+                }
+                const liveSettings = pageSection.settings && typeof pageSection.settings === "object"
+                  ? pageSection.settings
+                  : (content.settings && typeof content.settings === "object" ? content.settings : {});
+                const configuredColumns = pageSection.type === "popular"
+                  ? Number(liveSettings.columns) || 4
+                  : Number(liveSettings.columns) || 3;
+                const columnCount = pageSection.type === "popular"
+                  ? Math.max(2, Math.min(5, configuredColumns))
+                  : Math.max(2, Math.min(4, configuredColumns));
+                const grid = document.createElement("div");
+                grid.style.cssText = "display:grid;gap:16px;margin-top:16px;min-width:0;";
+                const updateColumns = function () {
+                  const viewportWidth = window.innerWidth;
+                  const columns = viewportWidth <= 520 ? 1 : viewportWidth <= 820 ? Math.min(2, columnCount) : columnCount;
+                  grid.style.gridTemplateColumns = "repeat(" + columns + ",minmax(0,1fr))";
+                };
+                updateColumns();
+                window.addEventListener("resize", updateColumns, { passive: true });
+                liveSection.appendChild(grid);
+                const limit = pageSection.type === "popular"
+                  ? Math.max(4, Math.min(24, Number(liveSettings.videoCount) || 8))
+                  : Math.max(4, Math.min(20, Number(liveSettings.categoryCount) || 12));
+                const params = new URLSearchParams({ type: pageSection.type, locale: "ja", limit: String(limit) });
+                fetch("/api/catalog/homepage-sections?" + params.toString(), {
+                  credentials: "same-origin",
+                  cache: "no-store",
+                  headers: { Accept: "application/json" }
+                }).then(function (response) {
+                  if (!response.ok) throw new Error("homepage_section_unavailable");
+                  return response.json();
+                }).then(function (payload) {
+                  const entries = Array.isArray(payload.data) ? payload.data : [];
+                  grid.replaceChildren();
+                  if (!entries.length) {
+                    const empty = document.createElement("p");
+                    empty.textContent = pageSection.type === "popular" ? "人気の動画はまだありません。" : "カテゴリーはまだ登録されていません。";
+                    grid.appendChild(empty);
+                    return;
+                  }
+                  entries.forEach(function (entry) {
+                    const isPopular = pageSection.type === "popular";
+                    const card = document.createElement("a");
+                    card.href = isPopular
+                      ? "/pages/product-detail.html?productId=" + encodeURIComponent(String(entry.id || ""))
+                      : "/pages/category.html?category=" + encodeURIComponent(String(entry.slug || ""));
+                    card.style.cssText = "display:grid;align-content:start;gap:8px;min-width:0;padding:14px;border:1px solid var(--line,#333);border-radius:" + (liveTheme.radius === "square" ? "0" : "12px") + ";color:inherit;text-decoration:none;background:rgba(255,255,255,.025);";
+                    if (isPopular && typeof entry.thumbnail_url === "string" && entry.thumbnail_url.startsWith("/api/catalog/")) {
+                      const image = document.createElement("img");
+                      image.src = entry.thumbnail_url;
+                      image.alt = "";
+                      image.loading = "lazy";
+                      image.style.cssText = "display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;";
+                      card.appendChild(image);
+                    }
+                    const heading = document.createElement("strong");
+                    heading.textContent = isPopular ? (entry.title || "動画") : (entry.name || "カテゴリー");
+                    card.appendChild(heading);
+                    const detail = document.createElement("span");
+                    if (isPopular) {
+                      detail.textContent = entry.seller || "";
+                    } else {
+                      detail.textContent = Number(entry.product_count || 0).toLocaleString("ja-JP") + "作品";
+                    }
+                    detail.style.cssText = "font-size:12px;opacity:.75;";
+                    card.appendChild(detail);
+                    if (isPopular) {
+                      const amount = Number(entry.price_amount);
+                      if (Number.isFinite(amount)) {
+                        const price = document.createElement("strong");
+                        price.textContent = entry.price_currency === "JPY"
+                          ? "¥" + amount.toLocaleString("ja-JP")
+                          : amount.toLocaleString("ja-JP") + " " + String(entry.price_currency || "");
+                        card.appendChild(price);
+                      }
+                    }
+                    grid.appendChild(card);
+                  });
+                }).catch(function () {
+                  grid.replaceChildren();
+                  const error = document.createElement("p");
+                  error.textContent = "セクションの情報を読み込めませんでした。";
+                  grid.appendChild(error);
+                });
+                embeddedContent.appendChild(liveSection);
+                return;
+              }
               const standardDefinition = definitions.find(function (definition) { return definition.key === pageSection.type; });
               if (standardDefinition) {
                 const source = originals[standardDefinition.key];
