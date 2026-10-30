@@ -571,7 +571,7 @@ test('homepage custom pages render their saved sections without a duplicate page
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-hidden-block"]')).toHaveCount(0);
   const imageTextBlock = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-image-text"]');
   await expect(imageTextBlock).toHaveCSS('grid-template-columns', /\\S+\\s+\\S+/);
-  await expect(imageTextBlock.locator('> img')).toHaveCount(1);
+  await expect(imageTextBlock.locator(':scope > img')).toHaveCount(1);
   await expect(imageTextBlock.locator('.vm-published-page-image-text-copy')).toContainText('画像と文章を横並びに表示します。');
   await page.reload();
   await expect(publicLink).toHaveCount(0);
