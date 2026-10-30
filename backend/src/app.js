@@ -302,6 +302,48 @@ export function createApp() {
   app.use('/shared', express.static(path.join(publicRoot, 'shared')));
   app.use('/locales', express.static(path.join(publicRoot, 'locales')));
 
+
+  app.use(async function publishedPublicDocumentMiddleware(req, res, next) {
+    if (req.method !== 'GET') return next();
+    const documentPaths = {
+      '/pages/terms.html': 'terms',
+      '/pages/privacy.html': 'privacy',
+      '/pages/commerce.html': 'commerce',
+      '/pages/refund.html': 'refund',
+      '/pages/seller-terms.html': 'seller',
+      '/pages/support.html': 'contact'
+    };
+    const documentId = documentPaths[req.path];
+    if (!documentId) return next();
+
+    try {
+      const result = await query(
+        'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+        ['public_documents']
+      );
+      const documents = result.rows[0]?.setting_value?.value?.documents;
+      const document = Array.isArray(documents)
+        ? documents.find(item => item && item.id === documentId && item.status === 'published')
+        : null;
+      if (!document) return res.status(404).type('text').send('この文書は公開されていません。');
+
+      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[char]);
+      const metadata = [document.version, document.date ? '改定日 ' + document.date : '']
+        .filter(Boolean).map(escapeHtml).join('　•　');
+      res.set('Cache-Control', 'no-store');
+      return res.type('html').send(`<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(document.title)} | VIDEO MARKETPLACE</title><link rel="stylesheet" href="/styles.css">
+<style>.public-document{max-width:900px;margin:64px auto;padding:0 24px 80px;color:var(--text,#f4f4f5)}.public-document h1{font-size:clamp(28px,4vw,42px);margin:0 0 12px}.public-document-meta{color:var(--muted,#999);font-size:13px;margin-bottom:32px}.public-document-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;font-size:15px}.public-document-back{display:inline-block;margin-top:36px;color:inherit}</style></head>
+<body><main class="public-document"><a href="/">VIDEO MARKETPLACE</a><h1>${escapeHtml(document.title)}</h1><div class="public-document-meta">${metadata}</div><div class="public-document-body">${escapeHtml(document.body)}</div><a class="public-document-back" href="/">TOPへ戻る</a></main></body></html>`);
+    } catch (error) {
+      console.error('Loading public document failed', error);
+      return res.status(500).type('text').send('文書を表示できません。');
+    }
+  });
+
   app.use(async function publishedPageMiddleware(req, res, next) {
   if (req.method !== 'GET' || req.path === '/' || req.path.startsWith('/api/')) return next();
 
