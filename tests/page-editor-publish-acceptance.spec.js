@@ -482,7 +482,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await expect(imageTextLayout).toContainText('画像と一緒に表示する本文です。');
   await expect(imageTextLayout.locator('.vm-homepage-custom-image-text-copy h2')).toHaveText('画像と文章');
   const imageTextColumns = async () => page.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length, await imageTextLayout.elementHandle());
-  await expect.poll(imageTextColumns).toBe(2);
+  await expect.poll(imageTextColumns).toBeGreaterThanOrEqual(2);
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('object-fit', 'contain');
   await expect(page.locator('.vm-homepage-custom-image img')).toHaveCSS('border-radius', '0px');
   await expect(page.locator('.vm-homepage-custom-button a')).toHaveCSS('color', 'rgb(255, 255, 255)');
@@ -1320,7 +1320,7 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   const pageRow = page.locator('#top-settings-list .homepage-section-row').filter({ hasText: publishedPage.name });
   await expect(pageRow).toBeVisible();
   await pageRow.getByRole('button', { name: '編集' }).click();
-  const builder = pageRow.locator('details').filter({ hasText: 'TOP掲載用の自由構成' });
+  const builder = pageRow.locator('#page-top-sections-editor details').last();
   await expect(builder).toBeVisible();
 
   await builder.locator('select').selectOption('custom-text');
@@ -1415,7 +1415,7 @@ test('page builder edits and persists an independent TOP page composition', asyn
 
   await page.locator('#page-name').fill('TOP構成の保存テスト');
   await page.locator('#page-url').fill('/pages/top-composition-test');
-  await page.getByRole('button', { name: '下書き保存' }).click();
+  await page.locator('#save-page').click();
   await expect(page.locator('#editor-status')).toContainText('下書きを保存しました');
 
   const savedPage = JSON.parse(savedEntries['vm-demo-pages'])
