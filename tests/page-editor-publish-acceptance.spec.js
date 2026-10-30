@@ -526,6 +526,22 @@ test('homepage custom pages render only their saved free-form TOP composition wi
         theme: { bg: '#123456', text: '#ffffff', width: 'narrow', spacing: 'large' },
       },
       {
+        id: 'top-popular',
+        type: 'popular',
+        label: '人気の動画',
+        hidden: false,
+        content: { title: '人気の動画' },
+        settings: { videoCount: 4, columns: 2 },
+      },
+      {
+        id: 'top-categories',
+        type: 'categories',
+        label: 'カテゴリー一覧',
+        hidden: false,
+        content: { title: 'カテゴリーから探す' },
+        settings: { categoryCount: 4, columns: 2 },
+      },
+      {
         id: 'top-custom-gallery',
         type: 'custom-gallery',
         label: 'TOP専用ギャラリー',
@@ -546,6 +562,19 @@ test('homepage custom pages render only their saved free-form TOP composition wi
     order: 0,
     content: { title: publishedPage.name, link: publishedPage.url, button: '詳しく見る →' },
   }];
+
+  await page.route('**/api/catalog/homepage-sections**', async (route) => {
+    const type = new URL(route.request().url()).searchParams.get('type');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: type === 'popular'
+          ? [{ id: 'popular-product-1', title: '実際の販売動画', seller: '販売者A', price_amount: 1200, price_currency: 'JPY', thumbnail_url: '/api/catalog/products/popular-product-1/images/thumbnail' }]
+          : [{ slug: 'travel', name: '旅行', product_count: 5 }, { slug: 'music', name: '音楽', product_count: 3 }],
+      }),
+    });
+  });
 
   await page.route('**/api/site/homepage-settings', async (route) => {
     await route.fulfill({
@@ -572,6 +601,11 @@ test('homepage custom pages render only their saved free-form TOP composition wi
   await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toContainText('独立ページ本文とは別に保存したTOP専用の文章です。');
   await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toContainText('TOP専用ギャラリー');
   await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toContainText('画像D');
+  await expect(publishedTop.locator('.vm-published-page-block-popular')).toContainText('実際の販売動画');
+  await expect(publishedTop.locator('.vm-published-page-block-popular a')).toHaveCount(1);
+  await expect(publishedTop.locator('.vm-published-page-block-categories')).toContainText('旅行');
+  await expect(publishedTop.locator('.vm-published-page-block-categories')).toContainText('音楽');
+  await expect(publishedTop.locator('.vm-published-page-block-categories a')).toHaveCount(2);
   await expect(publishedTop).not.toContainText('独立ページ側の標準セクション');
   await expect(page.locator('main > #popular')).toHaveCount(1);
   await expect(page.locator('main > #popular')).not.toContainText('独立ページ側の標準セクション');
