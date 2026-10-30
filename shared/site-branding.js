@@ -1180,7 +1180,7 @@
             embeddedContent.className = "vm-published-page-content";
             embeddedContent.style.cssText = "display:grid;gap:20px;margin-top:20px;min-width:0;";
             pageSections.forEach(function (pageSection) {
-              if (!pageSection || typeof pageSection !== "object" || !pageSection.type) return;
+              if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return;
               const content = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
               const standardDefinition = definitions.find(function (definition) { return definition.key === pageSection.type; });
               if (standardDefinition) {
