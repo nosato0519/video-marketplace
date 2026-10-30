@@ -1028,3 +1028,53 @@ test('homepage settings can duplicate a configured custom block without sharing 
   expect(customTexts[0].id).not.toBe(customTexts[1].id);
   expect(customTexts[1].content.body).toBe('複製しても内容を引き継ぎます。');
 });
+
+test('homepage renders each published custom page once when API data contains duplicates', async ({ page }) => {
+  const publishedPage = {
+    id: 'duplicate-published-page',
+    name: '重複表示防止テストページ',
+    url: '/pages/duplicate-published-page',
+    image: '',
+    sections: [],
+  };
+  const customPageSection = (id) => ({
+    id,
+    type: 'custom-page',
+    pageId: publishedPage.id,
+    label: publishedPage.name,
+    hidden: false,
+    added: false,
+    order: 0,
+    content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+  });
+
+  await page.route('**/api/site/homepage-settings', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sections: [
+          customPageSection('duplicate-custom-page-a'),
+          customPageSection('duplicate-custom-page-b'),
+        ],
+        publishedPages: [publishedPage, { ...publishedPage }],
+        themes: {},
+        pageSettings: {},
+        siteBranding: {},
+        siteSettings: {},
+        announcements: [],
+        homepageTheme: {},
+      }),
+    });
+  });
+
+  await page.goto('/');
+  const publishedPageSections = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
+  await expect(publishedPageSections).toHaveCount(1);
+  await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
+  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
+
+  await page.evaluate(() => document.dispatchEvent(new Event('DOMContentLoaded')));
+  await expect(publishedPageSections).toHaveCount(1);
+  await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
+});
