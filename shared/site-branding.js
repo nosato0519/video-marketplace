@@ -1061,7 +1061,6 @@
         }
       }
       const design = pageSettings.design || {};
-      const main = document.querySelector("main");
       if (main) {
         if (typeof design.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(design.bg)) main.style.backgroundColor = design.bg;
         if (typeof design.text === "string" && /^#[0-9a-f]{3,8}$/i.test(design.text)) main.style.color = design.text;
