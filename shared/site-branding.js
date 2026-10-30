@@ -1668,6 +1668,14 @@
             customSection.appendChild(element);
             return element;
           }
+          const imageTextLayout = item.type === "custom-image-text" ? document.createElement("div") : null;
+          const imageTextCopy = imageTextLayout ? document.createElement("div") : customSection;
+          if (imageTextLayout) {
+            imageTextLayout.className = "vm-homepage-custom-image-text";
+            imageTextLayout.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:center;gap:24px;width:100%;";
+            imageTextCopy.className = "vm-homepage-custom-image-text-copy";
+            imageTextCopy.style.cssText = "display:grid;align-content:center;gap:10px;min-width:0;";
+          }
           if (item.type !== "custom-divider" && item.type !== "custom-spacer") {
             addText("h2", customContent.title, "section-headline");
             addText("p", customContent.subtitle, "section-description");
@@ -1679,7 +1687,7 @@
               paragraph.className = "vm-homepage-custom-body";
               paragraph.style.cssText = "white-space:pre-line;line-height:1.8;max-width:100%;overflow-wrap:anywhere;";
               paragraph.textContent = body;
-              customSection.appendChild(paragraph);
+              imageTextCopy.appendChild(paragraph);
             }
           }
           const imageUrl = typeof customContent.image === "string" ? customContent.image.trim() : "";
@@ -1689,8 +1697,13 @@
             image.src = imageUrl;
             image.alt = customContent.title || "";
             image.loading = "lazy";
-            image.style.cssText = "display:block;max-width:100%;max-height:520px;object-fit:" + customImageFit + ";border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";margin:16px auto;";
-            customSection.appendChild(image);
+            image.style.cssText = "display:block;width:100%;max-width:100%;max-height:520px;object-fit:" + customImageFit + ";border-radius:" + (customTheme.radius === "square" ? "0" : "12px") + ";margin:0;";
+            if (imageTextLayout) imageTextLayout.appendChild(image);
+            else customSection.appendChild(image);
+          }
+          if (imageTextLayout) {
+            imageTextLayout.appendChild(imageTextCopy);
+            customSection.appendChild(imageTextLayout);
           }
           if (item.type === "custom-gallery" || item.type === "custom-cards") {
             const grid = document.createElement("div");
@@ -1732,24 +1745,26 @@
             });
             customSection.appendChild(grid);
           }
-          if (item.type === "custom-button" && customContent.button) {
+          if ((item.type === "custom-button" || item.type === "custom-image-text") && customContent.button) {
             const button = document.createElement("a");
             button.textContent = customContent.button;
             button.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:12px;padding:12px 20px;border-radius:" + (customTheme.radius === "square" ? "0" : "999px") + ";background:var(--accent,#d9b45f);color:" + customButtonText + ";text-decoration:none;font-weight:700;";
             const link = String(customContent.link || "");
             if (link.startsWith("/") && !link.startsWith("//")) button.href = link;
             else { try { const url = new URL(link); if (url.protocol === "https:" || url.protocol === "http:") button.href = url.href; } catch (_) {} }
-            customSection.appendChild(button);
+            if (item.type === "custom-image-text") imageTextCopy.appendChild(button);
+            else customSection.appendChild(button);
           }
           if (item.type === "custom-divider") {
             const divider = document.createElement("hr");
-            divider.style.cssText = "border:0;border-top:1px solid var(--line,#333);margin:0 auto;width:100%;";
+            divider.style.cssText = "border:0;border-top:1px solid " + (typeof customTheme.accent === "string" && /^#[0-9a-f]{3,8}$/i.test(customTheme.accent) ? customTheme.accent : "var(--line,#333)") + ";margin:0 auto;width:100%;";
             customSection.appendChild(divider);
           }
           if (item.type === "custom-spacer") {
             const spacer = document.createElement("div");
             spacer.setAttribute("aria-hidden", "true");
-            spacer.style.height = "48px";
+            const configuredHeight = Number(customSettings.height);
+            spacer.style.height = (Number.isFinite(configuredHeight) ? Math.max(16, Math.min(240, configuredHeight)) : 64) + "px";
             customSection.appendChild(spacer);
           }
           ordered.push(customSection);
