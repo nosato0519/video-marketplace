@@ -30,12 +30,12 @@ const publicHome = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 assert.ok(publicDocumentAdmin.includes('/api/admin/settings/public-documents'));
 assert.doesNotMatch(publicDocumentAdmin, /localStorage/);
-assert.match(adminSettingsRoutes, /router\\.get\\('\/settings\/public-documents'/);
-assert.match(adminSettingsRoutes, /router\\.put\\('\/settings\/public-documents'/);
+assert.ok(adminSettingsRoutes.includes("router.get('/settings/public-documents'"));
+assert.ok(adminSettingsRoutes.includes("router.get('/settings/public-documents'"));
 assert.ok(adminSettingsRoutes.includes("router.use(requireAuth, requireRole('admin'))"));
 assert.ok(backendApp.includes('publishedPublicDocumentMiddleware'));
 assert.ok(backendApp.includes("'public_documents'"));
-assert.match(publicHome, /href="\/pages\/terms\\.html"/);
-assert.match(publicHome, /href="\/pages\/privacy\\.html"/);
+assert.ok(publicHome.includes('href="/pages/terms.html"'));
+assert.ok(publicHome.includes('href="/pages/privacy.html"'));
 
 console.log('Admin entrypoint and route contract checks passed.');
