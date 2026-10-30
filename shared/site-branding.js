@@ -1174,8 +1174,6 @@
             copy.appendChild(action);
             link.appendChild(copy);
             customSection.appendChild(link);
-  
-  
           }
           if (pageSections.length) {
             const embeddedContent = document.createElement("div");
