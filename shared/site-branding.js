@@ -365,6 +365,7 @@
     const customTypes = new Set(customDefinitions.map(function (item) { return item.type; }));
     let nextAddedSectionId = 0;
     let sections = [];
+    let publishedPages = [];
     function normalize(items, publishedPages) {
       const source = Array.isArray(items) ? items : [];
       const seenIds = new Set();
@@ -617,6 +618,58 @@
       wrapper.append(bulkLabel, list, addItem);
       return wrapper;
     }
+    function renderPublishedPageSectionsEditor(item) {
+      const details = document.createElement("details");
+      details.style.cssText = "grid-column:1/-1;border-top:1px solid var(--line,#333);padding-top:10px;";
+      const summary = document.createElement("summary");
+      summary.textContent = "TOPに表示するページ内セクション";
+      summary.style.cursor = "pointer";
+      details.appendChild(summary);
+
+      const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
+      const pageSections = page && Array.isArray(page.sections) ? page.sections : [];
+      const help = document.createElement("p");
+      help.textContent = "人気の動画・カテゴリー一覧など、TOPに表示したいセクションを選択します。";
+      help.style.cssText = "margin:8px 0;font-size:12px;line-height:1.6;opacity:.75;";
+      details.appendChild(help);
+
+      const list = document.createElement("div");
+      list.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;";
+      const selectedIds = Array.isArray(item.content.visibleSectionIds)
+        ? new Set(item.content.visibleSectionIds.map(String))
+        : null;
+
+      if (!pageSections.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "このページには表示できるセクションがありません。";
+        empty.style.cssText = "font-size:12px;opacity:.7;";
+        list.appendChild(empty);
+      } else {
+        pageSections.forEach(function (pageSection) {
+          if (!pageSection || typeof pageSection !== "object" || typeof pageSection.id !== "string") return;
+          const definition = allDefinitions.find(function (entry) { return entry.type === pageSection.type; });
+          const label = document.createElement("label");
+          label.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line,#333);border-radius:7px;font-size:12px;";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = pageSection.id;
+          checkbox.checked = selectedIds
+            ? selectedIds.has(pageSection.id)
+            : !standardHomepageTypes.has(pageSection.type);
+          checkbox.addEventListener("change", function () {
+            item.content.visibleSectionIds = Array.from(list.querySelectorAll('input[type="checkbox"]:checked'))
+              .map(function (input) { return input.value; });
+          });
+          const name = document.createElement("span");
+          name.textContent = pageSection.label || (definition && definition.label) || pageSection.type || "セクション";
+          label.append(checkbox, name);
+          list.appendChild(label);
+        });
+      }
+      details.appendChild(list);
+      return details;
+    }
+
     function render() {
       root.replaceChildren();
       sections.forEach(function (item, index) {
@@ -686,6 +739,9 @@
         );
         if (item.type === "custom-text" || item.type === "custom-image-text") {
           fields.appendChild(field("本文", "body", item.content.body, item, true));
+        }
+        if (item.type === "custom-page") {
+          fields.appendChild(renderPublishedPageSectionsEditor(item));
         }
         const sectionSettingOptions = {
           "popular": [
@@ -878,7 +934,8 @@
       status.textContent = "サーバーからTOP設定を読み込んでいます…";
       try {
         const data = await getPublicSettings();
-        sections = normalize(data.sections, data.publishedPages);
+        publishedPages = Array.isArray(data.publishedPages) ? data.publishedPages : [];
+        sections = normalize(data.sections, publishedPages);
         render();
         status.textContent = "TOP設定を読み込みました。公開済みの独立ページも一覧に含めています。";
       } catch (_) {
