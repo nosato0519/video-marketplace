@@ -639,17 +639,20 @@
       help.style.cssText = "margin:8px 0;font-size:12px;line-height:1.6;opacity:.75;";
       details.appendChild(help);
       const blockTypes = [
-        ["custom-text","文章"],["custom-image","画像"],["custom-image-text","画像＋文章"],
-        ["custom-gallery","画像ギャラリー"],["custom-cards","カード一覧"],
-        ["custom-button","ボタン"],["custom-divider","区切り線"],["custom-spacer","余白"]
+        ["custom-text","見出し・文章"],
+        ["popular","人気の動画"],
+        ["categories","カテゴリー一覧"],
+        ["custom-image-text","画像＋文章"]
       ];
       if (!Array.isArray(item.content.topSections)) {
         const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
-        const legacySections = page && Array.isArray(page.topSections) ? page.topSections : (page && Array.isArray(page.sections) ? page.sections : []);
+        const hasSavedTopSections = Boolean(page && Array.isArray(page.topSections));
+        const legacySections = hasSavedTopSections ? page.topSections : (page && Array.isArray(page.sections) ? page.sections : []);
         const selectedIds = Array.isArray(item.content.visibleSectionIds) ? new Set(item.content.visibleSectionIds.map(String)) : null;
         item.content.topSections = legacySections
           .filter(function (section) {
             if (!section || typeof section !== "object" || section.hidden === true) return false;
+            if (hasSavedTopSections) return true;
             return selectedIds ? selectedIds.has(String(section.id)) : !standardSectionTypes.has(section.type);
           })
           .map(function (section) { return JSON.parse(JSON.stringify(section)); });
@@ -757,6 +760,39 @@
           if (["custom-image","custom-image-text"].includes(block.type)) addField("画像URL","image",false);
           if (["custom-button","custom-image-text"].includes(block.type)) {
             addField("ボタン表示名","button",false); addField("リンク先","link",false);
+          }
+          if (block.type === "popular" || block.type === "categories") {
+            const settings = block.settings;
+            const settingDefinitions = block.type === "popular"
+              ? [
+                  { key: "videoCount", label: "表示する動画数", value: settings.videoCount || 8, options: [["4","4件"],["8","8件"],["12","12件"],["16","16件"],["24","24件"]] },
+                  { key: "columns", label: "1行のカード数", value: settings.columns || 4, options: [["2","2列"],["3","3列"],["4","4列"],["5","5列"]] }
+                ]
+              : [
+                  { key: "categoryCount", label: "表示するカテゴリー数", value: settings.categoryCount || 12, options: [["4","4件"],["6","6件"],["8","8件"],["12","12件"],["16","16件"],["20","20件"]] },
+                  { key: "columns", label: "1行の表示数", value: settings.columns || 3, options: [["2","2列"],["3","3列"],["4","4列"]] }
+                ];
+            const settingsGrid = document.createElement("div");
+            settingsGrid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;";
+            settingDefinitions.forEach(function (definition) {
+              const label = document.createElement("label");
+              label.style.cssText = "display:grid;gap:5px;font-size:12px;";
+              label.appendChild(document.createTextNode(definition.label));
+              const select = document.createElement("select");
+              definition.options.forEach(function (optionData) {
+                const option = document.createElement("option");
+                option.value = optionData[0];
+                option.textContent = optionData[1];
+                select.appendChild(option);
+              });
+              select.value = String(definition.value);
+              select.addEventListener("change", function () {
+                settings[definition.key] = Number(select.value);
+              });
+              label.appendChild(select);
+              settingsGrid.appendChild(label);
+            });
+            card.appendChild(settingsGrid);
           }
           if (["custom-gallery","custom-cards"].includes(block.type)) {
             const columns = document.createElement("label");
@@ -1386,11 +1422,13 @@
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           const pageContent = item.content && typeof item.content === "object" ? item.content : {};
-          const selectedSectionIds = !Array.isArray(pageContent.topSections) && Array.isArray(pageContent.visibleSectionIds)
+          const hasExplicitTopSections = Array.isArray(pageContent.topSections) || Array.isArray(page.topSections);
+          const selectedSectionIds = !hasExplicitTopSections && Array.isArray(pageContent.visibleSectionIds)
             ? new Set(pageContent.visibleSectionIds.map(String))
             : null;
           const visiblePageSections = pageSections.filter(function (pageSection) {
             if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
+            if (hasExplicitTopSections) return true;
             return selectedSectionIds
               ? selectedSectionIds.has(String(pageSection.id))
               : !standardHomepageTypes.has(pageSection.type);
@@ -1597,7 +1635,7 @@
               else if (previewTheme.spacing === "standard") preview.style.paddingBlock = "28px";
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
-              const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
+              const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)) || /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(imageUrl));
               const imageTextLayout = pageSection.type === "custom-image-text" ? document.createElement("div") : null;
               const imageTextCopy = imageTextLayout ? document.createElement("div") : preview;
               if (imageTextLayout) {
