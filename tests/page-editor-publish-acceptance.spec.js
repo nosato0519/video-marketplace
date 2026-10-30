@@ -1098,16 +1098,27 @@ test('homepage scopes each published page standard section without duplicating h
       { id: `page-${index}-custom`, type: 'custom-text', label: '独自コンテンツ', content: { title: `TOPに残す独自内容${index}`, body: 'ページ固有の内容' } },
     ],
   }));
-  const sections = publishedPages.map((publishedPage, index) => ({
-    id: `homepage-page-link-${index + 1}`,
-    type: 'custom-page',
-    pageId: publishedPage.id,
-    label: publishedPage.name,
-    hidden: false,
-    added: false,
-    order: index,
-    content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
-  }));
+  const sections = [
+    {
+      id: 'homepage-hidden-popular',
+      type: 'popular',
+      label: '人気の動画',
+      hidden: true,
+      added: false,
+      order: 0,
+      content: {},
+    },
+    ...publishedPages.map((publishedPage, index) => ({
+      id: `homepage-page-link-${index + 1}`,
+      type: 'custom-page',
+      pageId: publishedPage.id,
+      label: publishedPage.name,
+      hidden: false,
+      added: false,
+      order: index + 1,
+      content: { title: publishedPage.name, link: publishedPage.url, button: 'ページを見る →' },
+    })),
+  ];
 
   await page.route('**/api/site/homepage-settings', async (route) => {
     await route.fulfill({
@@ -1137,6 +1148,7 @@ test('homepage scopes each published page standard section without duplicating h
   }
   await expect(page.locator('main > .hero')).toHaveCount(1);
   await expect(page.locator('main > #popular')).toHaveCount(1);
+  await expect(page.locator('main > #popular')).toBeHidden();
   await expect(page.locator('main > .hero')).not.toContainText('ページ1のメインビジュアル');
   await expect(page.locator('main > #popular')).not.toContainText('ページ1の人気動画');
 });
