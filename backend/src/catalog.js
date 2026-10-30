@@ -76,7 +76,8 @@ export async function listCatalog({ locale = 'en', category = null, search = '',
 }
 
 export async function listHomepageSection({ type, locale = 'ja', limit = 8 }) {
-  const safeLimit = Math.min(20, Math.max(1, Number.parseInt(limit, 10) || 8));
+  const maxLimit = type === 'popular' ? 24 : 20;
+  const safeLimit = Math.min(maxLimit, Math.max(1, Number.parseInt(limit, 10) || 8));
   if (type === 'categories') {
     const result = await query(
       `SELECT c.slug, c.name, COUNT(p.id)::int AS product_count
