@@ -1133,7 +1133,14 @@
           const pageSections = Array.isArray(page.sections) ? page.sections : [];
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
-          if (!pageSections.length) {
+          const hasVisibleCustomPageSections = pageSections.some(function (pageSection) {
+            return pageSection
+              && typeof pageSection === "object"
+              && pageSection.type
+              && pageSection.hidden !== true
+              && !standardHomepageTypes.has(pageSection.type);
+          });
+          if (!hasVisibleCustomPageSections) {
             const link = document.createElement("a");
             link.href = page.url;
             const content = item.content && typeof item.content === "object" ? item.content : {};
