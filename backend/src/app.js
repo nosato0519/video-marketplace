@@ -311,7 +311,7 @@ export function createApp() {
       '/pages/commerce.html': 'commerce',
       '/pages/refund.html': 'refund',
       '/pages/seller-terms.html': 'seller',
-      '/pages/support.html': 'contact'
+      '/pages/public-support.html': 'contact'
     };
     const documentId = documentPaths[req.path];
     if (!documentId) return next();
