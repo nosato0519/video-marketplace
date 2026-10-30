@@ -1111,11 +1111,6 @@
       const orderedStandardTypes = new Set();
       const orderedPublishedPageIds = new Set();
       const standardHomepageTypes = new Set(definitions.map(function (definition) { return definition.key; }));
-      const hiddenHomepageStandardTypes = new Set(sections
-        .filter(function (homepageSection) {
-          return homepageSection && homepageSection.hidden === true && standardHomepageTypes.has(homepageSection.type);
-        })
-        .map(function (homepageSection) { return homepageSection.type; }));
       sections.forEach(function (item) {
         if (!item || typeof item !== "object") return;
         const itemId = typeof item.id === "string" ? item.id : "";
@@ -1182,8 +1177,7 @@
           }
           const visiblePageSections = pageSections.filter(function (pageSection) {
             if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
-            const isHomepageStandard = definitions.some(function (definition) { return definition.key === pageSection.type; });
-            return !isHomepageStandard || hiddenHomepageStandardTypes.has(pageSection.type);
+            return !standardHomepageTypes.has(pageSection.type);
           });
           if (visiblePageSections.length) {
             const embeddedContent = document.createElement("div");
