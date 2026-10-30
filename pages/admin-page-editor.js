@@ -114,7 +114,7 @@ if(key&&isManagedKey(key)&&!serverKeys.has(key))localStorage.removeItem(key);
 Object.entries(entries).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});
 return entries;
 }
-function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');pages=Array.isArray(saved)?saved.filter(page=>page&&page.id!=='top'&&!RESERVED_PAGE_URLS.has(page.url)):defaults.map(x=>({...x}));}catch(e){pages=defaults.map(x=>({...x}));}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(PAGE_KEY)||'null');if(!Array.isArray(saved)){pages=defaults.map(x=>({...x}));return;}const seenIds=new Set(),seenUrls=new Set();pages=saved.filter(page=>{if(!page||page.id==='top'||RESERVED_PAGE_URLS.has(page.url))return false;const id=typeof page.id==='string'?page.id:'';const url=typeof page.url==='string'?page.url:'';if((id&&seenIds.has(id))||(url&&seenUrls.has(url)))return false;if(id)seenIds.add(id);if(url)seenUrls.add(url);return true;});}catch(e){pages=defaults.map(x=>({...x}));}}
 function save(){try{localStorage.setItem(PAGE_KEY,JSON.stringify(pages));return true;}catch(e){return false;}}
 async function move(index,delta){const target=index+delta;if(target<0||target>=pages.length)return;const previous=pages.slice();[pages[index],pages[target]]=[pages[target],pages[index]];save();renderPageList();try{await persistEditorSettings();}catch(error){pages=previous;save();renderPageList();editorStatus.textContent=error.message||'ページ順のサーバー保存に失敗しました。';}}
 async function removePage(page){
