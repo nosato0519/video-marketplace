@@ -1356,6 +1356,7 @@ test('homepage can display selected standard sections from a published page', as
   await expect(embeddedPopular).toBeVisible();
   await expect(embeddedCategories).toBeVisible();
   await expect(embeddedPopular.locator('.video-grid')).toHaveCSS('grid-template-columns', /\S+\s+\S+\s+\S+\s+\S+/);
+  await expect(embeddedCategories.locator('.category-grid')).toHaveCSS('grid-template-columns', /\S+\s+\S+\s+\S+\s+\S+/);
   await expect(page.locator('main > #popular')).toHaveCount(1);
   await expect(page.locator('main > #categories')).toHaveCount(1);
 });
