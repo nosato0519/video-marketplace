@@ -1325,11 +1325,12 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   await textBlock.locator('input').first().fill('TOP独自の見出し');
   await textBlock.locator('textarea').nth(1).fill('TOPに表示する自由な本文です。');
 
-  await builder.locator('select').first().selectOption('custom-gallery');
+  await builder.locator('select').first().selectOption('custom-image-text');
   await builder.getByRole('button', { name: 'ブロックを追加' }).click();
-  const galleryBlock = builder.locator('section').nth(1);
-  await galleryBlock.getByRole('button', { name: 'カード・画像を追加' }).click();
-  await galleryBlock.locator('input').first().fill('ギャラリーのカード');
+  const imageTextBlock = builder.locator('section').nth(1);
+  await imageTextBlock.locator('input').nth(0).fill('画像付き紹介');
+  await imageTextBlock.locator('input').nth(1).fill('https://example.test/top-intro.webp');
+  await imageTextBlock.locator('textarea').nth(1).fill('画像と文章を組み合わせた紹介です。');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
 
@@ -1339,16 +1340,24 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
     type: 'custom-text',
     content: { title: 'TOP独自の見出し', body: 'TOPに表示する自由な本文です。' },
   });
-  expect(topSections[1].type).toBe('custom-gallery');
-  expect(topSections[1].content.items).toHaveLength(1);
+  expect(topSections[1]).toMatchObject({
+    type: 'custom-image-text',
+    content: {
+      title: '画像付き紹介',
+      image: 'https://example.test/top-intro.webp',
+      body: '画像と文章を組み合わせた紹介です。',
+    },
+  });
 
   await page.goto('/');
   const publishedTop = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
   await expect(publishedTop).toContainText('TOP独自の見出し');
   await expect(publishedTop).toContainText('TOPに表示する自由な本文です。');
-  await expect(publishedTop).toContainText('ギャラリーのカード');
+  await expect(publishedTop).toContainText('画像付き紹介');
+  await expect(publishedTop).toContainText('画像と文章を組み合わせた紹介です。');
   await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
-  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery')).toHaveCount(1);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-image-text')).toHaveCount(1);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-image-text img')).toHaveAttribute('src', 'https://example.test/top-intro.webp');
 });
 
 
