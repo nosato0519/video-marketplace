@@ -60,7 +60,11 @@ const sectionOptions={
 'cta':[{key:'layout',label:'レイアウト',options:[['banner','横長バナー'],['centered','中央揃え']]}]
 };
 let editingSectionIndex=null;
-let pages=[],editingId=null,sectionState=[],editorSnapshot=null;
+let pages=[],editingId=null,sectionState=[],editorSnapshot=null,topComposerItem={content:{topSections:[]}};
+function cloneTopSections(items){return Array.isArray(items)?JSON.parse(JSON.stringify(items)):[];}
+function renderTopSectionsEditor(){const root=document.getElementById("page-top-sections-editor");if(!root)return;root.replaceChildren();if(typeof window.VMPageTopSectionsEditor!=="function"){const note=document.createElement("p");note.className="muted";note.textContent="TOP掲載用の編集機能を読み込めませんでした。ページを再読み込みしてください。";root.appendChild(note);return;}root.appendChild(window.VMPageTopSectionsEditor(topComposerItem));}
+function setTopSections(items){topComposerItem={content:{topSections:cloneTopSections(items)}};renderTopSectionsEditor();}
+function loadTopSections(page){if(Array.isArray(page.topSections))return cloneTopSections(page.topSections);for(const key of ["vm-demo-page-sections-top","vm-demo-homepage-sections"]){try{const saved=JSON.parse(localStorage.getItem(key)||"[]");const item=Array.isArray(saved)?saved.find(entry=>entry&&entry.type==="custom-page"&&entry.pageId===page.id):null;if(item&&Array.isArray(item.content&&item.content.topSections))return cloneTopSections(item.content.topSections);}catch(_){}}const bodySections=JSON.parse(localStorage.getItem(SECTION_PREFIX+page.id)||"[]");return Array.isArray(bodySections)?cloneTopSections(bodySections.filter(section=>section&&typeof section.type==="string"&&section.type.startsWith("custom-"))):[];}
 function snapshotManagedEditorSettings(){
 const entries={};
 for(let i=0;i<localStorage.length;i++){
@@ -448,6 +452,7 @@ function captureEditorSnapshot(pageId) {
     pageId: pageId || null,
     pages: JSON.stringify(pages),
     sectionState: JSON.stringify(sectionState),
+    topSections: JSON.stringify(topComposerItem.content.topSections || []),
     entries: Object.fromEntries(
       [...new Set(keys)].map(key => [key, localStorage.getItem(key)])
     ),
@@ -477,10 +482,11 @@ function restoreEditorSnapshot() {
 
   pages = JSON.parse(snapshot.pages || '[]');
   sectionState = JSON.parse(snapshot.sectionState || '[]');
+  setTopSections(JSON.parse(snapshot.topSections || "[]"));
   editorSnapshot = null;
 }
-function openEditor(page,sectionIndex=null){if(page.id==='top'){window.location.href='/pages/admin-setting-general.html';return;}editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);editorSnapshot=captureEditorSnapshot(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
-function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=[];renderSections();resetPageMetadata();editorSnapshot=captureEditorSnapshot(null);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
+function openEditor(page,sectionIndex=null){if(page.id==='top'){window.location.href='/pages/admin-setting-general.html';return;}editingId=page.id;document.getElementById('page-management').hidden=true;editorTitle.textContent=page.name+'を編集';fillParents(editingId);nameInput.value=page.name;urlInput.value=page.url;statusInput.value=page.status;parentInput.value=page.parent||'';loadPageSettings(page.id);loadPageMetadata(page.id);setTopSections(loadTopSections(page));editorSnapshot=captureEditorSnapshot(page.id);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();if(sectionIndex!==null)openSectionEditor(sectionIndex);}
+function newPage(){document.getElementById('page-management').hidden=true;editingId=null;editorTitle.textContent='新しいページを作成';fillParents(null);nameInput.value='';urlInput.value='';statusInput.value='下書き';parentInput.value='';sectionState=[];renderSections();resetPageMetadata();setTopSections([]);editorSnapshot=captureEditorSnapshot(null);editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});nameInput.focus();}
 function applyPageTemplate(template){
   if(!editor || editor.hidden || editingId){
     const status=document.getElementById('page-template-status');
@@ -544,7 +550,7 @@ let url=urlInput.value.trim();
 if(!name){editorStatus.textContent='ページ名を入力してください。';return false;}
 if(!url){url='/pages/page-'+Date.now();urlInput.value=url;}
 if(!url.startsWith('/')){editorStatus.textContent='URLは / から始まるパスを入力してください。';return false;}
-const data={name,url,status:statusInput.value,parent:parentInput.value};
+const data={name,url,status:statusInput.value,parent:parentInput.value,topSections:cloneTopSections(topComposerItem.content.topSections)};
 const wasNew=!editingId;
 let pageId=editingId;
 if(editingId){
