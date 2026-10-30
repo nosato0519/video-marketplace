@@ -1133,13 +1133,17 @@
           const pageSections = Array.isArray(page.sections) ? page.sections : [];
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
-          const hasVisibleCustomPageSections = pageSections.some(function (pageSection) {
-            return pageSection
-              && typeof pageSection === "object"
-              && pageSection.type
-              && pageSection.hidden !== true
-              && !standardHomepageTypes.has(pageSection.type);
+          const pageContent = item.content && typeof item.content === "object" ? item.content : {};
+          const selectedSectionIds = Array.isArray(pageContent.visibleSectionIds)
+            ? new Set(pageContent.visibleSectionIds.map(String))
+            : null;
+          const visiblePageSections = pageSections.filter(function (pageSection) {
+            if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
+            return selectedSectionIds
+              ? selectedSectionIds.has(String(pageSection.id))
+              : !standardHomepageTypes.has(pageSection.type);
           });
+          const hasVisibleCustomPageSections = visiblePageSections.length > 0;
           if (!hasVisibleCustomPageSections) {
             const link = document.createElement("a");
             link.href = page.url;
@@ -1182,10 +1186,6 @@
             link.appendChild(copy);
             customSection.appendChild(link);
           }
-          const visiblePageSections = pageSections.filter(function (pageSection) {
-            if (!pageSection || typeof pageSection !== "object" || !pageSection.type || pageSection.hidden === true) return false;
-            return !standardHomepageTypes.has(pageSection.type);
-          });
           if (visiblePageSections.length) {
             const embeddedContent = document.createElement("div");
             embeddedContent.className = "vm-published-page-content";
