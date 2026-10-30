@@ -1331,11 +1331,20 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   await imageTextBlock.locator('input').nth(0).fill('画像付き紹介');
   await imageTextBlock.locator('input').nth(1).fill('https://example.test/top-intro.webp');
   await imageTextBlock.locator('textarea').nth(1).fill('画像と文章を組み合わせた紹介です。');
+
+  await builder.locator('select').first().selectOption('custom-gallery');
+  await builder.getByRole('button', { name: 'ブロックを追加' }).click();
+  const galleryBlock = builder.locator('section').nth(2);
+  await galleryBlock.locator('input[type="text"]').first().fill('画像ギャラリー');
+  await galleryBlock.getByRole('button', { name: '画像を追加' }).click();
+  await galleryBlock.locator('input[type="text"]').nth(1).fill('https://example.test/gallery-one.webp');
+  await galleryBlock.getByRole('button', { name: '画像を追加' }).click();
+  await galleryBlock.locator('input[type="text"]').nth(3).fill('https://example.test/gallery-two.webp');
   await page.locator('#top-save-settings').click();
   await expect(page.locator('#top-settings-status')).toContainText('TOP設定を保存しました');
 
   const topSections = savedHomepageSections[0].content.topSections;
-  expect(topSections).toHaveLength(2);
+  expect(topSections).toHaveLength(3);
   expect(topSections[0]).toMatchObject({
     type: 'custom-text',
     content: { title: 'TOP独自の見出し', body: 'TOPに表示する自由な本文です。' },
@@ -1348,6 +1357,16 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
       body: '画像と文章を組み合わせた紹介です。',
     },
   });
+  expect(topSections[2]).toMatchObject({
+    type: 'custom-gallery',
+    content: {
+      title: '画像ギャラリー',
+      items: [
+        { image: 'https://example.test/gallery-one.webp' },
+        { image: 'https://example.test/gallery-two.webp' },
+      ],
+    },
+  });
 
   await page.goto('/');
   const publishedTop = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
@@ -1358,6 +1377,9 @@ test('homepage editor builds and publishes a free-form TOP composition for a pub
   await expect(publishedTop.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
   await expect(publishedTop.locator('.vm-published-page-block-custom-image-text')).toHaveCount(1);
   await expect(publishedTop.locator('.vm-published-page-block-custom-image-text img')).toHaveAttribute('src', 'https://example.test/top-intro.webp');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery img')).toHaveCount(2);
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery img').nth(0)).toHaveAttribute('src', 'https://example.test/gallery-one.webp');
+  await expect(publishedTop.locator('.vm-published-page-block-custom-gallery img').nth(1)).toHaveAttribute('src', 'https://example.test/gallery-two.webp');
 });
 
 
@@ -1409,7 +1431,7 @@ test('page builder edits and persists an independent TOP page composition', asyn
   const topComposer = page.locator('#page-top-sections-editor details');
   await expect(topComposer).toBeVisible();
   await expect(topComposer.locator('select').first().locator('option')).toHaveText([
-    '見出し・文章', '人気の動画', 'カテゴリー一覧', '画像＋文章'
+    '見出し・文章', '人気の動画', 'カテゴリー一覧', '画像＋文章', '画像ギャラリー'
   ]);
   await topComposer.locator('select').first().selectOption('custom-text');
   await topComposer.getByRole('button', { name: 'ブロックを追加' }).click();
@@ -1417,6 +1439,17 @@ test('page builder edits and persists an independent TOP page composition', asyn
   const topTextBlock = topComposer.locator('section').first();
   await topTextBlock.locator('input').first().fill('TOP専用の見出し');
   await topTextBlock.locator('textarea').nth(1).fill('TOP専用の本文です。');
+
+  await topComposer.locator('select').first().selectOption('custom-gallery');
+  await topComposer.getByRole('button', { name: 'ブロックを追加' }).click();
+  const topGalleryBlock = topComposer.locator('section').nth(1);
+  await topGalleryBlock.getByRole('button', { name: '画像を追加' }).click();
+  await topGalleryBlock.locator('input[type="file"]').setInputFiles({
+    name: 'top-gallery.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><rect width="2" height="2" fill="#111"/></svg>'),
+  });
+  await expect(topGalleryBlock.locator('img[alt="選択した画像のプレビュー"]')).toBeVisible();
 
   await page.locator('#homepage-add-type').selectOption('custom-text');
   await page.locator('#homepage-add-section').click();
@@ -1429,7 +1462,9 @@ test('page builder edits and persists an independent TOP page composition', asyn
   const savedPage = JSON.parse(savedEntries['vm-demo-pages'])
     .find((item) => item.name === 'TOP構成の保存テスト');
   expect(savedPage).toBeTruthy();
-  expect(savedPage.topSections).toHaveLength(1);
+  expect(savedPage.topSections).toHaveLength(2);
+  expect(savedPage.topSections[1].type).toBe('custom-gallery');
+  expect(savedPage.topSections[1].content.items[0].image).toMatch(/^data:image\/webp;base64,/);
   expect(savedPage.topSections[0]).toMatchObject({
     type: 'custom-text',
     content: {
@@ -1450,4 +1485,6 @@ test('page builder edits and persists an independent TOP page composition', asyn
   const restoredBlock = page.locator('#page-top-sections-editor section').first();
   await expect(restoredBlock.locator('input').first()).toHaveValue('TOP専用の見出し');
   await expect(restoredBlock.locator('textarea').nth(1)).toHaveValue('TOP専用の本文です。');
+  const restoredGallery = page.locator('#page-top-sections-editor section').nth(1);
+  await expect(restoredGallery.locator('img[alt="選択した画像のプレビュー"]')).toBeVisible();
 });
