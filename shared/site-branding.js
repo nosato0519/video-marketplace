@@ -1130,50 +1130,53 @@
           const customPageHidden = item.hidden === true;
           customSection.hidden = customPageHidden;
           customSection.style.cssText = "padding:24px 5%;";
+          const pageSections = Array.isArray(page.sections) ? page.sections : [];
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
-          const link = document.createElement("a");
-          link.href = page.url;
-          const content = item.content && typeof item.content === "object" ? item.content : {};
-          const layout = ["standard", "wide", "narrow", "editorial", "poster", "compact", "center"].includes(content.layout) ? content.layout : "standard";
-          link.style.cssText = "display:flex;align-items:center;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);overflow:hidden;";
-          if (layout === "wide") link.style.cssText += "flex-direction:column;align-items:stretch;padding:0;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015));";
-          if (layout === "narrow") link.style.cssText += "align-items:stretch;";
-          if (layout === "editorial") link.style.cssText += "flex-direction:row-reverse;";
-          if (layout === "poster") link.style.cssText += "position:relative;min-height:260px;align-items:flex-end;padding:0;background:linear-gradient(110deg,rgba(0,0,0,.82),rgba(0,0,0,.25));";
-          if (layout === "compact") link.style.cssText += "gap:10px;padding:12px 16px;border-radius:8px;";
-          if (layout === "center") link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line,#333);color:inherit;text-decoration:none;";
-          const previewImage = content.image || page.image;
-          const safePreviewImage = previewImage && (previewImage.startsWith("https://") || previewImage.startsWith("http://") || (previewImage.startsWith("/") && !previewImage.startsWith("//")) || previewImage.startsWith("data:image/webp;base64,"));
-          if (safePreviewImage) {
-            const image = document.createElement("img");
-            image.src = previewImage;
-            image.alt = "";
-            image.loading = "lazy";
-            image.style.cssText = "display:block;width:" + (layout === "wide" ? "100%" : layout === "narrow" || layout === "editorial" ? "min(38%,360px)" : "clamp(90px,18vw,180px)") + ";height:" + (layout === "wide" ? "clamp(180px,28vw,360px)" : layout === "narrow" || layout === "editorial" ? "clamp(120px,20vw,240px)" : layout === "poster" ? "100%" : layout === "compact" ? "52px" : "clamp(64px,10vw,110px)") + ";object-fit:cover;border-radius:" + (layout === "wide" || layout === "poster" ? "0" : "8px") + ";flex:0 0 auto;";
-            if (layout === "poster") image.style.cssText += "position:absolute;inset:0;width:100%;height:100%;opacity:.42;";
-            if (layout !== "center") link.appendChild(image);
+          if (!pageSections.length) {
+            const link = document.createElement("a");
+            link.href = page.url;
+            const content = item.content && typeof item.content === "object" ? item.content : {};
+            const layout = ["standard", "wide", "narrow", "editorial", "poster", "compact", "center"].includes(content.layout) ? content.layout : "standard";
+            link.style.cssText = "display:flex;align-items:center;gap:16px;padding:22px 24px;border:1px solid var(--line,#333);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.025);overflow:hidden;";
+            if (layout === "wide") link.style.cssText += "flex-direction:column;align-items:stretch;padding:0;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015));";
+            if (layout === "narrow") link.style.cssText += "align-items:stretch;";
+            if (layout === "editorial") link.style.cssText += "flex-direction:row-reverse;";
+            if (layout === "poster") link.style.cssText += "position:relative;min-height:260px;align-items:flex-end;padding:0;background:linear-gradient(110deg,rgba(0,0,0,.82),rgba(0,0,0,.25));";
+            if (layout === "compact") link.style.cssText += "gap:10px;padding:12px 16px;border-radius:8px;";
+            if (layout === "center") link.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line,#333);color:inherit;text-decoration:none;";
+            const previewImage = content.image || page.image;
+            const safePreviewImage = previewImage && (previewImage.startsWith("https://") || previewImage.startsWith("http://") || (previewImage.startsWith("/") && !previewImage.startsWith("//")) || previewImage.startsWith("data:image/webp;base64,"));
+            if (safePreviewImage) {
+              const image = document.createElement("img");
+              image.src = previewImage;
+              image.alt = "";
+              image.loading = "lazy";
+              image.style.cssText = "display:block;width:" + (layout === "wide" ? "100%" : layout === "narrow" || layout === "editorial" ? "min(38%,360px)" : "clamp(90px,18vw,180px)") + ";height:" + (layout === "wide" ? "clamp(180px,28vw,360px)" : layout === "narrow" || layout === "editorial" ? "clamp(120px,20vw,240px)" : layout === "poster" ? "100%" : layout === "compact" ? "52px" : "clamp(64px,10vw,110px)") + ";object-fit:cover;border-radius:" + (layout === "wide" || layout === "poster" ? "0" : "8px") + ";flex:0 0 auto;";
+              if (layout === "poster") image.style.cssText += "position:absolute;inset:0;width:100%;height:100%;opacity:.42;";
+              if (layout !== "center") link.appendChild(image);
+            }
+            const copy = document.createElement("span");
+            copy.style.cssText = "display:grid;gap:9px;min-width:0;flex:1;padding:" + (layout === "wide" ? "24px" : layout === "poster" ? "28px" : "0") + ";" + (layout === "center" ? "display:flex;flex-direction:row;align-items:center;justify-content:space-between;" : layout === "poster" ? "position:relative;z-index:1;color:#fff;" : "");
+            const heading = document.createElement("strong");
+            heading.textContent = content.title || page.name;
+            heading.style.cssText = "font-size:" + (layout === "wide" || layout === "poster" ? "clamp(1.4rem,3vw,2.4rem)" : layout === "compact" ? "clamp(.95rem,1.5vw,1.15rem)" : "clamp(1rem,1.8vw,1.5rem)") + ";line-height:1.3;overflow-wrap:anywhere;";
+            copy.appendChild(heading);
+            if (typeof content.subtitle === "string" && content.subtitle.trim() && layout !== "center") {
+              const description = document.createElement("span");
+              description.textContent = content.subtitle.trim();
+              description.style.cssText = "line-height:1.7;opacity:.78;overflow-wrap:anywhere;";
+              copy.appendChild(description);
+            }
+            const action = document.createElement("span");
+            action.textContent = content.button || "ページを見る →";
+            action.style.cssText = "font-weight:700;opacity:.9;";
+            copy.appendChild(action);
+            link.appendChild(copy);
+            customSection.appendChild(link);
+  
+  
           }
-          const copy = document.createElement("span");
-          copy.style.cssText = "display:grid;gap:9px;min-width:0;flex:1;padding:" + (layout === "wide" ? "24px" : layout === "poster" ? "28px" : "0") + ";" + (layout === "center" ? "display:flex;flex-direction:row;align-items:center;justify-content:space-between;" : layout === "poster" ? "position:relative;z-index:1;color:#fff;" : "");
-          const heading = document.createElement("strong");
-          heading.textContent = content.title || page.name;
-          heading.style.cssText = "font-size:" + (layout === "wide" || layout === "poster" ? "clamp(1.4rem,3vw,2.4rem)" : layout === "compact" ? "clamp(.95rem,1.5vw,1.15rem)" : "clamp(1rem,1.8vw,1.5rem)") + ";line-height:1.3;overflow-wrap:anywhere;";
-          copy.appendChild(heading);
-          if (typeof content.subtitle === "string" && content.subtitle.trim() && layout !== "center") {
-            const description = document.createElement("span");
-            description.textContent = content.subtitle.trim();
-            description.style.cssText = "line-height:1.7;opacity:.78;overflow-wrap:anywhere;";
-            copy.appendChild(description);
-          }
-          const action = document.createElement("span");
-          action.textContent = content.button || "ページを見る →";
-          action.style.cssText = "font-weight:700;opacity:.9;";
-          copy.appendChild(action);
-          link.appendChild(copy);
-          customSection.appendChild(link);
-
-          const pageSections = Array.isArray(page.sections) ? page.sections : [];
           if (pageSections.length) {
             const embeddedContent = document.createElement("div");
             embeddedContent.className = "vm-published-page-content";
