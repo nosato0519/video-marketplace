@@ -25,6 +25,9 @@ let buyerId;
 let originalSetting;
 let settingExisted = false;
 let settingBackupLoaded = false;
+let originalPublicDocumentsSetting;
+let publicDocumentsSettingExisted = false;
+let publicDocumentsBackupLoaded = false;
 
 async function request(baseUrl, path, { method = 'GET', cookie, body } = {}) {
   const headers = {};
@@ -40,6 +43,20 @@ async function request(baseUrl, path, { method = 'GET', cookie, body } = {}) {
   let data = text;
   try { data = JSON.parse(text); } catch {}
   return { response, data };
+}
+
+async function restorePublicDocumentsSetting() {
+  if (publicDocumentsSettingExisted) {
+    await query(
+      `INSERT INTO platform_settings (setting_key, setting_value, updated_at)
+       VALUES ('public_documents', $1::jsonb, NOW())
+       ON CONFLICT (setting_key)
+       DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+      [JSON.stringify(originalPublicDocumentsSetting)]
+    );
+  } else {
+    await query('DELETE FROM platform_settings WHERE setting_key = $1', ['public_documents']);
+  }
 }
 
 async function restoreSetting() {
@@ -64,6 +81,13 @@ try {
   settingExisted = previous.rows.length > 0;
   originalSetting = previous.rows[0]?.setting_value;
   settingBackupLoaded = true;
+  const previousPublicDocuments = await query(
+    'SELECT setting_value FROM platform_settings WHERE setting_key = $1 LIMIT 1',
+    ['public_documents']
+  );
+  publicDocumentsSettingExisted = previousPublicDocuments.rows.length > 0;
+  originalPublicDocumentsSetting = previousPublicDocuments.rows[0]?.setting_value;
+  publicDocumentsBackupLoaded = true;
 
   const admin = await query(
     `INSERT INTO users (email, email_normalized, password_hash, role, status)
@@ -120,6 +144,42 @@ try {
   assert.equal(result.response.status, 200, JSON.stringify(result.data));
   assert.equal(result.data.saved, true);
 
+  const publicDocumentsEndpoint = '/api/admin/settings/public-documents';
+  result = await request(baseUrl, publicDocumentsEndpoint);
+  assert.equal(result.response.status, 401, 'unauthenticated requests must not read public documents');
+  result = await request(baseUrl, publicDocumentsEndpoint, { cookie: buyerCookie });
+  assert.equal(result.response.status, 403, 'buyer accounts must not read public documents');
+
+  const publicDocuments = [
+    { id: 'terms', title: '受け入れテスト利用規約', description: '利用規約', version: 'v-test', status: 'published', date: '2026-10-30', body: '公開文書の保存・公開テストです。<script>alert(1)</script>' },
+    { id: 'privacy', title: '受け入れテスト プライバシーポリシー', description: 'プライバシー', version: 'v1.0', status: 'draft', date: '', body: '下書き文書です。' },
+    { id: 'commerce', title: '特定商取引法に基づく表記', description: '販売者情報', version: 'v1.0', status: 'draft', date: '', body: '下書きです。' },
+    { id: 'refund', title: '販売・返金ポリシー', description: '返金条件', version: 'v1.0', status: 'draft', date: '', body: '下書きです。' },
+    { id: 'seller', title: '販売者向け利用規約', description: '販売者向け', version: 'v1.0', status: 'draft', date: '', body: '下書きです。' },
+    { id: 'contact', title: 'お問い合わせ・サポート案内', description: 'サポート', version: 'v1.0', status: 'draft', date: '', body: '下書き文書です。' },
+  ];
+  result = await request(baseUrl, publicDocumentsEndpoint, {
+    method: 'PUT',
+    cookie: adminCookie,
+    body: { documents: publicDocuments },
+  });
+  assert.equal(result.response.status, 200, JSON.stringify(result.data));
+  assert.equal(result.data.saved, true);
+  assert.deepEqual(result.data.documents, publicDocuments, 'admin save should return the normalized documents');
+
+  result = await request(baseUrl, publicDocumentsEndpoint, { cookie: adminCookie });
+  assert.equal(result.response.status, 200, JSON.stringify(result.data));
+  assert.deepEqual(result.data.documents, publicDocuments, 'saved documents should survive a separate database read');
+
+  result = await request(baseUrl, '/pages/terms.html');
+  assert.equal(result.response.status, 200, 'published terms should render at the existing public URL');
+  assert.ok(result.data.includes('<title>受け入れテスト利用規約 | VIDEO MARKETPLACE</title>'));
+  assert.ok(result.data.includes('公開文書の保存・公開テストです。'));
+  assert.ok(result.data.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'document body must be HTML-escaped');
+  assert.ok(!result.data.includes('<script>alert(1)</script>'), 'document body must not execute injected HTML');
+  result = await request(baseUrl, '/pages/public-support.html');
+  assert.equal(result.response.status, 404, 'draft documents must not be publicly accessible');
+
   result = await request(baseUrl, endpoint, { cookie: adminCookie });
   assert.equal(result.response.status, 200, JSON.stringify(result.data));
   assert.equal(result.data.entries['vm-demo-pages'], entries['vm-demo-pages']);
@@ -143,8 +203,10 @@ try {
   assert.ok(result.data.sections?.some((section) => section.type === 'custom-page' && section.pageId === pageId && section.content?.link === pageUrl));
 
   console.log('PASS: admin-authenticated page editor save persists to the database and renders on its public URL and homepage.');
+  console.log('PASS: public document save/read round-trip, admin-only access, published URL rendering, draft blocking, and HTML escaping.');
 } finally {
   await new Promise((resolve) => server.close(resolve));
+  if (publicDocumentsBackupLoaded) await restorePublicDocumentsSetting();
   if (settingBackupLoaded) await restoreSetting();
   if (adminId || buyerId) {
     await pool.query('DELETE FROM user_sessions WHERE user_id = ANY($1::uuid[])', [[adminId, buyerId].filter(Boolean)]).catch((error) => console.error('admin-page-editor-acceptance: session cleanup failed', error));
