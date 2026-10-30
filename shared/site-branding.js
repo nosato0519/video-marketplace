@@ -680,6 +680,43 @@
           action("↓", index === item.content.topSections.length-1, function () { const rows=item.content.topSections; [rows[index+1],rows[index]]=[rows[index],rows[index+1]]; renderBlocks(); });
           action("削除", false, function () { item.content.topSections.splice(index,1); renderBlocks(); });
           head.append(name, actions); card.appendChild(head);
+          function addImageUpload(label, input, getValue, setValue) {
+            const upload = document.createElement("input");
+            upload.type = "file";
+            upload.accept = "image/*";
+            upload.setAttribute("aria-label", "PCから画像を選択");
+            upload.style.cssText = "display:block;max-width:100%;margin-top:6px;";
+            const preview = document.createElement("img");
+            preview.alt = "選択した画像のプレビュー";
+            preview.style.cssText = "display:block;max-width:220px;max-height:140px;object-fit:contain;margin-top:6px;border-radius:6px;";
+            preview.hidden = !getValue();
+            if (getValue()) preview.src = getValue();
+            upload.addEventListener("change", async function () {
+              const file = upload.files && upload.files[0];
+              if (!file) return;
+              upload.disabled = true;
+              try {
+                if (typeof window.compressPageImage !== "function") throw new Error("画像選択機能を読み込めませんでした。ページを再読み込みしてください。");
+                const dataUrl = await window.compressPageImage(file);
+                setValue(dataUrl);
+                input.value = dataUrl;
+                preview.src = dataUrl;
+                preview.hidden = false;
+              } catch (error) {
+                window.alert(error && error.message ? error.message : "画像を読み込めませんでした。");
+              } finally {
+                upload.disabled = false;
+                upload.value = "";
+              }
+            });
+            input.addEventListener("input", function () {
+              const value = getValue();
+              preview.src = value || "";
+              preview.hidden = !value;
+            });
+            label.appendChild(upload);
+            label.appendChild(preview);
+          }
           function addField(labelText, key, multiline) {
             const label = document.createElement("label");
             label.style.cssText = "display:grid;gap:5px;font-size:12px;";
@@ -689,7 +726,9 @@
             else control.rows = key === "body" ? 4 : 2;
             control.value = typeof block.content[key] === "string" ? block.content[key] : "";
             control.addEventListener("input", function () { block.content[key] = control.value; });
-            label.appendChild(control); card.appendChild(label);
+            label.appendChild(control);
+            if (key === "image") addImageUpload(label, control, function () { return block.content.image || ""; }, function (value) { block.content.image = value; });
+            card.appendChild(label);
           }
           if (block.type === "custom-spacer") {
             const heightLabel = document.createElement("label");
@@ -736,7 +775,9 @@
                 [["タイトル","title"],["説明","description"],["画像URL","image"],["ボタン","button"],["リンク先","link"]].forEach(function(fieldDef){
                   const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[0];
                   const input=document.createElement("input"); input.type="text"; input.value=entry[fieldDef[1]]||"";
-                  input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input); itemFields.appendChild(label);
+                  input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input);
+                  if (fieldDef[1] === "image") addImageUpload(label, input, function () { return entry.image || ""; }, function (value) { entry.image = value; });
+                  itemFields.appendChild(label);
                 });
                 const remove=document.createElement("button"); remove.type="button"; remove.className="btn"; remove.textContent="項目を削除";
                 remove.addEventListener("click",function(){block.content.items.splice(itemIndex,1);renderItems();});
