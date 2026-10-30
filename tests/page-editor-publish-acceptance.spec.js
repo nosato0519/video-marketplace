@@ -1400,6 +1400,9 @@ test('page builder edits and persists an independent TOP page composition', asyn
       body: 'TOP専用の本文です。',
     },
   });
+  const savedBodySections = JSON.parse(savedEntries[`vm-demo-page-sections-${savedPage.id}`]);
+  expect(savedBodySections).toHaveLength(1);
+  expect(savedBodySections[0].type).toBe('custom-text');
 
   await page.reload();
   const pageRow = page.locator('#managed-pages-list .homepage-section-row')
