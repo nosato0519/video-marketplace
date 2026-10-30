@@ -1432,6 +1432,10 @@
           ordered.push(customSection);
           return;
         }
+        if (standardHomepageTypes.has(item.type)) {
+          if (orderedStandardTypes.has(item.type)) return;
+          orderedStandardTypes.add(item.type);
+        }
         let section = originals[item.id] || originals[item.type] || null;
         if (!section) {
           const source = originals[item.type];
