@@ -1514,23 +1514,6 @@
               preview.className = "vm-published-page-block vm-published-page-block-" + String(pageSection.type).replace(/[^a-z0-9-]/gi, "");
               preview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
               preview.style.cssText = "box-sizing:border-box;min-width:0;padding:20px 0;border-top:1px solid var(--line,#333);";
-              if (pageSection.type === "custom-divider") {
-                const divider = document.createElement("hr");
-                divider.style.cssText = "border:0;border-top:1px solid var(--line,#333);width:100%;margin:12px 0;";
-                preview.style.padding = "0";
-                preview.appendChild(divider);
-                embeddedContent.appendChild(preview);
-                return;
-              }
-              if (pageSection.type === "custom-spacer") {
-                const spacer = document.createElement("div");
-                spacer.setAttribute("aria-hidden", "true");
-                spacer.style.height = String(Math.max(16, Math.min(240, Number(pageSection.settings && pageSection.settings.height) || 64))) + "px";
-                preview.style.padding = "0";
-                preview.appendChild(spacer);
-                embeddedContent.appendChild(preview);
-                return;
-              }
               const previewTheme = pageSection.theme && typeof pageSection.theme === "object"
                 ? pageSection.theme
                 : (content.theme && typeof content.theme === "object" ? content.theme : {});
@@ -1540,40 +1523,71 @@
               if (typeof previewTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.bg)) preview.style.backgroundColor = previewTheme.bg;
               if (typeof previewTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.text)) preview.style.color = previewTheme.text;
               if (typeof previewTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.accent)) preview.style.setProperty("--accent", previewTheme.accent);
+              if (previewTheme.radius === "square") preview.style.borderRadius = "0";
+              else if (previewTheme.radius === "rounded") preview.style.borderRadius = "12px";
               if (previewTheme.width === "narrow") { preview.style.maxWidth = "900px"; preview.style.marginInline = "auto"; }
               else if (previewTheme.width === "wide") { preview.style.maxWidth = "none"; preview.style.marginInline = "0"; }
               else if (previewTheme.width === "standard") { preview.style.maxWidth = "1200px"; preview.style.marginInline = "auto"; }
+              if (pageSection.type === "custom-divider" || pageSection.type === "custom-spacer") {
+                preview.style.padding = "0";
+                preview.style.marginBlock = previewTheme.spacing === "compact" ? "8px" : previewTheme.spacing === "large" ? "32px" : "18px";
+                if (pageSection.type === "custom-divider") {
+                  const divider = document.createElement("hr");
+                  divider.style.cssText = "border:0;border-top:1px solid " + (typeof previewTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.accent) ? previewTheme.accent : "var(--line,#333)") + ";width:100%;margin:0;";
+                  preview.appendChild(divider);
+                } else {
+                  const spacer = document.createElement("div");
+                  spacer.setAttribute("aria-hidden", "true");
+                  const configuredHeight = Number(previewSettings.height);
+                  spacer.style.height = String(Number.isFinite(configuredHeight) ? Math.max(16, Math.min(240, configuredHeight)) : 64) + "px";
+                  preview.appendChild(spacer);
+                }
+                embeddedContent.appendChild(preview);
+                return;
+              }
               if (previewTheme.spacing === "compact") preview.style.paddingBlock = "12px";
               else if (previewTheme.spacing === "large") preview.style.paddingBlock = "48px";
               else if (previewTheme.spacing === "standard") preview.style.paddingBlock = "28px";
               const title = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
               const imageUrl = typeof content.image === "string" ? content.image.trim() : "";
               const validImageUrl = imageUrl && (/^https?:\/\//i.test(imageUrl) || (/^\/(?!\/)/.test(imageUrl)));
-              if (pageSection.type === "custom-image-text") preview.style.display = "grid";
+              const imageTextLayout = pageSection.type === "custom-image-text" ? document.createElement("div") : null;
+              const imageTextCopy = imageTextLayout ? document.createElement("div") : preview;
+              if (imageTextLayout) {
+                imageTextLayout.className = "vm-published-page-image-text";
+                imageTextLayout.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:center;gap:24px;width:100%;";
+                imageTextCopy.className = "vm-published-page-image-text-copy";
+                imageTextCopy.style.cssText = "display:grid;align-content:center;gap:10px;min-width:0;";
+              }
               if (title) {
                 const heading = document.createElement("h2");
                 heading.textContent = title;
-                preview.appendChild(heading);
+                imageTextCopy.appendChild(heading);
               }
               if (typeof content.subtitle === "string" && content.subtitle.trim()) {
                 const description = document.createElement("p");
                 description.textContent = content.subtitle.trim();
                 description.style.lineHeight = "1.7";
-                preview.appendChild(description);
+                imageTextCopy.appendChild(description);
               }
               if (typeof content.body === "string" && content.body.trim()) {
                 const body = document.createElement("div");
                 body.textContent = content.body.trim();
                 body.style.cssText = "white-space:pre-line;line-height:1.8;overflow-wrap:anywhere;";
-                preview.appendChild(body);
+                imageTextCopy.appendChild(body);
               }
               if (validImageUrl) {
                 const image = document.createElement("img");
                 image.src = imageUrl;
                 image.alt = title || "";
                 image.loading = "lazy";
-                image.style.cssText = "display:block;width:100%;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:12px 0;";
-                preview.appendChild(image);
+                image.style.cssText = "display:block;width:100%;max-width:100%;max-height:420px;object-fit:" + (previewTheme.imageFit === "contain" ? "contain" : "cover") + ";border-radius:" + (previewTheme.radius === "square" ? "0" : "12px") + ";margin:0;";
+                if (imageTextLayout) imageTextLayout.appendChild(image);
+                else preview.appendChild(image);
+              }
+              if (imageTextLayout) {
+                imageTextLayout.appendChild(imageTextCopy);
+                preview.appendChild(imageTextLayout);
               }
               const embeddedItems = Array.isArray(pageSection.items)
                 ? pageSection.items
@@ -1620,7 +1634,8 @@
                 action.textContent = content.button.trim();
                 action.href = content.link.trim();
                 action.style.cssText = "display:inline-flex;align-items:center;justify-content:center;margin-top:16px;padding:10px 18px;border-radius:" + (previewTheme.radius === "square" ? "0" : "8px") + ";background:var(--accent,#d9b45f);color:" + (typeof previewTheme.buttonText === "string" && /^#[0-9a-f]{6}$/i.test(previewTheme.buttonText) ? previewTheme.buttonText : "#111111") + ";font-weight:700;text-decoration:none;";
-                preview.appendChild(action);
+                if (pageSection.type === "custom-image-text") imageTextCopy.appendChild(action);
+                else preview.appendChild(action);
               }
               if (pageSection.type === "custom-button" && !content.button) preview.style.minHeight = "1px";
               embeddedContent.appendChild(preview);
