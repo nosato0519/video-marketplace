@@ -105,7 +105,7 @@ export async function listHomepageSection({ type, locale = 'ja', limit = 8 }) {
        COALESCE(pt.description, fallback.description, p.description) AS description,
        COUNT(o.id)::int AS sales_count
      FROM products p
-     JOIN seller_profiles sp ON sp.id = p.seller_id
+     JOIN seller_profiles sp ON sp.user_id = p.seller_id
      JOIN users su ON su.id = sp.user_id
      LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN LATERAL (
