@@ -621,53 +621,123 @@
     }
     function renderPublishedPageSectionsEditor(item) {
       const details = document.createElement("details");
+      details.open = true;
       details.style.cssText = "grid-column:1/-1;border-top:1px solid var(--line,#333);padding-top:10px;";
       const summary = document.createElement("summary");
-      summary.textContent = "TOPに表示するページ内セクション";
+      summary.textContent = "TOP掲載用の自由構成";
       summary.style.cursor = "pointer";
       details.appendChild(summary);
-
-      const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
-      const pageSections = page && Array.isArray(page.sections) ? page.sections : [];
       const help = document.createElement("p");
-      help.textContent = "人気の動画・カテゴリー一覧など、TOPに表示したいセクションを選択します。";
+      help.textContent = "このページの本文とは別に、TOPに表示するブロックを自由に組み立てます。追加・編集・順番変更した内容がTOPに表示されます。";
       help.style.cssText = "margin:8px 0;font-size:12px;line-height:1.6;opacity:.75;";
       details.appendChild(help);
-
+      const blockTypes = [
+        ["custom-text","文章"],["custom-image","画像"],["custom-image-text","画像＋文章"],
+        ["custom-gallery","画像ギャラリー"],["custom-cards","カード一覧"],
+        ["custom-button","ボタン"],["custom-divider","区切り線"],["custom-spacer","余白"]
+      ];
+      if (!Array.isArray(item.content.topSections)) item.content.topSections = [];
       const list = document.createElement("div");
-      list.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;";
-      const selectedIds = Array.isArray(item.content.visibleSectionIds)
-        ? new Set(item.content.visibleSectionIds.map(String))
-        : null;
-
-      if (!pageSections.length) {
-        const empty = document.createElement("p");
-        empty.textContent = "このページには表示できるセクションがありません。";
-        empty.style.cssText = "font-size:12px;opacity:.7;";
-        list.appendChild(empty);
-      } else {
-        pageSections.forEach(function (pageSection) {
-          if (!pageSection || typeof pageSection !== "object" || typeof pageSection.id !== "string") return;
-          const definition = allDefinitions.find(function (entry) { return entry.type === pageSection.type; });
-          const label = document.createElement("label");
-          label.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line,#333);border-radius:7px;font-size:12px;";
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.value = pageSection.id;
-          checkbox.checked = selectedIds
-            ? selectedIds.has(pageSection.id)
-            : !standardSectionTypes.has(pageSection.type);
-          checkbox.addEventListener("change", function () {
-            item.content.visibleSectionIds = Array.from(list.querySelectorAll('input[type="checkbox"]:checked'))
-              .map(function (input) { return input.value; });
+      list.style.cssText = "display:grid;gap:10px;";
+      function renderBlocks() {
+        list.replaceChildren();
+        item.content.topSections.forEach(function (block, index) {
+          if (!block || typeof block !== "object") return;
+          block.content = block.content && typeof block.content === "object" ? block.content : {};
+          block.theme = block.theme && typeof block.theme === "object" ? block.theme : {};
+          const card = document.createElement("section");
+          card.style.cssText = "display:grid;gap:8px;padding:12px;border:1px solid var(--line,#333);border-radius:8px;";
+          const head = document.createElement("div");
+          head.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;";
+          const name = document.createElement("strong");
+          name.textContent = (blockTypes.find(function (entry) { return entry[0] === block.type; }) || ["","自由ブロック"])[1];
+          const actions = document.createElement("div");
+          actions.style.cssText = "display:flex;gap:6px;";
+          function action(label, disabled, callback) {
+            const button = document.createElement("button");
+            button.type = "button"; button.className = "btn"; button.textContent = label; button.disabled = disabled;
+            button.addEventListener("click", callback); actions.appendChild(button);
+          }
+          action("↑", index === 0, function () { const rows=item.content.topSections; [rows[index-1],rows[index]]=[rows[index],rows[index-1]]; renderBlocks(); });
+          action("↓", index === item.content.topSections.length-1, function () { const rows=item.content.topSections; [rows[index+1],rows[index]]=[rows[index],rows[index+1]]; renderBlocks(); });
+          action("削除", false, function () { item.content.topSections.splice(index,1); renderBlocks(); });
+          head.append(name, actions); card.appendChild(head);
+          function addField(labelText, key, multiline) {
+            const label = document.createElement("label");
+            label.style.cssText = "display:grid;gap:5px;font-size:12px;";
+            label.appendChild(document.createTextNode(labelText));
+            const control = document.createElement(multiline ? "textarea" : "input");
+            if (!multiline) control.type = "text";
+            else control.rows = key === "body" ? 4 : 2;
+            control.value = typeof block.content[key] === "string" ? block.content[key] : "";
+            control.addEventListener("input", function () { block.content[key] = control.value; });
+            label.appendChild(control); card.appendChild(label);
+          }
+          if (!["custom-divider","custom-spacer"].includes(block.type)) {
+            addField("見出し","title",false);
+            addField("説明文","subtitle",true);
+          }
+          if (["custom-text","custom-image-text"].includes(block.type)) addField("本文","body",true);
+          if (["custom-image","custom-image-text"].includes(block.type)) addField("画像URL","image",false);
+          if (["custom-button","custom-image-text"].includes(block.type)) {
+            addField("ボタン表示名","button",false); addField("リンク先","link",false);
+          }
+          if (["custom-gallery","custom-cards"].includes(block.type)) {
+            const columns = document.createElement("label");
+            columns.style.cssText = "display:grid;gap:5px;font-size:12px;";
+            columns.appendChild(document.createTextNode("1行の表示数"));
+            const select = document.createElement("select");
+            [["2","2列"],["3","3列"],["4","4列"],["5","5列"]].forEach(function (entry) {
+              const option=document.createElement("option"); option.value=entry[0]; option.textContent=entry[1]; select.appendChild(option);
+            });
+            select.value=String(block.content.columns || 3);
+            select.addEventListener("change",function(){block.content.columns=Number(select.value);});
+            columns.appendChild(select); card.appendChild(columns);
+            if (!Array.isArray(block.content.items)) block.content.items=[];
+            const items=document.createElement("div"); items.style.cssText="display:grid;gap:8px;";
+            function renderItems(){
+              items.replaceChildren();
+              block.content.items.forEach(function(entry,itemIndex){
+                const itemFields=document.createElement("div"); itemFields.style.cssText="display:grid;gap:5px;padding:8px;border:1px solid var(--line,#333);border-radius:6px;";
+                [["タイトル","title"],["説明","description"],["画像URL","image"],["ボタン","button"],["リンク先","link"]].forEach(function(fieldDef){
+                  const label=document.createElement("label"); label.style.cssText="display:grid;gap:3px;font-size:11px;"; label.textContent=fieldDef[0];
+                  const input=document.createElement("input"); input.type="text"; input.value=entry[fieldDef[1]]||"";
+                  input.addEventListener("input",function(){entry[fieldDef[1]]=input.value;}); label.appendChild(input); itemFields.appendChild(label);
+                });
+                const remove=document.createElement("button"); remove.type="button"; remove.className="btn"; remove.textContent="項目を削除";
+                remove.addEventListener("click",function(){block.content.items.splice(itemIndex,1);renderItems();});
+                itemFields.appendChild(remove); items.appendChild(itemFields);
+              });
+            }
+            const addItem=document.createElement("button"); addItem.type="button"; addItem.className="btn"; addItem.textContent="カード・画像を追加";
+            addItem.addEventListener("click",function(){block.content.items.push({title:"",description:"",image:"",button:"",link:""});renderItems();});
+            renderItems(); card.append(items,addItem);
+          }
+          const design=document.createElement("details");
+          const designSummary=document.createElement("summary"); designSummary.textContent="このブロックのデザイン"; design.appendChild(designSummary);
+          const designGrid=document.createElement("div"); designGrid.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px;";
+          [["背景色","bg"],["文字色","text"],["アクセント色","accent"]].forEach(function(entry){
+            const label=document.createElement("label"); label.style.cssText="display:grid;gap:4px;font-size:11px;"; label.textContent=entry[0];
+            const input=document.createElement("input"); input.type="text"; input.placeholder="#000000"; input.value=block.theme[entry[1]]||"";
+            input.addEventListener("input",function(){block.theme[entry[1]]=input.value;}); label.appendChild(input); designGrid.appendChild(label);
           });
-          const name = document.createElement("span");
-          name.textContent = pageSection.label || (definition && definition.label) || pageSection.type || "セクション";
-          label.append(checkbox, name);
-          list.appendChild(label);
+          design.appendChild(designGrid); card.appendChild(design);
+          list.appendChild(card);
         });
       }
-      details.appendChild(list);
+      const addRow=document.createElement("div");
+      addRow.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0;";
+      const typeSelect=document.createElement("select");
+      blockTypes.forEach(function(entry){const option=document.createElement("option");option.value=entry[0];option.textContent=entry[1];typeSelect.appendChild(option);});
+      const addButton=document.createElement("button"); addButton.type="button"; addButton.className="btn primary"; addButton.textContent="ブロックを追加";
+      addButton.addEventListener("click",function(){
+        const type=typeSelect.value;
+        item.content.topSections.push({id:"top-block-"+Date.now()+"-"+(++nextAddedSectionId),type:type,label:(blockTypes.find(function(entry){return entry[0]===type;})||[])[1],hidden:false,content:{},theme:{},settings:{}});
+        renderBlocks();
+      });
+      addRow.append(typeSelect,addButton);
+      renderBlocks();
+      details.append(addRow,list);
       return details;
     }
 
@@ -731,13 +801,15 @@
         actions.insertBefore(editButton, deleteButton);
         const fields = document.createElement("div");
         fields.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px;";
-        fields.append(
-          field("見出し", "title", item.content.title, item, false),
-          field("説明", "subtitle", item.content.subtitle, item, true),
-          field("ボタン表示", "button", item.content.button, item, false),
-          field("リンク先", "link", item.content.link, item, false),
-          field("画像URL", "image", item.content.image, item, false)
-        );
+        if (item.type !== "custom-page") {
+          fields.append(
+            field("見出し", "title", item.content.title, item, false),
+            field("説明", "subtitle", item.content.subtitle, item, true),
+            field("ボタン表示", "button", item.content.button, item, false),
+            field("リンク先", "link", item.content.link, item, false),
+            field("画像URL", "image", item.content.image, item, false)
+          );
+        }
         if (item.type === "custom-text" || item.type === "custom-image-text") {
           fields.appendChild(field("本文", "body", item.content.body, item, true));
         }
@@ -831,6 +903,7 @@
           settingsDetails.appendChild(settingsFields);
           fields.appendChild(settingsDetails);
         }
+        if (item.type !== "custom-page") {
         {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
@@ -860,6 +933,7 @@
           layoutSelect.addEventListener("change", function () { item.content.layout = layoutSelect.value; });
           fields.appendChild(layout);
           layout.appendChild(layoutSelect);
+        }
         }
         const themeDetails = document.createElement("details");
         themeDetails.style.cssText = "grid-column:1/-1;border-top:1px solid var(--line,#333);padding-top:10px;";
@@ -1188,7 +1262,7 @@
           const customPageHidden = item.hidden === true;
           customSection.hidden = customPageHidden;
           customSection.style.cssText = "padding:24px 5%;";
-          const pageSections = Array.isArray(page.sections) ? page.sections : [];
+          const pageSections = Array.isArray(item.content && item.content.topSections) ? item.content.topSections : (Array.isArray(page.sections) ? page.sections : []);
           if (customPageHidden) customSection.style.setProperty("display", "none", "important");
           customSection.setAttribute("aria-hidden", String(customPageHidden));
           const pageContent = item.content && typeof item.content === "object" ? item.content : {};
