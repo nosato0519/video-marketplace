@@ -362,6 +362,7 @@
       ["custom-spacer", "自由ブロック：余白"]
     ].map(function (item) { return { type: item[0], label: item[1] }; });
     const allDefinitions = definitions.concat(customDefinitions);
+    const standardSectionTypes = new Set(definitions.map(function (item) { return item.type; }));
     const customTypes = new Set(customDefinitions.map(function (item) { return item.type; }));
     let nextAddedSectionId = 0;
     let sections = [];
@@ -655,7 +656,7 @@
           checkbox.value = pageSection.id;
           checkbox.checked = selectedIds
             ? selectedIds.has(pageSection.id)
-            : !standardHomepageTypes.has(pageSection.type);
+: !standardSectionTypes.has(pageSection.type);
           checkbox.addEventListener("change", function () {
             item.content.visibleSectionIds = Array.from(list.querySelectorAll('input[type="checkbox"]:checked'))
               .map(function (input) { return input.value; });
