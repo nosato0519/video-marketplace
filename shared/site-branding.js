@@ -1303,10 +1303,6 @@
           ordered.push(customSection);
           return;
         }
-        if (standardHomepageTypes.has(item.type)) {
-          if (orderedStandardTypes.has(item.type)) return;
-          orderedStandardTypes.add(item.type);
-        }
         if (["custom-text", "custom-image", "custom-image-text", "custom-gallery", "custom-cards", "custom-button", "custom-divider", "custom-spacer"].includes(item.type)) {
           const customSection = document.createElement("section");
           customSection.className = "section vm-homepage-custom-block vm-homepage-" + item.type;
