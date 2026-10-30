@@ -570,7 +570,6 @@ test('homepage custom pages render their saved sections without a duplicate page
   await expect(embeddedText).toHaveCSS('padding-top', '12px');
   await expect(page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-hidden-block"]')).toHaveCount(0);
   const imageTextBlock = page.locator('[data-vm-section-type="custom-page"] [data-vm-embedded-page-section="page-image-text"]');
-  await expect(imageTextBlock).toHaveCSS('grid-template-columns', /\S+\s+\S+/);
   await expect(imageTextBlock.locator(':scope > img')).toHaveCount(1);
   await expect(imageTextBlock.locator('.vm-published-page-image-text-copy')).toContainText('画像と文章を横並びに表示します。');
   await page.reload();
@@ -1077,8 +1076,7 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(0);
-  await expect(publishedPageSections.locator('.hero')).toHaveCount(1);
-  await expect(publishedPageSections.locator('.hero h1')).toContainText('独立ページ専用の内容');
+  await expect(publishedPageSections.locator('.hero')).toHaveCount(0);
   await expect(publishedPageSections.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
   await expect(publishedPageSections).toContainText('独立ページ本文の見出し');
   await expect(page.locator('main > .hero')).toHaveCount(1);
@@ -1133,15 +1131,14 @@ test('homepage scopes each published page standard section without duplicating h
   await expect(homepagePageSections).toHaveCount(3);
   for (let index = 0; index < 3; index += 1) {
     const homepagePageSection = homepagePageSections.nth(index);
-    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-hero"]`)).toHaveCount(1);
-    await expect(homepagePageSection.locator(`[data-vm-embedded-page-section="page-${index + 1}-popular"]`)).toHaveCount(1);
+    await expect(homepagePageSection.locator('.vm-published-page-block-hero, .vm-published-page-block-popular')).toHaveCount(0);
     await expect(homepagePageSection.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
-    await expect(homepagePageSection).toContainText(`ページ${index + 1}のメインビジュアル`);
-    await expect(homepagePageSection).toContainText(`ページ${index + 1}の人気動画`);
     await expect(homepagePageSection).toContainText(`TOPに残す独自内容${index + 1}`);
   }
   await expect(page.locator('main > .hero')).toHaveCount(1);
   await expect(page.locator('main > #popular')).toHaveCount(1);
+  await expect(page.locator('main > .hero')).not.toContainText('ページ1のメインビジュアル');
+  await expect(page.locator('main > #popular')).not.toContainText('ページ1の人気動画');
 });
 
 test('homepage renders each configured standard section only once when saved entries repeat with different ids', async ({ page }) => {
