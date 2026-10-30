@@ -1181,6 +1181,113 @@
             pageSections.forEach(function (pageSection) {
               if (!pageSection || typeof pageSection !== "object" || !pageSection.type) return;
               const content = pageSection.content && typeof pageSection.content === "object" ? pageSection.content : {};
+              const standardDefinition = definitions.find(function (definition) { return definition.key === pageSection.type; });
+              if (standardDefinition) {
+                const source = originals[standardDefinition.key];
+                if (!source) return;
+                const standardPreview = source.cloneNode(true);
+                standardPreview.removeAttribute("id");
+                standardPreview.querySelectorAll("[id]").forEach(function (node) { node.removeAttribute("id"); });
+                standardPreview.querySelectorAll("[data-vm-section-id], [data-vm-section-type]").forEach(function (node) {
+                  node.removeAttribute("data-vm-section-id");
+                  node.removeAttribute("data-vm-section-type");
+                });
+                standardPreview.classList.add("vm-published-page-block", "vm-published-page-block-" + pageSection.type);
+                standardPreview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
+                standardPreview.hidden = false;
+                standardPreview.style.removeProperty("display");
+                standardPreview.removeAttribute("aria-hidden");
+
+                const embeddedSettings = pageSection.settings && typeof pageSection.settings === "object"
+                  ? pageSection.settings
+                  : (content.settings && typeof content.settings === "object" ? content.settings : {});
+                const embeddedTheme = pageSection.theme && typeof pageSection.theme === "object"
+                  ? pageSection.theme
+                  : (content.theme && typeof content.theme === "object" ? content.theme : {});
+                const embeddedTitle = typeof content.title === "string" && content.title.trim() ? content.title.trim() : pageSection.label;
+                const embeddedSubtitle = typeof content.subtitle === "string" ? content.subtitle.trim() : "";
+                const embeddedHeading = standardPreview.querySelector(".section-head h2, .hero-copy h1, .spotlight-copy h2, .finder h2, .library-copy h2, .creator-copy h2, .cta h2, h1, h2");
+                if (embeddedHeading && embeddedTitle) embeddedHeading.textContent = embeddedTitle;
+                let embeddedDescription = standardPreview.querySelector(".section-head p, .hero-copy > p, .video-showcase-copy, .collection-copy, .spotlight-copy > p, .finder > div > p, .library-copy > p, .creator-copy > p, .cta > p");
+                if (embeddedSubtitle) {
+                  if (embeddedDescription) {
+                    embeddedDescription.textContent = embeddedSubtitle;
+                  } else {
+                    const sectionHead = standardPreview.querySelector(".section-head");
+                    if (sectionHead) {
+                      embeddedDescription = document.createElement("p");
+                      embeddedDescription.className = "section-description";
+                      embeddedDescription.textContent = embeddedSubtitle;
+                      const heading = sectionHead.querySelector("h2");
+                      if (heading) heading.insertAdjacentElement("afterend", embeddedDescription);
+                      else sectionHead.appendChild(embeddedDescription);
+                    }
+                  }
+                }
+
+                if (typeof embeddedTheme.bg === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.bg)) standardPreview.style.backgroundColor = embeddedTheme.bg;
+                if (typeof embeddedTheme.text === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.text)) standardPreview.style.color = embeddedTheme.text;
+                if (typeof embeddedTheme.accent === "string" && /^#[0-9a-f]{6}$/i.test(embeddedTheme.accent)) standardPreview.style.setProperty("--section-accent", embeddedTheme.accent);
+                if (typeof embeddedTheme.radius === "string") standardPreview.style.borderRadius = embeddedTheme.radius === "square" ? "0" : "16px";
+                if (typeof embeddedTheme.spacing === "string") standardPreview.style.paddingBlock = embeddedTheme.spacing === "compact" ? "18px" : embeddedTheme.spacing === "large" ? "48px" : "28px";
+                if (typeof embeddedTheme.width === "string") {
+                  standardPreview.style.maxWidth = embeddedTheme.width === "narrow" ? "900px" : embeddedTheme.width === "wide" ? "none" : embeddedTheme.width === "standard" ? "1200px" : "";
+                  standardPreview.style.marginInline = embeddedTheme.width === "narrow" || embeddedTheme.width === "standard" ? "auto" : "";
+                }
+
+                const embeddedCardSettings = {
+                  popular: { selector: ".video-card", countKey: "videoCount" },
+                  "new-releases": { selector: ".video-card", countKey: "videoCount" },
+                  categories: { selector: ".cat", countKey: "categoryCount" },
+                  "genre-rail": { selector: ".genre-card", countKey: "genreCount" },
+                  "genre-recommendations": { selector: ".recommendation-card", countKey: "genreCount" },
+                  "video-showcase": { selector: ".showcase-card", countKey: "videoCount" },
+                  spotlight: { selector: ".spotlight-stack > .mini", countKey: "featureCount" },
+                  creators: { selector: ".creator-list > .person", countKey: "creatorCount" },
+                  collection: { selector: ".video-card", countKey: "videoCount" }
+                }[pageSection.type];
+                if (embeddedCardSettings) {
+                  const count = Number(embeddedSettings[embeddedCardSettings.countKey]);
+                  if (Number.isFinite(count) && count > 0) {
+                    standardPreview.querySelectorAll(embeddedCardSettings.selector).forEach(function (card, index) {
+                      card.hidden = index >= count;
+                      if (card.hidden) card.style.setProperty("display", "none", "important");
+                      else card.style.removeProperty("display");
+                    });
+                  }
+                }
+                if (["popular", "new-releases", "collection"].includes(pageSection.type) && [2, 3, 4, 5].includes(Number(embeddedSettings.columns))) {
+                  const grid = standardPreview.querySelector(".video-grid");
+                  if (grid) grid.style.gridTemplateColumns = "repeat(" + Number(embeddedSettings.columns) + ", minmax(0, 1fr))";
+                }
+                if (pageSection.type === "genre-rail") {
+                  const track = standardPreview.querySelector(".genre-track");
+                  if (track) {
+                    track.style.display = embeddedSettings.layout === "grid" ? "grid" : "";
+                    track.style.gridTemplateColumns = embeddedSettings.layout === "grid" ? "repeat(auto-fit, minmax(160px, 1fr))" : "";
+                  }
+                }
+                if (pageSection.type === "video-showcase") {
+                  const grid = standardPreview.querySelector(".video-showcase-grid");
+                  if (grid) grid.style.gridTemplateColumns = embeddedSettings.layout === "grid" ? "repeat(auto-fit, minmax(180px, 1fr))" : "";
+                }
+                if (pageSection.type === "spotlight") {
+                  const stack = standardPreview.querySelector(".spotlight-stack");
+                  if (stack) {
+                    const useGrid = embeddedSettings.layout === "grid";
+                    stack.style.display = useGrid ? "grid" : "";
+                    stack.style.gridTemplateColumns = useGrid ? "repeat(auto-fit, minmax(220px, 1fr))" : "";
+                    stack.style.gap = useGrid ? "16px" : "";
+                  }
+                }
+                if (pageSection.type === "finder") {
+                  standardPreview.querySelectorAll(".find-row span").forEach(function (filter) {
+                    filter.hidden = embeddedSettings.searchFields !== "extended";
+                  });
+                }
+                embeddedContent.appendChild(standardPreview);
+                return;
+              }
               const preview = document.createElement("section");
               preview.className = "vm-published-page-block vm-published-page-block-" + String(pageSection.type).replace(/[^a-z0-9-]/gi, "");
               preview.dataset.vmEmbeddedPageSection = pageSection.id || pageSection.type;
