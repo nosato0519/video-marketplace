@@ -834,7 +834,7 @@
         {
           const layout = document.createElement("label");
           layout.style.cssText = "display:grid;gap:5px;min-width:0;font-size:12px;";
-          layout.appendChild(document.createTextNode("表示レイアウト"));
+          layout.appendChild(document.createTextNode(item.type === "custom-page" ? "ページリンクカードのレイアウト" : "表示レイアウト"));
           const layoutSelect = document.createElement("select");
           layoutSelect.style.cssText = "box-sizing:border-box;width:100%;padding:8px;border:1px solid #424650;border-radius:6px;background:#111318;color:inherit;font:inherit;";
           (item.type === "custom-page" ? [
@@ -1201,8 +1201,8 @@
               ? selectedSectionIds.has(String(pageSection.id))
               : !standardHomepageTypes.has(pageSection.type);
           });
-          const hasVisibleCustomPageSections = visiblePageSections.length > 0;
-          if (!hasVisibleCustomPageSections) {
+          const hasVisiblePageSections = visiblePageSections.length > 0;
+          if (!hasVisiblePageSections) {
             const link = document.createElement("a");
             link.href = page.url;
             const content = item.content && typeof item.content === "object" ? item.content : {};
