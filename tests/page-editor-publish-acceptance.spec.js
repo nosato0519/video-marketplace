@@ -491,7 +491,7 @@ test('homepage editor publishes all configurable custom blocks and adapts card c
   await expect.poll(columnCount).toBe(1);
 });
 
-test('homepage custom-page layout selection persists and controls public rendering', async ({ page }) => {
+test('homepage custom pages render their saved sections without a duplicate page card', async ({ page }) => {
   const publishedPage = { id: 'layout-persistence-page', name: 'レイアウト保存テスト', url: '/pages/layout-persistence-page', image: '', sections: [{ id: 'page-popular', type: 'popular', label: 'ページ内の人気動画', content: { title: 'TOP反映専用の人気動画見出し', subtitle: 'TOP表示用の説明文', settings: { videoCount: 4, columns: 2 } }, settings: { videoCount: 4, columns: 2 }, theme: { bg: '#123456', text: '#ffffff', accent: '#abcdef', width: 'narrow', spacing: 'large', radius: 'square', imageFit: 'contain', buttonText: '#222222' }, items: [] }, { id: 'page-video-showcase', type: 'video-showcase', label: 'ページ内の作品紹介', content: { settings: { layout: 'grid', videoCount: 3 } }, items: [] }, { id: 'page-intro', type: 'custom-text', label: 'ページ本文', content: { title: '埋め込みセクション', subtitle: 'TOPに反映される本文', body: '独立ページで保存した内容です。' }, theme: { bg: '#234567', text: '#eeeeee', width: 'wide', spacing: 'compact' }, items: [] },
     { id: 'page-custom-gallery', type: 'custom-gallery', label: 'ページ内ギャラリー', settings: { columns: '4' }, content: { title: 'ページ内ギャラリー' }, items: [{ title: '画像A' }, { title: '画像B' }, { title: '画像C' }, { title: '画像D' }] }, { id: 'page-genre-rail', type: 'genre-rail', label: 'ページ内ジャンル', content: { settings: { layout: 'grid', genreCount: 3 } }, items: [] }, { id: 'page-finder', type: 'finder', label: 'ページ内検索', content: { settings: { searchFields: 'basic' } }, items: [] }] };
   let savedSections = [{
