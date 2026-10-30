@@ -284,12 +284,12 @@
     const column = document.getElementById("vm-public-documents-footer");
     if (!container || !column) return;
     container.replaceChildren();
-    (Array.isArray(documents) ? documents : []).forEach(function (document) {
-      if (!document || typeof document.title !== "string" || !document.title.trim() ||
-          typeof document.url !== "string" || !document.url.startsWith("/pages/")) return;
+    (Array.isArray(documents) ? documents : []).forEach(function (item) {
+      if (!item || typeof item.title !== "string" || !item.title.trim() ||
+          typeof item.url !== "string" || !item.url.startsWith("/pages/")) return;
       const link = document.createElement("a");
-      link.href = document.url;
-      link.textContent = document.title;
+      link.href = item.url;
+      link.textContent = item.title;
       container.appendChild(link);
     });
     column.hidden = container.childElementCount === 0;
