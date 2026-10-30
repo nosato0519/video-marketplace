@@ -28,13 +28,13 @@ const adminSettingsRoutes = fs.readFileSync(path.join(root, 'backend', 'src', 'a
 const backendApp = fs.readFileSync(path.join(root, 'backend', 'src', 'app.js'), 'utf8');
 const publicHome = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
-assert.match(publicDocumentAdmin, /api\\/admin\\/settings\\/public-documents/);
+assert.ok(publicDocumentAdmin.includes('/api/admin/settings/public-documents'));
 assert.doesNotMatch(publicDocumentAdmin, /localStorage/);
 assert.match(adminSettingsRoutes, /router\\.get\\('\/settings\/public-documents'/);
 assert.match(adminSettingsRoutes, /router\\.put\\('\/settings\/public-documents'/);
-assert.match(adminSettingsRoutes, /router\\.use\\(requireAuth, requireRole\\('admin'\\)\\)/);
-assert.match(backendApp, /publishedPublicDocumentMiddleware/);
-assert.match(backendApp, /'public_documents'/);
+assert.ok(adminSettingsRoutes.includes("router.use(requireAuth, requireRole('admin'))"));
+assert.ok(backendApp.includes('publishedPublicDocumentMiddleware'));
+assert.ok(backendApp.includes("'public_documents'"));
 assert.match(publicHome, /href="\/pages\/terms\\.html"/);
 assert.match(publicHome, /href="\/pages\/privacy\\.html"/);
 
