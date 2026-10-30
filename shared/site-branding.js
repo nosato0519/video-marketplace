@@ -636,7 +636,17 @@
         ["custom-gallery","画像ギャラリー"],["custom-cards","カード一覧"],
         ["custom-button","ボタン"],["custom-divider","区切り線"],["custom-spacer","余白"]
       ];
-      if (!Array.isArray(item.content.topSections)) item.content.topSections = [];
+      if (!Array.isArray(item.content.topSections)) {
+        const page = publishedPages.find(function (entry) { return entry && entry.id === item.pageId; });
+        const legacySections = page && Array.isArray(page.sections) ? page.sections : [];
+        const selectedIds = Array.isArray(item.content.visibleSectionIds) ? new Set(item.content.visibleSectionIds.map(String)) : null;
+        item.content.topSections = legacySections
+          .filter(function (section) {
+            if (!section || typeof section !== "object" || section.hidden === true) return false;
+            return selectedIds ? selectedIds.has(String(section.id)) : !standardSectionTypes.has(section.type);
+          })
+          .map(function (section) { return JSON.parse(JSON.stringify(section)); });
+      }
       const list = document.createElement("div");
       list.style.cssText = "display:grid;gap:10px;";
       function renderBlocks() {
