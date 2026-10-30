@@ -127,7 +127,19 @@ export function createApp() {
                     }))
                     .sort((left, right) => left.order - right.order)
                 : [];
-              return { id: page.id, name: page.name, url: page.url, image, sections: publicSections };
+              const publicTopSections = Array.isArray(page.topSections)
+                ? page.topSections.filter((section) => section && typeof section === "object" && typeof section.type === "string")
+                    .map((section, index) => ({
+                      id: typeof section.id === "string" ? section.id : section.type + "-" + index,
+                      type: section.type,
+                      label: typeof section.label === "string" ? section.label : "",
+                      hidden: section.hidden === true,
+                      content: section.content && typeof section.content === "object" ? section.content : {},
+                      settings: section.settings && typeof section.settings === "object" ? section.settings : {},
+                      theme: section.theme && typeof section.theme === "object" ? section.theme : {}
+                    }))
+                : null;
+              return { id: page.id, name: page.name, url: page.url, image, sections: publicSections, topSections: publicTopSections };
             });
         }
       } catch (_) {}
