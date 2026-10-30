@@ -95,8 +95,32 @@ async function renderCategoryListings(grid) {
   }
 }
 
-document.querySelectorAll('[data-published-listings="new-releases"]').forEach(renderNewReleases);
+function initializeNewReleaseGrids(root) {
+  const grids = [];
+  if (root && root.nodeType === Node.ELEMENT_NODE && root.matches('[data-published-listings="new-releases"]')) {
+    grids.push(root);
+  }
+  if (root && typeof root.querySelectorAll === 'function') {
+    grids.push(...root.querySelectorAll('[data-published-listings="new-releases"]'));
+  }
+  grids.forEach((grid) => {
+    if (grid.dataset.publishedListingsInitialized === 'true') return;
+    grid.dataset.publishedListingsInitialized = 'true';
+    renderNewReleases(grid);
+  });
+}
+
+initializeNewReleaseGrids(document);
 document.querySelectorAll('[data-published-listings="category"]').forEach(renderCategoryListings);
+
+// Homepage page-editor sections are inserted after the initial page load.
+// Initialize their cloned listing grids through the same data-loading path.
+const homepageListingObserver = new MutationObserver((records) => {
+  records.forEach((record) => {
+    record.addedNodes.forEach((node) => initializeNewReleaseGrids(node));
+  });
+});
+homepageListingObserver.observe(document.documentElement, { childList: true, subtree: true });
 
 async function renderProductDetail() {
   const productId = new URLSearchParams(location.search).get('productId');
