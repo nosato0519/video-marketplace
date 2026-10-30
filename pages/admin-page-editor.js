@@ -255,6 +255,7 @@ function compressPageImage(file){
   reader.readAsDataURL(file);
  });
 }
+window.compressPageImage = compressPageImage;
 function bindPageImageUpload(fileInput,targetInput,preview){
  if(!fileInput||!targetInput)return;
  fileInput.addEventListener('change',async()=>{
