@@ -1665,7 +1665,7 @@
             const element = document.createElement(tag);
             element.textContent = value.trim();
             if (className) element.className = className;
-            customSection.appendChild(element);
+            imageTextCopy.appendChild(element);
             return element;
           }
           const imageTextLayout = item.type === "custom-image-text" ? document.createElement("div") : null;
