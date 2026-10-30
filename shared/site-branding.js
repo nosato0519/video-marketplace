@@ -369,13 +369,16 @@
       const source = Array.isArray(items) ? items : [];
       const seenIds = new Set();
       const seenTypes = new Set();
+      const seenPublishedPageIds = new Set();
       const normalized = source.filter(function (item) {
         if (!item || typeof item !== "object") return false;
         const id = typeof item.id === "string" && item.id ? item.id : item.type;
         if (typeof id !== "string" || !id || seenIds.has(id)) return false;
         if (item.type === "custom-page") {
+          if (typeof item.pageId !== "string" || !item.pageId || seenPublishedPageIds.has(item.pageId)) return false;
           if (!publishedPages.some(function (page) { return page.id === item.pageId; })) return false;
           seenIds.add(id);
+          seenPublishedPageIds.add(item.pageId);
           return true;
         }
         if (!allDefinitions.some(function (def) { return def.type === item.type; })) return false;
