@@ -1035,7 +1035,10 @@ test('homepage renders each published custom page once when API data contains du
     name: '重複表示防止テストページ',
     url: '/pages/duplicate-published-page',
     image: '',
-    sections: [],
+    sections: [
+      { id: 'published-page-hero', type: 'hero', label: '独立ページのメインビジュアル', content: { title: '独立ページ専用の内容' } },
+      { id: 'published-page-custom', type: 'custom-text', label: '独立ページ本文', content: { title: '独立ページ本文の見出し' } },
+    ],
   };
   const customPageSection = (id) => ({
     id,
@@ -1073,6 +1076,9 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
+  await expect(publishedPageSections.locator('.vm-published-page-content')).toHaveCount(0);
+  await expect(publishedPageSections.locator('.hero, .vm-published-page-block')).toHaveCount(0);
+  await expect(page.locator('main > .hero')).toHaveCount(1);
 
   await page.evaluate(() => document.dispatchEvent(new Event('DOMContentLoaded')));
   await expect(publishedPageSections).toHaveCount(1);
