@@ -95,6 +95,8 @@ async function renderCategoryListings(grid) {
   }
 }
 
+const initializedNewReleaseGrids = new WeakSet();
+
 function initializeNewReleaseGrids(root) {
   const grids = [];
   if (root && root.nodeType === Node.ELEMENT_NODE && root.matches('[data-published-listings="new-releases"]')) {
@@ -104,8 +106,8 @@ function initializeNewReleaseGrids(root) {
     grids.push(...root.querySelectorAll('[data-published-listings="new-releases"]'));
   }
   grids.forEach((grid) => {
-    if (grid.dataset.publishedListingsInitialized === 'true') return;
-    grid.dataset.publishedListingsInitialized = 'true';
+    if (initializedNewReleaseGrids.has(grid)) return;
+    initializedNewReleaseGrids.add(grid);
     renderNewReleases(grid);
   });
 }
@@ -113,11 +115,10 @@ function initializeNewReleaseGrids(root) {
 initializeNewReleaseGrids(document);
 document.querySelectorAll('[data-published-listings="category"]').forEach(renderCategoryListings);
 
-// Homepage page-editor sections are inserted after the initial page load.
-// Initialize their cloned listing grids through the same data-loading path.
+// Page-editor sections are inserted after the initial page load.
 const homepageListingObserver = new MutationObserver((records) => {
   records.forEach((record) => {
-    record.addedNodes.forEach((node) => initializeNewReleaseGrids(node));
+    record.addedNodes.forEach(initializeNewReleaseGrids);
   });
 });
 homepageListingObserver.observe(document.documentElement, { childList: true, subtree: true });
