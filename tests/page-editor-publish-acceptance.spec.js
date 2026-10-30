@@ -1098,6 +1098,16 @@ test('homepage scopes each published page standard section without duplicating h
       { id: `page-${index}-custom`, type: 'custom-text', label: '独自コンテンツ', content: { title: `TOPに残す独自内容${index}`, body: 'ページ固有の内容' } },
     ],
   }));
+  publishedPages.push({
+    id: 'published-page-standard-only',
+    name: '標準セクションのみのページ',
+    url: '/pages/published-page-standard-only',
+    image: '',
+    sections: [
+      { id: 'standard-only-hero', type: 'hero', label: 'メインビジュアル', content: {} },
+      { id: 'standard-only-popular', type: 'popular', label: '人気の動画', content: {} },
+    ],
+  });
   const sections = [
     {
       id: 'homepage-hidden-popular',
@@ -1139,13 +1149,14 @@ test('homepage scopes each published page standard section without duplicating h
 
   await page.goto('/');
   const homepagePageSections = page.locator('main .vm-published-page[data-vm-section-type="custom-page"]');
-  await expect(homepagePageSections).toHaveCount(3);
+  await expect(homepagePageSections).toHaveCount(4);
   for (let index = 0; index < 3; index += 1) {
     const homepagePageSection = homepagePageSections.nth(index);
     await expect(homepagePageSection.locator('.vm-published-page-block-hero, .vm-published-page-block-popular')).toHaveCount(0);
     await expect(homepagePageSection.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
     await expect(homepagePageSection).toContainText(`TOPに残す独自内容${index + 1}`);
   }
+  await expect(homepagePageSections.nth(3).locator('a[href="/pages/published-page-standard-only"]')).toHaveCount(1);
   await expect(page.locator('main > .hero')).toHaveCount(1);
   await expect(page.locator('main > #popular')).toHaveCount(1);
   await expect(page.locator('main > #popular')).toBeHidden();
