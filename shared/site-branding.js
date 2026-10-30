@@ -656,7 +656,7 @@
           checkbox.value = pageSection.id;
           checkbox.checked = selectedIds
             ? selectedIds.has(pageSection.id)
-: !standardSectionTypes.has(pageSection.type);
+            : !standardSectionTypes.has(pageSection.type);
           checkbox.addEventListener("change", function () {
             item.content.visibleSectionIds = Array.from(list.querySelectorAll('input[type="checkbox"]:checked'))
               .map(function (input) { return input.value; });
