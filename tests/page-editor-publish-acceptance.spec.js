@@ -1076,8 +1076,9 @@ test('homepage renders each published custom page once when API data contains du
   await expect(publishedPageSections).toHaveCount(1);
   await expect(publishedPageSections.first()).toContainText('重複表示防止テストページ');
   await expect(publishedPageSections.locator('a[href="/pages/duplicate-published-page"]')).toHaveCount(1);
-  await expect(publishedPageSections.locator('.vm-published-page-content')).toHaveCount(0);
-  await expect(publishedPageSections.locator('.hero, .vm-published-page-block')).toHaveCount(0);
+  await expect(publishedPageSections.locator('.hero')).toHaveCount(0);
+  await expect(publishedPageSections.locator('.vm-published-page-block-custom-text')).toHaveCount(1);
+  await expect(publishedPageSections).toContainText('独立ページ本文の見出し');
   await expect(page.locator('main > .hero')).toHaveCount(1);
 
   await page.evaluate(() => document.dispatchEvent(new Event('DOMContentLoaded')));
