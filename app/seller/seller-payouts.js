@@ -103,7 +103,7 @@ export async function renderSellerPayouts(root) {
 
       try {
         const payload = Object.fromEntries(new FormData(form));
-        const result = await api('/seller/payouts', {
+        await api('/seller/payouts', {
           method: 'POST',
           body: JSON.stringify({
             amount: Number(payload.amount),
