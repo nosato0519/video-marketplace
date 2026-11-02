@@ -26,11 +26,11 @@ router.get('/earnings', async (req, res, next) => {
 
     if (view === 'monthly') {
       const result = await query(
-        "SELECT DATE_TRUNC('month', e.created_at) AS month_start, COALESCE(SUM(e.gross_amount), 0) AS gross_amount, COALESCE(SUM(e.platform_fee), 0) AS platform_fee, COALESCE(SUM(e.net_amount), 0) AS net_amount, COUNT(*)::int AS sale_count, MIN(e.currency) AS currency FROM seller_earnings e WHERE e.seller_id = $1 AND e.status IN ('available','paid') GROUP BY DATE_TRUNC('month', e.created_at) ORDER BY month_start DESC LIMIT $2 OFFSET $3",
+        "SELECT DATE_TRUNC('month', e.created_at AT TIME ZONE 'Asia/Tokyo') AS month_start, COALESCE(SUM(e.gross_amount), 0) AS gross_amount, COALESCE(SUM(e.platform_fee), 0) AS platform_fee, COALESCE(SUM(e.net_amount), 0) AS net_amount, COUNT(*)::int AS sale_count, MIN(e.currency) AS currency FROM seller_earnings e WHERE e.seller_id = $1 AND e.status IN ('available','paid') GROUP BY DATE_TRUNC('month', e.created_at AT TIME ZONE 'Asia/Tokyo') ORDER BY month_start DESC LIMIT $2 OFFSET $3",
         [req.user.id, perPage, offset]
       );
       const count = await query(
-        "SELECT COUNT(*)::int AS total FROM (SELECT DATE_TRUNC('month', created_at) FROM seller_earnings WHERE seller_id = $1 AND status IN ('available','paid') GROUP BY DATE_TRUNC('month', created_at)) months",
+        "SELECT COUNT(*)::int AS total FROM (SELECT DATE_TRUNC('month', created_at AT TIME ZONE 'Asia/Tokyo') FROM seller_earnings WHERE seller_id = $1 AND status IN ('available','paid') GROUP BY DATE_TRUNC('month', created_at AT TIME ZONE 'Asia/Tokyo')) months",
         [req.user.id]
       );
       const totalCount = count.rows[0]?.total || 0;
