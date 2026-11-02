@@ -49,6 +49,7 @@ test('seller payout histories distinguish paid dates from request dates and term
   assert.match(sellerPayoutHistory, /const isPaid = payout\.status === 'paid' && Boolean\(payout\.paid_at\)/);
   assert.match(sellerPayoutHistory, /入金日/);
   assert.match(sellerPayoutHistory, /申請日/);
+  assert.match(sellerPayoutHistory, /await renderSellerPayouts\(root\)/);
   for (const status of ['failed', 'cancelled']) assert.match(sellerAccount, new RegExp(`${status}:`));
   assert.match(sellerAccount, /振込処理に失敗しました/);
   assert.match(sellerAccount, /申請はキャンセルされました/);
