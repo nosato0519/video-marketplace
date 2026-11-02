@@ -115,7 +115,9 @@ export async function renderSellerPayouts(root) {
           : 'Payout request submitted.';
         button.disabled = false;
       } catch (error) {
-        message.textContent = error.body?.error || 'Unable to submit payout request.';
+        message.textContent = error.body?.error === 'minimum_payout_not_reached'
+          ? `Minimum payout is ${money(error.body.minimum, form.elements.currency.value)}.`
+          : error.body?.error || 'Unable to submit payout request.';
         button.disabled = false;
       }
     });
@@ -200,10 +202,11 @@ export function initSellerPaymentHistoryPage() {
     list.innerHTML = payouts.length
       ? payouts.map((payout) => {
           const status = statusLabels[payout.status] || payout.status || '—';
-          const date = payout.paid_at || payout.requested_at;
-          const dateLabel = payout.paid_at
-            ? `${formatDate(date)}　入金済み`
-            : `${formatDate(date)}　入金予定・申請中`;
+          const isPaid = payout.status === 'paid' && Boolean(payout.paid_at);
+          const date = isPaid ? payout.paid_at : payout.requested_at;
+          const dateLabel = isPaid
+            ? `${formatDate(date)}　入金日`
+            : `${formatDate(date)}　申請日`;
 
           return `<div class="seller-video-row">
             <div class="seller-video-info">
