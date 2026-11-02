@@ -110,8 +110,8 @@
     <span>© 2026 VIDEO MARKETPLACE</span>
   </footer>
 <script type="module">
-async function request(path) {
-  const response = await fetch(path, { credentials: 'same-origin' });
+async function request(path, options = {}) {
+  const response = await fetch(path, { ...options, credentials: 'same-origin' });
   const text = await response.text();
   let body = null;
   try { body = text ? JSON.parse(text) : null; } catch {}
@@ -129,8 +129,8 @@ function formatYen(amount) {
 
 async function loadDashboard() {
   const [products, earnings] = await Promise.all([
-    request('/api/seller/products'),
-    request('/api/seller/earnings')
+    request('/api/seller/products', { cache: 'no-store' }),
+    request('/api/seller/earnings', { cache: 'no-store' })
   ]);
   const publishedCount = Number(products.counts?.published || 0);
   document.querySelector('#published-count').textContent = publishedCount.toLocaleString('ja-JP');
@@ -168,7 +168,13 @@ async function applyVerificationCardVisibility() {
 }
 
 loadDashboard().catch((error) => {
-  if (error.status === 401 || error.status === 403) window.location.href = '/pages/seller-login.html';
+  if (error.status === 401 || error.status === 403) {
+    window.location.href = '/pages/seller-login.html';
+    return;
+  }
+  document.querySelector('#published-count').textContent = '—';
+  document.querySelector('#sale-count').textContent = '—';
+  document.querySelector('#earned-amount').textContent = '—';
 });
 applyVerificationCardVisibility();
 </script>
