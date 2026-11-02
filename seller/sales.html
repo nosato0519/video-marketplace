@@ -81,10 +81,10 @@
         <div><span class="section-kicker">SALES ANALYSIS</span><h2>販売分析</h2></div>
       </div>
       <div class="buyer-menu-grid">
-        <div class="buyer-menu-card"><span>TOP PRODUCT</span><strong>THE LAST SIGNAL</strong><small>販売 24件　売上 ¥115,200</small><b>作品別</b></div>
-        <div class="buyer-menu-card"><span>SALES COUNT</span><strong>32件</strong><small>今月の販売数</small><b>期間別</b></div>
-        <div class="buyer-menu-card"><span>AVERAGE</span><strong>¥2,700</strong><small>1作品あたりの平均売上</small><b>平均</b></div>
-        <div class="buyer-menu-card"><span>NET EARNINGS</span><strong>¥86,400</strong><small>手数料差引後の受取額</small><b>受取</b></div>
+        <div class="buyer-menu-card"><span>TOP PRODUCT</span><strong id="analysis-top-product">—</strong><small id="analysis-top-product-detail">販売実績を読み込み中</small><b>作品別</b></div>
+        <div class="buyer-menu-card"><span>SALES COUNT</span><strong id="analysis-sales-count">—</strong><small>今月の販売数</small><b>期間別</b></div>
+        <div class="buyer-menu-card"><span>AVERAGE</span><strong id="analysis-average">—</strong><small>1販売あたりの平均売上（手数料差引前）</small><b>平均</b></div>
+        <div class="buyer-menu-card"><span>NET EARNINGS</span><strong id="analysis-net-earnings">—</strong><small>手数料差引後の累計受取額</small><b>受取</b></div>
       </div>
     </section>
 
@@ -99,6 +99,16 @@ function formatYen(amount) {
   return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
 }
 
+function formatCurrencyBreakdown(rows, field) {
+  return (Array.isArray(rows) ? rows : []).map((row) => (
+    new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: row.currency || 'JPY',
+      maximumFractionDigits: row.currency === 'JPY' ? 0 : 2,
+    }).format(Number(row[field] || 0))
+  )).join(' / ') || '—';
+}
+
 async function loadSales() {
   const response = await fetch('/api/seller/earnings', { credentials: 'same-origin' });
   const body = await response.json().catch(() => null);
@@ -109,10 +119,22 @@ async function loadSales() {
   }
 
   const summary = body?.summary || {};
+  const analysis = body?.analysis || {};
+  const topProduct = analysis.top_product;
   document.querySelector('#sales-today').textContent = formatYen(summary.today_gross_amount);
   document.querySelector('#sales-month').textContent = formatYen(summary.month_gross_amount);
   document.querySelector('#sales-last-month').textContent = formatYen(summary.last_month_gross_amount);
   document.querySelector('#sales-count').textContent = Number(summary.sale_count || 0).toLocaleString('ja-JP');
+  document.querySelector('#analysis-top-product').textContent = topProduct?.title || '—';
+  document.querySelector('#analysis-top-product-detail').textContent = topProduct
+    ? `販売 ${Number(topProduct.sale_count || 0).toLocaleString('ja-JP')}件　売上 ${formatCurrencyBreakdown(topProduct.gross_by_currency, 'gross_amount')}`
+    : '販売実績はありません';
+  document.querySelector('#analysis-sales-count').textContent =
+    `${Number(summary.month_sale_count || 0).toLocaleString('ja-JP')}件`;
+  document.querySelector('#analysis-average').textContent =
+    formatCurrencyBreakdown(analysis.by_currency, 'average_gross_amount');
+  document.querySelector('#analysis-net-earnings').textContent =
+    formatCurrencyBreakdown(analysis.by_currency, 'net_earnings');
 }
 
 loadSales().catch((error) => {
