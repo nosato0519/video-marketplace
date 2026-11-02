@@ -277,12 +277,21 @@ function renderPayoutHistory(payouts) {
     return;
   }
   historyElement.innerHTML = payouts.map((payout) => {
-    const date = payout.requested_at
-      ? new Date(payout.requested_at).toLocaleDateString('ja-JP')
-      : '-';
-    return `<span>${escapeHtml(date)}</span>
+    const isPaid = payout.status === 'paid' && Boolean(payout.paid_at);
+    const dateValue = isPaid ? payout.paid_at : payout.requested_at;
+    const date = dateValue ? new Date(dateValue).toLocaleDateString('ja-JP') : '-';
+    const statusDescription = {
+      requested: '入金申請を受け付けました。',
+      reviewing: '運営が申請内容を確認しています。',
+      approved: '申請が承認され、振込手続き前です。',
+      processing: '振込手続きを進めています。',
+      paid: '振込が完了しました。',
+      failed: '振込処理に失敗しました。運営へお問い合わせください。',
+      cancelled: '申請はキャンセルされました。',
+    }[payout.status] || '入金状況をご確認ください。';
+    return `<span>${escapeHtml(isPaid ? `振込日 ${date}` : `申請日 ${date}`)}</span>
       <strong>${formatYen(payout.amount)}　${escapeHtml(statusLabel(payout.status))}</strong>
-      <small>${payout.paid_at ? '振込済み' : '振込処理中'}</small>`;
+      <small>${escapeHtml(statusDescription)}</small>`;
   }).join('');
 }
 
@@ -337,7 +346,10 @@ async function submitPayout() {
       window.location.href = '/pages/seller-login.html';
       return;
     }
-    alert(error.body?.error?.message || error.body?.error || '出金申請に失敗しました。');
+    const message = error.body?.error === 'minimum_payout_not_reached'
+      ? `最低出金申請額は${formatYen(error.body.minimum)}です。`
+      : error.body?.error?.message || error.body?.error || '出金申請に失敗しました。';
+    alert(message);
   } finally {
     submitButton.disabled = false;
   }
