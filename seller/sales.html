@@ -80,6 +80,7 @@
       <div class="buyer-section-head">
         <div><span class="section-kicker">SALES ANALYSIS</span><h2>販売分析</h2></div>
       </div>
+      <p id="analysis-error" role="status" hidden></p>
       <div class="buyer-menu-grid">
         <div class="buyer-menu-card"><span>TOP PRODUCT</span><strong id="analysis-top-product">—</strong><small id="analysis-top-product-detail">販売実績を読み込み中</small><b>作品別</b></div>
         <div class="buyer-menu-card"><span>SALES COUNT</span><strong id="analysis-sales-count">—</strong><small>今月の販売数</small><b>期間別</b></div>
@@ -140,7 +141,21 @@ async function loadSales() {
 loadSales().catch((error) => {
   if (error.status === 401) {
     window.location.href = '/pages/seller-login.html';
+    return;
   }
+
+  const message = document.querySelector('#analysis-error');
+  if (message) {
+    message.hidden = false;
+    message.textContent = error.status
+      ? `販売分析を取得できませんでした（HTTP ${error.status}）。時間をおいて再度お試しください。`
+      : '販売分析を取得できませんでした。通信状況を確認して再度お試しください。';
+  }
+
+  document.querySelector('#analysis-top-product-detail').textContent = 'データを取得できません';
+  document.querySelector('#analysis-sales-count').textContent = '取得できません';
+  document.querySelector('#analysis-average').textContent = '取得できません';
+  document.querySelector('#analysis-net-earnings').textContent = '取得できません';
 });
 </script>
 <script src="/shared/site-branding.js"></script></body>
