@@ -253,8 +253,16 @@ async function submitSellerVerification() {
   }
 }
 
+function formatCurrency(amount, currency = 'JPY') {
+  return new Intl.NumberFormat('ja-JP', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: currency === 'JPY' ? 0 : 2,
+  }).format(Number(amount || 0));
+}
+
 function formatYen(amount) {
-  return `¥${Number(amount || 0).toLocaleString('ja-JP')}`;
+  return formatCurrency(amount, 'JPY');
 }
 
 function statusLabel(status) {
@@ -290,7 +298,7 @@ function renderPayoutHistory(payouts) {
       cancelled: '申請はキャンセルされました。',
     }[payout.status] || '入金状況をご確認ください。';
     return `<span>${escapeHtml(isPaid ? `振込日 ${date}` : `申請日 ${date}`)}</span>
-      <strong>${formatYen(payout.amount)}　${escapeHtml(statusLabel(payout.status))}</strong>
+      <strong>${formatCurrency(payout.amount, payout.currency || 'JPY')}　${escapeHtml(statusLabel(payout.status))}</strong>
       <small>${escapeHtml(statusDescription)}</small>`;
   }).join('');
 }
