@@ -110,10 +110,9 @@ export async function renderSellerPayouts(root) {
             currency: payload.currency
           })
         });
-        message.textContent = result?.payout?.status === 'requested'
-          ? 'Payout request submitted.'
-          : 'Payout request submitted.';
-        button.disabled = false;
+        await renderSellerPayouts(root);
+        const refreshedMessage = root.querySelector('#payout-message');
+        if (refreshedMessage) refreshedMessage.textContent = 'Payout request submitted.';
       } catch (error) {
         message.textContent = error.body?.error === 'minimum_payout_not_reached'
           ? `Minimum payout is ${money(error.body.minimum, form.elements.currency.value)}.`
