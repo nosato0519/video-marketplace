@@ -52,6 +52,8 @@ test('seller payout histories distinguish paid dates from request dates and term
   for (const status of ['failed', 'cancelled']) assert.match(sellerAccount, new RegExp(`${status}:`));
   assert.match(sellerAccount, /振込処理に失敗しました/);
   assert.match(sellerAccount, /申請はキャンセルされました/);
+  assert.match(sellerAccount, /function formatCurrency\(amount, currency = 'JPY'\)/);
+  assert.match(sellerAccount, /formatCurrency\(payout\.amount, payout\.currency \|\| 'JPY'\)/);
 });
 
 test('available balance source is seller earnings', () => {
