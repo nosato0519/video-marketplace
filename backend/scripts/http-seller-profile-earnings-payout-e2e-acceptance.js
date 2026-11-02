@@ -49,6 +49,12 @@ try {
   assert.equal(Number(earnings.body.summary?.today_gross_amount), 5000, JSON.stringify(earnings.body.summary));
   assert.equal(Number(earnings.body.summary?.month_sale_count), 1, JSON.stringify(earnings.body.summary));
   assert.equal(Number(earnings.body.summary?.month_gross_amount), 5000, JSON.stringify(earnings.body.summary));
+  assert.equal(earnings.body.analysis?.top_product?.title, 'Acceptance Product', JSON.stringify(earnings.body.analysis));
+  assert.equal(Number(earnings.body.analysis?.top_product?.sale_count), 1, JSON.stringify(earnings.body.analysis));
+  assert.equal(Number(earnings.body.analysis?.top_product?.gross_by_currency?.[0]?.gross_amount), 5000, JSON.stringify(earnings.body.analysis));
+  assert.equal(earnings.body.analysis?.by_currency?.[0]?.currency, 'JPY', JSON.stringify(earnings.body.analysis));
+  assert.equal(Number(earnings.body.analysis?.by_currency?.[0]?.average_gross_amount), 5000, JSON.stringify(earnings.body.analysis));
+  assert.equal(Number(earnings.body.analysis?.by_currency?.[0]?.net_earnings), 5000, JSON.stringify(earnings.body.analysis));
 
   const belowMinimum = await request(baseUrl, '/api/seller/payouts', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ amount: 999, currency: 'JPY' }) });
   assert.equal(belowMinimum.response.status, 400, JSON.stringify(belowMinimum.body));
