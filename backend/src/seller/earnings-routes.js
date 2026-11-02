@@ -24,6 +24,44 @@ router.get('/earnings', async (req, res, next) => {
       [req.user.id]
     );
 
+    const topProductResult = await query(
+      `SELECT p.title, product_sales.sale_count, product_sales.gross_by_currency
+         FROM (
+           SELECT product_id,
+                  SUM(currency_sales.sale_count)::int AS sale_count,
+                  json_agg(json_build_object(
+                    'currency', currency_sales.currency,
+                    'gross_amount', currency_sales.gross_amount
+                  ) ORDER BY currency_sales.currency) AS gross_by_currency
+             FROM (
+               SELECT product_id, currency, COUNT(*)::int AS sale_count,
+                      SUM(gross_amount) AS gross_amount
+                 FROM seller_earnings
+                WHERE seller_id = $1 AND status IN ('available', 'paid')
+                GROUP BY product_id, currency
+             ) currency_sales
+            GROUP BY product_id
+         ) product_sales
+         JOIN products p ON p.id = product_sales.product_id
+        ORDER BY product_sales.sale_count DESC, p.title ASC
+        LIMIT 1`,
+      [req.user.id]
+    );
+    const analysisCurrencyResult = await query(
+      `SELECT currency, COUNT(*)::int AS sale_count,
+              AVG(gross_amount) AS average_gross_amount,
+              SUM(net_amount) AS net_earnings
+         FROM seller_earnings
+        WHERE seller_id = $1 AND status IN ('available', 'paid')
+        GROUP BY currency
+        ORDER BY currency`,
+      [req.user.id]
+    );
+    const analysis = {
+      top_product: topProductResult.rows[0] || null,
+      by_currency: analysisCurrencyResult.rows,
+    };
+
     if (view === 'monthly') {
       const result = await query(
         "SELECT DATE_TRUNC('month', e.created_at AT TIME ZONE 'Asia/Tokyo') AS month_start, COALESCE(SUM(e.gross_amount), 0) AS gross_amount, COALESCE(SUM(e.platform_fee), 0) AS platform_fee, COALESCE(SUM(e.net_amount), 0) AS net_amount, COUNT(*)::int AS sale_count, MIN(e.currency) AS currency FROM seller_earnings e WHERE e.seller_id = $1 AND e.status IN ('available','paid') GROUP BY DATE_TRUNC('month', e.created_at AT TIME ZONE 'Asia/Tokyo') ORDER BY month_start DESC LIMIT $2 OFFSET $3",
@@ -36,6 +74,7 @@ router.get('/earnings', async (req, res, next) => {
       const totalCount = count.rows[0]?.total || 0;
       return res.json({
         summary: summary.rows[0],
+        analysis,
         earnings: result.rows,
         pagination: { page, per_page: perPage, total_count: totalCount, total_pages: Math.max(1, Math.ceil(totalCount / perPage)) },
       });
@@ -55,6 +94,7 @@ router.get('/earnings', async (req, res, next) => {
 
     return res.json({
       summary: summary.rows[0],
+      analysis,
       earnings: result.rows,
       pagination: { page, per_page: perPage, total_count: totalCount, total_pages: Math.max(1, Math.ceil(totalCount / perPage)) },
     });
