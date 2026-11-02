@@ -6,6 +6,8 @@ import { requireRole } from '../auth/authorize.js';
 const router = express.Router();
 router.use(requireAuth, requireRole('seller'));
 
+const MINIMUM_PAYOUT_AMOUNTS = Object.freeze({ JPY: 1000, USD: 10, EUR: 10 });
+
 async function requireVerifiedSeller(req, res, next) {
   try {
     const setting = await query(
@@ -216,9 +218,14 @@ router.post('/payouts', async (req, res, next) => {
     const outstandingRecovery = Number(debtBalance.rows[0]?.outstanding || 0);
     const withdrawable = Math.max(0, available - reservedAmount - offsetsAlreadyApplied - outstandingRecovery);
 
-    if (amount < 1000) {
+    const minimumAmount = MINIMUM_PAYOUT_AMOUNTS[currency] ?? 1000;
+    if (amount < minimumAmount) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'minimum_payout_not_reached', minimum: 1000 });
+      return res.status(400).json({
+        error: 'minimum_payout_not_reached',
+        minimum: minimumAmount,
+        currency,
+      });
     }
 
     if (amount > withdrawable) {
