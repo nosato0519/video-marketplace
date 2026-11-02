@@ -10,6 +10,8 @@ const adminPayoutRoute = fs.readFileSync(path.join(here, '..', 'admin', 'payout-
 const payoutMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '004_payouts_audit.sql'), 'utf8');
 const sellerProfileMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '010_seller_profile.sql'), 'utf8');
 const sellerEarningsMigration = fs.readFileSync(path.join(here, '..', '..', 'migrations', '011_seller_earnings.sql'), 'utf8');
+const sellerPayoutHistory = fs.readFileSync(path.join(here, '..', '..', '..', 'app', 'seller', 'seller-payouts.js'), 'utf8');
+const sellerAccount = fs.readFileSync(path.join(here, '..', '..', '..', 'app', 'seller', 'seller-account.js'), 'utf8');
 
 function assertCanonicalPayoutRoute(source, label) {
   assert.match(source, /\bFROM payouts\b|\bINSERT INTO payouts\b|\bUPDATE payouts\b/, `${label} must use the migrated payouts table`);
@@ -35,6 +37,21 @@ test('payout lifecycle is shared by the migration and route policy', () => {
 
 test('JPY payout requests reject fractional yen amounts', () => {
   assert.match(sellerPayoutRoute, /currency === 'JPY' && !Number\.isSafeInteger\(amount\)/);
+});
+
+test('payout minimums are currency-specific and returned to the caller', () => {
+  assert.match(sellerPayoutRoute, /MINIMUM_PAYOUT_AMOUNTS = Object\.freeze\(\{ JPY: 1000, USD: 10, EUR: 10 \}\)/);
+  assert.match(sellerPayoutRoute, /minimum: minimumAmount/);
+  assert.match(sellerPayoutRoute, /currency,\s*\}/);
+});
+
+test('seller payout histories distinguish paid dates from request dates and terminal statuses', () => {
+  assert.match(sellerPayoutHistory, /const isPaid = payout\.status === 'paid' && Boolean\(payout\.paid_at\)/);
+  assert.match(sellerPayoutHistory, /入金日/);
+  assert.match(sellerPayoutHistory, /申請日/);
+  for (const status of ['failed', 'cancelled']) assert.match(sellerAccount, new RegExp(`${status}:`));
+  assert.match(sellerAccount, /振込処理に失敗しました/);
+  assert.match(sellerAccount, /申請はキャンセルされました/);
 });
 
 test('available balance source is seller earnings', () => {
